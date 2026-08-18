@@ -470,10 +470,9 @@ function render(){
       box = `<button class="kb big" data-a="pad" data-i="${ix}">${L.enter}</button>`;
     } else {
       const on = s.pick==='yes';
-      const sub = on ? (s.auto? L.pre : L.conf) : '';
       const bereich = bereichHTML(it,s.plan,on);
       const geo = bereich.includes('class="bz"') ? ' bereich' : '';
-      box = `<div class="stmt ${on?('ok'+(s.auto?' auto':'')):'q'}${geo}">${bereich}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
+      box = `<div class="stmt ${on?('ok'+(s.auto?' auto':'')):'q'}${geo}">${bereich}</div>`;
       acts = `<div class="acts">
                 <button class="yes${on?' sel':''}" data-a="yes" data-i="${ix}">✓ ${L.yes}</button>
                 <button class="no" data-a="no" data-i="${ix}">✕ ${L.no}</button>
