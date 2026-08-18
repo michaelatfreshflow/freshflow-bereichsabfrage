@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freshflow · Bereiche-Bestandsabfrage · Mockup</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --green:#2E6A50; --green-d:#255742; --ink:#12211b; --mute:#8a8a8a; --line:#ececec;
+  --amber:#E8830C; --amber-bg:#FDF3E4; --red:#C1350F; --red-bg:#FBE0D8;
+  --blue:#1B4FA8; --blue-bg:#DDE8FB; --ok:#2E6A50; --ok-bg:#E9F3EE;
+}
+html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;color:var(--ink)}
+.stage{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
+.note{color:#9a9a9a;font-size:12.5px;line-height:1.55;margin:0 0 16px;max-width:900px}
+.note b{color:#e6e6e6}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.legend .lg{border:1px solid #2a2a2a;background:#141414;border-radius:9px;padding:8px 12px;font-size:11.5px;color:#9a9a9a;line-height:1.5}
+.legend .lg b{display:block;color:#f0f0f0;font-size:13px}
+.legend .lg i{font-style:normal;color:#6e6e6e}
+.win{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.tbar{display:flex;align-items:center;gap:9px;padding:12px 16px;background:#fff}
+.tl{width:12px;height:12px;border-radius:50%}
+.tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+.tbar .app{margin-left:14px;font-weight:700;font-size:14.5px}
+
+/* ---------- green header ---------- */
+.hdr{background:var(--green);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px}
+.hdr .back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;opacity:.95;cursor:default}
+.hdr .mid{flex:1}
+.hdr .t1{font-weight:700;font-size:15.5px;letter-spacing:.1px}
+.hdr .t1 .dim{opacity:.75;font-weight:600}
+.hdr .t2{font-size:12.5px;color:#cfe0d7;margin-top:2px}
+.hdr .t2 .due{color:#F5B453;font-weight:700}
+.hdr .rgt{display:flex;align-items:center;gap:12px;font-size:12.5px;text-align:right;line-height:1.3}
+.chk{width:26px;height:26px;border-radius:50%;background:#8FD3A8;color:#1c4433;display:grid;place-items:center;font-size:15px;font-weight:800}
+
+/* ---------- toolbars ---------- */
+.srch{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line)}
+.srch input{border:0;outline:0;font-size:15px;flex:1;color:var(--ink)}
+.srch input::placeholder{color:#b0b0b0}
+.tools{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);font-size:13.5px}
+.tools .sp{flex:1}
+.tools .btn{border:1px solid #dcdcdc;background:#fff;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;
+  color:var(--ink);cursor:pointer}
+.tools .btn:hover{background:#f7f7f7}
+.tools .btn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.tools .btn.pri:hover{background:var(--green-d)}
+.tools .btn:disabled{opacity:.4;cursor:not-allowed}
+.seg{display:inline-flex;border:1px solid #dcdcdc;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:#666}
+.seg button.on{background:var(--green);color:#fff}
+
+/* ---------- progress ---------- */
+.prog{display:flex;align-items:center;gap:16px;padding:9px 18px;background:#FAFBFA;border-bottom:1px solid var(--line);font-size:12.5px;color:#5d6b64}
+.prog b{color:var(--ink)}
+.bar{flex:1;height:6px;background:#e8ece9;border-radius:99px;overflow:hidden;max-width:280px}
+.bar i{display:block;height:100%;background:var(--green);width:0;transition:width .25s}
+
+/* ---------- table ---------- */
+.colh{display:grid;grid-template-columns:1fr 330px 200px;gap:10px;padding:10px 18px;border-bottom:2px solid #333;
+  font-weight:700;font-size:13.5px}
+.colh .i{display:inline-grid;place-items:center;width:15px;height:15px;border:1px solid #9aa8e0;border-radius:3px;
+  font-size:10px;color:#5566c0;font-style:italic;margin-left:6px;vertical-align:1px}
+.list{max-height:660px;overflow:auto}
+.row{display:grid;grid-template-columns:1fr 330px 200px;gap:10px;padding:11px 18px;border-bottom:1px solid #f2f2f2;align-items:start}
+.row.done{background:#FCFDFC}
+.row.hide{display:none}
+.nm{font-weight:800;font-size:14.5px;line-height:1.2}
+.meta{color:#9a9a9a;font-size:11.5px;margin-top:3px}
+.pills{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.pill{border:1px solid #e0e0e0;border-radius:99px;padding:1px 8px;font-size:10.5px;color:#5d6b64;background:#fff}
+.pill.b{border-color:#cfe0d7;background:#F1F7F3;color:#2E6A50}
+.pill.count{border-color:#e08c72;color:#7a2d10;background:#FDF1EC;font-weight:700}
+.pill.noladder{border-color:#bdbdbd;background:#efefef;color:#5c5c5c;font-weight:700}
+.pill.inv{border-color:#e6b5a6;background:var(--red-bg);color:#8d2b0c}
+.pill.ord{border-color:#b8caea;background:var(--blue-bg);color:#183f80}
+
+/* ---------- statement cell ---------- */
+.stmt{border:1.5px solid #e3e3e3;border-radius:10px;padding:9px 12px;font-size:14.5px;font-weight:700;background:#fff}
+.stmt.q{border-color:var(--amber);background:var(--amber-bg)}
+.stmt.ok{border-color:#bcd9c8;background:var(--ok-bg);color:#1f4d39}
+.stmt.skip{border-color:#e8e8e8;background:#fafafa;color:#a0a0a0;font-weight:600}
+.stmt.no2{border-color:#C1350F;background:#FBE9E3;color:#7c2409}
+.stmt.no2 .sub{color:#a15238}
+.stmt .sub{display:block;font-weight:500;font-size:11px;color:#8a8a8a;margin-top:2px}
+.stmt.ok .sub{color:#4f7f66}
+.acts{display:flex;gap:7px;margin-top:7px}
+.acts button{flex:0 0 auto;border-radius:9px;padding:7px 15px;font-size:13.5px;font-weight:700;cursor:pointer;border:1.5px solid}
+.yes{background:#fff;border-color:#bcd9c8;color:#2E6A50}
+.yes:hover{background:#F1F7F3}
+.yes.sel{background:var(--green);border-color:var(--green);color:#fff}
+.yes.sel:hover{background:var(--green-d)}
+.no{background:#fff;border-color:#d9d9d9;color:#444}
+.no:hover{background:#f6f6f6}
+.kb{background:#fff;border-color:#d9d9d9;color:#444;font-weight:600}
+.kb:hover{background:#f6f6f6}
+.kb.big{border-radius:10px;padding:11px 16px;font-size:14px;border:1.5px solid #d9d9d9;background:#fff;
+  color:#3d4a44;font-weight:700;cursor:pointer;width:100%;text-align:left}
+.kb.big:hover{border-color:var(--green);color:var(--green)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.chips .lb{font-size:11.5px;color:#8a8a8a;width:100%;font-weight:600}
+.chip{border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
+.chip:hover{border-color:var(--green);color:var(--green)}
+.dsz{font-size:11.5px;color:#8a8a8a;margin-top:6px}
+.dsz u{text-decoration-color:#c9c9c9}
+.appv{font-size:11px;color:#b0b0b0;margin-top:3px}
+.withbang{display:flex;align-items:flex-start;gap:9px}
+.withbang.end{justify-content:flex-end}
+.withbang>.stmt{flex:1}
+.bang{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--amber);color:#fff;
+  font-weight:800;font-size:14px;display:grid;place-items:center;margin-top:6px;cursor:help;line-height:1}
+.why{font-size:11px;color:#a86a12;margin-top:5px;font-weight:600}
+.why.r{text-align:right}
+.stmt.ok.auto{background:#F4F9F6;border-color:#d5e6dc}
+.invbox{display:inline-block;border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 16px;min-width:104px;
+  text-align:center;font-size:16px;font-weight:700;background:#fff;cursor:pointer;font-variant-numeric:tabular-nums}
+.invbox:hover{border-color:var(--green)}
+.invbox sup{font-size:11px;vertical-align:.45em;margin-left:-1px}
+.invbox .u{font-size:11px;font-weight:600;color:#7d8a83;margin-left:2px}
+.invpcs{font-size:11.5px;color:#8a8a8a;margin-top:5px}
+.acts .lnkbtn{border:0;background:none;color:#7d8a83;font-size:12px;font-weight:600;cursor:pointer;
+  padding:0;text-decoration:underline;text-decoration-color:#c7d2cc}
+.acts .lnkbtn:hover{color:#2E6A50}
+.delta{font-size:11.5px;font-weight:700;margin-top:6px;color:var(--amber)}
+.delta.z{color:#8a8a8a}
+
+/* ---------- order cell ---------- */
+.step{display:flex;align-items:center;justify-content:flex-end;gap:0}
+.step button{width:38px;height:34px;border:0;background:#F1F2F1;font-size:19px;color:#3a3a3a;cursor:pointer}
+.step button:first-child{border-radius:9px 0 0 9px}
+.step button:last-child{border-radius:0 9px 9px 0}
+.step .v{min-width:62px;height:34px;border:1px solid #e3e3e3;display:grid;place-items:center;font-size:14.5px;font-weight:700;background:#fff}
+.step .v.chg{border-color:var(--amber);background:var(--amber-bg)}
+.ref{margin-top:7px;text-align:right;font-size:11.5px;color:#a0a0a0}
+.ref b{color:#6d6d6d}
+
+/* ---------- bottom bar ---------- */
+.foot{display:flex;align-items:center;gap:26px;padding:14px 18px;border-top:1px solid var(--line);background:#fff}
+.foot .m{font-size:12px;color:#8a8a8a}
+.foot .m b{display:block;font-size:16px;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}
+.foot .sp{flex:1}
+.cta{background:var(--green);color:#fff;border:0;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer}
+.cta:hover{background:var(--green-d)}
+
+/* ---------- keypad modal ---------- */
+.ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.ov.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:1180px;border-radius:16px 16px 0 0;padding:0 0 18px}
+.sheet .sh{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)}
+.sheet .sh h3{margin:0;font-size:17px;flex:1}
+.sheet .sh .x{border:0;background:none;font-size:22px;color:#777;cursor:pointer}
+.sbody{display:grid;grid-template-columns:1fr 1fr 280px;gap:24px;padding:18px 22px}
+.kfield{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.kfield label{width:60px;font-weight:700;font-size:14.5px}
+.kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700}
+.kfield .box.act{border-color:var(--amber)}
+.kfield .tot{font-weight:800}
+.kwarn{display:none;margin-top:12px;max-width:250px;font-size:11.5px;font-weight:700;color:#8d2b0c;
+  background:#FBE9E3;border:1px solid #e6b5a6;border-radius:8px;padding:7px 10px;line-height:1.45}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{background:#F1F6F2;border:0;border-radius:9px;padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:#1f3a2d}
+.pad button:hover{background:#E4EFE7}
+.pad .wide{grid-column:1/-1;font-size:14px}
+.sfoot{display:flex;align-items:center;padding:0 22px}
+.sfoot .lnk{color:var(--green);font-weight:700;cursor:pointer}
+.sfoot .sp{flex:1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:#12211b;color:#fff;padding:10px 18px;
+  border-radius:99px;font-size:13.5px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+
+/* fullscreen, centred: the frame IS the page */
+html,body{height:100%}
+body{margin:0;display:flex;align-items:center;justify-content:center;background:#111}
+.stage{width:100%;max-width:none;margin:0;padding:0;height:100%;
+       display:flex;flex-direction:column;align-items:center;justify-content:center}
+.win{width:min(100%,1180px);height:100%;max-height:100vh;border-radius:0;
+     display:flex;flex-direction:column;box-shadow:none}
+.list{flex:1 1 auto;min-height:0;overflow-y:auto}
+.legend{display:none}
+@media(min-width:1400px){ .win{height:min(100vh,1000px);border-radius:12px} }
+
+/* the fullscreen change removed the page scroll, so a tall keypad sheet became unreachable.
+   Cap it to the viewport, let it scroll inside, and keep it above everything. */
+.ov{z-index:9999}
+.sheet{max-height:96vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+@media(max-height:760px){ .sbody{grid-template-columns:1fr 1fr 240px;gap:14px;padding:12px 16px} }
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="win">
+  <div class="tbar"><span class="tl r"></span><span class="tl y"></span><span class="tl g"></span><span class="app">Freshflow</span></div>
+
+  <div class="hdr">
+    <div class="back">‹ Zurück</div>
+    <div class="mid">
+      <div class="t1">Ordersatz &nbsp;Tue, Aug 18 &nbsp;<span class="dim">| &nbsp;Rewe Peeters Flüren</span></div>
+      <div class="t2">Fällig in <span class="due">8h40m</span></div>
+    </div>
+    <div class="rgt"><span class="chk">✓</span><div>Wed, Aug 19<br>16 °C | 19 °C</div></div>
+  </div>
+
+  <div class="srch">
+    <span style="color:#9a9a9a">⌕</span>
+    <input id="q" type="search" placeholder="Suche" autocomplete="off">
+  </div>
+
+  <div class="tools">
+    <span style="font-weight:600">Bestellung verwalten</span>
+    <span class="sp"></span>
+    <div class="seg" id="filtseg"><button data-f="open">Nur offene</button><button data-f="all" class="on">Alle</button></div>
+    <button class="btn" id="reset">Zurücksetzen</button>
+  </div>
+
+  <div class="prog">
+    <span><b id="pdone">0</b> von <b>172</b> beantwortet</span>
+    <div class="bar"><i id="pbar"></i></div>
+    <span>Taps: <b id="ptaps">0</b></span>
+    <span>davon vorausgewählt: <b id="pauto">0</b></span>
+    <span>Nein → Keypad: <b id="pnein">0</b></span>
+    <span style="color:#a8b3ad">Keypad heute: <b style="color:#8a8a8a">688</b> (172 × 4)</span>
+    <span class="sp" style="flex:1"></span>
+    <span id="popen"></span>
+  </div>
+
+  <div class="colh"><div>Artikel</div><div>Bestand <span class="i">i</span></div><div style="text-align:right">Bestellung <span class="i">i</span></div></div>
+  <div class="list" id="list"></div>
+
+  <div class="foot">
+    <div class="m">Anzahl Kisten<b id="fcases">0</b></div>
+    <div class="m">EK<b id="fcost">0,00 €</b></div>
+    <div class="m">VK<b id="fret">0,00 €</b></div>
+    <div class="m">Spanne<b id="fmar">0,00 %</b></div>
+    <div class="m">Übernahmequote<b id="fans">0 %</b></div>
+    <div class="sp"></div>
+    <button class="cta" id="cta">Bestellung abschließen ›</button>
+  </div>
+</div>
+</div>
+
+<div class="ov" id="ov">
+  <div class="sheet">
+    <div class="sh"><h3 id="shTitle">Bitte geben Sie die Bestände für den folgende Artikel ein.</h3><button class="x" id="shX">✕</button></div>
+    <div class="sbody">
+      <div>
+        <div class="nm" id="shName"></div>
+        <div class="meta" id="shMeta"></div>
+        <div class="pills" id="shPills"></div>
+        <div class="dsz" style="margin-top:22px">Auslage <b>1</b> CS</div>
+        <div class="appv" id="shWhy" style="margin-top:14px;max-width:270px;line-height:1.5"></div>
+      </div>
+      <div>
+        <div class="seg" id="unitseg" style="margin-bottom:14px">
+          <button data-u="pcs" class="on">Stück</button><button data-u="cs">Kisten</button></div>
+        <div class="kfield"><label>Lager</label><div class="box" id="kBack">0</div></div>
+        <div class="kfield"><label>Fläche</label><div class="box act" id="kFloor">0</div></div>
+        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div class="tot" id="kTotal">0</div></div>
+        <div class="appv" id="kPcs"></div>
+        <div id="kWarn" class="kwarn"></div>
+      </div>
+      <div class="pad" id="pad">
+        <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="0">0</button><button data-k=".">.</button><button data-k="del">⌫</button>
+        <button class="wide" data-k="swap">Zu Lager wechseln ⟳</button>
+      </div>
+    </div>
+    <div class="sfoot"><span class="lnk" id="shAbbrechen">Abbrechen</span><span class="sp"></span>
+      <button class="cta" id="shSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ov2">
+  <div class="sheet" style="max-width:640px;border-radius:16px;align-self:center">
+    <div class="sh"><h3 id="s2Title">Bestellung abschließen</h3><button class="x" id="s2X">✕</button></div>
+    <div style="padding:18px 22px" id="s2Body"></div>
+    <div class="sfoot"><span class="lnk" id="s2Abbrechen">Zurück</span><span class="sp"></span>
+      <button class="cta" id="s2Go" style="padding:11px 26px">Bestätigen und abschließen</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="legend" id="legend"></div>
+</div>
+
+<script>
+const ITEMS = [{"id": 0, "name": "ZITRONE BIO REWE BIO 500G NZ", "case": 15.0, "ek": 1.75, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.26, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,26", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.26, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,26", "pcs": "ab 4 St."}], "app": 1.733, "invNote": null, "ordNote": null}, {"id": 1, "name": "ZITRONE BIO 20ER REWE BIO 1ST LS", "case": 20.0, "ek": 0.66, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.15, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,15", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.15, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,15", "pcs": "ab 3 St."}], "app": 1.35, "invNote": null, "ordNote": null}, {"id": 2, "name": "LIMETTE BIO REWE BIO 1ST LS", "case": 24.0, "ek": 0.41, "vk": 0.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.958, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 3, "name": "BANANE BIO REWE BIO 1KG LS", "case": 18.14, "ek": 1.41, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 10, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 10 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 11, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 11 St."}], "app": 1.599, "invNote": null, "ordNote": null}, {"id": 4, "name": "APFEL JONAGOLD BIO REWE BIO 1KG BT", "case": 10.0, "ek": 1.93, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.4, "invNote": null, "ordNote": null}, {"id": 5, "name": "HIMBEERE BIO REWE BIO 125G SL", "case": 6.0, "ek": 3.31, "vk": 4.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.5, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 6, "name": "HEIDELBEERE BIO REWE BIO 175G SL", "case": 6.0, "ek": 2.16, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 7, "name": "INGWER BIO BIO 1KG LS", "case": 5.0, "ek": 4.0, "vk": 7.9, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 1 St."}], "app": 0.8, "invNote": null, "ordNote": null}, {"id": 8, "name": "KART. FESTKOCHEND BIO REWE BIO 1,5KG BT", "case": 12.0, "ek": 1.89, "vk": 2.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 1.083, "invNote": null, "ordNote": null}, {"id": 9, "name": "KART.VORW.FESTK. BIO REWE BIO 1,5KG NZ", "case": 12.0, "ek": 1.95, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 0.667, "invNote": null, "ordNote": null}, {"id": 10, "name": "ZWIEBEL BIO DEMETER DEMETER 500G NZ", "case": 10.0, "ek": 1.15, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 11, "name": "SALAT FELD BIO REWE BIO 100G PK", "case": 4.0, "ek": 1.07, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 2 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 12, "name": "SALAT RUCOLA BIO REWE BIO 80G SL", "case": 4.0, "ek": 0.85, "vk": 1.25, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 3 St."}], "app": 0.75, "invNote": null, "ordNote": null}, {"id": 13, "name": "SALAT CRISPY MIX BIO REWE BIO 100G BT", "case": 4.0, "ek": 0.95, "vk": 1.39, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 2 St."}], "app": 1.25, "invNote": null, "ordNote": null}, {"id": 14, "name": "KAROTTE BIO NW REWE BIO 1KG BT", "case": 15.0, "ek": 1.49, "vk": 2.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 3 St."}], "app": 0.867, "invNote": null, "ordNote": null}, {"id": 15, "name": "TOMATE RISPE BIO REWE BIO 500G SL", "case": 10.0, "ek": 1.79, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 3 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 16, "name": "TOMATE MINIR. BIO NRW REWE BIO 300G SL", "case": 8.0, "ek": 2.36, "vk": 3.49, "flags": ["KEINE LEITER", "PLAN A UNSICHER"], "rungs": [{"kind": "none", "lo": null, "hi": null, "plo": null, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "keine Spanne", "pcs": null}], "app": 0.0, "invNote": "Abverkauf fehlt · nicht ausgeglichen", "ordNote": "nicht ausgeglichen · zuletzt kein Abverkauf"}, {"id": 17, "name": "TOMATE CHERRY ROMA BIO REWE BIO 250G SL", "case": 6.0, "ek": 1.45, "vk": 1.99, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 4 St."}], "app": 1.5, "invNote": "noch nie gezählt", "ordNote": null}, {"id": 18, "name": "ZUCCHINI BIO NW REWE BIO 500G PK", "case": 9.0, "ek": 1.06, "vk": 1.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 1.667, "invNote": null, "ordNote": "Aktion"}, {"id": 19, "name": "PILZ CHAM.BRAUN BIO RL REWE BIO 250G SL", "case": 5.0, "ek": 1.65, "vk": 2.39, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 1.0, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,0", "pcs": "ab 5 St."}], "app": 1.8, "invNote": null, "ordNote": null}, {"id": 20, "name": "KRT T BASILIKUM XL BIO REWE BIO 1ST TG", "case": 11.0, "ek": 1.49, "vk": 2.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.09, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,09", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.09, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,09", "pcs": "ab 1 St."}], "app": 0.818, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 21, "name": "ORANGE UEB OGT 1,5KG NZ", "case": 12.0, "ek": 2.39, "vk": 2.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.08, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,08", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.08, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,08", "pcs": "ab 1 St."}], "app": 1.167, "invNote": null, "ordNote": null}, {"id": 22, "name": "ORANGE UEB REWE BW 1KG LS", "case": 7.0, "ek": 2.45, "vk": 3.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.571, "invNote": null, "ordNote": null}, {"id": 23, "name": "MANDARINE UEB REWE BW 750G GI", "case": 12.0, "ek": 2.08, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.08, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,08", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.08, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,08", "pcs": "ab 1 St."}], "app": 0.583, "invNote": null, "ordNote": "Aktion"}, {"id": 24, "name": "GRAPEFRUIT 18ER UEB 1ST LS", "case": 18.0, "ek": 0.8, "vk": 1.19, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.444, "invNote": null, "ordNote": null}, {"id": 25, "name": "ZITRONE UEB OGT 500G NZ", "case": 24.0, "ek": 1.1, "vk": 1.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 14, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 14 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 15 St."}], "app": 1.667, "invNote": null, "ordNote": "Aktion"}, {"id": 26, "name": "LIMETTE REWE BW 4ST SL", "case": 12.0, "ek": 0.99, "vk": 1.49, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 0.917, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 27, "name": "BANANE GELB CHIQUITA 1KG LS", "case": 18.14, "ek": 1.55, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.27, "plo": 0, "phi": 4, "order": 2, "plan": false, "unconf": false, "expr": "< 0,27", "pcs": "0 bis 4 St."}, {"kind": "between", "lo": 0.27, "hi": 1.26, "plo": 5, "phi": 22, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,27  < 1,26", "pcs": "5 bis 22 St."}, {"kind": "atleast", "lo": 1.26, "hi": null, "plo": 23, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,26", "pcs": "ab 23 St."}], "app": 2.04, "invNote": null, "ordNote": null}, {"id": 28, "name": "BANANE BANDEROLE OGT 1KG LS", "case": 18.14, "ek": 1.03, "vk": 1.29, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 4 St."}], "app": 0.882, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 29, "name": "BANANE REWE BW 1KG LS", "case": 18.14, "ek": 1.23, "vk": 1.99, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 16, "order": 1, "plan": false, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 16 St."}, {"kind": "atleast", "lo": 0.9, "hi": null, "plo": 17, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,9", "pcs": "ab 17 St."}], "app": 1.764, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 30, "name": "APFEL ROT JONAGOLD GROUP OGT 1KG FE", "case": 10.0, "ek": 1.11, "vk": 1.79, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 7 St."}], "app": 0.9, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 31, "name": "APFEL CRIP.PINK 12,5KG PINK LADY 1KG LS", "case": 12.5, "ek": 2.32, "vk": 3.29, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.4, "invNote": null, "ordNote": null}, {"id": 32, "name": "APFEL CRIPPS PINK PINK LADY 1KG FE", "case": 11.0, "ek": 2.3, "vk": 3.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.09, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,09", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.09, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,09", "pcs": "ab 1 St."}], "app": 0.909, "invNote": null, "ordNote": null}, {"id": 33, "name": "APFEL GRANNY SMITH UEB RBW 1KG LS", "case": 12.5, "ek": 2.09, "vk": 2.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 1.12, "invNote": null, "ordNote": null}, {"id": 34, "name": "APFEL BRAEBURN UEB REWE 1KG LS", "case": 12.5, "ek": 2.12, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.48, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,48", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.48, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,48", "pcs": "ab 6 St."}], "app": 1.12, "invNote": null, "ordNote": null}, {"id": 35, "name": "APFEL GALA 6,5KG REWE BW 1KG LS", "case": 6.5, "ek": 1.83, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 1.077, "invNote": null, "ordNote": null}, {"id": 36, "name": "APFEL GOLD. DELI 6,5KG REWE BW 1KG LS", "case": 6.5, "ek": 1.63, "vk": 2.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.615, "invNote": null, "ordNote": null}, {"id": 37, "name": "APFEL NICOTER KANZI 760G FE", "case": 12.0, "ek": 2.35, "vk": 3.29, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 7, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 7 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 8, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 8 St."}], "app": 0.917, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 38, "name": "APFEL PINOVA 6,5KG REWE BW 1KG LS", "case": 6.5, "ek": 1.63, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 3 St."}], "app": 0.769, "invNote": null, "ordNote": null}, {"id": 39, "name": "BIRNE LIMONERA GROUP OGT 1KG SL", "case": 10.0, "ek": 1.47, "vk": 1.69, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 7, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 7 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 8, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 8 St."}], "app": 1.2, "invNote": null, "ordNote": "Aktion"}, {"id": 40, "name": "BIRNE LIMONERA 1KG LS", "case": 6.5, "ek": 1.83, "vk": 2.79, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 1.077, "invNote": null, "ordNote": null}, {"id": 41, "name": "BIRNE BUNT UEB REWE BW 1KG LS", "case": 6.3, "ek": 2.57, "vk": 3.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.317, "invNote": null, "ordNote": null}, {"id": 42, "name": "ERDBEERE RHEINLAND REWE REG 250G SL", "case": 10.0, "ek": 2.45, "vk": 3.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 43, "name": "HIMBEERE DRISCOLLS 250G SL", "case": 10.0, "ek": 3.61, "vk": 5.49, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 0.9, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 44, "name": "HIMBEERE DRISCOLLS 125G SL", "case": 12.0, "ek": 1.91, "vk": 2.99, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.58, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,58", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.58, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,58", "pcs": "ab 7 St."}], "app": 0.833, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 45, "name": "HEIDELBEERE GROUP OGT 500G SL", "case": 10.0, "ek": 3.39, "vk": 3.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 1.9, "invNote": null, "ordNote": null}, {"id": 46, "name": "HEIDELBEERE PREMIUM REWE BW 200G BE", "case": 12.0, "ek": 3.1, "vk": 4.49, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 0.333, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 47, "name": "HEIDELBEERE NRW REWE REG 200G SL", "case": 12.0, "ek": 1.87, "vk": 2.79, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 3 St."}], "app": 0.5, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 48, "name": "BROMBEERE REWE BW 125G SL", "case": 6.0, "ek": 1.76, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 4 St."}], "app": 1.167, "invNote": null, "ordNote": "Aktion · zuletzt kein Abverkauf"}, {"id": 49, "name": "JOHANNISBEERE ROT REWE REG 200G SL", "case": 12.0, "ek": 2.2, "vk": 4.59, "flags": ["KEINE LEITER", "PLAN A UNSICHER"], "rungs": [{"kind": "none", "lo": null, "hi": null, "plo": null, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "keine Spanne", "pcs": null}], "app": 0.0, "invNote": null, "ordNote": "nicht ausgeglichen"}, {"id": 50, "name": "TRAUBE HELL KERNLOS REWE BW 1KG LS", "case": 10.0, "ek": 3.4, "vk": 3.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 7 St."}], "app": 0.9, "invNote": null, "ordNote": "Aktion"}, {"id": 51, "name": "TRAUBE HELL KERNLOS GROUP OGT 500G SL", "case": 10.0, "ek": 1.25, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 8, "order": 3, "plan": false, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 8 St."}, {"kind": "between", "lo": 0.9, "hi": 1.9, "plo": 9, "phi": 18, "order": 2, "plan": false, "unconf": false, "expr": "≥ 0,9  < 1,9", "pcs": "9 bis 18 St."}, {"kind": "between", "lo": 1.9, "hi": 2.9, "plo": 19, "phi": 28, "order": 1, "plan": false, "unconf": false, "expr": "≥ 1,9  < 2,9", "pcs": "19 bis 28 St."}, {"kind": "atleast", "lo": 2.9, "hi": null, "plo": 29, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 2,9", "pcs": "ab 29 St."}], "app": 3.4, "invNote": null, "ordNote": null}, {"id": 52, "name": "TRAUBE MIX KERNLOS REWE BW 500G SL", "case": 10.0, "ek": 1.71, "vk": 2.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 53, "name": "TRAUBE ROT KERNL. REWE BW 1KG LS", "case": 5.0, "ek": 3.4, "vk": 3.99, "flags": ["PLAN A UNSICHER"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": true, "expr": "< 0,8", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "≥ 0,8", "pcs": "ab 4 St."}], "app": 1.0, "invNote": null, "ordNote": "Aktion"}, {"id": 54, "name": "TRAUBE DUNKEL KERNLOS GROUP OGT 500G SL", "case": 10.0, "ek": 1.35, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 2, "order": 2, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 2 St."}, {"kind": "between", "lo": 0.3, "hi": 1.3, "plo": 3, "phi": 12, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,3  < 1,3", "pcs": "3 bis 12 St."}, {"kind": "atleast", "lo": 1.3, "hi": null, "plo": 13, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,3", "pcs": "ab 13 St."}], "app": 1.9, "invNote": null, "ordNote": null}, {"id": 55, "name": "KIRSCHE SUESS GROUP 1KG LS", "case": 5.0, "ek": 4.28, "vk": 5.9, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 1, "order": 4, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 1 St."}, {"kind": "between", "lo": 0.4, "hi": 1.4, "plo": 2, "phi": 6, "order": 3, "plan": false, "unconf": false, "expr": "≥ 0,4  < 1,4", "pcs": "2 bis 6 St."}, {"kind": "between", "lo": 1.4, "hi": 2.4, "plo": 7, "phi": 11, "order": 2, "plan": false, "unconf": false, "expr": "≥ 1,4  < 2,4", "pcs": "7 bis 11 St."}, {"kind": "between", "lo": 2.4, "hi": 3.4, "plo": 12, "phi": 16, "order": 1, "plan": true, "unconf": false, "expr": "≥ 2,4  < 3,4", "pcs": "12 bis 16 St."}, {"kind": "atleast", "lo": 3.4, "hi": null, "plo": 17, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 3,4", "pcs": "ab 17 St."}], "app": 3.2, "invNote": null, "ordNote": null}, {"id": 56, "name": "ZWETSCHGE KORB NRW REWE REG 1KG LS", "case": 9.0, "ek": 1.19, "vk": 1.33, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 7 St."}], "app": 2.222, "invNote": "mehrere Artikel auf einer PLU", "ordNote": "Aktion"}, {"id": 57, "name": "PFLAUME BLAU / SCHWARZ REWE BW 1KG LS", "case": 2.5, "ek": 2.99, "vk": 4.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.8, "invNote": null, "ordNote": null}, {"id": 58, "name": "ZWETSCHGE NRW REWE REG 1KG LS", "case": 5.0, "ek": 1.54, "vk": 2.49, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 1.0, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,0", "pcs": "ab 5 St."}], "app": 2.2, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 59, "name": "PFIRSICH PLATT GROUP OGT 500G SL", "case": 10.0, "ek": 1.11, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 9, "order": 1, "plan": false, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 9 St."}, {"kind": "atleast", "lo": 1.0, "hi": null, "plo": 10, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,0", "pcs": "ab 10 St."}], "app": 1.1, "invNote": null, "ordNote": null}, {"id": 60, "name": "PFIRSICH GELB/WEISS NEUTR OGT 1KG SL", "case": 10.0, "ek": 1.6, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": true, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 0.4, "invNote": null, "ordNote": null}, {"id": 61, "name": "PFIRSICH GELB 7 KG REWE BW 1KG LS", "case": 7.0, "ek": 3.15, "vk": 4.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 3 St."}], "app": 1.286, "invNote": null, "ordNote": null}, {"id": 62, "name": "NEKTARINE PLATT 500G SL", "case": 10.0, "ek": 1.55, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 8, "order": 1, "plan": false, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 8 St."}, {"kind": "atleast", "lo": 0.9, "hi": null, "plo": 9, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,9", "pcs": "ab 9 St."}], "app": 1.3, "invNote": null, "ordNote": "Aktion"}, {"id": 63, "name": "NEKTARINE GELB/WEISS OGT 1KG SL", "case": 10.0, "ek": 1.6, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 2, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "between", "lo": 0.6, "hi": 1.6, "plo": 6, "phi": 15, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,6  < 1,6", "pcs": "6 bis 15 St."}, {"kind": "atleast", "lo": 1.6, "hi": null, "plo": 16, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,6", "pcs": "ab 16 St."}], "app": 2.1, "invNote": null, "ordNote": null}, {"id": 64, "name": "NEKTARINE GELB 7KG REWE BW 1KG LS", "case": 7.0, "ek": 3.15, "vk": 4.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 2, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "between", "lo": 0.2, "hi": 1.2, "plo": 2, "phi": 8, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,2  < 1,2", "pcs": "2 bis 8 St."}, {"kind": "atleast", "lo": 1.2, "hi": null, "plo": 9, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,2", "pcs": "ab 9 St."}], "app": 1.714, "invNote": null, "ordNote": null}, {"id": 65, "name": "MELONE WAS.ROT KA EUR OGT KRT 1KG LS", "case": 20.0, "ek": 0.88, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.35, "plo": 0, "phi": 6, "order": 2, "plan": false, "unconf": false, "expr": "< 0,35", "pcs": "0 bis 6 St."}, {"kind": "between", "lo": 0.35, "hi": 1.35, "plo": 7, "phi": 26, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,35  < 1,35", "pcs": "7 bis 26 St."}, {"kind": "atleast", "lo": 1.35, "hi": null, "plo": 27, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,35", "pcs": "ab 27 St."}], "app": 2.95, "invNote": null, "ordNote": null}, {"id": 66, "name": "MELONE WAS.ROT MINI RBW 1KG LS", "case": 16.0, "ek": 1.11, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 4 St."}], "app": 1.312, "invNote": null, "ordNote": null}, {"id": 67, "name": "MELONE GALIA REWE BW 1KG LS", "case": 5.0, "ek": 1.25, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 2, "order": 1, "plan": true, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 3 St."}], "app": 0.6, "invNote": null, "ordNote": null}, {"id": 68, "name": "MELONE HONIG REWE BW 1KG LS", "case": 12.0, "ek": 1.22, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 2.083, "invNote": null, "ordNote": null}, {"id": 69, "name": "KIWI GRUEN 104ER ZESPR.OGT 1ST LS", "case": 104.0, "ek": 0.37, "vk": 0.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.04, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,04", "pcs": "0 bis 4 St."}, {"kind": "any", "lo": 0.04, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,04", "pcs": "ab 5 St."}], "app": 0.885, "invNote": null, "ordNote": null}, {"id": 70, "name": "KIWI GOLD ZESPRI 1ST LS", "case": 48.0, "ek": 0.59, "vk": 0.89, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 14, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 14 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 15 St."}], "app": 0.979, "invNote": null, "ordNote": null}, {"id": 71, "name": "FEIGE BLAU 18ER 1ST LS", "case": 18.0, "ek": 0.58, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 4 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 72, "name": "GRANATAPFEL 9ER 1ST LS", "case": 9.0, "ek": 1.87, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 3 St."}], "app": 1.222, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 73, "name": "ANANAS KLEIN OGT 1KG LS", "case": 10.5, "ek": 1.15, "vk": 1.29, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 1.048, "invNote": null, "ordNote": "Aktion"}, {"id": 74, "name": "MANGO 8ER OGT 1ST LS", "case": 8.0, "ek": 1.28, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 6 St."}], "app": 0.875, "invNote": null, "ordNote": null}, {"id": 75, "name": "AVOCADO HASS ESSREIF FEINEWELT 1ST LS", "case": 8.0, "ek": 1.26, "vk": 1.79, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.625, "invNote": "mehrere Artikel auf einer PLU", "ordNote": "Aktion"}, {"id": 76, "name": "AVOCADO 2ST SL", "case": 8.0, "ek": 0.8, "vk": 1.11, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.625, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 77, "name": "AVOCADO 16ER ANGEREIFT OGT 1ST LS", "case": 16.0, "ek": 1.02, "vk": 1.19, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.18, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,18", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.18, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,18", "pcs": "ab 3 St."}], "app": 0.625, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 78, "name": "DATTEL OHNE STEIN JA! OGT 200G BT", "case": 32.0, "ek": 1.04, "vk": 1.29, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.875, "invNote": null, "ordNote": null}, {"id": 79, "name": "ERDNUSS I.D.SCHALE JA! OGT 400G BT", "case": 25.0, "ek": 1.63, "vk": 2.29, "flags": ["ZÄHLEN"], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.72, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 80, "name": "WALNUSS I.D.SCHALE JA!OGT 500G BT", "case": 20.0, "ek": 2.22, "vk": 2.49, "flags": ["ZÄHLEN"], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.7, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 81, "name": "KARTOFFEL GROUP OGT 2,5KG NZ", "case": 8.0, "ek": 1.69, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 6, "order": 3, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 6 St."}, {"kind": "between", "lo": 0.8, "hi": 1.8, "plo": 7, "phi": 14, "order": 2, "plan": false, "unconf": false, "expr": "≥ 0,8  < 1,8", "pcs": "7 bis 14 St."}, {"kind": "between", "lo": 1.8, "hi": 2.8, "plo": 15, "phi": 22, "order": 1, "plan": true, "unconf": false, "expr": "≥ 1,8  < 2,8", "pcs": "15 bis 22 St."}, {"kind": "atleast", "lo": 2.8, "hi": null, "plo": 23, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 2,8", "pcs": "ab 23 St."}], "app": 2.625, "invNote": null, "ordNote": "Aktion"}, {"id": 82, "name": "KART. FESTK.DIE FEINEN REWE BW 1KG SL", "case": 8.0, "ek": 1.65, "vk": 2.39, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 6 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 83, "name": "KART. EXTRA DICK NRW REWE REG 2KG BT", "case": 10.0, "ek": 1.61, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 5 St."}], "app": 1.5, "invNote": null, "ordNote": null}, {"id": 84, "name": "KART.MEHLIGKOCHEND NRW REWE REG 2KG BT", "case": 10.0, "ek": 1.61, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 7 St."}], "app": 1.5, "invNote": null, "ordNote": null}, {"id": 85, "name": "KART.VORW.FESTK. NRW REWE REG 2KG BT", "case": 10.0, "ek": 1.61, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 7 St."}], "app": 1.5, "invNote": null, "ordNote": null}, {"id": 86, "name": "KART.FESTKOCHEND NRW REWE REG. 2KG BT", "case": 10.0, "ek": 1.61, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 7, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 7 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 8, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 8 St."}], "app": 1.4, "invNote": null, "ordNote": null}, {"id": 87, "name": "CILENA NRW 2,5KG BT", "case": 8.0, "ek": 2.08, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.75, "invNote": null, "ordNote": null}, {"id": 88, "name": "KART.FESTKOCHEND 1KG LS", "case": 6.0, "ek": 0.86, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 4 St."}], "app": 0.833, "invNote": null, "ordNote": null}, {"id": 89, "name": "KART.VORW.FESTK.GRUMBE 2KG NZ", "case": 10.0, "ek": 1.63, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.6, "invNote": null, "ordNote": null}, {"id": 90, "name": "KARTOFFEL AIR FRYER REWE BW 1,5KG PK", "case": 12.0, "ek": 1.21, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 4 St."}], "app": 0.917, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 91, "name": "SUESSKARTOFFEL 1KG LS", "case": 6.0, "ek": 2.29, "vk": 3.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 1.333, "invNote": null, "ordNote": null}, {"id": 92, "name": "ZWIEBEL GEMUESE NEUTRAL 750G NZ", "case": 6.0, "ek": 1.34, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 5 St."}], "app": 0.833, "invNote": null, "ordNote": null}, {"id": 93, "name": "ZWIEBEL OGT 1,5KG NZ", "case": 12.0, "ek": 1.28, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.58, "plo": 0, "phi": 6, "order": 1, "plan": false, "unconf": false, "expr": "< 0,58", "pcs": "0 bis 6 St."}, {"kind": "atleast", "lo": 0.58, "hi": null, "plo": 7, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,58", "pcs": "ab 7 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 94, "name": "SCHALOTTE REWE BW 250G NZ", "case": 12.0, "ek": 0.8, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.08, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,08", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.08, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,08", "pcs": "ab 1 St."}], "app": 1.333, "invNote": null, "ordNote": null}, {"id": 95, "name": "ZWIEBEL ROT REWE BW 500G NZ", "case": 10.0, "ek": 0.83, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 8, "order": 1, "plan": true, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 8 St."}, {"kind": "atleast", "lo": 0.9, "hi": null, "plo": 9, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,9", "pcs": "ab 9 St."}], "app": 0.6, "invNote": null, "ordNote": null}, {"id": 96, "name": "ZWIEBEL GELB 1KG LS", "case": 5.0, "ek": 0.93, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 3, "order": 1, "plan": true, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 4 St."}], "app": 0.8, "invNote": null, "ordNote": null}, {"id": 97, "name": "ZWIEBEL ROT 1KG LS", "case": 3.5, "ek": 1.65, "vk": 2.49, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.571, "invNote": null, "ordNote": null}, {"id": 98, "name": "KNOBLAUCH 200G NZ", "case": 20.0, "ek": 0.92, "vk": 1.25, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.05, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,05", "pcs": "0 St."}, {"kind": "any", "lo": 0.05, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,05", "pcs": "ab 1 St."}], "app": 0.25, "invNote": null, "ordNote": null}, {"id": 99, "name": "KNOBLAUCH 1ST LS", "case": 27.0, "ek": 0.81, "vk": 1.25, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.03, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,03", "pcs": "0 St."}, {"kind": "any", "lo": 0.03, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,03", "pcs": "ab 1 St."}], "app": 1.222, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 100, "name": "KNOBLAUCH FRISCH NRW REWE REG 1KG LS", "case": 1.0, "ek": 7.88, "vk": 11.9, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 0, "order": 2, "plan": false, "unconf": false, "expr": "< 1,0", "pcs": "0 St."}, {"kind": "between", "lo": 1.0, "hi": 2.0, "plo": 1, "phi": 1, "order": 1, "plan": true, "unconf": false, "expr": "≥ 1,0  < 2,0", "pcs": "1 St."}, {"kind": "atleast", "lo": 2.0, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 2,0", "pcs": "ab 2 St."}], "app": 2.0, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 101, "name": "LAUCHZWIEBEL DEU 1ST BD", "case": 14.0, "ek": 0.53, "vk": 0.79, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 12, "order": 1, "plan": false, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 12 St."}, {"kind": "atleast", "lo": 0.9, "hi": null, "plo": 13, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,9", "pcs": "ab 13 St."}], "app": 1.214, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 102, "name": "BROCCOLI NRW REWE REG 500G FO", "case": 12.0, "ek": 1.28, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 7, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 7 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 8, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 8 St."}], "app": 1.25, "invNote": null, "ordNote": "Aktion"}, {"id": 103, "name": "KOHL SPITZ NRW REWE REG 1KG LS", "case": 9.0, "ek": 0.97, "vk": 1.39, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 0.667, "invNote": null, "ordNote": null}, {"id": 104, "name": "KOHLRABI NRW REWE REG 1ST LS", "case": 18.0, "ek": 0.48, "vk": 0.75, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.88, "plo": 0, "phi": 15, "order": 1, "plan": false, "unconf": false, "expr": "< 0,88", "pcs": "0 bis 15 St."}, {"kind": "atleast", "lo": 0.88, "hi": null, "plo": 16, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,88", "pcs": "ab 16 St."}], "app": 1.722, "invNote": null, "ordNote": null}, {"id": 105, "name": "WEISSKOHL NRW 12,5KG REWE REG 1KG LS", "case": 12.5, "ek": 0.74, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 0.8, "invNote": null, "ordNote": null}, {"id": 106, "name": "BLUMENKOHL NRW RWREG OGT 1ST LS", "case": 6.0, "ek": 1.45, "vk": 2.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 5 St."}], "app": 1.5, "invNote": null, "ordNote": null}, {"id": 107, "name": "CHINAKOHL NRW REWE REG 1 KG LS", "case": 8.0, "ek": 1.41, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.2, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,2", "pcs": "ab 2 St."}], "app": 1.125, "invNote": null, "ordNote": null}, {"id": 108, "name": "WIRSING NRW REWE REG 1 KG LS", "case": 7.5, "ek": 1.11, "vk": 1.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 4 St."}], "app": 0.8, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 109, "name": "SPINAT BLATT NRW REWE REG 250G FP", "case": 6.0, "ek": 1.1, "vk": 1.29, "flags": ["PLAN A UNSICHER"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 2, "order": 1, "plan": true, "unconf": true, "expr": "< 0,5", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": false, "unconf": true, "expr": "≥ 0,5", "pcs": "ab 3 St."}], "app": 0.5, "invNote": null, "ordNote": "Aktion"}, {"id": 110, "name": "PAKCHOI NRW REWE REG 300G FP", "case": 6.0, "ek": 1.1, "vk": 1.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.0, "invNote": "Wareneingang fehlt", "ordNote": null}, {"id": 111, "name": "SALAT EISBERG NRW RWREG OGT 1ST FO", "case": 10.0, "ek": 1.03, "vk": 1.11, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 4, "order": 2, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 4 St."}, {"kind": "between", "lo": 0.5, "hi": 1.5, "plo": 5, "phi": 14, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,5  < 1,5", "pcs": "5 bis 14 St."}, {"kind": "atleast", "lo": 1.5, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,5", "pcs": "ab 15 St."}], "app": 4.0, "invNote": null, "ordNote": null}, {"id": 112, "name": "SALAT ROMA HERZEN NRW REWE REG 3ST FP", "case": 10.0, "ek": 1.35, "vk": 1.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.1, "invNote": null, "ordNote": null}, {"id": 113, "name": "SALAT KOPF NRW REWE REG 1 ST LS", "case": 6.0, "ek": 1.04, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 2, "order": 2, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 2 St."}, {"kind": "between", "lo": 0.5, "hi": 1.5, "plo": 3, "phi": 8, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,5  < 1,5", "pcs": "3 bis 8 St."}, {"kind": "atleast", "lo": 1.5, "hi": null, "plo": 9, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,5", "pcs": "ab 9 St."}], "app": 1.667, "invNote": null, "ordNote": null}, {"id": 114, "name": "SALAT SALATTRIO NRW REWE REG 1 ST TT", "case": 4.0, "ek": 1.0, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 1, "order": 4, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 1 St."}, {"kind": "between", "lo": 0.5, "hi": 1.5, "plo": 2, "phi": 5, "order": 3, "plan": false, "unconf": false, "expr": "≥ 0,5  < 1,5", "pcs": "2 bis 5 St."}, {"kind": "between", "lo": 1.5, "hi": 2.5, "plo": 6, "phi": 9, "order": 2, "plan": false, "unconf": false, "expr": "≥ 1,5  < 2,5", "pcs": "6 bis 9 St."}, {"kind": "between", "lo": 2.5, "hi": 3.5, "plo": 10, "phi": 13, "order": 1, "plan": false, "unconf": false, "expr": "≥ 2,5  < 3,5", "pcs": "10 bis 13 St."}, {"kind": "atleast", "lo": 3.5, "hi": null, "plo": 14, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 3,5", "pcs": "ab 14 St."}], "app": 3.75, "invNote": null, "ordNote": "Aktion"}, {"id": 115, "name": "SALAT RUCOLA GROUP OGT 125G SL", "case": 8.0, "ek": 0.66, "vk": 0.89, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 3 St."}], "app": 1.25, "invNote": null, "ordNote": null}, {"id": 116, "name": "KAROTTE OGT 1,5KG BT", "case": 10.0, "ek": 1.1, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 9, "order": 1, "plan": true, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 9 St."}, {"kind": "atleast", "lo": 1.0, "hi": null, "plo": 10, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 1,0", "pcs": "ab 10 St."}], "app": 1.0, "invNote": null, "ordNote": "Aktion"}, {"id": 117, "name": "KAROTTE EUR 1KG LS", "case": 7.0, "ek": 1.17, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 5 St."}], "app": 0.714, "invNote": null, "ordNote": null}, {"id": 118, "name": "KAROTTE NRW REWE REG 1KG BT", "case": 15.0, "ek": 0.99, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.7, "plo": 0, "phi": 10, "order": 1, "plan": false, "unconf": false, "expr": "< 0,7", "pcs": "0 bis 10 St."}, {"kind": "atleast", "lo": 0.7, "hi": null, "plo": 11, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,7", "pcs": "ab 11 St."}], "app": 1.2, "invNote": null, "ordNote": null}, {"id": 119, "name": "KAROTTE M.GRUEN 1ST BD", "case": 6.0, "ek": 1.21, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 4 St."}], "app": 1.5, "invNote": null, "ordNote": null}, {"id": 120, "name": "KAROTTE SNACK REWE BW 250G BT", "case": 10.0, "ek": 1.05, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 6 St."}], "app": 1.4, "invNote": null, "ordNote": null}, {"id": 121, "name": "PORREE OGT 1ST LS", "case": 25.0, "ek": 0.52, "vk": 0.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.44, "plo": 0, "phi": 10, "order": 1, "plan": true, "unconf": false, "expr": "< 0,44", "pcs": "0 bis 10 St."}, {"kind": "atleast", "lo": 0.44, "hi": null, "plo": 11, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,44", "pcs": "ab 11 St."}], "app": 0.24, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 122, "name": "RADIESCHEN M.GRUEN 1ST BD", "case": 15.0, "ek": 0.53, "vk": 0.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 8, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 8 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 9, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 9 St."}], "app": 1.4, "invNote": null, "ordNote": null}, {"id": 123, "name": "SELLERIE STAUDE NRW REWE REG 1ST LS", "case": 6.0, "ek": 0.88, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 2, "order": 1, "plan": true, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 3 St."}], "app": 0.0, "invNote": null, "ordNote": "Aktion"}, {"id": 124, "name": "SELLERIE GESCHNITTEN 250G PK", "case": 6.0, "ek": 0.76, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 125, "name": "SELLERIE KNOLLE 1KG LS", "case": 5.0, "ek": 0.99, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 4 St."}], "app": 1.8, "invNote": null, "ordNote": null}, {"id": 126, "name": "PETERSILIE WURZEL NRW REWE REG 300G BT", "case": 6.0, "ek": 1.11, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 0.833, "invNote": null, "ordNote": null}, {"id": 127, "name": "ROTE BETE GEKOCHT REWE BW 500G PK", "case": 14.0, "ek": 0.71, "vk": 0.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.643, "invNote": null, "ordNote": null}, {"id": 128, "name": "ZUCKERMAIS VAKUUMIERT REWE REG 400G PK", "case": 26.0, "ek": 1.25, "vk": 1.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.808, "invNote": null, "ordNote": null}, {"id": 129, "name": "SUPPENGRUEN REWE BW 500G PK", "case": 6.0, "ek": 1.28, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 4, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 4 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 5, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 5 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 130, "name": "TOMATE RISPE RH REWE REG 650G SC", "case": 12.0, "ek": 1.72, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 4 St."}], "app": 0.75, "invNote": null, "ordNote": null}, {"id": 131, "name": "TOMATE RISPE OGT 1KG LS", "case": 5.0, "ek": 1.65, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 4, "order": 3, "plan": false, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 4 St."}, {"kind": "between", "lo": 1.0, "hi": 2.0, "plo": 5, "phi": 9, "order": 2, "plan": false, "unconf": false, "expr": "≥ 1,0  < 2,0", "pcs": "5 bis 9 St."}, {"kind": "between", "lo": 2.0, "hi": 3.0, "plo": 10, "phi": 14, "order": 1, "plan": false, "unconf": false, "expr": "≥ 2,0  < 3,0", "pcs": "10 bis 14 St."}, {"kind": "atleast", "lo": 3.0, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 3,0", "pcs": "ab 15 St."}], "app": 4.6, "invNote": null, "ordNote": null}, {"id": 132, "name": "TOMATE ROMA CHEF REWE BW 400G SL", "case": 12.0, "ek": 1.63, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 2 St."}], "app": 1.25, "invNote": null, "ordNote": null}, {"id": 133, "name": "TOMATE MINI RISPE NRW REWE REG. 350G SL", "case": 8.0, "ek": 1.58, "vk": 2.29, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 4, "order": 2, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 4 St."}, {"kind": "between", "lo": 0.6, "hi": 1.6, "plo": 5, "phi": 12, "order": 1, "plan": true, "unconf": false, "expr": "≥ 0,6  < 1,6", "pcs": "5 bis 12 St."}, {"kind": "atleast", "lo": 1.6, "hi": null, "plo": 13, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 1,6", "pcs": "ab 13 St."}], "app": 1.375, "invNote": null, "ordNote": null}, {"id": 134, "name": "TOMATE ROMA RIS ARO RH REWE REG 250G SL", "case": 10.0, "ek": 1.48, "vk": 1.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 7, "order": 1, "plan": false, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 7 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 8, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 8 St."}], "app": 1.3, "invNote": null, "ordNote": "Aktion"}, {"id": 135, "name": "TOMATE CHERRY ROMA GROUP OGT 250G PK", "case": 24.0, "ek": 0.88, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.6, "plo": 0, "phi": 14, "order": 1, "plan": false, "unconf": false, "expr": "< 0,6", "pcs": "0 bis 14 St."}, {"kind": "atleast", "lo": 0.6, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,6", "pcs": "ab 15 St."}], "app": 1.25, "invNote": null, "ordNote": null}, {"id": 136, "name": "TOMATE DELIZIOSO REWE BW 200G SL", "case": 15.0, "ek": 1.67, "vk": 2.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 5, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 5 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 6, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 6 St."}], "app": 1.4, "invNote": null, "ordNote": null}, {"id": 137, "name": "TOMATE CHERRYROMA RH REWE REG. 400G SL", "case": 12.0, "ek": 2.08, "vk": 2.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 3, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 4 St."}], "app": 0.833, "invNote": null, "ordNote": null}, {"id": 138, "name": "GURKE MINI NRW REWE REG 1ST LS", "case": 32.0, "ek": 0.33, "vk": 0.39, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.25, "plo": 0, "phi": 7, "order": 2, "plan": false, "unconf": false, "expr": "< 0,25", "pcs": "0 bis 7 St."}, {"kind": "between", "lo": 0.25, "hi": 1.25, "plo": 8, "phi": 39, "order": 1, "plan": false, "unconf": false, "expr": "≥ 0,25  < 1,25", "pcs": "8 bis 39 St."}, {"kind": "atleast", "lo": 1.25, "hi": null, "plo": 40, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 1,25", "pcs": "ab 40 St."}], "app": 2.562, "invNote": null, "ordNote": "Aktion"}, {"id": 139, "name": "GURKE OGT 1ST LS", "case": 24.0, "ek": 0.79, "vk": 0.95, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.25, "plo": 0, "phi": 5, "order": 3, "plan": false, "unconf": false, "expr": "< 0,25", "pcs": "0 bis 5 St."}, {"kind": "between", "lo": 0.25, "hi": 1.25, "plo": 6, "phi": 29, "order": 2, "plan": false, "unconf": false, "expr": "≥ 0,25  < 1,25", "pcs": "6 bis 29 St."}, {"kind": "between", "lo": 1.25, "hi": 2.25, "plo": 30, "phi": 53, "order": 1, "plan": false, "unconf": false, "expr": "≥ 1,25  < 2,25", "pcs": "30 bis 53 St."}, {"kind": "atleast", "lo": 2.25, "hi": null, "plo": 54, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 2,25", "pcs": "ab 54 St."}], "app": 5.042, "invNote": null, "ordNote": null}, {"id": 140, "name": "PAPRIKA MIX REWE BW 500G FP", "case": 16.0, "ek": 1.58, "vk": 2.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.06, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,06", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.06, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,06", "pcs": "ab 1 St."}], "app": 0.438, "invNote": null, "ordNote": null}, {"id": 141, "name": "PAPRIKA GELB 1KG LS", "case": 2.8, "ek": 3.48, "vk": 4.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 0, "order": 2, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 St."}, {"kind": "between", "lo": 0.3, "hi": 1.4, "plo": 1, "phi": 3, "order": 1, "plan": true, "unconf": false, "expr": "≥ 0,3  < 1,4", "pcs": "1 bis 3 St."}, {"kind": "atleast", "lo": 1.4, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 1,4", "pcs": "ab 4 St."}], "app": 1.071, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 142, "name": "PAPRIKA ROT 1KG LS", "case": 5.0, "ek": 2.33, "vk": 3.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 2 St."}], "app": 1.6, "invNote": null, "ordNote": null}, {"id": 143, "name": "PAPRIKA ROT SPITZ 500G SL", "case": 10.0, "ek": 1.81, "vk": 2.49, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 144, "name": "PAPRIKA ROT OGT 500G PK", "case": 16.0, "ek": 1.25, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.9, "plo": 0, "phi": 14, "order": 1, "plan": true, "unconf": false, "expr": "< 0,9", "pcs": "0 bis 14 St."}, {"kind": "atleast", "lo": 0.9, "hi": null, "plo": 15, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,9", "pcs": "ab 15 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 145, "name": "PAPRIKA GRUEN 1KG LS", "case": 2.5, "ek": 3.48, "vk": 4.99, "flags": ["PLAN A UNSICHER"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 0, "order": 2, "plan": false, "unconf": true, "expr": "< 0,4", "pcs": "0 St."}, {"kind": "between", "lo": 0.4, "hi": 1.2, "plo": 1, "phi": 2, "order": 1, "plan": true, "unconf": true, "expr": "≥ 0,4  < 1,2", "pcs": "1 bis 2 St."}, {"kind": "atleast", "lo": 1.2, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": false, "unconf": true, "expr": "≥ 1,2", "pcs": "ab 3 St."}], "app": 0.8, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 146, "name": "CHILI MIX TRICOLOR REWE BW 80G SL", "case": 10.0, "ek": 0.94, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.8, "invNote": null, "ordNote": null}, {"id": 147, "name": "AUBERGINE 10ER RL REWE REG. 1ST LS", "case": 10.0, "ek": 0.8, "vk": 1.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.9, "invNote": null, "ordNote": null}, {"id": 148, "name": "ZUCCHINI NRW REWE REG 1KG LS", "case": 5.0, "ek": 1.05, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 2 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 149, "name": "CHICOREE RL REWE REG 500G PK", "case": 10.0, "ek": 1.36, "vk": 1.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.8, "invNote": "Wareneingang fehlt", "ordNote": "Aktion"}, {"id": 150, "name": "FENCHEL RH REWE REG 1KG LS", "case": 3.0, "ek": 2.09, "vk": 3.19, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 1 St."}], "app": 0.667, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 151, "name": "KAISERSCHOTE 200G PK", "case": 6.0, "ek": 1.99, "vk": 2.99, "flags": ["KEINE LEITER", "PLAN A UNSICHER"], "rungs": [{"kind": "none", "lo": null, "hi": null, "plo": null, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "keine Spanne", "pcs": null}], "app": 0.0, "invNote": null, "ordNote": null}, {"id": 152, "name": "BOHNE PRINZESS REWE BW 200G FP", "case": 6.0, "ek": 1.74, "vk": 2.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 153, "name": "BOHNE BUSCH RL REWE REG 500G FP", "case": 6.0, "ek": 1.73, "vk": 2.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 154, "name": "PILZ CHAMPIGN. BRAUN REWE BW 250G SL", "case": 4.0, "ek": 1.36, "vk": 1.49, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 0, "order": 4, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 St."}, {"kind": "between", "lo": 0.2, "hi": 1.2, "plo": 1, "phi": 4, "order": 3, "plan": false, "unconf": false, "expr": "≥ 0,2  < 1,2", "pcs": "1 bis 4 St."}, {"kind": "between", "lo": 1.2, "hi": 2.2, "plo": 5, "phi": 8, "order": 2, "plan": false, "unconf": false, "expr": "≥ 1,2  < 2,2", "pcs": "5 bis 8 St."}, {"kind": "between", "lo": 2.2, "hi": 3.2, "plo": 9, "phi": 12, "order": 1, "plan": false, "unconf": false, "expr": "≥ 2,2  < 3,2", "pcs": "9 bis 12 St."}, {"kind": "atleast", "lo": 3.2, "hi": null, "plo": 13, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 3,2", "pcs": "ab 13 St."}], "app": 3.75, "invNote": null, "ordNote": "Aktion"}, {"id": 155, "name": "PILZ CHAMPIGNON WEISS NEUTR OGT 400G SL", "case": 8.0, "ek": 1.49, "vk": 1.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.2, "plo": 0, "phi": 1, "order": 2, "plan": false, "unconf": false, "expr": "< 0,2", "pcs": "0 bis 1 St."}, {"kind": "between", "lo": 0.2, "hi": 1.2, "plo": 2, "phi": 9, "order": 1, "plan": true, "unconf": false, "expr": "≥ 0,2  < 1,2", "pcs": "2 bis 9 St."}, {"kind": "atleast", "lo": 1.2, "hi": null, "plo": 10, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 1,2", "pcs": "ab 10 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 156, "name": "PILZ CHAMPIGN.BRAUN RL REWE REG. 1KG LS", "case": 2.0, "ek": 4.46, "vk": 6.9, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 1.0, "plo": 0, "phi": 1, "order": 1, "plan": true, "unconf": false, "expr": "< 1,0", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 1.0, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 1,0", "pcs": "ab 2 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 157, "name": "KRAEUTER T BASILIKUM REWE BW 1ST TG", "case": 6.0, "ek": 1.17, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.5, "plo": 0, "phi": 2, "order": 1, "plan": false, "unconf": false, "expr": "< 0,5", "pcs": "0 bis 2 St."}, {"kind": "atleast", "lo": 0.5, "hi": null, "plo": 3, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,5", "pcs": "ab 3 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 158, "name": "KRAEUTER PETERS.NRW KR REWE REG 1ST TG", "case": 6.0, "ek": 1.17, "vk": 1.59, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.333, "invNote": null, "ordNote": null}, {"id": 159, "name": "KRAEUTER SCHNITTL. NRW REWE REG 1ST TG", "case": 6.0, "ek": 1.17, "vk": 1.59, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 1.0, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 160, "name": "KRAEUTER KRESSE NRW REWE REG 1ST SL", "case": 8.0, "ek": 0.35, "vk": 0.49, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 1.0, "invNote": null, "ordNote": null}, {"id": 161, "name": "KRAEUTER MINZE NRW REWE REG 1ST TG", "case": 6.0, "ek": 1.17, "vk": 1.59, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.667, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 162, "name": "KRAEUTER ROSMARIN NRW REWE REG 1ST TG", "case": 6.0, "ek": 1.18, "vk": 1.59, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 0.833, "invNote": null, "ordNote": "zuletzt kein Abverkauf"}, {"id": 163, "name": "KRAEUTER S SCHNITT.NRW REWE REG. 25G FP", "case": 6.0, "ek": 0.58, "vk": 0.99, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.1, "plo": 0, "phi": 0, "order": 1, "plan": false, "unconf": false, "expr": "< 0,1", "pcs": "0 St."}, {"kind": "atleast", "lo": 0.1, "hi": null, "plo": 1, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,1", "pcs": "ab 1 St."}], "app": 1.0, "invNote": "mehrere Artikel auf einer PLU", "ordNote": null}, {"id": 164, "name": "KRAEUTER PETER. GLATT 1ST BD", "case": 5.0, "ek": 0.4, "vk": 0.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 2 St."}], "app": 0.6, "invNote": null, "ordNote": null}, {"id": 165, "name": "KRAEUTER PETERS. KRAUS Bund 1ST BD", "case": 5.0, "ek": 0.4, "vk": 0.79, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.8, "plo": 0, "phi": 3, "order": 1, "plan": true, "unconf": false, "expr": "< 0,8", "pcs": "0 bis 3 St."}, {"kind": "atleast", "lo": 0.8, "hi": null, "plo": 4, "phi": null, "order": 0, "plan": false, "unconf": false, "expr": "≥ 0,8", "pcs": "ab 4 St."}], "app": 0.4, "invNote": null, "ordNote": null}, {"id": 166, "name": "KRAEUTR DILL Bund 1ST BD", "case": 5.0, "ek": 0.44, "vk": 0.79, "flags": ["ZÄHLEN"], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.4, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,4", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.4, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,4", "pcs": "ab 2 St."}], "app": 0.8, "invNote": "turnusmässige Zählung", "ordNote": null}, {"id": 167, "name": "KRAEUTER S ROSMARIN REWE BW 15G FP", "case": 6.0, "ek": 0.58, "vk": 0.99, "flags": ["ZÄHLEN"], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.833, "invNote": "Wareneingang fehlt", "ordNote": null}, {"id": 168, "name": "KRAEUTER S MINZE NRW REWE REG. 25G FP", "case": 6.0, "ek": 0.58, "vk": 0.99, "flags": [], "rungs": [{"kind": "lessthan", "lo": 0.0, "hi": 0.3, "plo": 0, "phi": 1, "order": 1, "plan": false, "unconf": false, "expr": "< 0,3", "pcs": "0 bis 1 St."}, {"kind": "atleast", "lo": 0.3, "hi": null, "plo": 2, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "≥ 0,3", "pcs": "ab 2 St."}], "app": 0.667, "invNote": null, "ordNote": null}, {"id": 169, "name": "TOMATE GETROCKNET 100G BT", "case": 10.0, "ek": 1.28, "vk": 1.99, "flags": [], "rungs": [{"kind": "any", "lo": 0.0, "hi": null, "plo": 0, "phi": null, "order": 0, "plan": true, "unconf": false, "expr": "egal wie viel", "pcs": "ab 0 St."}], "app": 0.5, "invNote": null, "ordNote": null}, {"id": 170, "name": "PFIRSICHE PLATT SANLUCAR 1KG LS", "case": 6.5, "ek": 3.15, "vk": 2.99, "flags": ["KEINE LEITER", "PLAN A UNSICHER"], "rungs": [{"kind": "none", "lo": null, "hi": null, "plo": null, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "keine Spanne", "pcs": null}], "app": 0.0, "invNote": "Abverkauf fehlt · nicht ausgeglichen", "ordNote": "Aktion · nicht ausgeglichen"}, {"id": 171, "name": "TOMATE RISPE CAPRESE SAN LUCAR 650G SL", "case": 6.0, "ek": 1.74, "vk": 2.0, "flags": ["KEINE LEITER", "PLAN A UNSICHER"], "rungs": [{"kind": "none", "lo": null, "hi": null, "plo": null, "phi": null, "order": 0, "plan": true, "unconf": true, "expr": "keine Spanne", "pcs": null}], "app": 0.0, "invNote": "Abverkauf fehlt · nicht ausgeglichen", "ordNote": "Aktion · nicht ausgeglichen · zuletzt kein Abverkauf"}];
+const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
+
+/* ---------- language ---------- */
+let LANG='de';
+const T={
+ de:{atleast:(n,cs)=>`Mindestens ${n} Stück${cs}?`, atmost:(n,cs)=>n===0?`Regal leer?`:`Maximal ${n} Stück${cs}?`,
+     between:(a,b,cs)=>a===b?`Genau ${a} Stück${cs}?`:`Zwischen ${a} und ${b} Stück${cs}?`,
+     any:'Keine Zählung nötig', count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
+     yes:'Ja', no:'Nein', type:'Bestand eingeben', which:'Wie viel dann?',
+     decl:'Abgelehnt. Bitte Bestand eingeben.', notThis:n=>`nicht: ${n}`,
+     clash:n=>`Widerspruch: „${n}" wurde abgelehnt.`, pieces:'Stück',
+     pre:'vorausgewählt', change:'ändern', checkme:'', enter:'Bestand eingeben',
+     okat:(n,cs)=>`Mindestens ${n} Stück${cs}`, okmost:(n,cs)=>n===0?`Regal leer`:`Maximal ${n} Stück${cs}`,
+     okbet:(a,b,cs)=>a===b?`Genau ${a} Stück${cs}`:`${a} bis ${b} Stück${cs}`,
+     conf:'bestätigt', anysub:'Bestellung ändert sich nicht mit dem Bestand',
+     countsub:'Turnusmässige Zählung fällig', nolsub:'Modell rechnet hier kein Bereich',
+     unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen', reset:'Zurücksetzen',
+     onlyopen:'Nur offene', all:'Alle', delta:(a,b)=>`Bestellung ${a} → ${b} Kisten`, nodelta:'Bestellung unverändert'},
+ en:{atleast:(n,cs)=>`At least ${n} pieces${cs}?`, atmost:(n,cs)=>n===0?`Shelf empty?`:`At most ${n} pieces${cs}?`,
+     between:(a,b,cs)=>a===b?`Exactly ${a} pieces${cs}?`:`Between ${a} and ${b} pieces${cs}?`,
+     any:'No count needed', count:'Count: enter inventory', noladder:'Enter inventory',
+     yes:'Yes', no:'No', type:'Enter inventory', which:'Then how many?',
+     decl:'Declined. Please enter inventory.', notThis:n=>`not: ${n}`,
+     clash:n=>`Contradiction: "${n}" was declined.`, pieces:'pieces',
+     pre:'pre-selected', change:'change', checkme:'', enter:'Enter inventory',
+     okat:(n,cs)=>`At least ${n} pieces${cs}`, okmost:(n,cs)=>n===0?`Shelf empty`:`At most ${n} pieces${cs}`,
+     okbet:(a,b,cs)=>a===b?`Exactly ${a} pieces${cs}`:`${a} to ${b} pieces${cs}`,
+     conf:'confirmed', anysub:'Order does not change with inventory',
+     countsub:'Periodic count due', nolsub:'Model produces no band here',
+     unsure:'App inventory contradicts Plan A', bulk:'Bestätigen all', reset:'Reset',
+     onlyopen:'Open only', all:'All', delta:(a,b)=>`Order ${a} → ${b} cases`, nodelta:'Order unchanged'}
+};
+const t=()=>T[LANG];
+
+/* ---------- state ---------- */
+function planIdx(it){return it.rungs.findIndex(r=>r.plan)}
+function inBand(it,r){
+  if(it.app==null||r.lo==null&&r.hi==null) return true;
+  return (r.lo==null||it.app>=r.lo) && (r.hi==null||it.app<r.hi);
+}
+function mode(it){
+  const p=planIdx(it), r=it.rungs[p];
+  if(it.flags.includes('KEINE LEITER')||r.kind==='none') return 'noladder';
+  if(it.flags.includes('ZÄHLEN')) return 'count';
+  if(!inBand(it,r)||it.flags.includes('PLAN A UNSICHER')) return 'unsure';
+  if(r.kind==='any') return 'any';
+  return 'ask';
+}
+let AUTO=2; /* Sicherheitsabstand in Stück zur Schwelle */
+function marginPcs(it){
+  const r=it.rungs[planIdx(it)];
+  if(it.app==null||!it.case) return null;
+  const ap=it.app*it.case, e=[r.lo,r.hi].filter(x=>x!=null).map(x=>x*it.case);
+  return e.length? Math.min(...e.map(x=>Math.abs(ap-x))) : null;
+}
+function confident(it){
+  if(mode(it)!=='ask') return false;
+  if(it.invNote) return false;
+  const m=marginPcs(it);
+  return m==null || m>=AUTO;
+}
+function initState(it){
+  const p=planIdx(it), m=mode(it), c=confident(it);
+  return {mode:m, plan:p, chosen:(m==='any'||c)?p:null, order:it.rungs[p].order??0,
+          answered:(m==='any'||c), auto:c, pick:(c?'yes':null), declined:null, typed:null, typedPcs:null, manual:false};
+}
+const ST=ITEMS.map(initState);
+let TAPS=0, NEINS=0, FILT='all';
+
+const csNum=v=>v.toLocaleString('de-DE',{maximumFractionDigits:2});
+function csPart(it,i){
+  const r=it.rungs[i];
+  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} CS)` : '';
+  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} CS)` : '';
+  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} CS)` : '';
+  return '';
+}
+function stmtFor(it,i){
+  const r=it.rungs[i], L=t(), cs=csPart(it,i);
+  if(r.kind==='atleast') return L.atleast(r.plo,cs);     /* nach oben offen */
+  if(r.kind==='lessthan') return L.atmost(r.phi,cs);     /* nach unten offen */
+  if(r.kind==='between') return L.between(r.plo,r.phi,cs); /* beidseitig begrenzt */
+  return L.any;
+}
+function labelFor(it,i){
+  const r=it.rungs[i], L=t(), cs=csPart(it,i);
+  if(r.kind==='atleast') return L.okat(r.plo,cs);
+  if(r.kind==='lessthan') return L.okmost(r.phi,cs);
+  if(r.kind==='between') return L.okbet(r.plo,r.phi,cs);
+  return L.any;
+}
+function chipFor(it,i){
+  const r=it.rungs[i];
+  const u=LANG==='de'?' St.':' pcs';
+  if(r.kind==='atleast') return (LANG==='de'?'ab ':'from ')+r.plo+u;
+  if(r.kind==='lessthan') return (r.phi===0?'0'+u:'0–'+r.phi+u);
+  return (r.plo===r.phi?String(r.plo):r.plo+'–'+r.phi)+u;
+}
+function csFmt(v){
+  const t=(Math.round(v*100)/100).toFixed(2).split('.');
+  const dec=t[1].replace(/0$/,'');
+  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">CS</span>`;
+}
+function bang(note){ return note ? `<span class="bang" title="${note}">!</span>` : ''; }
+const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+
+/* ---------- render ---------- */
+const list=document.getElementById('list');
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  let html='';
+  ITEMS.forEach((it,ix)=>{
+    const s=ST[ix], L=t();
+    const hide = (q && !it.name.toLowerCase().includes(q)) || (FILT==='open' && s.answered);
+    const meta = `Kiste ${it.case!=null?it.case.toLocaleString('de-DE'):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
+    let pills=`<span class="pill">Ord. 0 CS</span>`;
+    if(/BIO/.test(it.name)) pills+=`<span class="pill b">Bio</span>`;
+
+    /* inventory cell */
+    let box='', acts='', extra='';
+    if(s.mode==='any'){
+      box = `<div class="stmt skip">${L.any}<span class="sub">${L.anysub}</span></div>`;
+    } else if(s.typed!=null){
+      const pc = s.typedPcs!=null ? s.typedPcs : (it.case? Math.round(s.typed*it.case) : null);
+      box = `<div class="invbox" data-a="pad" data-i="${ix}" title="${L.change}">${csFmt(s.typed)}</div>`
+          + (pc!=null? `<div class="invpcs">= ${pc} ${L.pieces}</div>` : '');
+      if(s.chosen!=null && s.chosen!==s.plan){
+        const a=it.rungs[s.plan].order??0, b=it.rungs[s.chosen].order??0;
+        extra = `<div class="delta${a===b?' z':''}">${a===b?L.nodelta:L.delta(a,b)}</div>`;
+      }
+    } else if(s.declined!=null){
+      box = `<div class="stmt no2">✕ ${L.decl}<span class="sub">${L.notThis(labelFor(it,s.declined))}</span></div>`;
+      acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
+              <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
+    } else if(s.mode!=='ask'){
+      box = `<button class="kb big" data-a="pad" data-i="${ix}">${L.enter}</button>`;
+    } else {
+      const on = s.pick==='yes';
+      const sub = on ? (s.auto? L.pre : L.conf) : '';
+      const txt = on ? stmtFor(it,s.plan).replace(/\?$/,'') : stmtFor(it,s.plan);
+      box = `<div class="stmt ${on?('ok'+(s.auto?' auto':'')):'q'}">${on?'✓ ':''}${txt}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
+      acts = `<div class="acts">
+                <button class="yes${on?' sel':''}" data-a="yes" data-i="${ix}">✓ ${L.yes}</button>
+                <button class="no" data-a="no" data-i="${ix}">✕ ${L.no}</button>
+              </div>`;
+    }
+    let cell = `<div class="withbang">${box}${bang(it.invNote)}</div>${acts}${extra}`;
+    cell += `<div class="dsz">Auslage <u>1</u> CS</div>`;
+
+    /* order cell */
+    const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
+    const planO=it.rungs[s.plan].order??0;
+    const shown = s.answered ? s.order : planO;
+    let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
+      <div class="v${changed?' chg':''}">${shown} CS</div>
+      <button data-a="inc" data-i="${ix}">+</button></div>${bang(it.ordNote)}</div>`;
+    html += `<div class="row${s.answered?' done':''}${hide?' hide':''}">
+      <div><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div>
+      <div>${cell}</div><div>${ord}</div></div>`;
+  });
+  list.innerHTML=html;
+  stats();
+}
+
+function stats(){
+  let cases=0,cost=0,ret=0,kept=0,done=0;
+  ITEMS.forEach((it,ix)=>{
+    const s=ST[ix]; const o=s.answered?s.order:(it.rungs[s.plan].order??0);
+    cases+=o; if(it.case){cost+=o*it.case*(it.ek||0); ret+=o*it.case*(it.vk||0);}
+    if(!s.manual) kept++;   // Uebernahme: the system's number still stands
+    if(s.answered) done++;  // drives the progress bar, a different question
+  });
+  document.getElementById('fcases').textContent=cases;
+  document.getElementById('fcost').textContent=eur(cost);
+  document.getElementById('fret').textContent=eur(ret);
+  document.getElementById('fmar').textContent=(ret?((ret-cost)/ret*100):0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %';
+  document.getElementById('fans').textContent=Math.round(kept/ITEMS.length*100)+' %';
+  document.getElementById('pdone').textContent=done;
+  document.getElementById('pbar').style.width=(done/ITEMS.length*100)+'%';
+  document.getElementById('ptaps').textContent=TAPS;
+  document.getElementById('pnein').textContent=NEINS;
+  document.getElementById('pauto').textContent=ST.filter(x=>x.auto).length;
+  const kb=ST.filter(s=>!s.answered&&(s.declined!=null||s.mode==='count'||s.mode==='noladder'||s.mode==='unsure')).length;
+  const ask=ST.filter(s=>!s.answered&&s.declined==null&&s.mode==='ask').length;
+  document.getElementById('popen').innerHTML=`offen: <b>${ask}</b> Ja/Nein · <b>${kb}</b> Keypad`;
+}
+
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('on');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1900)}
+
+/* ---------- interactions ---------- */
+list.addEventListener('click',e=>{
+  const b=e.target.closest('button, .invbox'); if(!b) return;
+  const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
+  if(a==='yes'){ TAPS++;
+    if(s.pick==='yes'){ s.pick=null; s.answered=false; s.auto=false; s.chosen=null; s.order=it.rungs[s.plan].order??0;  s.manual=false; }
+    else { s.pick='yes'; s.answered=true; s.auto=false; s.chosen=s.plan; s.order=it.rungs[s.plan].order??0;  s.manual=false; }
+    render(); }
+  else if(a==='no'){ TAPS++; NEINS++; s.pick=null; s.answered=false; s.auto=false; s.declined=s.plan; render(); openPad(ix); }
+  else if(a==='undo'){ TAPS++; NEINS=Math.max(0,NEINS-1); s.declined=null; render(); }
+  else if(a==='pad'){ openPad(ix); }
+  else if(a==='inc'||a==='dec'){ TAPS++; s.order=Math.max(0,(s.answered?s.order:(it.rungs[s.plan].order??0))+(a==='inc'?1:-1));
+    s.answered=true; s.manual=true; if(s.chosen==null)s.typed=s.typed??null; render(); }
+});
+document.getElementById('q').addEventListener('input',render);
+document.getElementById('reset').addEventListener('click',()=>{
+  TAPS=0; NEINS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)}); render();
+});
+document.getElementById('filtseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return; FILT=b.dataset.f;
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); render();
+});
+
+/* ---------- keypad ---------- */
+let PAD={ix:null,back:'0',floor:'0',act:'floor',unit:'pcs'};
+function openPad(ix){
+  const canPcs = ITEMS[ix].case!=null;
+  PAD={ix,back:'0',floor:'0',act:'floor',unit:canPcs?'pcs':'cs'};
+  const us=document.getElementById('unitseg');
+  [...us.children].forEach(c=>c.classList.toggle('on',c.dataset.u===PAD.unit));
+  us.style.display = canPcs?'inline-flex':'none';
+  const it=ITEMS[ix], s=ST[ix];
+  document.getElementById('shName').textContent=it.name;
+  document.getElementById('shMeta').textContent=`Kiste ${it.case?.toLocaleString('de-DE')} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
+  document.getElementById('shPills').innerHTML='';
+  document.getElementById('shWhy').textContent = s.declined!=null ? t().notThis(labelFor(it,s.declined)) : '';
+  drawPad(); document.getElementById('ov').classList.add('on');
+}
+function padVals(){
+  const b=parseFloat(PAD.back||'0')||0, f=parseFloat(PAD.floor||'0')||0;
+  const it=ITEMS[PAD.ix], cs=it&&it.case?it.case:1;
+  const raw=b+f;
+  return PAD.unit==='pcs' ? {raw, pcs:Math.round(raw), cases:raw/cs}
+                          : {raw, pcs:Math.round(raw*cs), cases:raw};
+}
+function drawPad(){
+  const u = PAD.unit==='pcs' ? ' St.' : ' CS';
+  document.getElementById('kBack').textContent=PAD.back+u;
+  document.getElementById('kFloor').textContent=PAD.floor+u;
+  document.getElementById('kBack').classList.toggle('act',PAD.act==='back');
+  document.getElementById('kFloor').classList.toggle('act',PAD.act==='floor');
+  const v=padVals(), it=ITEMS[PAD.ix], st=ST[PAD.ix];
+  document.getElementById('kTotal').textContent=
+    (PAD.unit==='pcs'? v.pcs+' St.' : v.cases.toLocaleString('de-DE')+' CS');
+  document.getElementById('kPcs').textContent =
+    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' CS'
+                     : '= '+v.pcs+' '+t().pieces);
+  /* fraction keys only make sense in Kisten mode */
+  ['0.25','0.5','0.75'].forEach(k=>{
+    const el=document.querySelector(`#pad button[data-k="${k}"]`);
+    if(el){el.style.display = PAD.unit==='pcs' ? 'none' : '';}
+  });
+  const w=document.getElementById('kWarn');
+  let clash=false;
+  if(st && st.declined!=null){
+    const r=it.rungs[st.declined], pc=v.pcs;
+    if(r.kind==='atleast') clash = pc>=r.plo;
+    else if(r.kind==='lessthan') clash = pc<=r.phi;
+    else if(r.kind==='between') clash = pc>=r.plo && pc<=r.phi;
+  }
+  w.textContent = clash ? t().clash(labelFor(it,st.declined)) : '';
+  w.style.display = clash ? 'block' : 'none';
+}
+document.getElementById('unitseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  const it=ITEMS[PAD.ix], cs=it&&it.case?it.case:1, v=padVals();
+  PAD.unit=b.dataset.u;
+  /* carry the value across the unit switch, keep it on the active field */
+  const nv = PAD.unit==='pcs' ? String(v.pcs) : String(Math.round(v.cases*100)/100);
+  PAD.back='0'; PAD.floor='0'; PAD[PAD.act]=nv;
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
+  drawPad();
+});
+document.getElementById('pad').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
+  let v=PAD[PAD.act];
+  if(k==='swap'){PAD.act=PAD.act==='floor'?'back':'floor'}
+  else if(k==='del'){ v=v.slice(0,-1); if(v===''||v==='.') v='0'; PAD[PAD.act]=v; }
+  else if(['0.25','0.5','0.75'].includes(k)){PAD[PAD.act]=k}
+  else if(k==='.'){ if(!v.includes('.')) PAD[PAD.act]=v+'.'; }
+  else { const dot=v.indexOf('.');
+    if(dot>=0 && v.length-dot>2){ /* max 2 decimals */ }
+    else PAD[PAD.act] = (v==='0') ? k : v+k; }
+  drawPad();
+});
+function closePad(){document.getElementById('ov').classList.remove('on')}
+document.getElementById('shX').onclick=closePad;
+document.getElementById('shAbbrechen').onclick=closePad;
+document.getElementById('shSpeichern').onclick=()=>{
+  const ix=PAD.ix, it=ITEMS[ix], s=ST[ix]; TAPS++;
+  const pv=padVals(); const v=pv.cases;
+  s.typed=v; s.typedPcs=pv.pcs; s.declined=null; s.answered=true; s.auto=false; s.pick=null;
+  const hit=it.rungs.findIndex(r=>(r.lo==null||v>=r.lo)&&(r.hi==null||v<r.hi));
+  if(hit>=0 && it.rungs[hit].order!=null){ s.chosen=hit; s.order=it.rungs[hit].order; s.manual=false; }
+  else { s.chosen=null; s.order=it.rungs[s.plan].order??0; }
+  closePad(); render();
+};
+function legend(){
+  const g={ask_at:0,ask_lt:0,ask_bet:0,any:0,count:0,noladder:0,unsure:0};
+  ITEMS.forEach((it,ix)=>{const s=ST[ix],r=it.rungs[s.plan];
+    if(s.mode==='ask') g['ask_'+(r.kind==='atleast'?'at':r.kind==='lessthan'?'lt':'bet')]++;
+    else g[s.mode]++;});
+  const L=[
+   ['Mindestens x Stück?',g.ask_at,'Sprosse nach oben offen'],
+   ['Maximal x Stück?',g.ask_lt,'Sprosse nach unten offen'],
+   ['Zwischen x und y Stück?',g.ask_bet,'beidseitig begrenzt, nur hier nötig'],
+   ['Keine Zählung nötig',g.any,'Bestellung hängt nicht am Bestand'],
+   ['Zählen',g.count,'turnusmässige Zählung, echte Zahl'],
+   ['Bestand widersprüchlich',g.unsure,'App-Bestand passt nicht zu Plan A'],
+   ['Keine Leiter',g.noladder,'Modell rechnet kein Bereich']];
+  const pre=ST.filter(x=>x.auto).length;
+  const openAsk=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].declined==null&&ST[ix].mode==='ask').length;
+  L.unshift(['Ja vorausgewählt',pre,`Bestandsbeleg liegt ≥ ${AUTO} St. von der Schwelle entfernt`]);
+  L.push(['Offen, nichts markiert',openAsk,'zu knapp an der Schwelle für eine Vorauswahl']);
+  L.push(['! Bestand',ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
+  L.push(['! Bestellung',ITEMS.filter(it=>it.ordNote).length,'Ausrufezeichen am Bestellwert']);
+
+  document.getElementById('legend').innerHTML=L.map(x=>
+    `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
+}
+const _r=render; render=function(){_r();legend()};
+/* ---------- complete order ---------- */
+function openSummary(){
+  const implicit=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].declined==null&&ST[ix].mode==='ask');
+  const blocked=ITEMS.filter((it,ix)=>!ST[ix].answered&&(ST[ix].declined!=null||['count','noladder','unsure'].includes(ST[ix].mode)));
+  let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; cases+= s.answered?s.order:(it.rungs[s.plan].order??0)});
+  const de=LANG==='de';
+  let h='';
+  if(blocked.length){
+    h+=`<div class="stmt no2" style="font-size:14px">${blocked.length} ${de?'Artikel brauchen noch eine echte Zahl':'Artikel brauchen noch eine echte Zahl'}
+        <span class="sub">${de?'Zählungen, widersprüchliche Bestände, fehlende Leiter und abgelehnte Aussagen':'counts, contradictory inventories, missing ladders and declined statements'}</span></div>
+        <ul style="font-size:12.5px;color:#6d6d6d;line-height:1.7;margin:12px 0 0;padding-left:18px">`
+      +blocked.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
+      +(blocked.length>8?`<li>… ${blocked.length-8} ${de?'weitere':'more'}</li>`:'')+'</ul>';
+  }
+  h+=`<div style="margin-top:${blocked.length?18:0}px;font-size:13.5px;line-height:1.8;color:#3d4a44">
+      <div><b>${implicit.length}</b> ${de?'offene Aussagen werden mit <b>Ja</b> bestätigt':'open statements will be confirmed as <b>Yes</b>'}</div>
+      <div><b>${cases}</b> ${de?'Kisten in der Bestellung':'cases in the order'}</div></div>`;
+  document.getElementById('s2Body').innerHTML=h;
+  const go=document.getElementById('s2Go');
+  go.disabled=blocked.length>0; go.style.opacity=blocked.length?.4:1;
+  go.textContent = blocked.length ? (de?'Erst Zahlen nachtragen':'Enter the numbers first')
+                                  : (de?`${implicit.length} bestätigen und abschließen`:`Bestätigen ${implicit.length} and finish`);
+  document.getElementById('ov2').classList.add('on');
+}
+document.getElementById('cta').onclick=openSummary;
+document.getElementById('s2X').onclick=()=>document.getElementById('ov2').classList.remove('on');
+document.getElementById('s2Abbrechen').onclick=()=>document.getElementById('ov2').classList.remove('on');
+document.getElementById('s2Go').onclick=()=>{
+  let n=0; TAPS++;
+  ITEMS.forEach((it,ix)=>{const s=ST[ix];
+    if(!s.answered&&s.declined==null&&s.mode==='ask'){s.pick='yes';s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
+  document.getElementById('ov2').classList.remove('on');
+  toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
+  render();
+};
+render();
+</script>
+</body>
+</html>
