@@ -86,7 +86,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .stmt .sub{display:block;font-weight:500;font-size:11px;color:#8a8a8a;margin-top:2px}
 .stmt.ok .sub{color:#4f7f66}
 
-/* ---------- Bereich als Geometrie: Stück in der Zone, CS an der Grenze ---------- */
+/* ---------- Bereich als Geometrie: Stück in der Zone, KO an der Grenze ---------- */
 .bz{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;padding:1px 0 5px}
 .bl+.bz{padding:5px 0}
 .bl{display:flex;align-items:center;gap:9px}
@@ -265,7 +265,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <div class="nm" id="shName"></div>
         <div class="meta" id="shMeta"></div>
         <div class="pills" id="shPills"></div>
-        <div class="dsz" style="margin-top:22px">Auslage <b>1</b> CS</div>
+        <div class="dsz" style="margin-top:22px">Auslage <b>1</b> KO</div>
         <div class="appv" id="shWhy" style="margin-top:14px;max-width:270px;line-height:1.5"></div>
       </div>
       <div>
@@ -380,9 +380,9 @@ let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
 const csNum=v=>v.toLocaleString('de-DE',{maximumFractionDigits:2});
 function csPart(it,i){
   const r=it.rungs[i];
-  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} CS)` : '';
-  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} CS)` : '';
-  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} CS)` : '';
+  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} KO)` : '';
+  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} KO)` : '';
+  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} KO)` : '';
   return '';
 }
 function stmtFor(it,i){
@@ -400,16 +400,16 @@ function labelFor(it,i){
   return L.any;
 }
 /* Bereich als Geometrie, Iteration 3: die Stückzahl steht in der erlaubten Zone,
-   die CS-Grenze beschriftet den Strich, der Pfeil klebt am Strich und zeigt in die Zone.
+   die KO-Grenze beschriftet den Strich, der Pfeil klebt am Strich und zeigt in die Zone.
    Ein Strich heißt offen, zwei Striche mit Pfeilen nach innen heißen zu.
-   Die Wörter kommen aus T{}, hier wird nichts neu formuliert, und die CS-Werte
+   Die Wörter kommen aus T{}, hier wird nichts neu formuliert, und die KO-Werte
    laufen weiter durch csNum(), also ungerundet wie im gedruckten Bogen. */
 function bereichHTML(it,i,on){
   const r=it.rungs[i], L=t();
   const ok = on ? '<span class="bok">✓</span>' : '';
   const zone = inner => `<div class="bz">${ok}${inner}</div>`;
   const grenze = (v,dir) => `<div class="bl"><span class="bln"><i class="btri ${dir}"></i></span>`
-                          + `<span class="bcs">${csNum(v)} CS</span></div>`;
+                          + `<span class="bcs">${csNum(v)} KO</span></div>`;
   const zahl = (txt,klein) => `<span class="bnum${klein?' sm':''}">${txt}</span>`
                             + `<span class="bst">${L.pieces}</span>`;
   const wort = w => `<span class="bw">${w}</span>`;
@@ -437,7 +437,7 @@ function chipFor(it,i){
 function csFmt(v){
   const t=(Math.round(v*100)/100).toFixed(2).split('.');
   const dec=t[1].replace(/0$/,'');
-  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">CS</span>`;
+  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">KO</span>`;
 }
 function bang(note){ return note ? `<span class="bang" title="${note}">!</span>` : ''; }
 const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
@@ -465,7 +465,7 @@ function render(){
     const s=ST[ix], L=t();
     const hide = (q && !it.name.toLowerCase().includes(q)) || (FILT==='open' && s.answered);
     const meta = `Kiste ${it.case!=null?it.case.toLocaleString('de-DE'):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
-    let pills=`<span class="pill">Ord. 0 CS</span>`;
+    let pills=`<span class="pill">Ord. 0 KO</span>`;
     if(/BIO/.test(it.name)) pills+=`<span class="pill b">Bio</span>`;
 
     /* inventory cell */
@@ -497,13 +497,13 @@ function render(){
               </div>`;
     }
     let cell = `<div class="withbang">${box}${bang(it.invNote)}</div>${acts}${extra}`;
-    cell += `<div class="dsz">Auslage <u>1</u> CS</div>`;
+    cell += `<div class="dsz">Auslage <u>1</u> KO</div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
     const shown = orderVal(ix);
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}">${shown} CS</div>
+      <div class="v${changed?' chg':''}">${shown} KO</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(it.ordNote)}</div>`;
     html += `<div class="row${s.answered?' done':''}${hide?' hide':''}">
       <div><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div>
@@ -596,16 +596,16 @@ function padVals(){
                           : {raw, pcs:Math.round(raw*cs), cases:raw};
 }
 function drawPad(){
-  const u = PAD.unit==='pcs' ? ' St.' : ' CS';
+  const u = PAD.unit==='pcs' ? ' St.' : ' KO';
   document.getElementById('kBack').textContent=PAD.back+u;
   document.getElementById('kFloor').textContent=PAD.floor+u;
   document.getElementById('kBack').classList.toggle('act',PAD.act==='back');
   document.getElementById('kFloor').classList.toggle('act',PAD.act==='floor');
   const v=padVals(), it=ITEMS[PAD.ix], st=ST[PAD.ix];
   document.getElementById('kTotal').textContent=
-    (PAD.unit==='pcs'? v.pcs+' St.' : v.cases.toLocaleString('de-DE')+' CS');
+    (PAD.unit==='pcs'? v.pcs+' St.' : v.cases.toLocaleString('de-DE')+' KO');
   document.getElementById('kPcs').textContent =
-    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' CS'
+    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
                      : '= '+v.pcs+' '+t().pieces);
   /* fraction keys only make sense in Kisten mode */
   ['0.25','0.5','0.75'].forEach(k=>{
