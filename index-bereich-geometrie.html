@@ -82,7 +82,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .pill{border:1px solid #e0e0e0;border-radius:99px;padding:1px 8px;font-size:10.5px;color:#5d6b64;background:#fff}
 .pill.b{border-color:#cfe0d7;background:#F1F7F3;color:#2E6A50}
 .pill.promo{border-color:#e6b5a6;background:var(--red-bg);color:#8d2b0c;font-weight:700}
-.srch .scanBtn{border:0;background:none;font-size:19px;line-height:1;color:#5d6b64;cursor:pointer;padding:2px 6px;border-radius:6px;flex:0 0 auto}
+.srch .scanBtn{display:none;border:0;background:none;font-size:19px;line-height:1;color:#5d6b64;cursor:pointer;padding:2px 6px;border-radius:6px;flex:0 0 auto}
 .srch .scanBtn:hover{background:#F1F6F2;color:var(--green)}
 #scanVideo{width:100%;max-width:480px;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:#000}
 .pill.count{border-color:#e08c72;color:#7a2d10;background:#FDF1EC;font-weight:700}
@@ -177,6 +177,10 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .foot .sp{flex:1}
 .cta{background:var(--green);color:#fff;border:0;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer}
 .cta:hover{background:var(--green-d)}
+.cta.danger{background:var(--red)}
+.cta.danger:hover{background:#96280c}
+.tools .resetBtn{border:0;background:none;color:#c2c2c2;cursor:pointer;padding:6px 7px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+.tools .resetBtn:hover{background:var(--red-bg);color:var(--red)}
 
 /* ---------- keypad modal ---------- */
 .ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-end;justify-content:center;z-index:9}
@@ -255,6 +259,9 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span>Werb.</span><b id="cPromo">0</b></label>
       </div>
     </div>
+    <button class="resetBtn" id="resetBtn" type="button" title="Zurücksetzen" aria-label="Zurücksetzen">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    </button>
   </div>
 
   <div class="prog">
@@ -358,6 +365,15 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       <div id="scanStatus" style="margin-top:14px;font-size:13.5px;color:#8a8a8a;min-height:18px"></div>
     </div>
     <div class="sfoot"><span class="lnk" id="scanAbbrechen">Abbrechen</span><span class="sp"></span></div>
+  </div>
+</div>
+
+<div class="ov" id="ovReset">
+  <div class="sheet" style="max-width:420px;border-radius:16px;align-self:center">
+    <div class="sh"><h3>Wirklich zurücksetzen?</h3><button class="x" id="resetX">✕</button></div>
+    <div style="padding:4px 22px 18px;font-size:13.5px;color:#5d6b64;line-height:1.5">Alle Antworten und Mengen für diese Bestellung werden gelöscht. Das kann nicht rückgängig gemacht werden.</div>
+    <div class="sfoot"><span class="lnk" id="resetAbbrechen">Abbrechen</span><span class="sp"></span>
+      <button class="cta danger" id="resetGo" style="padding:11px 26px">Zurücksetzen</button></div>
   </div>
 </div>
 
@@ -701,6 +717,16 @@ function closeScan(){
 document.getElementById('scanBtn').addEventListener('click', openScan);
 document.getElementById('scanX').addEventListener('click', closeScan);
 document.getElementById('scanAbbrechen').addEventListener('click', closeScan);
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.getElementById('ovReset').classList.add('on');
+});
+function closeResetDlg(){ document.getElementById('ovReset').classList.remove('on'); }
+document.getElementById('resetX').addEventListener('click', closeResetDlg);
+document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
+document.getElementById('resetGo').addEventListener('click', ()=>{
+  TAPS=0; NEINS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)}); render();
+  closeResetDlg();
+});
 document.getElementById('filtseg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; FILT=b.dataset.f;
   [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); render();
