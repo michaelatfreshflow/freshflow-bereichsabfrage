@@ -59,6 +59,9 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
   font-weight:700;font-size:13.5px}
 .colh .i{display:inline-grid;place-items:center;width:15px;height:15px;border:1px solid #9aa8e0;border-radius:3px;
   font-size:10px;color:#5566c0;font-style:italic;margin-left:6px;vertical-align:1px}
+.colh .sortlabel{cursor:pointer;user-select:none}
+.colh .sortlabel:hover{color:var(--green)}
+.colh .sortarrow{display:inline-block;min-width:10px;margin-left:3px;font-size:11px;color:var(--green)}
 .list{max-height:660px;overflow:auto}
 .row{display:grid;grid-template-columns:1fr 330px 200px;gap:10px;padding:11px 18px;border-bottom:1px solid #f2f2f2;align-items:start}
 .row.done{background:#FCFDFC}
@@ -239,7 +242,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
     <span id="popen"></span>
   </div>
 
-  <div class="colh"><div>Artikel</div><div>Bestand <span class="i">i</span></div><div style="text-align:right">Bestellung <span class="i">i</span></div></div>
+  <div class="colh" id="colh"><div>Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv">Bestand<span class="sortarrow" id="arrow-inv"></span></span> <span class="i">i</span></div><div style="text-align:right"><span class="sortlabel" data-a="sort" data-col="ord">Bestellung<span class="sortarrow" id="arrow-ord"></span></span> <span class="i">i</span></div></div>
   <div class="list" id="list"></div>
 
   <div class="foot">
@@ -372,6 +375,7 @@ function initState(it){
 }
 const ST=ITEMS.map(initState);
 let TAPS=0, NEINS=0, FILT='all';
+let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
 
 const csNum=v=>v.toLocaleString('de-DE',{maximumFractionDigits:2});
 function csPart(it,i){
@@ -440,10 +444,24 @@ const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDi
 
 /* ---------- render ---------- */
 const list=document.getElementById('list');
+function invVal(ix){ const it=ITEMS[ix], s=ST[ix]; return s.typed!=null ? s.typed : it.app; }
+function orderVal(ix){ const it=ITEMS[ix], s=ST[ix]; const planO=it.rungs[s.plan].order??0; return s.answered ? s.order : planO; }
 function render(){
   const q=(document.getElementById('q').value||'').toLowerCase().trim();
   let html='';
-  ITEMS.forEach((it,ix)=>{
+  let idxOrder = ITEMS.map((_,ix)=>ix);
+  if(SORT.col){
+    const key = SORT.col==='inv' ? invVal : orderVal;
+    idxOrder.sort((a,b)=>{
+      const va=key(a), vb=key(b);
+      if(va==null && vb==null) return 0;
+      if(va==null) return 1;
+      if(vb==null) return -1;
+      return (va-vb)*SORT.dir;
+    });
+  }
+  idxOrder.forEach(ix=>{
+    const it=ITEMS[ix];
     const s=ST[ix], L=t();
     const hide = (q && !it.name.toLowerCase().includes(q)) || (FILT==='open' && s.answered);
     const meta = `Kiste ${it.case!=null?it.case.toLocaleString('de-DE'):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
@@ -483,8 +501,7 @@ function render(){
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
-    const planO=it.rungs[s.plan].order??0;
-    const shown = s.answered ? s.order : planO;
+    const shown = orderVal(ix);
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
       <div class="v${changed?' chg':''}">${shown} CS</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(it.ordNote)}</div>`;
@@ -543,6 +560,17 @@ document.getElementById('reset').addEventListener('click',()=>{
 document.getElementById('filtseg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; FILT=b.dataset.f;
   [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); render();
+});
+function updateSortArrows(){
+  document.getElementById('arrow-inv').textContent = SORT.col==='inv' ? (SORT.dir===1?'↑':'↓') : '';
+  document.getElementById('arrow-ord').textContent = SORT.col==='ord' ? (SORT.dir===1?'↑':'↓') : '';
+}
+document.getElementById('colh').addEventListener('click', e=>{
+  const b=e.target.closest('.sortlabel'); if(!b) return;
+  const col=b.dataset.col;
+  if(SORT.col===col) SORT.dir*=-1; else { SORT.col=col; SORT.dir=1; }
+  updateSortArrows();
+  render();
 });
 
 /* ---------- keypad ---------- */
