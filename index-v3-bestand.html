@@ -710,8 +710,8 @@ document.getElementById('exp').onclick = ()=>{
    Script upserts on Bestelltag + Artikel-ID). Content-Type stays text/plain so the browser
    sends a simple request and no CORS preflight is needed from a file:// page.
    SYNC_URL is baked in by RP_appclone.py --sync-url; empty means the sync is simply off. */
-const SYNC_URL = '';
-const SYNC_SECRET = '';
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxcYGAKsvnksZy6K5oWeU_jM955IypHN_Es3MNaZIv-yDov9wBun3iwAu7weEMT0q8P7g/exec';
+const SYNC_SECRET = 'peeters';
 let syncTimer=null, syncBusy=false, syncDirty=false, syncLast=null;
 
 function syncStatus(txt,farbe){ const el=document.getElementById('syncst');
