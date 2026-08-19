@@ -465,7 +465,7 @@ function render(){
     const s=ST[ix], L=t();
     const hide = (q && !it.name.toLowerCase().includes(q)) || (FILT==='open' && s.answered);
     const meta = `Kiste ${it.case!=null?it.case.toLocaleString('de-DE'):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
-    let pills=`<span class="pill">Ord. 0 KO</span>`;
+    let pills=`<span class="pill">Best. 0 KO</span>`;
     if(/BIO/.test(it.name)) pills+=`<span class="pill b">Bio</span>`;
 
     /* inventory cell */
