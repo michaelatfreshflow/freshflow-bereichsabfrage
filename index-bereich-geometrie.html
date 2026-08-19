@@ -446,7 +446,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       </div>
       <div>
         <div class="kfield"><label>Bestellung</label><div class="box act" id="ordVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div class="tot" id="ordUnit">0 KO</div></div>
+        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="ordPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -1351,8 +1351,11 @@ function openOrdPad(ix){
   document.getElementById('ovOrd').classList.add('on');
 }
 function drawOrdPad(){
+  const it=ITEMS[ORD.ix];
   document.getElementById('ordVal').textContent=ORD.val;
   document.getElementById('ordUnit').textContent=ORD.val+' KO';
+  const n=parseInt(ORD.val||'0',10)||0;
+  document.getElementById('ordUnitPcs').textContent = it.case!=null ? `= ${Math.round(n*it.case)} ${uw(it)}` : '';
 }
 document.getElementById('ordPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
