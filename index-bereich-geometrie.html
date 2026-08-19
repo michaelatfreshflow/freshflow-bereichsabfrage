@@ -427,14 +427,16 @@ const t=()=>T[LANG];
 const uw=it=>it&&it.unit==='kg' ? 'kg' : (LANG==='de'?'Stück':'pieces');   // long form, for prose
 const ua=it=>it&&it.unit==='kg' ? 'kg' : (LANG==='de'?'St.':'pcs');       // short form, for chips/meta
 
-/* ---------- live Telegram push: one message per row change ---------- */
-const TG_BOT_TOKEN='8846116792:AAGpJKr4gAQOKAIbc6jJOtc_18azuPnAJpA';
-const TG_CHAT_ID='1854024996';
+/* ---------- live Telegram push: one message per row change ----------
+   Routed through an Apps Script Web App so the bot token stays server-side
+   (Script Properties) instead of sitting in this public page's source. */
+const PUSH_URL='https://script.google.com/macros/s/AKfycbwR75xk2Mm7KG9vrfsmNKXuPtkO-PTSVJ8uu9Tn8lvwfMHvN3VuRGR0t7n3duK2fXcf/exec';
+const PUSH_SECRET='594060febfe2b4cbb9cb555d6ca87955';
 function pushChange(text){
-  if(!TG_CHAT_ID) return;
-  fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`,{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({chat_id:TG_CHAT_ID, text})
+  if(!PUSH_URL) return;
+  fetch(PUSH_URL,{
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({secret:PUSH_SECRET, text})
   }).catch(err=>console.warn('Telegram push failed', err));
 }
 
