@@ -205,6 +205,10 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .cathdr .x{flex:0 0 auto;width:32px;height:32px;border-radius:99px;background:rgba(255,255,255,.14);border:0;
   color:#fff;font-size:14px;cursor:pointer}
 .cathdr .x:hover{background:rgba(255,255,255,.22)}
+.cathdr .editBtn{flex:0 0 auto;border:0;border-radius:99px;background:rgba(255,255,255,.14);color:#fff;
+  font-size:12.5px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;align-self:flex-start;margin-top:2px}
+.cathdr .editBtn:hover{background:rgba(255,255,255,.22)}
+.cathdr .editBtn.on{background:#C1CE5D;color:#1b2420}
 .catsearch{padding:16px 24px 0}
 .catsearch .box{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:12px 16px;
   box-shadow:0 2px 12px rgba(0,0,0,.06)}
@@ -232,6 +236,17 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .cattile .cnt{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:#8a8a8a}
 .cattile .cnt .dot{width:6px;height:6px;border-radius:99px;flex:0 0 auto}
 .cattile .fertig{flex:none;background:var(--green);color:#fff;border-radius:99px;padding:3px 8px;font-size:9.5px;font-weight:800;white-space:nowrap}
+.catedit{display:flex;flex-direction:column;gap:7px}
+.catrow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e4e9e6;border-radius:10px;padding:10px 14px}
+.catrow .dot{width:9px;height:9px;border-radius:99px;flex:0 0 auto}
+.catrow .tx{flex:1;min-width:0}
+.catrow .nm{font-weight:800;font-size:14px;letter-spacing:-.01em}
+.catrow .cnt{font-size:11.5px;color:#8a8a8a;margin-top:2px}
+.catrow .rebtns{display:flex;gap:6px;flex:0 0 auto}
+.reordBtn{width:32px;height:32px;border-radius:8px;border:1px solid #dde3e0;background:#f1f3f2;font-size:13px;
+  cursor:pointer;color:var(--ink)}
+.reordBtn:hover:not(:disabled){background:#e3e8e5}
+.reordBtn:disabled{opacity:.3;cursor:default}
 .catres{display:flex;flex-direction:column;gap:7px}
 .catres .row{display:flex;align-items:center;gap:14px;background:#fff;border-radius:10px;padding:12px 16px;
   cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05)}
@@ -502,33 +517,60 @@ const ITEMS = [{"id": 0, "plu": 7589883, "bio": true, "promo": null, "name": "ZI
    concept from "Bereich" (the numeric inventory range elsewhere on this page) —
    deliberately named "Kategorie" everywhere in UI copy and state to avoid
    colliding with that word. */
+/* Fixed walk order through the store — not sorted by recency. Whenever a
+   category is completed, the picker's grid keeps this order so the next
+   category to work on is simply the next one in the list. */
 const TILES = [
+  ['paprika','Paprika & Chili','Gemüse',['bell pepper','pointed pepper','chili pepper']],
+  ['wurzel','Wurzelgemüse','Gemüse',['carrot','beet','celeriac','radish','ginger','kohlrabi']],
+  ['kohl','Kohlgemüse','Gemüse',['broccoli','cauliflower','white cabbage','savoy cabbage','pointed cabbage','chinese cabbage','pak choi']],
+  ['blattgemuese','Blattgemüse','Gemüse',['spinach','chicory','fennel','celery']],
+  ['salate','Salate','Gemüse',['iceberg lettuce','other lettuce','romaine lettuce']],
+  ['pilze','Pilze','Gemüse',['mushroom']],
+  ['kraeuter','Kräuter','Gemüse',['basil','parsley','rosemary','chives','dill','mint','cress','mirepoix']],
+  ['tomaten','Tomaten','Gemüse',['tomato','mini tomato']],
+  ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['cucumber','mini cucumber','eggplant','zucchini','corn']],
+  ['beeren','Beeren & Gekühlte Früchte','Obst',['blackberry','blueberry','currant','raspberry','strawberry','fig']],
+  ['huelsen','Bohnen & Erbsen','Gemüse',['bean','snow pea']],
+  ['kartoffeln','Kartoffeln','Gemüse',['all-purpose potato','waxy potato','starchy potato','sweet potato']],
+  ['zwiebel','Zwiebelgemüse','Gemüse',['onion','garlic','shallot','green onion','leek']],
+  ['bananen','Bananen','Obst',['banana']],
   ['kernobst','Kernobst','Obst',['apple','pear']],
   ['steinobst','Steinobst','Obst',['peach','nectarine','plum','cherry']],
-  ['trauben','Trauben','Obst',['grapes']],
-  ['beeren','Beeren & Gekühlte Früchte','Obst',['blackberry','blueberry','currant','raspberry','strawberry','fig']],
   ['zitrus','Zitrusfrüchte','Obst',['grapefruit','lemon','lime','mandarin','orange']],
-  ['bananen','Bananen','Obst',['banana']],
+  ['trauben','Trauben','Obst',['grapes']],
   ['exotisch','Exotisch','Obst',['avocado','dates','kiwi','mango','melon','pineapple','pomegranate','watermelon']],
   ['nuesse','Nüsse','Obst',['peanut','walnut']],
-  ['kartoffeln','Kartoffeln','Gemüse',['all-purpose potato','waxy potato','starchy potato','sweet potato']],
-  ['wurzel','Wurzelgemüse','Gemüse',['carrot','beet','celeriac','radish','ginger','kohlrabi']],
-  ['zwiebel','Zwiebelgemüse','Gemüse',['onion','garlic','shallot','green onion','leek']],
-  ['tomaten','Tomaten','Gemüse',['tomato','mini tomato']],
-  ['paprika','Paprika & Chili','Gemüse',['bell pepper','pointed pepper','chili pepper']],
-  ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['cucumber','mini cucumber','eggplant','zucchini','corn']],
-  ['huelsen','Bohnen & Erbsen','Gemüse',['bean','snow pea']],
-  ['kohl','Kohlgemüse','Gemüse',['broccoli','cauliflower','white cabbage','savoy cabbage','pointed cabbage','chinese cabbage','pak choi']],
-  ['salate','Salate','Gemüse',['iceberg lettuce','other lettuce','romaine lettuce']],
-  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salad mix','arugula','lambs lettuce']],
-  ['blattgemuese','Blattgemüse','Gemüse',['spinach','chicory','fennel','celery']],
-  ['kraeuter','Kräuter','Gemüse',['basil','parsley','rosemary','chives','dill','mint','cress','mirepoix']],
-  ['pilze','Pilze','Gemüse',['mushroom']]
+  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salad mix','arugula','lambs lettuce']]
 ];
 const CAT_TO_TILE = {};
 TILES.forEach(t=>t[3].forEach(c=>{CAT_TO_TILE[c]=t[0]}));
 function tileOf(it){ return CAT_TO_TILE[it.category] || 'sonstiges'; }
 function tileLabel(id){ const t=TILES.find(x=>x[0]===id); return t? t[1] : (id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id)); }
+
+/* Store-walk order is user-adjustable (see Kategorien overlay "Reihenfolge"
+   edit mode) and persisted per device; falls back to TILES' own order and
+   heals itself if TILES gains/loses an id since the order was saved. */
+function loadTileOrder(){
+  const ids = TILES.map(t=>t[0]);
+  let saved=null;
+  try{ saved = JSON.parse(localStorage.getItem('catTileOrder')||'null'); }catch(e){}
+  if(!Array.isArray(saved)) return ids.slice();
+  const valid = saved.filter(id=>ids.includes(id));
+  const missing = ids.filter(id=>!valid.includes(id));
+  return valid.concat(missing);
+}
+function saveTileOrder(){
+  try{ localStorage.setItem('catTileOrder', JSON.stringify(TILE_ORDER)); }catch(e){}
+}
+let TILE_ORDER = loadTileOrder();
+function moveTileOrder(id,dir){
+  const i=TILE_ORDER.indexOf(id), j=i+dir;
+  if(i<0 || j<0 || j>=TILE_ORDER.length) return;
+  [TILE_ORDER[i],TILE_ORDER[j]]=[TILE_ORDER[j],TILE_ORDER[i]];
+  saveTileOrder();
+  renderCatOverlay();
+}
 
 const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
 
@@ -627,9 +669,9 @@ let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
    which stay exactly as they were) ---------- */
 let CATOPEN=true;          // overlay visible; starts open like the design
 let CATQUERY='';           // the overlay's own search field, not #q
+let CAT_EDIT=false;        // Kategorien overlay is in "adjust order" mode
 let CATFILTER=null;        // {kind:'tile'|'promo'|'item', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
-let CATRECENT=[];          // tileIds, most-recently-picked first
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
 let CATCELEBRATE=null;     // {id,label} | null — celebration playing for this tile
 let RECENTLY_ANSWERED=[];  // item ids, most-recent first, capped — real "favorites"
@@ -686,6 +728,16 @@ function csFmt(v){
   return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">KO</span>`;
 }
 function bang(note){ return note ? `<span class="bang" title="${note}">!</span>` : ''; }
+/* a row counts as erfasst for category progress once neither bang shows —
+   mirrors the two bang() calls in render() exactly, not the answered flag.
+   A declined-but-not-yet-typed row (contradicted the plan, keypad closed
+   without a number) carries no bang of its own, so it needs its own check. */
+function rowClear(it,s){
+  if(s.declined!=null && s.typed==null) return false;
+  const invBang = s.typed==null && (s.mode==='unsure' || it.invNote);
+  const ordBang = !s.manual && it.ordNote;
+  return !invBang && !ordBang;
+}
 const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
 const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 function promoLabel(promo){
@@ -755,12 +807,13 @@ function render(){
       box = `<div class="stmt no2">${L.decl}</div>`;
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
               <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
-    } else if(s.mode!=='ask'){
-      box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}</button>`;
-    } else {
+    } else if(s.mode==='ask'||s.mode==='unsure'){
       box = tileHTML(it,s.plan,s,ix);
+    } else {
+      box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}</button>`;
     }
-    let cell = `<div class="withbang">${box}${bang(s.typed==null?it.invNote:null)}</div>${acts}${extra}`;
+    const noteTxt = s.typed!=null ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
+    let cell = `<div class="withbang">${box}${bang(noteTxt)}</div>${acts}${extra}`;
     cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div>`;
 
     /* order cell */
@@ -803,8 +856,8 @@ function stats(){
   document.getElementById('pnein').textContent=NEINS;
   document.getElementById('pauto').textContent=ST.filter(x=>x.auto&&!x.hidden).length;
   const cHiddenEl=document.getElementById('cHidden'); if(cHiddenEl) cHiddenEl.textContent=hiddenCount;
-  const kb=ST.filter(s=>!s.hidden&&!s.answered&&(s.declined!=null||s.mode==='count'||s.mode==='noladder'||s.mode==='unsure')).length;
-  const ask=ST.filter(s=>!s.hidden&&!s.answered&&s.declined==null&&s.mode==='ask').length;
+  const kb=ST.filter(s=>!s.hidden&&!s.answered&&(s.declined!=null||s.mode==='count'||s.mode==='noladder')).length;
+  const ask=ST.filter(s=>!s.hidden&&!s.answered&&s.declined==null&&(s.mode==='ask'||s.mode==='unsure')).length;
   document.getElementById('popen').innerHTML=`offen: <b>${ask}</b> Ja/Nein · <b>${kb}</b> Keypad`;
 }
 
@@ -820,12 +873,11 @@ function itemsForFilter(f){
 function tileStats(tileId){
   const list = itemsForFilter({kind: tileId==='promo'?'promo':'tile', id:tileId});
   const fin = !!CATFINISHED[tileId];
-  const done = fin ? list.length : list.filter(i=>ST[i.id].answered).length;
+  const done = fin ? list.length : list.filter(i=>rowClear(i,ST[i.id])).length;
   return {list, fin, done, open:list.length-done};
 }
 function pickCategory(kind,id,label){
   CATFILTER={kind,id,label}; CATOPEN=false; CATQUERY='';
-  if(kind==='tile') CATRECENT=[id].concat(CATRECENT.filter(x=>x!==id));
   render();
 }
 function clearCatFilter(){ CATFILTER=null; render(); }
@@ -848,21 +900,29 @@ function renderCatOverlay(){
   const topPx = hdr ? hdr.offsetHeight : 0;
   const q=CATQUERY.trim().toLowerCase();
 
-  const tileDefs = TILES.map(x=>({id:x[0], label:x[1], type:x[2]}));
+  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:t[1], type:t[2]}; });
   tileDefs.push({id:'promo', label:'Aktionsartikel', type:'Aktion'});
   tileDefs.push({id:'sonstiges', label:'Sonstiges', type:'Sonstiges'});
-  let tiles = tileDefs.map(t=>{
+  const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = t.id==='promo' ? '#FC9511' : (t.id==='sonstiges' ? '#8a8a8a' : (t.type==='Obst' ? '#C1CE5D' : '#429359'));
     return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, icon:`assets/categories/${t.id}.png`, accent};
   }).filter(t=>t.id!=='sonstiges' || t.count>0);
-  if(CATRECENT.length){
-    const rank=id=>{ const i=CATRECENT.indexOf(id); return i===-1?999:i; };
-    tiles=tiles.slice().sort((a,b)=>rank(a.id)-rank(b.id));
-  }
 
   let body;
-  if(q){
+  if(CAT_EDIT){
+    const orderTiles = tiles.filter(t=>t.id!=='promo' && t.id!=='sonstiges');
+    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen · gilt für alle Filialen auf diesem Gerät</div></div>
+      <div class="catedit">${orderTiles.map((tl,i)=>`
+        <div class="catrow">
+          <span class="dot" style="background:${tl.accent}"></span>
+          <div class="tx"><div class="nm">${tl.label}</div><div class="cnt">${tl.count} Artikel</div></div>
+          <div class="rebtns">
+            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="nach oben"${i===0?' disabled':''}>▲</button>
+            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="nach unten"${i===orderTiles.length-1?' disabled':''}>▼</button>
+          </div>
+        </div>`).join('')}</div>`;
+  } else if(q){
     const digitsQ=q.replace(/\D/g,'');
     const results = ITEMS.filter(i=>i.name.toLowerCase().includes(q) || pluApproxMatch(i.plu, digitsQ)).slice(0,40);
     body = `<div class="catsec"><div class="lb">${results.length} Treffer für „${CATQUERY.trim()}"</div></div>
@@ -904,23 +964,27 @@ function renderCatOverlay(){
       <div class="cathdr">
         <div style="flex:1">
           <div class="eyebrow">KATEGORIEN</div>
-          <h2>Wo bist du gerade?</h2>
-          <div class="sub">Kategorie antippen → nur diese Artikel im Ordersatz. Jeder Artikel in maximal 3 Taps.</div>
+          <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : 'Wo bist du gerade?'}</h2>
+          <div class="sub">${CAT_EDIT ? 'Mit ▲ ▼ die Kategorie an die richtige Stelle im Rundgang schieben.' : 'Kategorie antippen → nur diese Artikel im Ordersatz. Jeder Artikel in maximal 3 Taps.'}</div>
         </div>
+        <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? '✓ Fertig' : '✎ Reihenfolge'}</button>
         <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
       </div>
-      <div class="catsearch"><div class="box">
+      ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
         <span style="color:#8a8a8a;font-size:17px">⌕</span>
         <input id="catQ" type="search" placeholder="Artikel oder PLU suchen – schnellster Weg" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
-      </div></div>
+      </div></div>`}
       <div class="catbody">${body}</div>
     </div>
   </div>`;
 
   document.getElementById('catCloseBtn').onclick=closeCat;
+  document.getElementById('catEditBtn').onclick=()=>{ CAT_EDIT=!CAT_EDIT; CATQUERY=''; renderCatOverlay(); };
   const inp=document.getElementById('catQ');
-  inp.addEventListener('input', e=>{ CATQUERY=e.target.value; renderCatOverlay(); });
-  inp.focus(); inp.setSelectionRange(CATQUERY.length,CATQUERY.length);
+  if(inp){
+    inp.addEventListener('input', e=>{ CATQUERY=e.target.value; renderCatOverlay(); });
+    inp.focus(); inp.setSelectionRange(CATQUERY.length,CATQUERY.length);
+  }
 
   root.querySelectorAll('[data-a="catpick-tile"]').forEach(el=>{
     el.addEventListener('click', ()=>pickCategory('tile', el.dataset.id, el.dataset.label));
@@ -930,6 +994,12 @@ function renderCatOverlay(){
   });
   const allBtn=root.querySelector('[data-a="catpick-all"]');
   if(allBtn) allBtn.addEventListener('click', ()=>{ CATFILTER=null; CATOPEN=false; render(); });
+  root.querySelectorAll('[data-a="cat-up"]').forEach(el=>{
+    el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,-1));
+  });
+  root.querySelectorAll('[data-a="cat-down"]').forEach(el=>{
+    el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,1));
+  });
 }
 
 function renderCatFinish(){
@@ -1182,7 +1252,7 @@ document.getElementById('resetX').addEventListener('click', closeResetDlg);
 document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; NEINS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
-  CATFINISHED={}; CATRECENT=[]; RECENTLY_ANSWERED=[]; CATFILTER=null; CATCONFIRM=null; CATCELEBRATE=null;
+  CATFINISHED={}; RECENTLY_ANSWERED=[]; CATFILTER=null; CATCONFIRM=null; CATCELEBRATE=null;
   render();
   closeResetDlg();
 });
@@ -1248,9 +1318,8 @@ function openPad(ix){
   document.getElementById('shMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
   document.getElementById('shPills').innerHTML='';
   document.getElementById('kAuslage').textContent = s.auslage!=null ? s.auslage : 1;
-  document.getElementById('shWhy').textContent = s.declined!=null
-    ? (s.dir!=null? `${dirLabel(s.dir)} — ${t().notThis(labelFor(it,s.declined))}` : t().notThis(labelFor(it,s.declined)))
-    : '';
+  const bestand = invVal(ix);
+  document.getElementById('shWhy').textContent = bestand!=null ? `Bestand ${csNum(bestand)} KO` : '';
   drawPad(); document.getElementById('ov').classList.add('on');
 }
 function padVals(){
