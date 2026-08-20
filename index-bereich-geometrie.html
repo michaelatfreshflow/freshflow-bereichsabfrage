@@ -110,7 +110,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 
 /* ---------- Kachel weniger/✓/mehr ---------- */
 .tile{flex:1;border:1.5px solid var(--grey-b,#dcdfdd);border-radius:11px;padding:9px 10px 10px;background:#fff}
-.tile.ok{border-color:#bcd9c8;background:var(--ok-bg)}
 .tile .head{text-align:center;padding:2px 0 8px}
 .tile .n{font-size:20px;font-weight:800;line-height:1.05;letter-spacing:-.015em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tile .n .u{font-size:11.5px;font-weight:700;color:#6f7c76;letter-spacing:0}
@@ -166,7 +165,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .step button:first-child{border-radius:9px 0 0 9px}
 .step button:last-child{border-radius:0 9px 9px 0}
 .step .v{min-width:64px;height:44px;border:1px solid #e3e3e3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:14.5px;font-weight:700;background:#fff;cursor:pointer}
-.step .v.chg{border-color:var(--amber);background:var(--amber-bg)}
+.step .v.chg{border-color:var(--amber)}
 .step .v .sub{font-size:10.5px;font-weight:600;color:#8a8a8a}
 .ref{margin-top:7px;text-align:right;font-size:11.5px;color:#a0a0a0}
 .ref b{color:#6d6d6d}
@@ -537,7 +536,7 @@ const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
 let LANG='de';
 const T={
  de:{any:'Kein Bestand nötig', count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
-     type:'Bestand eingeben', decl:'Abgelehnt. Bitte Bestand eingeben.', notThis:n=>`nicht: ${n}`,
+     type:'Bestand eingeben', decl:'Bitte Bestand eingeben', notThis:n=>`nicht: ${n}`,
      clash:n=>`Widerspruch: „${n}" wurde abgelehnt.`,
      wmore:'mehr', wless:'weniger', change:'ändern', enter:'Bestand eingeben',
      okat:(n,cs,ul)=>`Mindestens ${n} ${ul}${cs}`, okmost:(n,cs,ul)=>n===0?`Regal leer`:`Maximal ${n} ${ul}${cs}`,
@@ -547,7 +546,7 @@ const T={
      unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen',
      onlyopen:'Nur offene', all:'Alle', delta:(a,b)=>`Bestellung ${a} → ${b} Kisten`, nodelta:'Bestellung unverändert'},
  en:{any:'No inventory needed', count:'Count: enter inventory', noladder:'Enter inventory',
-     type:'Enter inventory', decl:'Declined. Please enter inventory.', notThis:n=>`not: ${n}`,
+     type:'Enter inventory', decl:'Please enter inventory', notThis:n=>`not: ${n}`,
      clash:n=>`Contradiction: "${n}" was declined.`,
      wmore:'more', wless:'less', change:'change', enter:'Enter inventory',
      okat:(n,cs,ul)=>`At least ${n} ${ul}${cs}`, okmost:(n,cs,ul)=>n===0?`Shelf empty`:`At most ${n} ${ul}${cs}`,
@@ -669,7 +668,7 @@ function tileHTML(it,i,s,ix){
   const onCls=seg=>s.seg===seg?' on':'';
   const sideBtn=seg=>`<button class="sg ${seg}${out.includes(seg)?' out':''}${onCls(seg)}" `
                    +`data-a="seg" data-s="${seg}" data-i="${ix}">${dirLabel(seg)}</button>`;
-  return `<div class="tile${s.seg?' ok':''}">
+  return `<div class="tile">
     <div class="head"><div class="n">${head} <span class="u">${uw(it)}</span></div><div class="cs">${csline}</div></div>
     <div class="tileseg">${sideBtn('less')}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
   </div>`;
@@ -753,7 +752,7 @@ function render(){
         extra = `<div class="delta${a===b?' z':''}">${a===b?L.nodelta:L.delta(a,b)}</div>`;
       }
     } else if(s.declined!=null){
-      box = `<div class="stmt no2">✕ ${L.decl}<span class="sub">${L.notThis(labelFor(it,s.declined))}</span></div>`;
+      box = `<div class="stmt no2">${L.decl}</div>`;
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
               <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
     } else if(s.mode!=='ask'){
