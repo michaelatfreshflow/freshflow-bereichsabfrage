@@ -646,9 +646,10 @@ function outSet(band){ return band==='up'?['less']:band==='down'?['more']:['less
    angezeigten Sprossen-Ankers (r.plo/r.phi in Stueck), wird das der Vorschlag statt des
    neutralen Hakens -- das ist immer die Seite, die per outSet() NICHT widerspricht, also
    nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
-function hasFewerRung(r){ return !(r.kind==='lessthan' && r.plo===0); } /* am unteren Sprossenende (0 St.) gibt's kein "weniger" mehr */
+function hasFewerRung(r){ return !(r.kind==='lessthan' && r.plo===0 && r.phi!==0); } /* am unteren Sprossenende (0 bis N St., N>0) gibt's kein "weniger" mehr; die reine 0-St.-Sprosse zeigt "weniger" stattdessen als 1-Stück-Frage (s.u.) */
 function defaultSeg(it,i){
   const r=it.rungs[i];
+  if(r.kind==='lessthan' && r.phi===0) return 'less'; /* reine 0-St.-Sprosse: "weniger als 1" ist die erwartete Antwort, nicht der neutrale Haken */
   const estPcs = (it.app!=null && it.case!=null) ? Math.round(it.app*it.case) : null;
   if(estPcs==null) return 'mid';
   if(r.kind==='atleast' && r.plo!=null) return estPcs>r.plo ? 'more' : 'mid';
@@ -657,7 +658,11 @@ function defaultSeg(it,i){
 }
 function initState(it){
   const p=planIdx(it), m=mode(it), pre=(m==='any'||m==='ask');
-  const seg=(m==='ask'?defaultSeg(it,p):null), chosen=pre?p:null, order=it.rungs[p].order??0, auto=(m==='ask');
+  const r=it.rungs[p], zeroRung=(r.kind==='lessthan' && r.phi===0);
+  /* unsure tiles stay unhighlighted by default (no suggested answer for a
+     flagged-low-confidence row) -- except the degenerate 0-St. rung, where
+     "weniger" (= 0) is simply the only sane reading, so it's pre-picked same as ask. */
+  const seg=((m==='ask'||(m==='unsure'&&zeroRung))?defaultSeg(it,p):null), chosen=pre?p:null, order=it.rungs[p].order??0, auto=(m==='ask');
   return {mode:m, plan:p, chosen, order,
           answered:pre, auto, seg, dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
           hidden:false, auslage:(it.auslage!=null?it.auslage:1),
@@ -705,7 +710,7 @@ function tileHTML(it,i,s,ix){
   const r=it.rungs[i], out=outSet(bandOf(it,i));
   let head='', csline='';
   if(r.kind==='atleast'){ head=r.plo; csline=r.lo!=null?`${csNum(r.lo)} KO`:''; }
-  else if(r.kind==='lessthan'){ head=r.phi; csline=r.hi!=null?`unter ${csNum(r.hi)} KO`:''; }
+  else if(r.kind==='lessthan'){ head=r.phi===0?1:r.phi; csline=r.hi!=null?`unter ${csNum(r.hi)} KO`:''; }
   else {
     head=(r.plo===r.phi)?String(r.plo):`${r.plo}–${r.phi}`;
     csline=(r.lo!=null&&r.hi!=null)?`${csNum(r.lo)} bis ${csNum(r.hi)} KO`:'';
@@ -1171,7 +1176,7 @@ list.addEventListener('click',e=>{
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
   if(a==='seg'){ TAPS++;
     const seg=b.dataset.s, out=b.classList.contains('out');
-    if(s.seg===seg){ s.seg=null; s.answered=false; s.auto=false; s.chosen=null; s.order=it.rungs[s.plan].order??0; s.manual=false; s.declined=null; s.dir=null;
+    if(s.answered && s.seg===seg){ s.seg=null; s.answered=false; s.auto=false; s.chosen=null; s.order=it.rungs[s.plan].order??0; s.manual=false; s.declined=null; s.dir=null;
       pushChange(`${it.name}: Bestätigung zurückgenommen`); render(); }
     else if(out){ NEINS++; s.seg=null; s.answered=false; s.auto=false; s.declined=s.plan; s.dir=seg;
       pushChange(`${it.name}: Bestand → ${dirLabel(seg)} (Widerspruch, Zahl folgt)`);
