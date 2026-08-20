@@ -646,14 +646,13 @@ function outSet(band){ return band==='up'?['less']:band==='down'?['more']:['less
    angezeigten Sprossen-Ankers (r.plo/r.phi in Stueck), wird das der Vorschlag statt des
    neutralen Hakens -- das ist immer die Seite, die per outSet() NICHT widerspricht, also
    nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
-function hasFewerRung(r){ return !(r.kind==='lessthan' && r.plo===0 && r.phi!==0); } /* am unteren Sprossenende (0 bis N St., N>0) gibt's kein "weniger" mehr; die reine 0-St.-Sprosse zeigt "weniger" stattdessen als 1-Stück-Frage (s.u.) */
 function defaultSeg(it,i){
   const r=it.rungs[i];
   if(r.kind==='lessthan' && r.phi===0) return 'less'; /* reine 0-St.-Sprosse: "weniger als 1" ist die erwartete Antwort, nicht der neutrale Haken */
   const estPcs = (it.app!=null && it.case!=null) ? Math.round(it.app*it.case) : null;
   if(estPcs==null) return 'mid';
   if(r.kind==='atleast' && r.plo!=null) return estPcs>r.plo ? 'more' : 'mid';
-  if(r.kind==='lessthan' && r.phi!=null) return (estPcs<r.phi && hasFewerRung(r)) ? 'less' : 'mid';
+  if(r.kind==='lessthan' && r.phi!=null) return estPcs<r.phi ? 'less' : 'mid';
   return 'mid'; /* 'between' hat keinen einzelnen Anker, an dem sich mehr/weniger festmachen liesse */
 }
 function initState(it){
@@ -720,7 +719,7 @@ function tileHTML(it,i,s,ix){
                    +`data-a="seg" data-s="${seg}" data-i="${ix}">${dirLabel(seg)}</button>`;
   return `<div class="tile">
     <div class="head"><div class="n">${head} <span class="u">${uw(it)}</span></div><div class="cs">${csline}</div></div>
-    <div class="tileseg">${hasFewerRung(r)?sideBtn('less'):''}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
+    <div class="tileseg">${sideBtn('less')}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
   </div>`;
 }
 function chipFor(it,i){
