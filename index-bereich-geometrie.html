@@ -778,7 +778,8 @@ function render(){
     const it=ITEMS[ix];
     const s=ST[ix], L=t();
     const digitsQ = q.replace(/\D/g,'');
-    const catHide = (CATFILT.invNote && !it.invNote) || (CATFILT.ordNote && !it.ordNote) || (CATFILT.bio && !it.bio) || (CATFILT.promo && !it.promo);
+    const hasInvBang = s.typed==null && (s.mode==='unsure' || it.invNote); /* mirrors invBang in rowClear() */
+    const catHide = (CATFILT.invNote && !hasInvBang) || (CATFILT.ordNote && !it.ordNote) || (CATFILT.bio && !it.bio) || (CATFILT.promo && !it.promo);
     let catFilterHide = false;
     if(CATFILTER){
       if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
@@ -1267,7 +1268,7 @@ document.getElementById('filtseg').addEventListener('click',e=>{
 
 /* ---------- category filter (Bestand / Bestellmenge / Bio / Werb.) ---------- */
 const CATFILT = {invNote:false, ordNote:false, bio:false, promo:false, hidden:false};
-document.getElementById('cInv').textContent   = ITEMS.filter(it=>it.invNote).length;
+document.getElementById('cInv').textContent   = ITEMS.filter((it,ix)=>ST[ix].mode==='unsure' || it.invNote).length;
 document.getElementById('cOrd').textContent   = ITEMS.filter(it=>it.ordNote).length;
 document.getElementById('cBio').textContent   = ITEMS.filter(it=>it.bio).length;
 document.getElementById('cPromo').textContent = ITEMS.filter(it=>it.promo).length;
