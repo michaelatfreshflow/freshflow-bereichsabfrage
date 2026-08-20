@@ -521,15 +521,14 @@ const ITEMS = [{"id": 0, "plu": 7589883, "bio": true, "promo": null, "name": "ZI
    category is completed, the picker's grid keeps this order so the next
    category to work on is simply the next one in the list. */
 const TILES = [
+  ['salate','Salate','Gemüse',['iceberg lettuce','other lettuce','romaine lettuce']],
   ['paprika','Paprika & Chili','Gemüse',['bell pepper','pointed pepper','chili pepper']],
   ['wurzel','Wurzelgemüse','Gemüse',['carrot','beet','celeriac','radish','ginger','kohlrabi']],
-  ['kohl','Kohlgemüse','Gemüse',['broccoli','cauliflower','white cabbage','savoy cabbage','pointed cabbage','chinese cabbage','pak choi']],
-  ['blattgemuese','Blattgemüse','Gemüse',['spinach','chicory','fennel','celery']],
-  ['salate','Salate','Gemüse',['iceberg lettuce','other lettuce','romaine lettuce']],
   ['pilze','Pilze','Gemüse',['mushroom']],
-  ['kraeuter','Kräuter','Gemüse',['basil','parsley','rosemary','chives','dill','mint','cress','mirepoix']],
-  ['tomaten','Tomaten','Gemüse',['tomato','mini tomato']],
+  ['blattgemuese','Blattgemüse','Gemüse',['spinach','chicory','fennel','celery']],
+  ['kohl','Kohlgemüse','Gemüse',['broccoli','cauliflower','white cabbage','savoy cabbage','pointed cabbage','chinese cabbage','pak choi']],
   ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['cucumber','mini cucumber','eggplant','zucchini','corn']],
+  ['tomaten','Tomaten','Gemüse',['tomato','mini tomato']],
   ['beeren','Beeren & Gekühlte Früchte','Obst',['blackberry','blueberry','currant','raspberry','strawberry','fig']],
   ['huelsen','Bohnen & Erbsen','Gemüse',['bean','snow pea']],
   ['kartoffeln','Kartoffeln','Gemüse',['all-purpose potato','waxy potato','starchy potato','sweet potato']],
@@ -541,7 +540,8 @@ const TILES = [
   ['trauben','Trauben','Obst',['grapes']],
   ['exotisch','Exotisch','Obst',['avocado','dates','kiwi','mango','melon','pineapple','pomegranate','watermelon']],
   ['nuesse','Nüsse','Obst',['peanut','walnut']],
-  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salad mix','arugula','lambs lettuce']]
+  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salad mix','arugula','lambs lettuce']],
+  ['kraeuter','Kräuter','Gemüse',['basil','parsley','rosemary','chives','dill','mint','cress','mirepoix']]
 ];
 const CAT_TO_TILE = {};
 TILES.forEach(t=>t[3].forEach(c=>{CAT_TO_TILE[c]=t[0]}));
