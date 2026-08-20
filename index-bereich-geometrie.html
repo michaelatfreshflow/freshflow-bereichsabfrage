@@ -659,10 +659,10 @@ function defaultSeg(it,i){
 function initState(it){
   const p=planIdx(it), m=mode(it), pre=(m==='any'||m==='ask');
   const r=it.rungs[p], zeroRung=(r.kind==='lessthan' && r.phi===0);
-  /* unsure tiles stay unhighlighted by default (no suggested answer for a
-     flagged-low-confidence row) -- except the degenerate 0-St. rung, where
-     "weniger" (= 0) is simply the only sane reading, so it's pre-picked same as ask. */
-  const seg=((m==='ask'||(m==='unsure'&&zeroRung))?defaultSeg(it,p):null), chosen=pre?p:null, order=it.rungs[p].order??0, auto=(m==='ask');
+  /* unsure/count tiles stay unhighlighted by default (no suggested answer for a
+     flagged row) -- except the degenerate 0-St. rung, where "weniger" (= 0) is
+     simply the only sane reading, so it's pre-picked same as ask. */
+  const seg=((m==='ask'||((m==='unsure'||m==='count')&&zeroRung))?defaultSeg(it,p):null), chosen=pre?p:null, order=it.rungs[p].order??0, auto=(m==='ask');
   return {mode:m, plan:p, chosen, order,
           answered:pre, auto, seg, dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
           hidden:false, auslage:(it.auslage!=null?it.auslage:1),
@@ -816,7 +816,7 @@ function render(){
       box = `<div class="stmt no2">${L.decl}</div>`;
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
               <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'Rückgängig':'undo'}</button></div>`;
-    } else if(s.mode==='ask'||s.mode==='unsure'){
+    } else if(s.mode==='ask'||s.mode==='unsure'||s.mode==='count'){
       box = tileHTML(it,s.plan,s,ix);
     } else {
       box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}</button>`;
@@ -865,8 +865,8 @@ function stats(){
   document.getElementById('pnein').textContent=NEINS;
   document.getElementById('pauto').textContent=ST.filter(x=>x.auto&&!x.hidden).length;
   const cHiddenEl=document.getElementById('cHidden'); if(cHiddenEl) cHiddenEl.textContent=hiddenCount;
-  const kb=ST.filter(s=>!s.hidden&&!s.answered&&(s.declined!=null||s.mode==='count'||s.mode==='noladder')).length;
-  const ask=ST.filter(s=>!s.hidden&&!s.answered&&s.declined==null&&(s.mode==='ask'||s.mode==='unsure')).length;
+  const kb=ST.filter(s=>!s.hidden&&!s.answered&&(s.declined!=null||s.mode==='noladder')).length;
+  const ask=ST.filter(s=>!s.hidden&&!s.answered&&s.declined==null&&(s.mode==='ask'||s.mode==='unsure'||s.mode==='count')).length;
   document.getElementById('popen').innerHTML=`offen: <b>${ask}</b> Ja/Nein · <b>${kb}</b> Keypad`;
 }
 
