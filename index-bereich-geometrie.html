@@ -109,39 +109,38 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .stmt .sub{display:block;font-weight:500;font-size:11px;color:#8a8a8a;margin-top:2px}
 
 /* ---------- Kachel weniger/✓/mehr ---------- */
-.rowA{display:flex;align-items:center;gap:9px}
 .tile{flex:1;border:1.5px solid var(--grey-b,#dcdfdd);border-radius:11px;padding:9px 10px 10px;background:#fff}
 .tile.ok{border-color:#bcd9c8;background:var(--ok-bg)}
-.tile.ok.auto{background:#F4F9F6;border-color:#d5e6dc}
 .tile .head{text-align:center;padding:2px 0 8px}
 .tile .n{font-size:20px;font-weight:800;line-height:1.05;letter-spacing:-.015em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tile .n .u{font-size:11.5px;font-weight:700;color:#6f7c76;letter-spacing:0}
 .tile .cs{font-size:11.5px;font-weight:800;color:#7d8a83;margin-top:4px;font-variant-numeric:tabular-nums}
-.seg{display:flex;gap:5px}
+.tileseg{display:flex;gap:5px}
 .sg{flex:1;height:34px;border:1.5px solid #dcdfdd;background:#F4F5F4;border-radius:8px;
   font-size:12.5px;font-weight:700;color:#5d6b64;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .sg.mid{flex:.7;color:#3d4a44}
 .sg:hover{border-color:#8b968f}
 .sg.on{background:var(--ok-bg);border-color:var(--green);color:var(--green)}
 .sg.out.on{background:var(--amber-bg);border-color:var(--amber);color:#a8620a}
-.edit{flex:0 0 auto;width:34px;height:34px;border:1.5px solid #d9d9d9;border-radius:9px;background:#fff;
-  color:#7d8a83;cursor:pointer;display:grid;place-items:center}
-.edit:hover{border-color:var(--green);color:var(--green)}
 .acts{display:flex;gap:7px;margin-top:7px}
 .acts button{flex:0 0 auto;border-radius:9px;padding:7px 15px;font-size:13.5px;font-weight:700;cursor:pointer;border:1.5px solid}
 .no{background:#fff;border-color:#d9d9d9;color:#444}
 .no:hover{background:#f6f6f6}
 .kb{background:#fff;border-color:#d9d9d9;color:#444;font-weight:600}
 .kb:hover{background:#f6f6f6}
-.kb.big{border-radius:10px;padding:11px 16px;font-size:14px;border:1.5px solid #d9d9d9;background:#fff;
-  color:#3d4a44;font-weight:700;cursor:pointer;width:100%;max-width:66%;text-align:left}
-.kb.big:hover{border-color:var(--green);color:var(--green)}
+.kb-icon{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--amber);border-radius:9px;
+  background:#fff;color:var(--amber);padding:8px 10px;cursor:pointer}
+.kb-icon:hover{background:var(--amber-bg)}
+.kbbang{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;
+  background:var(--amber);color:#fff;font-weight:800;font-size:11px;line-height:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chips .lb{font-size:11.5px;color:#8a8a8a;width:100%;font-weight:600}
 .chip{border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
 .chip:hover{border-color:var(--green);color:var(--green)}
 .dsz{font-size:11.5px;color:#8a8a8a;margin-top:6px}
 .dsz u{text-decoration-color:#c9c9c9}
+.dsz[data-a]{cursor:pointer}
+.dsz[data-a]:hover{color:#5d6b64}
 .appv{font-size:11px;color:#b0b0b0;margin-top:3px}
 .withbang{display:flex;align-items:flex-start;gap:9px}
 .withbang.end{justify-content:flex-end}
@@ -393,7 +392,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <div class="nm" id="shName"></div>
         <div class="meta" id="shMeta"></div>
         <div class="pills" id="shPills"></div>
-        <div class="dsz" style="margin-top:22px">Auslage <b>1</b> KO</div>
+        <div class="dsz" style="margin-top:22px">Auslage <b id="kAuslage">1</b> KO</div>
         <div class="appv" id="shWhy" style="margin-top:14px;max-width:270px;line-height:1.5"></div>
       </div>
       <div>
@@ -449,6 +448,29 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
     </div>
     <div class="sfoot"><span class="lnk" id="ordAbbrechen">Abbrechen</span><span class="sp"></span>
       <button class="cta" id="ordSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ovAus">
+  <div class="sheet">
+    <div class="sh"><h3>Bitte geben Sie die Auslage für den folgenden Artikel ein.</h3><button class="x" id="ausX">✕</button></div>
+    <div class="sbody">
+      <div>
+        <div class="nm" id="ausName"></div>
+        <div class="meta" id="ausMeta"></div>
+      </div>
+      <div>
+        <div class="kfield"><label>Auslage</label><div class="box act" id="ausVal">1</div></div>
+      </div>
+      <div class="pad" id="ausPad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <span></span><button data-k="0">0</button><button data-k="del">⌫</button>
+      </div>
+    </div>
+    <div class="sfoot"><span class="lnk" id="ausAbbrechen">Abbrechen</span><span class="sp"></span>
+      <button class="cta" id="ausSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
   </div>
 </div>
 
@@ -516,7 +538,7 @@ const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
 /* ---------- language ---------- */
 let LANG='de';
 const T={
- de:{any:'Keine Zählung nötig', count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
+ de:{any:'Kein Bestand nötig', count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
      type:'Bestand eingeben', decl:'Abgelehnt. Bitte Bestand eingeben.', notThis:n=>`nicht: ${n}`,
      clash:n=>`Widerspruch: „${n}" wurde abgelehnt.`,
      wmore:'mehr', wless:'weniger', change:'ändern', enter:'Bestand eingeben',
@@ -526,7 +548,7 @@ const T={
      countsub:'Turnusmässige Zählung fällig', nolsub:'Modell rechnet hier kein Bereich',
      unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen',
      onlyopen:'Nur offene', all:'Alle', delta:(a,b)=>`Bestellung ${a} → ${b} Kisten`, nodelta:'Bestellung unverändert'},
- en:{any:'No count needed', count:'Count: enter inventory', noladder:'Enter inventory',
+ en:{any:'No inventory needed', count:'Count: enter inventory', noladder:'Enter inventory',
      type:'Enter inventory', decl:'Declined. Please enter inventory.', notThis:n=>`not: ${n}`,
      clash:n=>`Contradiction: "${n}" was declined.`,
      wmore:'more', wless:'less', change:'change', enter:'Enter inventory',
@@ -581,11 +603,23 @@ function mode(it){
    keine separate hasBelow/hasAbove-Berechnung noetig. */
 function bandOf(it,i){ const k=it.rungs[i].kind; return k==='atleast'?'up':k==='lessthan'?'down':'both'; }
 function outSet(band){ return band==='up'?['less']:band==='down'?['more']:['less','more']; }
+/* Default-Knopf aus der App-Schaetzung: liegt sie klar auf der "mehr/weniger"-Seite des
+   angezeigten Sprossen-Ankers (r.plo/r.phi in Stueck), wird das der Vorschlag statt des
+   neutralen Hakens -- das ist immer die Seite, die per outSet() NICHT widerspricht, also
+   nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
+function defaultSeg(it,i){
+  const r=it.rungs[i];
+  const estPcs = (it.app!=null && it.case!=null) ? Math.round(it.app*it.case) : null;
+  if(estPcs==null) return 'mid';
+  if(r.kind==='atleast' && r.plo!=null) return estPcs>r.plo ? 'more' : 'mid';
+  if(r.kind==='lessthan' && r.phi!=null) return estPcs<r.phi ? 'less' : 'mid';
+  return 'mid'; /* 'between' hat keinen einzelnen Anker, an dem sich mehr/weniger festmachen liesse */
+}
 function initState(it){
   const p=planIdx(it), m=mode(it), pre=(m==='any'||m==='ask');
   return {mode:m, plan:p, chosen:pre?p:null, order:it.rungs[p].order??0,
-          answered:pre, auto:(m==='ask'), seg:(m==='ask'?'mid':null), dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
-          hidden:false};
+          answered:pre, auto:(m==='ask'), seg:(m==='ask'?defaultSeg(it,p):null), dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
+          hidden:false, auslage:(it.auslage!=null?it.auslage:1)};
 }
 const ST=ITEMS.map(initState);
 let TAPS=0, NEINS=0, FILT='all';
@@ -634,11 +668,12 @@ function tileHTML(it,i,s,ix){
     head=(r.plo===r.phi)?String(r.plo):`${r.plo}–${r.phi}`;
     csline=(r.lo!=null&&r.hi!=null)?`${csNum(r.lo)} bis ${csNum(r.hi)} KO`:'';
   }
-  const sideBtn=seg=>`<button class="sg ${seg}${out.includes(seg)?' out':''}${s.seg===seg?' on':''}" `
+  const onCls=seg=>s.seg===seg?' on':'';
+  const sideBtn=seg=>`<button class="sg ${seg}${out.includes(seg)?' out':''}${onCls(seg)}" `
                    +`data-a="seg" data-s="${seg}" data-i="${ix}">${dirLabel(seg)}</button>`;
-  return `<div class="tile${s.seg?' ok'+((s.seg==='mid'&&s.auto)?' auto':''):''}">
+  return `<div class="tile${s.seg?' ok':''}">
     <div class="head"><div class="n">${head} <span class="u">${uw(it)}</span></div><div class="cs">${csline}</div></div>
-    <div class="seg">${sideBtn('less')}<button class="sg mid${s.seg==='mid'?' on':''}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
+    <div class="tileseg">${sideBtn('less')}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
   </div>`;
 }
 function chipFor(it,i){
@@ -724,13 +759,12 @@ function render(){
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
               <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
     } else if(s.mode!=='ask'){
-      box = `<button class="kb big" data-a="pad" data-i="${ix}">${L.enter}</button>`;
+      box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}<span class="kbbang">!</span></button>`;
     } else {
-      box = `<div class="rowA">${tileHTML(it,s.plan,s,ix)}`
-          + `<button class="edit" data-a="pad" data-i="${ix}" title="${L.type}" aria-label="${L.type}">${EDIT_SVG}</button></div>`;
+      box = tileHTML(it,s.plan,s,ix);
     }
     let cell = `<div class="withbang">${box}${bang(s.typed==null?it.invNote:null)}</div>${acts}${extra}`;
-    cell += `<div class="dsz">Auslage <u>1</u> KO</div>`;
+    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
@@ -1062,7 +1096,7 @@ function toast(m){const el=document.getElementById('toast');el.textContent=m;el.
 
 /* ---------- interactions ---------- */
 list.addEventListener('click',e=>{
-  const b=e.target.closest('button, .invbox, [data-a="ordpad"]'); if(!b) return;
+  const b=e.target.closest('button, .invbox, [data-a="ordpad"], [data-a="auslage"]'); if(!b) return;
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
   if(a==='seg'){ TAPS++;
     const seg=b.dataset.s, out=b.classList.contains('out');
@@ -1082,6 +1116,7 @@ list.addEventListener('click',e=>{
     render(); }
   else if(a==='pad'){ openPad(ix); }
   else if(a==='ordpad'){ openOrdPad(ix); }
+  else if(a==='auslage'){ openAusPad(ix); }
   else if(a==='inc'||a==='dec'){ TAPS++;
     const prev=s.answered?s.order:(it.rungs[s.plan].order??0);
     const next=Math.max(0,prev+(a==='inc'?1:-1));
@@ -1215,6 +1250,7 @@ function openPad(ix){
   document.getElementById('shName').textContent=it.name;
   document.getElementById('shMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
   document.getElementById('shPills').innerHTML='';
+  document.getElementById('kAuslage').textContent = s.auslage!=null ? s.auslage : 1;
   document.getElementById('shWhy').textContent = s.declined!=null
     ? (s.dir!=null? `${dirLabel(s.dir)} — ${t().notThis(labelFor(it,s.declined))}` : t().notThis(labelFor(it,s.declined)))
     : '';
@@ -1339,6 +1375,38 @@ document.getElementById('ordSpeichern').onclick=()=>{
   if(next!==ORD.orig) pushChange(`${ITEMS[ix].name}: Bestellung ${ORD.orig} → ${next} CS`);
   touchRecent(ix);
   closeOrdPad(); render();
+};
+
+/* ---------- Auslage keypad ---------- */
+let AUS={ix:null,val:'1',orig:1};
+function openAusPad(ix){
+  const it=ITEMS[ix], s=ST[ix];
+  const current = s.auslage!=null ? s.auslage : 1;
+  AUS={ix,val:String(current),orig:current};
+  document.getElementById('ausName').textContent=it.name;
+  document.getElementById('ausMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
+  drawAusPad();
+  document.getElementById('ovAus').classList.add('on');
+}
+function drawAusPad(){
+  document.getElementById('ausVal').textContent=AUS.val;
+}
+document.getElementById('ausPad').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
+  let v=AUS.val;
+  if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS.val=v; }
+  else { AUS.val=(v==='0')?k:v+k; }
+  drawAusPad();
+});
+function closeAusPad(){document.getElementById('ovAus').classList.remove('on')}
+document.getElementById('ausX').onclick=closeAusPad;
+document.getElementById('ausAbbrechen').onclick=closeAusPad;
+document.getElementById('ausSpeichern').onclick=()=>{
+  const ix=AUS.ix, s=ST[ix]; TAPS++;
+  const next=Math.max(0,parseInt(AUS.val||'0',10)||0);
+  s.auslage=next;
+  if(next!==AUS.orig) pushChange(`${ITEMS[ix].name}: Auslage ${AUS.orig} → ${next} KO`);
+  closeAusPad(); render();
 };
 
 function legend(){
