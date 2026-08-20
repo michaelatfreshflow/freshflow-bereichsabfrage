@@ -131,8 +131,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .kb-icon{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--amber);border-radius:9px;
   background:#fff;color:var(--amber);padding:8px 10px;cursor:pointer}
 .kb-icon:hover{background:var(--amber-bg)}
-.kbbang{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;
-  background:var(--amber);color:#fff;font-weight:800;font-size:11px;line-height:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chips .lb{font-size:11.5px;color:#8a8a8a;width:100%;font-weight:600}
 .chip{border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
@@ -759,7 +757,7 @@ function render(){
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
               <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
     } else if(s.mode!=='ask'){
-      box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}<span class="kbbang">!</span></button>`;
+      box = `<button class="kb-icon" data-a="pad" data-i="${ix}" title="${L.enter}" aria-label="${L.enter}">${EDIT_SVG}</button>`;
     } else {
       box = tileHTML(it,s.plan,s,ix);
     }
