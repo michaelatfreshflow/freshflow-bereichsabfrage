@@ -646,19 +646,22 @@ function outSet(band){ return band==='up'?['less']:band==='down'?['more']:['less
    angezeigten Sprossen-Ankers (r.plo/r.phi in Stueck), wird das der Vorschlag statt des
    neutralen Hakens -- das ist immer die Seite, die per outSet() NICHT widerspricht, also
    nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
+function hasFewerRung(r){ return !(r.kind==='lessthan' && r.plo===0); } /* am unteren Sprossenende (0 St.) gibt's kein "weniger" mehr */
 function defaultSeg(it,i){
   const r=it.rungs[i];
   const estPcs = (it.app!=null && it.case!=null) ? Math.round(it.app*it.case) : null;
   if(estPcs==null) return 'mid';
   if(r.kind==='atleast' && r.plo!=null) return estPcs>r.plo ? 'more' : 'mid';
-  if(r.kind==='lessthan' && r.phi!=null) return estPcs<r.phi ? 'less' : 'mid';
+  if(r.kind==='lessthan' && r.phi!=null) return (estPcs<r.phi && hasFewerRung(r)) ? 'less' : 'mid';
   return 'mid'; /* 'between' hat keinen einzelnen Anker, an dem sich mehr/weniger festmachen liesse */
 }
 function initState(it){
   const p=planIdx(it), m=mode(it), pre=(m==='any'||m==='ask');
-  return {mode:m, plan:p, chosen:pre?p:null, order:it.rungs[p].order??0,
-          answered:pre, auto:(m==='ask'), seg:(m==='ask'?defaultSeg(it,p):null), dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
-          hidden:false, auslage:(it.auslage!=null?it.auslage:1)};
+  const seg=(m==='ask'?defaultSeg(it,p):null), chosen=pre?p:null, order=it.rungs[p].order??0, auto=(m==='ask');
+  return {mode:m, plan:p, chosen, order,
+          answered:pre, auto, seg, dir:null, declined:null, typed:null, typedPcs:null, manual:false, back:null, floor:null,
+          hidden:false, auslage:(it.auslage!=null?it.auslage:1),
+          pre:{seg, answered:pre, chosen, order, auto}};
 }
 const ST=ITEMS.map(initState);
 let TAPS=0, NEINS=0, FILT='all';
@@ -712,7 +715,7 @@ function tileHTML(it,i,s,ix){
                    +`data-a="seg" data-s="${seg}" data-i="${ix}">${dirLabel(seg)}</button>`;
   return `<div class="tile">
     <div class="head"><div class="n">${head} <span class="u">${uw(it)}</span></div><div class="cs">${csline}</div></div>
-    <div class="tileseg">${sideBtn('less')}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
+    <div class="tileseg">${hasFewerRung(r)?sideBtn('less'):''}<button class="sg mid${onCls('mid')}" data-a="seg" data-s="mid" data-i="${ix}">${CHECK_SVG}</button>${sideBtn('more')}</div>
   </div>`;
 }
 function chipFor(it,i){
@@ -806,7 +809,7 @@ function render(){
     } else if(s.declined!=null){
       box = `<div class="stmt no2">${L.decl}</div>`;
       acts = `<div class="acts"><button class="kb" data-a="pad" data-i="${ix}">${L.type}</button>
-              <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'zurück':'undo'}</button></div>`;
+              <button class="no" data-a="undo" data-i="${ix}">↩ ${LANG==='de'?'Rückgängig':'undo'}</button></div>`;
     } else if(s.mode==='ask'||s.mode==='unsure'){
       box = tileHTML(it,s.plan,s,ix);
     } else {
@@ -1175,7 +1178,8 @@ list.addEventListener('click',e=>{
     else { s.seg=seg; s.chosen=s.plan; s.order=it.rungs[s.plan].order??0; s.answered=true; s.auto=false; s.manual=false; s.declined=null; s.dir=null;
       pushChange(`${it.name}: Bestand → ${dirLabel(seg)} (bestätigt) · Bestellung ${s.order} KO`); touchRecent(ix);
       render(); } }
-  else if(a==='undo'){ TAPS++; NEINS=Math.max(0,NEINS-1); s.declined=null; s.dir=null;
+  else if(a==='undo'){ TAPS++; NEINS=Math.max(0,NEINS-1); s.declined=null; s.dir=null; s.manual=false;
+    s.seg=s.pre.seg; s.answered=s.pre.answered; s.chosen=s.pre.chosen; s.order=s.pre.order; s.auto=s.pre.auto;
     pushChange(`${it.name}: Ablehnung zurückgenommen`);
     render(); }
   else if(a==='hide'){ s.hidden=!s.hidden;
