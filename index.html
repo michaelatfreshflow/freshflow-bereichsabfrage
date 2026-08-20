@@ -618,8 +618,19 @@ function touchRecent(ix){
 }
 /* The item id exactly as the app prints it under the name, so whoever types the change
    into the real app can find the row without guessing from the name. */
-function itemLabel(it){ return it && it.plu != null ? `${it.name} (${it.plu})` : (it ? it.name : ''); }
-function pushChange(text){
+function itemLabel(it){ return it && it.plu != null ? `${it.name} (${it.plu})` : (it ? it.name : '?'); }
+function pushChange(it, text){
+  if(!PUSH_URL) return;
+  // The item is a REQUIRED argument. Every message about a row therefore carries the id the
+  // app shows, and no future call site can drop it by writing the text differently.
+  if(text===undefined){ console.warn('pushChange ohne Artikel', it); return; }
+  const body = `${itemLabel(it)}: ${text}`;
+  fetch(PUSH_URL,{
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({secret:PUSH_SECRET, text:body})
+  }).catch(err=>console.warn('Telegram push failed', err));
+}
+function pushNote(text){          // messages that are not about a single row
   if(!PUSH_URL) return;
   fetch(PUSH_URL,{
     method:'POST', headers:{'Content-Type':'text/plain'},
@@ -1179,19 +1190,19 @@ list.addEventListener('click',e=>{
   if(a==='seg'){ TAPS++;
     const seg=b.dataset.s, out=b.classList.contains('out');
     if(s.answered && s.seg===seg){ s.seg=null; s.answered=false; s.auto=false; s.chosen=null; s.order=it.rungs[s.plan].order??0; s.manual=false; s.declined=null; s.dir=null;
-      pushChange(`${itemLabel(it)}: Bestätigung zurückgenommen`); render(); }
+      pushChange(it, `Bestätigung zurückgenommen`); render(); }
     else if(out){ NEINS++; s.seg=null; s.answered=false; s.auto=false; s.declined=s.plan; s.dir=seg;
-      pushChange(`${itemLabel(it)}: Bestand → ${dirLabel(seg)} (Widerspruch, Zahl folgt)`);
+      pushChange(it, `Bestand → ${dirLabel(seg)} (Widerspruch, Zahl folgt)`);
       render(); openPad(ix); }
     else { s.seg=seg; s.chosen=s.plan; s.order=it.rungs[s.plan].order??0; s.answered=true; s.auto=false; s.manual=false; s.declined=null; s.dir=null;
-      pushChange(`${itemLabel(it)}: Bestand → ${dirLabel(seg)} (bestätigt) · Bestellung ${s.order} KO`); touchRecent(ix);
+      pushChange(it, `Bestand → ${dirLabel(seg)} (bestätigt) · Bestellung ${s.order} KO`); touchRecent(ix);
       render(); } }
   else if(a==='undo'){ TAPS++; NEINS=Math.max(0,NEINS-1); s.declined=null; s.dir=null; s.manual=false;
     s.seg=s.pre.seg; s.answered=s.pre.answered; s.chosen=s.pre.chosen; s.order=s.pre.order; s.auto=s.pre.auto;
-    pushChange(`${itemLabel(it)}: Ablehnung zurückgenommen`);
+    pushChange(it, `Ablehnung zurückgenommen`);
     render(); }
   else if(a==='hide'){ s.hidden=!s.hidden;
-    pushChange(`${itemLabel(it)}: ${s.hidden?'aus Bestellung ausgeblendet':'wieder eingeblendet'}`);
+    pushChange(it, `${s.hidden?'aus Bestellung ausgeblendet':'wieder eingeblendet'}`);
     render(); }
   else if(a==='pad'){ openPad(ix); }
   else if(a==='ordpad'){ openOrdPad(ix); }
@@ -1202,7 +1213,7 @@ list.addEventListener('click',e=>{
     s.order=next; s.answered=true;
     if(next!==prev) s.manual=true;
     if(s.chosen==null)s.typed=s.typed??null;
-    pushChange(`${itemLabel(it)}: Bestellung ${prev} → ${next} CS`); touchRecent(ix);
+    pushChange(it, `Bestellung ${prev} → ${next} CS`); touchRecent(ix);
     render(); }
 });
 document.getElementById('q').addEventListener('input',render);
@@ -1411,7 +1422,7 @@ document.getElementById('shSpeichern').onclick=()=>{
   const hit=it.rungs.findIndex(r=>(r.lo==null||v>=r.lo)&&(r.hi==null||v<r.hi));
   if(hit>=0 && it.rungs[hit].order!=null){ s.chosen=hit; s.order=it.rungs[hit].order; s.manual=false; }
   else { s.chosen=null; s.order=it.rungs[s.plan].order??0; }
-  pushChange(`${itemLabel(it)}: Bestand → ${csNum(v)} CS (${pv.pcs} St.) · Bestellung ${s.order} CS`); touchRecent(ix);
+  pushChange(it, `Bestand → ${csNum(v)} CS (${pv.pcs} St.) · Bestellung ${s.order} CS`); touchRecent(ix);
   closePad(); render();
 };
 
@@ -1450,7 +1461,7 @@ document.getElementById('ordSpeichern').onclick=()=>{
   s.order=next; s.answered=true;
   if(next!==ORD.orig) s.manual=true;
   if(s.chosen==null) s.typed=s.typed??null;
-  if(next!==ORD.orig) pushChange(`${itemLabel(ITEMS[ix])}: Bestellung ${ORD.orig} → ${next} CS`);
+  if(next!==ORD.orig) pushChange(ITEMS[ix], `Bestellung ${ORD.orig} → ${next} CS`);
   touchRecent(ix);
   closeOrdPad(); render();
 };
@@ -1483,7 +1494,7 @@ document.getElementById('ausSpeichern').onclick=()=>{
   const ix=AUS.ix, s=ST[ix]; TAPS++;
   const next=Math.max(0,parseInt(AUS.val||'0',10)||0);
   s.auslage=next;
-  if(next!==AUS.orig) pushChange(`${itemLabel(ITEMS[ix])}: Auslage ${AUS.orig} → ${next} KO`);
+  if(next!==AUS.orig) pushChange(ITEMS[ix], `Auslage ${AUS.orig} → ${next} KO`);
   closeAusPad(); render();
 };
 
@@ -1544,7 +1555,7 @@ document.getElementById('s2Go').onclick=()=>{
     if(s.hidden) return;
     if(!s.answered&&s.declined==null&&s.mode==='ask'){s.seg='mid';s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
-  pushChange(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} KO gesamt`);
+  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} KO gesamt`);
   document.getElementById('ov2').classList.remove('on');
   toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
   render();
