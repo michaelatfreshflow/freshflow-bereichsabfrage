@@ -656,17 +656,18 @@ function mode(it){
    keine separate hasBelow/hasAbove-Berechnung noetig. */
 function bandOf(it,i){ const k=it.rungs[i].kind; return k==='atleast'?'up':k==='lessthan'?'down':'both'; }
 function outSet(band){ return band==='up'?['less']:band==='down'?['more']:['less','more']; }
-/* Default-Knopf aus der App-Schaetzung: liegt sie klar auf der "mehr/weniger"-Seite des
-   angezeigten Sprossen-Ankers (r.plo/r.phi in Stueck), wird das der Vorschlag statt des
-   neutralen Hakens -- das ist immer die Seite, die per outSet() NICHT widerspricht, also
-   nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
+/* Default-Knopf aus der App-Schaetzung: mit einer Schaetzung landet der Default nie auf
+   dem neutralen Haken, sondern immer auf der Seite, die per outSet() NICHT widerspricht --
+   auch bei exaktem Treffer auf den Sprossen-Anker (r.plo/r.phi in Stueck), denn eine
+   geschaetzte Zahl trifft nie wirklich exakt, und der Haken wuerde das vorgaukeln.
+   Nie ein Widerspruchs-Knopf als Default. Ohne Schaetzung (kein it.app/it.case) bleibt's ✓. */
 function defaultSeg(it,i){
   const r=it.rungs[i];
   if(r.kind==='lessthan' && r.phi===0) return 'less'; /* reine 0-St.-Sprosse: "weniger als 1" ist die erwartete Antwort, nicht der neutrale Haken */
   const estPcs = (it.app!=null && it.case!=null) ? Math.round(it.app*it.case) : null;
   if(estPcs==null) return 'mid';
-  if(r.kind==='atleast' && r.plo!=null) return estPcs>r.plo ? 'more' : 'mid';
-  if(r.kind==='lessthan' && r.phi!=null) return estPcs<r.phi ? 'less' : 'mid';
+  if(r.kind==='atleast' && r.plo!=null) return estPcs>=r.plo ? 'more' : 'mid';
+  if(r.kind==='lessthan' && r.phi!=null) return estPcs<=r.phi ? 'less' : 'mid';
   return 'mid'; /* 'between' hat keinen einzelnen Anker, an dem sich mehr/weniger festmachen liesse */
 }
 function initState(it){

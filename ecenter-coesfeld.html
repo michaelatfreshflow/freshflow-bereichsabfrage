@@ -51,6 +51,8 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .seg{display:inline-flex;border:1px solid #dcdcdc;border-radius:8px;overflow:hidden}
 .seg button{border:0;background:#fff;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:#666}
 .seg button.on{background:var(--green);color:#fff}
+#invUnitSeg{border-radius:10px}
+#invUnitSeg button{flex:1;padding:11px 28px;font-size:14.5px}
 .filtwrap{position:relative;display:inline-flex}
 .filtwrap .btn.on,.filtwrap .btn.active{background:var(--green);border-color:var(--green);color:#fff}
 .filtpop{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #dcdcdc;border-radius:10px;
@@ -396,8 +398,9 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       <div>
         <div class="seg" id="invUnitSeg" style="margin-bottom:14px">
           <button data-u="pcs" class="on">Stück</button><button data-u="cs">Kisten</button></div>
-        <div class="kfield"><label>Bestand</label><div class="box act" id="invVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div class="tot" id="invUnit">0 KO</div></div>
+        <div class="kfield"><label>Lager</label><div class="box" id="invBack">0</div></div>
+        <div class="kfield"><label>Fläche</label><div class="box act" id="invFloor">0</div></div>
+        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="invPad">
         <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
@@ -405,6 +408,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
         <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
         <button data-k="0">0</button><button data-k=".">.</button><button data-k="del">⌫</button>
+        <button class="wide" data-k="swap">Zu Lager wechseln ⟳</button>
       </div>
     </div>
     <div class="sfoot"><span class="lnk" id="invAbbrechen">Abbrechen</span><span class="sp"></span>
@@ -1272,14 +1276,17 @@ document.getElementById('colh').addEventListener('click', e=>{
 
 /* ---------- Bestand-Eingabe (Feld ist immer antippbar) ----------
    Kein Widerspruchs-Check mehr -- der Kaufmann tippt, das Feld glaubt es ihm.
-   Stück/Kisten-Umschalter wie frueher: in Kisten sind Bruchteile (0.25/0.5/0.75)
-   moeglich, in Stück (oder kg, je nach it.unit) nur ganze Zahlen. Landet der Wert
-   in der Plan-Sprosse, zeigt applyKo() wieder die Spanne, sonst die Zahl in KO. */
-let INV={ix:null,val:'0',unit:'pcs'};
+   Lager + Fläche wie bei Peeters: zwei Felder, die zusammengezaehlt werden,
+   antippbar um das Ziel fuer die Tastatur zu wechseln. Stück/Kisten-Umschalter
+   wie frueher: in Kisten sind Bruchteile (0.25/0.5/0.75) moeglich. Landet der
+   Wert in der Plan-Sprosse, zeigt applyKo() wieder die Spanne, sonst die Zahl
+   in KO. */
+let INV={ix:null,back:'0',floor:'0',act:'floor',unit:'pcs'};
 let LAST_INV_UNIT='pcs';
 function invPadVals(){
+  const b=parseFloat(INV.back||'0')||0, f=parseFloat(INV.floor||'0')||0;
   const it=ITEMS[INV.ix], cs=it&&it.case?it.case:1;
-  const raw=parseFloat(INV.val||'0')||0;
+  const raw=b+f;
   return INV.unit==='pcs' ? {raw, pcs:Math.round(raw), cases:raw/cs}
                           : {raw, pcs:Math.round(raw*cs), cases:raw};
 }
@@ -1289,7 +1296,7 @@ function openInvPad(ix){
   const currentKo = s.step==='ko' ? s.ko : 0;
   const unit = canPcs ? LAST_INV_UNIT : 'cs';
   const val = unit==='pcs' ? String(Math.round(currentKo*(it.case||1))) : String(Math.round(currentKo*100)/100);
-  INV={ix, val, unit};
+  INV={ix, back:'0', floor:val, act:'floor', unit};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -1303,36 +1310,47 @@ function openInvPad(ix){
 function drawInvPad(){
   const it=ITEMS[INV.ix];
   const u = INV.unit==='pcs' ? ' '+ua(it) : ' KO';
-  document.getElementById('invVal').textContent=INV.val+u;
+  document.getElementById('invBack').textContent=INV.back+u;
+  document.getElementById('invFloor').textContent=INV.floor+u;
+  document.getElementById('invBack').classList.toggle('act',INV.act==='back');
+  document.getElementById('invFloor').classList.toggle('act',INV.act==='floor');
+  document.querySelector('#invPad button[data-k="swap"]').innerHTML =
+    (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const v=invPadVals();
-  document.getElementById('invUnit').textContent = INV.unit==='pcs'
-    ? v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
-    : v.pcs+' '+ua(it);
+  document.getElementById('invUnit').textContent=
+    (INV.unit==='pcs'? v.pcs+' '+ua(it) : v.cases.toLocaleString('de-DE')+' KO');
+  document.getElementById('invUnitPcs').textContent =
+    (INV.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
+                     : '= '+v.pcs+' '+uw(it));
   ['0.25','0.5','0.75'].forEach(k=>{
     const el=document.querySelector(`#invPad button[data-k="${k}"]`);
     if(el) el.style.display = INV.unit==='pcs' ? 'none' : '';
   });
 }
+document.getElementById('invBack').addEventListener('click',()=>{INV.act='back'; drawInvPad();});
+document.getElementById('invFloor').addEventListener('click',()=>{INV.act='floor'; drawInvPad();});
 document.getElementById('invUnitSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return;
   const v=invPadVals();
   INV.unit=b.dataset.u; LAST_INV_UNIT=INV.unit;
-  INV.val = INV.unit==='pcs' ? String(v.pcs) : String(Math.round(v.cases*100)/100);
+  const nv = INV.unit==='pcs' ? String(v.pcs) : String(Math.round(v.cases*100)/100);
+  INV.back='0'; INV.floor=nv; INV.act='floor';
   [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
   drawInvPad();
 });
 document.getElementById('invPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
-  let v=INV.val;
-  if(k==='del'){ v=v.slice(0,-1); if(v===''||v==='.') v='0'; INV.val=v; }
+  let v=INV[INV.act];
+  if(k==='swap'){ INV.act=INV.act==='floor'?'back':'floor'; }
+  else if(k==='del'){ v=v.slice(0,-1); if(v===''||v==='.') v='0'; INV[INV.act]=v; }
   else if(['0.25','0.5','0.75'].includes(k)){
     const dot=v.indexOf('.'); const intPart = dot>=0 ? v.slice(0,dot) : v;
-    INV.val = (intPart===''||intPart==='0') ? '0'+k.slice(1) : intPart+k.slice(1);
+    INV[INV.act] = (intPart===''||intPart==='0') ? '0'+k.slice(1) : intPart+k.slice(1);
   }
-  else if(k==='.'){ if(!v.includes('.')) INV.val=v+'.'; }
+  else if(k==='.'){ if(!v.includes('.')) INV[INV.act]=v+'.'; }
   else { const dot=v.indexOf('.');
     if(dot>=0 && v.length-dot>2){ /* max 2 Nachkommastellen */ }
-    else INV.val = (v==='0') ? k : v+k; }
+    else INV[INV.act] = (v==='0') ? k : v+k; }
   drawInvPad();
 });
 function closeInvPad(){document.getElementById('ovInv').classList.remove('on')}
