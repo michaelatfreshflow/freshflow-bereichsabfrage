@@ -113,7 +113,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 /* ---------- Bestand-Stepper (ersetzt die Kachel weniger/✓/mehr) ----------
    Selbe Geometrie wie der Bestellmengen-Stepper (.step) -- gleiche Knopfgroesse,
    gleiche Feldhoehe, gleiche Schriftgroessen. Nur das Feld ist breiter, weil eine
-   Spanne ("0,3 – ∞ KO") mehr Platz braucht als eine reine Bestellmenge. */
+   Spanne ("0,3 – 99 KO") mehr Platz braucht als eine reine Bestellmenge. */
 .stp{display:inline-flex;align-items:center;gap:0;width:max-content}
 .stp .sb{width:38px;height:44px;border:0;background:#F1F2F1;font-size:19px;color:#3a3a3a;cursor:pointer;padding:0}
 .stp .sb:disabled{color:#c9cdca;cursor:default}
@@ -122,7 +122,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .stp .fld{min-width:126px;height:44px;border:1px solid #e3e3e3;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:1px;background:#fff;cursor:pointer}
 .stp .val{font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
-.stp .val .u{font-weight:700}
 .stp .sub{font-size:10.5px;font-weight:600;color:#8a8a8a}
 .stp.unsure .fld{border-color:var(--amber)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
@@ -669,15 +668,36 @@ let CATCELEBRATE=null;     // {id,label} | null — celebration playing for this
 let RECENTLY_ANSWERED=[];  // item ids, most-recent first, capped — real "favorites"
 let CATFX=null;            // celebration canvas animation state
 
-const csNum=v=>v.toLocaleString('de-DE',{maximumFractionDigits:2});
+/* Modellzahlen landen roh auf haesslichen Nachkommastellen (1,77 / 0,96); fuer
+   die Anzeige wird auf die naeheste "runde" Kisten-Bruchzahl geschnappt, statt
+   die ungerundete Zahl zu zeigen -- Rechenlogik (Sprossen-Zuordnung etc.) bleibt
+   unberuehrt, das ist ausschliesslich csNum()'s Anzeige-Rundung. */
+const NICE_FRACS=[0,.1,.2,.25,.3,.4,.5,.6,.7,.75,.8,.9,1];
+function snapNice(v){
+  const sign=v<0?-1:1, av=Math.abs(v), intPart=Math.floor(av), frac=av-intPart;
+  let best=0, bestDiff=Infinity;
+  NICE_FRACS.forEach(f=>{ const d=Math.abs(f-frac); if(d<bestDiff){bestDiff=d; best=f;} });
+  return sign*(intPart+best);
+}
+const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
-function koText(r){ return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'∞':csNum(r.hi)); }
+function koText(r){ return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)); }
 function stText(r){
   if(r.phi==null) return `ab ${r.plo} Stück`;
   if(r.plo===r.phi) return `genau ${r.plo} Stück`;
   if(r.plo===0) return `bis ${r.phi} Stück`;
   return `${r.plo} bis ${r.phi} Stück`;
+}
+/* Unter 1 KO steppt es in Viertelschritten statt in ganzen -- eine ganze Kiste ist bei
+   z.B. 0,9 KO ein zu grober Sprung. Snapt zuerst auf das naechste Viertel-Raster in
+   Schrittrichtung (0,9 → 0,75 abwaerts), von einem Rasterpunkt aus ist es dann ein
+   klarer ±0,25-Schritt. Bewusst asymmetrisch bei genau 1 KO: abwaerts von 1 taucht es
+   noch in die Viertel ein (1 → 0,75), aufwaerts ab 1 ist es wieder die normale
+   Ganzzahl-Schrittweite (1 → 2) -- die Grenze ist also <=1 abwaerts, <1 aufwaerts. */
+function quarterStep(ko,d){
+  const eps=1e-9;
+  return d<0 ? Math.max(0, Math.floor((ko-eps)*4)/4) : Math.ceil((ko+eps)*4)/4;
 }
 /* Welche Sprosse enthaelt einen ganzen KO-Wert -- dieselbe lo<=ko<hi-Regel wie ueberall
    sonst, Fallback auf die Plan-Sprosse falls keine passt (kann bei "any"/none vorkommen). */
@@ -705,7 +725,7 @@ function stepHTML(it,s,ix){
   }
   return `<div class="${cls}">
     <button class="sb" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''}>−</button>
-    <div class="fld" data-a="invpad" data-i="${ix}"><div class="val">${big} <span class="u">KO</span></div>
+    <div class="fld" data-a="invpad" data-i="${ix}"><div class="val">${big}</div>
     <div class="sub">${small}</div></div>
     <button class="sb" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''}>+</button>
   </div>`;
@@ -798,7 +818,7 @@ function render(){
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown} KO${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
+      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown}${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(s.manual?null:it.ordNote)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
@@ -1146,7 +1166,7 @@ list.addEventListener('click',e=>{
     let newKo;
     if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? Math.floor(r.lo) : Math.ceil(r.hi); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
-    else { newKo = s.ko+d; }
+    else { const inQuarterZone = d<0 ? s.ko<=1 : s.ko<1; newKo = inQuarterZone ? quarterStep(s.ko,d) : s.ko+d; }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
     pushChange(it, s.step==='ko' ? `Bestand → ${csNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
@@ -1318,9 +1338,9 @@ function drawInvPad(){
     (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const v=invPadVals();
   document.getElementById('invUnit').textContent=
-    (INV.unit==='pcs'? v.pcs+' '+ua(it) : v.cases.toLocaleString('de-DE')+' KO');
+    (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
   document.getElementById('invUnitPcs').textContent =
-    (INV.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
+    (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
                      : '= '+v.pcs+' '+uw(it));
   ['0.25','0.5','0.75'].forEach(k=>{
     const el=document.querySelector(`#invPad button[data-k="${k}"]`);

@@ -286,25 +286,26 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .sfoot .sp{flex:1}
 
 /* ---------- Fläche-Picker (siehe flaeche_picker_handoff.md) ----------
-   Ersetzt das Tippen im Fläche-Feld durch eine grob geschaetzte Regalfuelle.
-   Reihenfolge streng absteigend, Ueberfuell-Karten oben getrennt vom Rest. */
-#invFlaechePicker{grid-column:2/span 2}
-.flpicker{background:var(--ok-bg);border-radius:14px;padding:16px}
-.flhdr{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:15px;margin-bottom:14px}
-.flhdr .fllink{font-weight:700;font-size:13px;color:var(--green);cursor:pointer}
-.flover{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.flcard{border:1.5px solid #bcd9c8;border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;background:transparent}
+   Sitzt in derselben rechten Spalte wie die Zahlentastatur (nicht breiter),
+   Umschalt-Knopf darunter wechselt wie frueher zwischen Lager und Fläche. */
+#invCol3{display:flex;flex-direction:column;gap:10px}
+.swapbtn{width:100%;background:#F1F6F2;border:0;border-radius:9px;padding:13px 0;font-size:14px;
+  font-weight:700;color:#1f3a2d;cursor:pointer}
+.swapbtn:hover{background:#E4EFE7}
+.flpicker{background:var(--ok-bg);border-radius:14px;padding:12px}
+.flover{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.flcard{border:1.5px solid #bcd9c8;border-radius:11px;padding:9px 6px;text-align:center;cursor:pointer;background:transparent}
 .flcard:hover{background:rgba(46,106,80,.07)}
-.flcard .fllabel{font-weight:700;font-size:13.5px}
-.flcard .flval{margin-top:6px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
-.flcard .flval .u{font-weight:700;font-size:11px;color:#6f7c76;margin-left:3px}
-.fllist{border:1px solid #dcdfdd;border-radius:12px;overflow:hidden;background:#fff}
-.flrow{display:flex;align-items:center;justify-content:flex-end;gap:20px;padding:13px 16px;cursor:pointer;
+.flcard .fllabel{font-weight:700;font-size:12px}
+.flcard .flval{margin-top:4px;font-weight:800;font-size:13.5px;font-variant-numeric:tabular-nums}
+.flcard .flval .u{font-weight:700;font-size:10.5px;color:#6f7c76;margin-left:2px}
+.fllist{border:1px solid #dcdfdd;border-radius:11px;overflow:hidden;background:#fff}
+.flrow{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:11px 14px;cursor:pointer;
   border-bottom:1px solid #edf1ee}
 .flrow:last-child{border-bottom:0}
-.flrow .fllabel{font-weight:700;font-size:15px;flex:1;text-align:right}
-.flrow .flval{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;min-width:64px;text-align:left}
-.flrow .flval .u{font-weight:700;font-size:11.5px;color:#6f7c76;margin-left:3px}
+.flrow .fllabel{font-weight:700;font-size:13.5px;flex:1;text-align:right}
+.flrow .flval{font-weight:800;font-size:13.5px;font-variant-numeric:tabular-nums;min-width:52px;text-align:left}
+.flrow .flval .u{font-weight:700;font-size:10.5px;color:#6f7c76;margin-left:2px}
 .flrow.on{background:var(--green)}
 .flrow.on .fllabel,.flrow.on .flval{color:#fff}
 .flrow.on .flval .u{color:rgba(255,255,255,.7)}
@@ -426,17 +427,19 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <div class="kfield"><label>Fläche</label><div class="box" id="invFloor">0</div></div>
         <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
       </div>
-      <div class="pad" id="invPad">
-        <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
-        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
-        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
-        <button data-k="0">0</button><button data-k=".">.</button><button data-k="del">⌫</button>
-      </div>
-      <div id="invFlaechePicker" class="flpicker" style="display:none">
-        <div class="flhdr"><span>Fläche</span><span class="fllink" id="flBack">‹ Zurück</span></div>
-        <div class="flover" id="flOver"></div>
-        <div class="fllist" id="flList"></div>
+      <div id="invCol3">
+        <div class="pad" id="invPad">
+          <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="0">0</button><button data-k=".">.</button><button data-k="del">⌫</button>
+        </div>
+        <div id="invFlaechePicker" class="flpicker" style="display:none">
+          <div class="flover" id="flOver"></div>
+          <div class="fllist" id="flList"></div>
+        </div>
+        <button class="wide swapbtn" id="invSwap">Zu Fläche wechseln ⟳</button>
       </div>
     </div>
     <div class="sfoot" id="invSfoot"><span class="lnk" id="invAbbrechen">Abbrechen</span><span class="sp"></span>
@@ -1325,10 +1328,12 @@ document.getElementById('colh').addEventListener('click', e=>{
    Kein Widerspruchs-Check mehr -- der Kaufmann tippt, das Feld glaubt es ihm.
    Lager bleibt ein getipptes Feld (Stück/Kisten-Umschalter mit Bruchteilen
    0.25/0.5/0.75 wie frueher). Fläche ist kein Zahlenfeld mehr, sondern der
-   Fläche-Picker (grobe Regalfuelle, siehe flaeche_picker_handoff.md) -- Tap
-   aufs Fläche-Feld oeffnet ihn, eine Sprosse antippen kehrt sofort zurueck.
-   Landet die Summe in der Plan-Sprosse, zeigt applyKo() wieder die Spanne. */
-let INV={ix:null,back:'0',unit:'pcs',flaechePicking:false};
+   Fläche-Picker (grobe Regalfuelle, siehe flaeche_picker_handoff.md), der in
+   derselben rechten Spalte wie die Zahlentastatur sitzt -- Lager/Fläche-Box
+   antippen ODER der Umschalt-Knopf darunter wechseln, welcher der beiden dort
+   angezeigt wird (act:'back'|'floor'), genau wie vor dem Picker. Landet die
+   Summe in der Plan-Sprosse, zeigt applyKo() wieder die Spanne. */
+let INV={ix:null,back:'0',unit:'pcs',act:'back'};
 let LAST_INV_UNIT='pcs';
 function invAuslage(){ const s=ST[INV.ix]; return s&&s.auslage!=null?s.auslage:1; }
 function invPadVals(){
@@ -1343,7 +1348,7 @@ function openInvPad(ix){
   const canPcs = it.case!=null;
   const unit = canPcs ? LAST_INV_UNIT : 'cs';
   const back = unit==='pcs' ? String(Math.round(s.lagerKo*(it.case||1))) : String(Math.round(s.lagerKo*100)/100);
-  INV={ix, back, unit, flaechePicking:false};
+  INV={ix, back, unit, act:'back'};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -1351,7 +1356,6 @@ function openInvPad(ix){
   if(pcsBtn) pcsBtn.textContent = uw(it);
   document.getElementById('invName').textContent=it.name;
   document.getElementById('invMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
-  showFlaechePicker(false);
   drawInvPad();
   document.getElementById('ovInv').classList.add('on');
 }
@@ -1360,6 +1364,13 @@ function drawInvPad(){
   const u = INV.unit==='pcs' ? ' '+ua(it) : ' KO';
   document.getElementById('invBack').textContent=INV.back+u;
   document.getElementById('invFloor').textContent=csNum(ST[INV.ix].flaecheMult*invAuslage())+' KO';
+  document.getElementById('invBack').classList.toggle('act',INV.act==='back');
+  document.getElementById('invFloor').classList.toggle('act',INV.act==='floor');
+  document.getElementById('invPad').style.display = INV.act==='back' ? '' : 'none';
+  document.getElementById('invFlaechePicker').style.display = INV.act==='floor' ? '' : 'none';
+  document.getElementById('invSwap').textContent =
+    (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
+  if(INV.act==='floor') drawFlaechePicker();
   const v=invPadVals();
   document.getElementById('invUnit').textContent=
     (INV.unit==='pcs'? v.pcs+' '+ua(it) : v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO');
@@ -1372,14 +1383,6 @@ function drawInvPad(){
   });
 }
 /* ---------- Fläche-Picker ---------- */
-function showFlaechePicker(on){
-  INV.flaechePicking=on;
-  document.getElementById('invFieldsCol').style.display = on?'none':'';
-  document.getElementById('invPad').style.display = on?'none':'';
-  document.getElementById('invFlaechePicker').style.display = on?'':'none';
-  document.getElementById('invSfoot').style.display = on?'none':'';
-  if(on) drawFlaechePicker();
-}
 function drawFlaechePicker(){
   const auslage=invAuslage(), mult=ST[INV.ix].flaecheMult;
   const rowHTML=r=>`<div class="fl${r.over?'card':'row'}${mult===r.mult?' on':''}" data-mult="${r.mult}">
@@ -1389,12 +1392,13 @@ function drawFlaechePicker(){
   document.getElementById('flOver').innerHTML = FLAECHE_LADDER.filter(r=>r.over).map(rowHTML).join('');
   document.getElementById('flList').innerHTML = FLAECHE_LADDER.filter(r=>!r.over).map(rowHTML).join('');
 }
-document.getElementById('invFloor').addEventListener('click', ()=>showFlaechePicker(true));
-document.getElementById('flBack').addEventListener('click', ()=>{ showFlaechePicker(false); drawInvPad(); });
+document.getElementById('invBack').addEventListener('click', ()=>{ INV.act='back'; drawInvPad(); });
+document.getElementById('invFloor').addEventListener('click', ()=>{ INV.act='floor'; drawInvPad(); });
+document.getElementById('invSwap').addEventListener('click', ()=>{ INV.act = INV.act==='back'?'floor':'back'; drawInvPad(); });
 document.getElementById('invFlaechePicker').addEventListener('click', e=>{
   const el=e.target.closest('[data-mult]'); if(!el) return; TAPS++;
   ST[INV.ix].flaecheMult = +el.dataset.mult;
-  showFlaechePicker(false);
+  INV.act='back';
   drawInvPad();
 });
 document.getElementById('invUnitSeg').addEventListener('click',e=>{
