@@ -172,6 +172,9 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .catchip .x{width:19px;height:19px;border-radius:99px;background:rgba(46,106,80,.14);border:0;color:#1f4d39;
   display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:11.5px;line-height:1}
 .catchip .x:hover{background:rgba(46,106,80,.22)}
+.catnav{width:26px;height:26px;border-radius:99px;border:1px solid #cfe0d7;background:#fff;color:var(--green);
+  font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;padding:0}
+.catnav:hover{background:#F1F7F3}
 
 .catov{position:absolute;left:0;right:0;bottom:0;background:#FAFBFA;display:flex;z-index:20}
 .catsheet{flex:1;display:flex;flex-direction:column;background:#FAFBFA;overflow:hidden}
@@ -978,13 +981,48 @@ function clearCatFilter(){
 }
 function closeCat(){ CATOPEN=false; render(); }
 
+/* Kategorien-Rundgang: dieselbe Reihenfolge wie im Kategorien-Grid
+   (TILE_ORDER, dann Aktionsartikel, dann Sonstiges) -- ‹/› neben dem
+   Filter-Chip springen direkt zur naechsten/vorigen Kategorie, ohne
+   den Umweg ueber die Kategorien-Seite. Leere Kategorien werden
+   uebersprungen, sonst tippt man sich nur durch "0 Artikel"-Stopps.
+   replaceState statt push, damit Zurueck immer in einem Schritt auf
+   der Kategorien-Seite landet, egal wie oft man mit ‹/› weitergeklickt hat. */
+function catWalkList(){
+  return TILE_ORDER.concat(['promo','sonstiges']).map(id=>
+    ({kind: id==='promo'?'promo':'tile', id, label: tileLabel(id)}));
+}
+function catWalkIndex(walk, f){
+  return f ? walk.findIndex(w=>w.kind===f.kind && w.id===f.id) : -1;
+}
+function catStep(dir){
+  const walk=catWalkList();
+  let i=catWalkIndex(walk, CATFILTER);
+  if(i<0) return;
+  for(let n=0;n<walk.length;n++){
+    i=(i+dir+walk.length)%walk.length;
+    if(itemsForFilter(walk[i]).length>0) break;
+  }
+  CATFILTER={...walk[i]};
+  history.replaceState({page:'list', filter:CATFILTER}, '', location.href);
+  render();
+}
+
 function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
   if(!CATFILTER){ wrap.innerHTML=''; return; }
   const n=itemsForFilter(CATFILTER).length;
-  wrap.innerHTML = `<span class="catchip">${CATFILTER.label} <span class="n">· ${n} Artikel</span>
-    <button class="x" id="catChipX" type="button" title="Kategorie-Filter entfernen">✕</button></span>`;
+  const walkable = catWalkIndex(catWalkList(), CATFILTER)>=0;
+  wrap.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px">
+    ${walkable?`<button class="catnav" id="catPrevBtn" type="button" title="Vorige Kategorie">‹</button>`:''}
+    <span class="catchip">${CATFILTER.label} <span class="n">· ${n} Artikel</span>
+    <button class="x" id="catChipX" type="button" title="Kategorie-Filter entfernen">✕</button></span>
+    ${walkable?`<button class="catnav" id="catNextBtn" type="button" title="Nächste Kategorie">›</button>`:''}</span>`;
   document.getElementById('catChipX').onclick=clearCatFilter;
+  if(walkable){
+    document.getElementById('catPrevBtn').onclick=()=>catStep(-1);
+    document.getElementById('catNextBtn').onclick=()=>catStep(1);
+  }
 }
 
 function renderCatOverlay(){
@@ -1110,7 +1148,7 @@ function renderCatOverlay(){
   }
 
   root.querySelectorAll('[data-a="catpick-tile"]').forEach(el=>{
-    el.addEventListener('click', ()=>pickCategory('tile', el.dataset.id, el.dataset.label));
+    el.addEventListener('click', ()=>pickCategory(el.dataset.id==='promo'?'promo':'tile', el.dataset.id, el.dataset.label));
   });
   root.querySelectorAll('[data-a="catpick-item"]').forEach(el=>{
     el.addEventListener('click', ()=>{ const ix=+el.dataset.id; pickCategory('item', ix, ITEMS[ix].name); });
