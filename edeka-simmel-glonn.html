@@ -199,13 +199,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
   box-shadow:0 2px 12px rgba(0,0,0,.06)}
 .catsearch input{flex:1;border:0;outline:0;font-size:15.5px;background:transparent;color:var(--ink)}
 .catbody{flex:1;overflow-y:auto;padding:16px 24px 22px}
-.catfav{margin-bottom:20px}
-.catfav .lb,.catsec .lb{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a8a8a;margin-bottom:9px}
-.catfav .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:0}
-.catfavchip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:8px 15px;font-size:13.5px;
-  font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:var(--ink)}
-.catfavchip:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
-.catfavchip .dot{width:7px;height:7px;border-radius:99px;flex:0 0 auto}
+.catsec .lb{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a8a8a;margin-bottom:9px}
 .catsec{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
 .catsec .all{flex:none;white-space:nowrap;font-size:12.5px;font-weight:700;color:var(--green);cursor:pointer;
   border-bottom:1px solid rgba(46,106,80,.35)}
@@ -341,7 +335,6 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
     <button class="btn pri" id="catBtn" type="button"><span class="catic"><span></span><span></span><span></span><span></span></span>Kategorien</button>
     <span id="catChipWrap"></span>
     <span class="sp"></span>
-    <div class="seg" id="filtseg"><button data-f="open">Nur offene</button><button data-f="all" class="on">Alle</button></div>
     <div class="filtwrap" id="filtwrap">
       <button class="btn" id="filtBtn" type="button" aria-haspopup="true" aria-expanded="false">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>Filter
@@ -360,10 +353,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
   </div>
 
   <div class="prog">
-    <span><b id="pdone">0</b> von <b>256</b> beantwortet</span>
     <div class="bar"><i id="pbar"></i></div>
-    <span>Taps: <b id="ptaps">0</b></span>
-    <span>davon vorausgewählt: <b id="pauto">0</b></span>
     <span class="sp" style="flex:1"></span>
     <span id="popen"></span>
   </div>
@@ -630,9 +620,6 @@ const ua=it=>it&&it.unit==='kg' ? 'kg' : (LANG==='de'?'St.':'pcs');       // sho
    (Script Properties) instead of sitting in this public page's source. */
 const PUSH_URL='https://script.google.com/macros/s/AKfycbwR75xk2Mm7KG9vrfsmNKXuPtkO-PTSVJ8uu9Tn8lvwfMHvN3VuRGR0t7n3duK2fXcf/exec';
 const PUSH_SECRET='594060febfe2b4cbb9cb555d6ca87955';
-function touchRecent(ix){
-  RECENTLY_ANSWERED = [ix].concat(RECENTLY_ANSWERED.filter(x=>x!==ix)).slice(0,7);
-}
 /* The item id exactly as the app prints it under the name, so whoever types the change
    into the real app can find the row without guessing from the name. */
 function itemLabel(it){ return it && it.plu != null ? `${it.name} (${it.plu})` : (it ? it.name : '?'); }
@@ -703,7 +690,7 @@ function applyKo(it,s,ko){
   s.touched=true;
 }
 const ST=ITEMS.map(initState);
-let TAPS=0, FILT='all';
+let TAPS=0;
 let MANAGE_MODE=false;
 let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
 
@@ -717,7 +704,6 @@ let CATFILTER=null;        // {kind:'tile'|'promo'|'item', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
 let CATCELEBRATE=null;     // {id,label} | null — celebration playing for this tile
-let RECENTLY_ANSWERED=[];  // item ids, most-recent first, capped — real "favorites"
 let CATFX=null;            // celebration canvas animation state
 
 /* Modellzahlen landen roh auf haesslichen Nachkommastellen (1,77 / 0,96); fuer
@@ -843,7 +829,7 @@ function render(){
       else if(CATFILTER.kind==='item') catFilterHide = it.id!==CATFILTER.id;
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
-    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || (FILT==='open' && s.answered) || catHide || catFilterHide;
+    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
     const meta = `${it.plu!=null?it.plu:'–'} · Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
     let pills=`<span class="pill">Best. ${it.prevOrder!=null?it.prevOrder:0} KO</span>`;
     const pl = promoLabel(it.promo);
@@ -897,10 +883,7 @@ function stats(){
   document.getElementById('fret').textContent=eur(ret);
   document.getElementById('fmar').textContent=(ret?((ret-cost)/ret*100):0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %';
   document.getElementById('fans').textContent=(visible?Math.round(kept/visible*100):0)+' %';
-  document.getElementById('pdone').textContent=done;
   document.getElementById('pbar').style.width=(visible?(done/visible*100):0)+'%';
-  document.getElementById('ptaps').textContent=TAPS;
-  document.getElementById('pauto').textContent=ST.filter(x=>x.auto&&!x.hidden).length;
   const cHiddenEl=document.getElementById('cHidden'); if(cHiddenEl) cHiddenEl.textContent=hiddenCount;
   const pflicht=ST.filter(s=>!s.hidden&&!s.answered&&s.home==='need').length;
   const spanne=ST.filter(s=>!s.hidden&&!s.answered&&s.home==='range').length;
@@ -1346,7 +1329,6 @@ list.addEventListener('click',e=>{
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
     pushChange(it, s.step==='ko' ? `Bestand → ${csNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
-    touchRecent(ix);
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
@@ -1360,7 +1342,7 @@ list.addEventListener('click',e=>{
     const next=Math.max(0,prev+(a==='inc'?1:-1));
     s.order=next; s.answered=true;
     if(next!==prev) s.manual=true;
-    pushChange(it, `Bestellung ${prev} → ${next} CS`); touchRecent(ix);
+    pushChange(it, `Bestellung ${prev} → ${next} CS`);
     render(); }
 });
 document.getElementById('q').addEventListener('input',render);
@@ -1426,11 +1408,6 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
   render();
   closeResetDlg();
 });
-document.getElementById('filtseg').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b)return; FILT=b.dataset.f;
-  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); render();
-});
-
 /* ---------- category filter (Bestand / Bestellmenge / Bio / Werb.) ---------- */
 const CATFILT = {invNote:false, ordNote:false, bio:false, promo:false, hidden:false};
 document.getElementById('cInv').textContent   = ITEMS.filter((it,ix)=>ST[ix].mode==='unsure' || it.invNote).length;
