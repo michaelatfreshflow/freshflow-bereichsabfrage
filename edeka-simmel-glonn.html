@@ -63,10 +63,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .filtpop .fopt input{margin:0;accent-color:var(--green)}
 .filtpop .fopt span{flex:1}
 .filtpop .fopt b{font-weight:700;color:#5d6b64;font-size:12px}
-.catweiter{border:0;border-radius:8px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;
-  background:var(--green);color:#fff}
-.catweiter:disabled{background:#e4e9e6;color:#9aa8a1;cursor:default}
-.catweiter.fin{background:var(--ok-bg);color:#1f4d39;cursor:default}
 
 /* ---------- progress ---------- */
 
@@ -171,7 +167,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
    concept from the numeric "Bereich" range used everywhere else on this page,
    so it is named "Regal(e)" throughout, never "Bereich" or "Kategorie") ---------- */
 .catchip{display:inline-flex;align-items:center;gap:8px;background:var(--ok-bg);color:#1f4d39;border-radius:99px;
-  padding:6px 14px;font-size:13px;font-weight:700}
+  padding:6px 14px;font-size:13px;font-weight:700;border:0;cursor:pointer;font-family:inherit}
 .catchip .n{opacity:.65;font-weight:500}
 .catnav{width:26px;height:26px;border-radius:99px;border:1px solid #cfe0d7;background:#fff;color:var(--green);
   font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;padding:0}
@@ -326,7 +322,6 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span>Ausgeblendet</span><b id="cHidden">0</b></label>
       </div>
     </div>
-    <span id="catWeiterWrap"></span>
     <button class="resetBtn" id="resetBtn" type="button" title="Zurücksetzen" aria-label="Zurücksetzen">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
     </button>
@@ -988,13 +983,26 @@ function renderCatChip(){
   if(!CATFILTER){ wrap.innerHTML=''; return; }
   const n=itemsForFilter(CATFILTER).length;
   const walkable = catWalkIndex(catWalkList(), CATFILTER)>=0;
+  const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
+  const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} offen)</span>` : '';
   wrap.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px">
     ${walkable?`<button class="catnav" id="catPrevBtn" type="button" title="Voriges Regal">‹</button>`:''}
-    <span class="catchip">${CATFILTER.label} <span class="n">· ${n} Artikel</span></span>
+    <button class="catchip" id="catChipBtn" type="button" title="Regal wechseln oder Filter aufheben">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>
     ${walkable?`<button class="catnav" id="catNextBtn" type="button" title="Nächstes Regal">›</button>`:''}</span>`;
+  document.getElementById('catChipBtn').onclick=goToCategories;
   if(walkable){
     document.getElementById('catPrevBtn').onclick=()=>catStep(-1);
-    document.getElementById('catNextBtn').onclick=()=>catStep(1);
+    document.getElementById('catNextBtn').onclick=()=>{
+      if(CATFILTER.kind==='tile'){
+        const s=tileStats(CATFILTER.id);
+        if(s.open===0 && !s.fin){
+          CATCONFIRM={id:CATFILTER.id, label:CATFILTER.label, after:'next'};
+          render();
+          return;
+        }
+      }
+      catStep(1);
+    };
   }
 }
 
@@ -1275,28 +1283,15 @@ function undoCatChange(){
 }
 document.getElementById('catUndoBtn').addEventListener('click', undoCatChange);
 
-/* Regal-Abschluss: Filter-Symbol fragt jederzeit nach ("willst du
-   abschließen?", auch mit offenen Artikeln -- renderCatConfirm() zeigt dann
-   die Warnung statt "alle erfasst"). Weiter daneben ist der schnelle Weg
-   ohne Nachfrage, aber nur klickbar, wenn nichts mehr offen ist. */
-function renderCatWeiter(){
-  const wrap=document.getElementById('catWeiterWrap');
-  if(!CATFILTER || CATFILTER.kind!=='tile'){ wrap.innerHTML=''; return; }
-  const st=tileStats(CATFILTER.id);
-  if(st.fin){
-    wrap.innerHTML=`<button class="catweiter fin" type="button" disabled>✓ Fertig</button>`;
-  } else if(st.open===0){
-    wrap.innerHTML=`<button class="catweiter" id="catWeiterBtn" type="button">Weiter ›</button>`;
-    document.getElementById('catWeiterBtn').onclick=()=>finishCategory(CATFILTER.id, CATFILTER.label);
-  } else {
-    wrap.innerHTML=`<button class="catweiter" type="button" disabled title="${st.open} Artikel noch offen">Weiter</button>`;
-  }
-}
-function finishCategory(id,label){
-  CATCONFIRM={id,label};
-  startCatCelebration();
-}
-
+/* Regal-Abschluss hat zwei Wege rein, beide ueber dasselbe renderCatConfirm():
+   - "›" (naechstes Regal) fragt automatisch nach, sobald nichts mehr offen
+     ist -- bestaetigt schliesst ab UND geht weiter (after:'next'); die alte
+     Bedeutung des Buttons bleibt also erhalten, nur mit einer Bestaetigung
+     davor. Ist noch etwas offen, springt "›" stumm weiter, ohne zu fragen.
+   - Das Filter-Symbol fragt jederzeit nach, auch mit offenen Artikeln, fuer
+     ein bewusstes Abschliessen VOR dem Ende (after:'grid', zurueck zur
+     Regale-Uebersicht wie bisher). renderCatConfirm() zeigt bei offenen
+     Artikeln eine Warnung statt "alle erfasst". */
 function renderCatConfirm(){
   const root=document.getElementById('catConfirmRoot');
   if(!CATCONFIRM){ root.innerHTML=''; return; }
@@ -1322,11 +1317,15 @@ function renderCatConfirm(){
 }
 
 function startCatCelebration(){
-  const target=CATCONFIRM; CATCONFIRM=null; CATCELEBRATE={id:target.id, label:target.label};
+  const target=CATCONFIRM; CATCONFIRM=null;
+  CATCELEBRATE={id:target.id, label:target.label, after:target.after||'grid'};
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   render();
   if(reduced){
-    setTimeout(()=>{ CATFINISHED[target.id]=true; CATCELEBRATE=null; goToCategories(); }, 900);
+    setTimeout(()=>{
+      CATFINISHED[target.id]=true; CATCELEBRATE=null;
+      if(target.after==='next') catStep(1); else goToCategories();
+    }, 900);
     return;
   }
   CATFX={t0:null, init:false, fruits:[], shards:[], rings:[]};
@@ -1406,9 +1405,9 @@ function catCelebrateLoop(now){
   });
 
   if(el<2900){ requestAnimationFrame(catCelebrateLoop); return; }
-  const id=CATCELEBRATE.id;
+  const id=CATCELEBRATE.id, after=CATCELEBRATE.after;
   CATFINISHED[id]=true; CATCELEBRATE=null; CATFX=null;
-  goToCategories();
+  if(after==='next') catStep(1); else goToCategories();
 }
 
 function renderCatCelebrate(){
@@ -1783,7 +1782,7 @@ function legend(){
   document.getElementById('legend').innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
-const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatWeiter();renderCatConfirm();renderCatCelebrate();renderCatItemPicker()};
+const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker()};
 /* ---------- complete order ---------- */
 function openSummary(){
   const implicit=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&ST[ix].mode==='ask');
