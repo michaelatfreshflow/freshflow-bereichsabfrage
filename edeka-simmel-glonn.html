@@ -227,14 +227,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .catrow.addrow .nm{color:var(--green)}
 .catrow .owntag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a8a8a;
   background:#eef1ef;border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:middle}
-.catres{display:flex;flex-direction:column;gap:7px}
-.catres .row{display:flex;align-items:center;gap:14px;background:#fff;border-radius:10px;padding:12px 16px;
-  cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.catres .row:hover{box-shadow:0 8px 20px rgba(0,0,0,.09)}
-.catres .bar{width:7px;height:30px;border-radius:99px;flex:0 0 auto}
-.catres .nm{flex:1;font-weight:800;font-size:14px}
-.catres .meta{font-size:12px;color:#8a8a8a;margin-top:2px}
-.catres .state{font-size:12.5px;font-weight:700}
 
 .catfinish{position:absolute;right:20px;bottom:80px;z-index:15;animation:ffrise .2s cubic-bezier(.2,.7,.2,1)}
 @keyframes ffrise{0%{transform:translateY(12px);opacity:0}100%{transform:translateY(0);opacity:1}}
@@ -741,7 +733,7 @@ let CAT_EDIT=false;        // Kategorien overlay is in "adjust order" mode
 let RENAME_TILE_ID=null;   // tile id currently shown with a rename input, or null
 let ADDING_TILE=false;     // "+ Neue Kategorie" input is open in the Bearbeiten screen
 let DELETE_TILE_ID=null;   // eigene Kategorie currently showing its "wirklich löschen?" confirm row
-let CATFILTER=null;        // {kind:'tile'|'promo'|'item', id, label} | null
+let CATFILTER=null;        // {kind:'tile'|'promo', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
 let CATCELEBRATE=null;     // {id,label} | null — celebration playing for this tile
@@ -874,7 +866,6 @@ function render(){
     if(CATFILTER){
       if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
       else if(CATFILTER.kind==='promo') catFilterHide = !it.promo;
-      else if(CATFILTER.kind==='item') catFilterHide = it.id!==CATFILTER.id;
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
@@ -940,7 +931,6 @@ function stats(){
 function itemsForFilter(f){
   if(!f) return ITEMS;
   if(f.kind==='promo') return ITEMS.filter(i=>i.promo);
-  if(f.kind==='item') return ITEMS.filter(i=>i.id===f.id);
   return ITEMS.filter(i=>tileOf(i)===f.id);
 }
 function tileStats(tileId){
@@ -1030,7 +1020,6 @@ function renderCatOverlay(){
   if(!CATOPEN){ root.innerHTML=''; return; }
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
-  const q=CATQUERY.trim().toLowerCase();
 
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   tileDefs.push({id:'promo', label:'Aktionsartikel', type:'Aktion'});
@@ -1091,23 +1080,6 @@ function renderCatOverlay(){
           </div>
         </div>`;
       }).join('')}</div>`;
-  } else if(q){
-    const digitsQ=q.replace(/\D/g,'');
-    const results = ITEMS.filter(i=>i.name.toLowerCase().includes(q) || pluApproxMatch(i.plu, digitsQ)).slice(0,40);
-    body = `<div class="catsec"><div class="lb">${results.length} Treffer für „${CATQUERY.trim()}"</div></div>
-      <div class="catres">${results.map(i=>{
-        const tid=tileOf(i);
-        const tdef=TILES.find(x=>x[0]===tid);
-        const accent = i.promo ? '#FC9511' : (tdef && tdef[2]==='Obst' ? '#C1CE5D' : '#429359');
-        const done=ST[i.id].answered;
-        return `<div class="row" data-a="catpick-item" data-id="${i.id}">
-          <span class="bar" style="background:${accent}"></span>
-          <div style="flex:1;min-width:0"><div class="nm">${i.name}</div>
-            <div class="meta">${i.plu!=null?i.plu:'–'} · ${tileLabel(tid)}</div></div>
-          <span class="state" style="color:${done?'#1f4d39':'#9A3B12'}">${done?'erfasst':'offen'}</span>
-          <span style="color:#8a8a8a">›</span>
-        </div>`;
-      }).join('')}</div>`;
   } else {
     body = `<div class="catsec"><div class="lb">${tiles.length} Kategorien</div>
           <div class="all" data-a="catpick-all">Alle ${ITEMS.length} Artikel zeigen</div></div>
@@ -1143,15 +1115,21 @@ function renderCatOverlay(){
   document.getElementById('catEditBtn').onclick=()=>{ CAT_EDIT=!CAT_EDIT; CATQUERY=''; renderCatOverlay(); };
   const inp=document.getElementById('catQ');
   if(inp){
-    inp.addEventListener('input', e=>{ CATQUERY=e.target.value; renderCatOverlay(); });
+    /* Kein eigenes Such-Ergebnis mehr hier -- ein Tastendruck schickt direkt
+       auf die normale Artikelliste mit derselben Sucheingabe im echten #q. */
+    inp.addEventListener('input', e=>{
+      const val=e.target.value;
+      goToList(null);
+      const mainQ=document.getElementById('q');
+      mainQ.value=val;
+      mainQ.dispatchEvent(new Event('input',{bubbles:true}));
+      mainQ.focus();
+    });
     inp.focus(); inp.setSelectionRange(CATQUERY.length,CATQUERY.length);
   }
 
   root.querySelectorAll('[data-a="catpick-tile"]').forEach(el=>{
     el.addEventListener('click', ()=>pickCategory(el.dataset.id==='promo'?'promo':'tile', el.dataset.id, el.dataset.label));
-  });
-  root.querySelectorAll('[data-a="catpick-item"]').forEach(el=>{
-    el.addEventListener('click', ()=>{ const ix=+el.dataset.id; pickCategory('item', ix, ITEMS[ix].name); });
   });
   const allBtn=root.querySelector('[data-a="catpick-all"]');
   if(allBtn) allBtn.addEventListener('click', ()=>goToList(null));
