@@ -1478,7 +1478,8 @@ function drawInvPad(){
     (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const totEl=document.getElementById('invUnit'), totPcsEl=document.getElementById('invUnitPcs');
   const v=invPadVals();
-  const inRange = INV.rLoKO!=null && v.cases>=INV.rLoKO && (INV.rHiKO==null || v.cases<INV.rHiKO);
+  const untouched = INV.back==='0' && INV.floor==='0';
+  const inRange = INV.rLoKO!=null && (untouched || (v.cases>=INV.rLoKO && (INV.rHiKO==null || v.cases<INV.rHiKO)));
   if(inRange){
     totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
     totPcsEl.textContent='';
