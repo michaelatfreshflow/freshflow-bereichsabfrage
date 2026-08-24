@@ -1477,12 +1477,12 @@ function drawInvPad(){
   document.querySelector('#invPad button[data-k="swap"]').innerHTML =
     (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const totEl=document.getElementById('invUnit'), totPcsEl=document.getElementById('invUnitPcs');
-  const untouched = INV.back==='0' && INV.floor==='0';
-  if(untouched && INV.rLoKO!=null){
+  const v=invPadVals();
+  const inRange = INV.rLoKO!=null && v.cases>=INV.rLoKO && (INV.rHiKO==null || v.cases<INV.rHiKO);
+  if(inRange){
     totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
     totPcsEl.textContent='';
   } else {
-    const v=invPadVals();
     totEl.textContent=
       (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
     totPcsEl.textContent =
