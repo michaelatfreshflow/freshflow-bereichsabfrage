@@ -176,9 +176,8 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
   display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:11.5px;line-height:1}
 .catchip .x:hover{background:rgba(46,106,80,.22)}
 
-.catov{position:absolute;left:0;right:0;bottom:0;background:rgba(20,25,22,.5);display:flex;padding:16px;z-index:20}
-.catsheet{flex:1;display:flex;flex-direction:column;background:#FAFBFA;border-radius:14px;overflow:hidden;
-  box-shadow:0 8px 40px rgba(0,0,0,.4)}
+.catov{position:absolute;left:0;right:0;bottom:0;background:#FAFBFA;display:flex;z-index:20}
+.catsheet{flex:1;display:flex;flex-direction:column;background:#FAFBFA;overflow:hidden}
 .cathdr{background:var(--green);color:#fff;padding:18px 24px;display:flex;align-items:flex-start;gap:20px}
 .cathdr .eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C1CE5D}
 .cathdr h2{margin:6px 0 0;font-size:24px;letter-spacing:-.02em;font-weight:800}
@@ -951,12 +950,33 @@ function tileStats(tileId){
   const done = fin ? list.length : list.filter(i=>rowClear(i,ST[i.id])).length;
   return {list, fin, done, open:list.length-done};
 }
-function pickCategory(kind,id,label){
-  CATFILTER={kind,id,label}; CATOPEN=false; CATQUERY='';
+/* Kategorien ist die Startseite, keine Popover-Karte ueber der Liste -- der
+   Wechsel zur (gefilterten oder vollen) Artikelliste pusht einen echten
+   History-State, damit der physische Zurueck-Knopf (oder das Kategorien-
+   Pill selbst) wieder exakt auf der Kategorien-Uebersicht landet, nicht auf
+   irgendeiner vergessenen Filteransicht. */
+function goToList(filter){
+  CATFILTER=filter; CATOPEN=false; CATQUERY='';
+  history.pushState({page:'list', filter}, '', location.href);
   render();
 }
+function applyCatPage(){
+  CATFILTER=null; CATOPEN=true; CATQUERY='';
+  render();
+}
+function goToCategories(){
+  if(history.state && history.state.page==='list') history.back();
+  else applyCatPage();
+}
+window.addEventListener('popstate', e=>{
+  const st=e.state;
+  if(st && st.page==='list'){ CATFILTER=st.filter||null; CATOPEN=false; CATQUERY=''; render(); }
+  else applyCatPage();
+});
+history.replaceState({page:'cat'}, '', location.href);
+function pickCategory(kind,id,label){ goToList({kind,id,label}); }
 function clearCatFilter(){ CATFILTER=null; render(); }
-function openCat(){ CATOPEN=true; CATQUERY=''; render(); }
+function openCat(){ goToCategories(); }
 function closeCat(){ CATOPEN=false; render(); }
 
 function renderCatChip(){
@@ -1097,7 +1117,7 @@ function renderCatOverlay(){
     el.addEventListener('click', ()=>{ const ix=+el.dataset.id; pickCategory('item', ix, ITEMS[ix].name); });
   });
   const allBtn=root.querySelector('[data-a="catpick-all"]');
-  if(allBtn) allBtn.addEventListener('click', ()=>{ CATFILTER=null; CATOPEN=false; render(); });
+  if(allBtn) allBtn.addEventListener('click', ()=>goToList(null));
   root.querySelectorAll('[data-a="cat-up"]').forEach(el=>{
     el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,-1));
   });
@@ -1303,7 +1323,7 @@ function startCatCelebration(){
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   render();
   if(reduced){
-    setTimeout(()=>{ CATFINISHED[target.id]=true; CATCELEBRATE=null; CATFILTER=null; CATOPEN=true; CATQUERY=''; render(); }, 900);
+    setTimeout(()=>{ CATFINISHED[target.id]=true; CATCELEBRATE=null; goToCategories(); }, 900);
     return;
   }
   CATFX={t0:null, init:false, fruits:[], shards:[], rings:[]};
@@ -1385,8 +1405,7 @@ function catCelebrateLoop(now){
   if(el<2900){ requestAnimationFrame(catCelebrateLoop); return; }
   const id=CATCELEBRATE.id;
   CATFINISHED[id]=true; CATCELEBRATE=null; CATFX=null;
-  CATFILTER=null; CATOPEN=true; CATQUERY='';
-  render();
+  goToCategories();
 }
 
 function renderCatCelebrate(){
