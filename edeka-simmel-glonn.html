@@ -709,7 +709,13 @@ function snapNice(v){
 const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
-function koText(r){ return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)) + ' KO'; }
+function koText(r,it){
+  if(r.plo!=null && r.plo===r.phi){
+    const cs = it&&it.case?it.case:1;
+    return csNum(r.plo/cs) + ' KO';
+  }
+  return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)) + ' KO';
+}
 function stText(r,it){
   const u=uw(it);
   if(r.phi==null) return `${r.plo} - 999 ${u}`;
@@ -747,7 +753,7 @@ function stepHTML(it,s,ix){
   } else if(s.step==='range'){
     const r=it.rungs[s.plan];
     minusOff=r.lo==null; plusOff=r.hi==null;
-    big=koText(r); small=stText(r,it);
+    big=koText(r,it); small=stText(r,it);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
     big=csNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
