@@ -709,12 +709,13 @@ function snapNice(v){
 const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
-function koText(r){ return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)); }
-function stText(r){
-  if(r.phi==null) return `ab ${r.plo} Stück`;
-  if(r.plo===r.phi) return `genau ${r.plo} Stück`;
-  if(r.plo===0) return `bis ${r.phi} Stück`;
-  return `${r.plo} bis ${r.phi} Stück`;
+function koText(r){ return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)) + ' KO'; }
+function stText(r,it){
+  const u=uw(it);
+  if(r.phi==null) return `${r.plo} - 999 ${u}`;
+  if(r.plo===r.phi) return `genau ${r.plo} ${u}`;
+  if(r.plo===0) return `bis ${r.phi} ${u}`;
+  return `${r.plo} bis ${r.phi} ${u}`;
 }
 /* Unter 1 KO steppt es in Viertelschritten, ab 1 KO in Halbschritten -- eine ganze
    Kiste ist bei z.B. 0,9 KO ein zu grober Sprung, und ab 1 KO reicht ein Halbschritt
@@ -746,10 +747,10 @@ function stepHTML(it,s,ix){
   } else if(s.step==='range'){
     const r=it.rungs[s.plan];
     minusOff=r.lo==null; plusOff=r.hi==null;
-    big=koText(r); small=stText(r);
+    big=koText(r); small=stText(r,it);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
-    big=csNum(s.ko); small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
+    big=csNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
   }
   return `<div class="${cls}">
     <button class="sb" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''}>−</button>
@@ -844,7 +845,7 @@ function render(){
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown}${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
+      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown} KO${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(s.manual?null:it.ordNote)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
