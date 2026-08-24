@@ -267,7 +267,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .kfield label{width:60px;font-weight:700;font-size:14.5px}
 .kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700;cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
-.kfield .box.rangeph,.tot.rangeph{font-weight:600;font-style:italic;opacity:.62}
 .kfield .tot{font-weight:800}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pad button{background:#F1F6F2;border:0;border-radius:9px;padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:#1f3a2d}
@@ -1432,7 +1431,7 @@ document.getElementById('colh').addEventListener('click', e=>{
    wie frueher: in Kisten sind Bruchteile (0.25/0.5/0.75) moeglich. Landet der
    Wert in der Plan-Sprosse, zeigt applyKo() wieder die Spanne, sonst die Zahl
    in KO. */
-let INV={ix:null,back:'0',floor:'0',act:'floor',unit:'pcs',backTouched:true,rLoKO:null,rHiKO:null};
+let INV={ix:null,back:'0',floor:'0',act:'floor',unit:'cs'};
 function invPadVals(){
   const b=parseFloat(INV.back||'0')||0, f=parseFloat(INV.floor||'0')||0;
   const it=ITEMS[INV.ix], cs=it&&it.case?it.case:1;
@@ -1440,34 +1439,12 @@ function invPadVals(){
   return INV.unit==='pcs' ? {raw, pcs:Math.round(raw), cases:raw/cs}
                           : {raw, pcs:Math.round(raw*cs), cases:raw};
 }
-/* Solange Lager unangetastet ist, zeigt es (und Gesamt) die Spanne der Plan-Sprosse
-   statt einer Zahl -- Fläche gilt als bekannt (bis zur Auslage-Kapazität gefuellt),
-   die Unsicherheit sitzt komplett im Lager, das niemand ohne Nachschauen kennt.
-   loKO/hiKO hier sind bereits Sprossen-Grenzen MINUS die aktuelle Fläche. */
-function invRangeText(loKO,hiKO,unit,cs,it){
-  if(unit==='pcs'){
-    const loP=Math.round((loKO==null?0:loKO)*cs), hiP=hiKO==null?99:Math.round(hiKO*cs);
-    return `${loP} – ${hiP} ${ua(it)}`;
-  }
-  const loK=loKO==null?0:loKO, hiK=hiKO==null?99:hiKO;
-  return `${csNum(loK)} – ${csNum(hiK)} KO`;
-}
+/* Kein Vorschlag mehr aus der Plan-Sprosse -- Lager und Fläche starten immer bei
+   0, mit Fläche direkt im Fokus, der Kaufmann tippt beide Zahlen selbst ein. */
 function openInvPad(ix){
-  const it=ITEMS[ix], s=ST[ix];
+  const it=ITEMS[ix];
   const canPcs = it.case!=null;
-  const cs = it.case||1;
-  const unit = 'cs';
-  const r = (s.step==='range' && it.rungs[s.plan] && it.rungs[s.plan].kind!=='any') ? it.rungs[s.plan] : null;
-  if(r){
-    const loKO = r.lo==null?0:r.lo;
-    const flKO = Math.min(s.auslage, loKO);
-    const floorVal = unit==='pcs' ? String(Math.round(flKO*cs)) : String(snapNice(flKO));
-    INV={ix, back:'0', floor:floorVal, act:'floor', unit, backTouched:false, rLoKO:loKO, rHiKO:r.hi};
-  } else {
-    const currentKo = s.step==='ko' ? s.ko : 0;
-    const val = unit==='pcs' ? String(Math.round(currentKo*cs)) : String(snapNice(currentKo));
-    INV={ix, back:'0', floor:val, act:'floor', unit, backTouched:true, rLoKO:null, rHiKO:null};
-  }
+  INV={ix, back:'0', floor:'0', act:'floor', unit:'cs'};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -1479,37 +1456,22 @@ function openInvPad(ix){
   document.getElementById('ovInv').classList.add('on');
 }
 function drawInvPad(){
-  const it=ITEMS[INV.ix], cs=it.case||1;
+  const it=ITEMS[INV.ix];
   const u = INV.unit==='pcs' ? ' '+ua(it) : ' KO';
   document.getElementById('invFloor').textContent=INV.floor+u;
   const backEl=document.getElementById('invBack');
-  if(INV.backTouched){
-    backEl.textContent=INV.back+u;
-    backEl.classList.remove('rangeph');
-  } else {
-    const flKO = INV.unit==='pcs' ? (parseFloat(INV.floor||'0')||0)/cs : (parseFloat(INV.floor||'0')||0);
-    const loKO = Math.max(0, INV.rLoKO-flKO), hiKO = INV.rHiKO==null?null:Math.max(0, INV.rHiKO-flKO);
-    backEl.textContent = invRangeText(loKO,hiKO,INV.unit,cs,it);
-    backEl.classList.add('rangeph');
-  }
+  backEl.textContent=INV.back+u;
   backEl.classList.toggle('act',INV.act==='back');
   document.getElementById('invFloor').classList.toggle('act',INV.act==='floor');
   document.querySelector('#invPad button[data-k="swap"]').innerHTML =
     (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const totEl=document.getElementById('invUnit'), totPcsEl=document.getElementById('invUnitPcs');
-  if(!INV.backTouched && INV.rLoKO!=null){
-    totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
-    totEl.classList.add('rangeph');
-    totPcsEl.textContent='';
-  } else {
-    totEl.classList.remove('rangeph');
-    const v=invPadVals();
-    totEl.textContent=
-      (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
-    totPcsEl.textContent =
-      (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
-                       : '= '+v.pcs+' '+uw(it));
-  }
+  const v=invPadVals();
+  totEl.textContent=
+    (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
+  totPcsEl.textContent =
+    (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
+                     : '= '+v.pcs+' '+uw(it));
   ['0.25','0.5','0.75'].forEach(k=>{
     const el=document.querySelector(`#invPad button[data-k="${k}"]`);
     if(el) el.style.display = INV.unit==='pcs' ? 'none' : '';
@@ -1519,27 +1481,16 @@ document.getElementById('invBack').addEventListener('click',()=>{INV.act='back';
 document.getElementById('invFloor').addEventListener('click',()=>{INV.act='floor'; drawInvPad();});
 document.getElementById('invUnitSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return;
-  const it=ITEMS[INV.ix], cs=it.case||1, newUnit=b.dataset.u;
-  if(!INV.backTouched && INV.rLoKO!=null){
-    /* Lager/Gesamt sind noch unangetastete Spannen -- nur die Flaeche neu in die
-       Zieleinheit umrechnen, statt die Spanne ueber invPadVals() in eine gerundete
-       Einzelzahl zu kollabieren (das taeuschte vorher eine echte Zaehlung vor). */
-    const flKO = Math.min(ST[INV.ix].auslage, INV.rLoKO);
-    INV.floor = newUnit==='pcs' ? String(Math.round(flKO*cs)) : String(snapNice(flKO));
-    INV.back='0';
-  } else {
-    const v=invPadVals();
-    const nv = newUnit==='pcs' ? String(v.pcs) : String(snapNice(v.cases));
-    INV.back='0'; INV.floor=nv; INV.backTouched=true;
-  }
-  INV.unit=newUnit; INV.act='floor';
+  const newUnit=b.dataset.u;
+  const v=invPadVals();
+  const nv = newUnit==='pcs' ? String(v.pcs) : String(snapNice(v.cases));
+  INV.back='0'; INV.floor=nv; INV.unit=newUnit; INV.act='floor';
   [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
   drawInvPad();
 });
 document.getElementById('invPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
   if(k==='swap'){ INV.act=INV.act==='floor'?'back':'floor'; drawInvPad(); return; }
-  if(INV.act==='back') INV.backTouched=true;
   let v=INV[INV.act];
   if(k==='del'){ v=v.slice(0,-1); if(v===''||v==='.') v='0'; INV[INV.act]=v; }
   else if(['0.25','0.5','0.75'].includes(k)){
