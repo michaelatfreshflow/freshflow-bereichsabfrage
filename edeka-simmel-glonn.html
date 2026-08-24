@@ -268,6 +268,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700;cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:800}
+.kfield .tot.rangeph{font-weight:600;font-style:italic;opacity:.62}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pad button{background:#F1F6F2;border:0;border-radius:9px;padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:#1f3a2d}
 .pad button:hover{background:#E4EFE7}
@@ -1439,12 +1440,23 @@ function invPadVals(){
   return INV.unit==='pcs' ? {raw, pcs:Math.round(raw), cases:raw/cs}
                           : {raw, pcs:Math.round(raw*cs), cases:raw};
 }
-/* Kein Vorschlag mehr aus der Plan-Sprosse -- Lager und Fläche starten immer bei
-   0, mit Fläche direkt im Fokus, der Kaufmann tippt beide Zahlen selbst ein. */
+/* Solange nichts eingetippt ist, zeigt Gesamt die Spanne der Plan-Sprosse statt
+   einer Zahl -- Lager und Fläche starten trotzdem bei 0, kein Vorschlag mehr,
+   der Kaufmann tippt beide Zahlen selbst ein. rLoKO/rHiKO sind die ungerundeten
+   Sprossen-Grenzen fuer genau diese Anzeige. */
+function invRangeText(loKO,hiKO,unit,cs,it){
+  if(unit==='pcs'){
+    const loP=Math.round((loKO==null?0:loKO)*cs), hiP=hiKO==null?99:Math.round(hiKO*cs);
+    return `${loP} – ${hiP} ${ua(it)}`;
+  }
+  const loK=loKO==null?0:loKO, hiK=hiKO==null?99:hiKO;
+  return `${csNum(loK)} – ${csNum(hiK)} KO`;
+}
 function openInvPad(ix){
-  const it=ITEMS[ix];
+  const it=ITEMS[ix], s=ST[ix];
   const canPcs = it.case!=null;
-  INV={ix, back:'0', floor:'0', act:'floor', unit:'cs'};
+  const r = (s.step==='range' && it.rungs[s.plan] && it.rungs[s.plan].kind!=='any') ? it.rungs[s.plan] : null;
+  INV={ix, back:'0', floor:'0', act:'floor', unit:'cs', rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -1456,7 +1468,7 @@ function openInvPad(ix){
   document.getElementById('ovInv').classList.add('on');
 }
 function drawInvPad(){
-  const it=ITEMS[INV.ix];
+  const it=ITEMS[INV.ix], cs=it.case||1;
   const u = INV.unit==='pcs' ? ' '+ua(it) : ' KO';
   document.getElementById('invFloor').textContent=INV.floor+u;
   const backEl=document.getElementById('invBack');
@@ -1466,12 +1478,20 @@ function drawInvPad(){
   document.querySelector('#invPad button[data-k="swap"]').innerHTML =
     (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const totEl=document.getElementById('invUnit'), totPcsEl=document.getElementById('invUnitPcs');
-  const v=invPadVals();
-  totEl.textContent=
-    (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
-  totPcsEl.textContent =
-    (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
-                     : '= '+v.pcs+' '+uw(it));
+  const untouched = INV.back==='0' && INV.floor==='0';
+  if(untouched && INV.rLoKO!=null){
+    totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
+    totEl.classList.add('rangeph');
+    totPcsEl.textContent='';
+  } else {
+    totEl.classList.remove('rangeph');
+    const v=invPadVals();
+    totEl.textContent=
+      (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
+    totPcsEl.textContent =
+      (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
+                       : '= '+v.pcs+' '+uw(it));
+  }
   ['0.25','0.5','0.75'].forEach(k=>{
     const el=document.querySelector(`#invPad button[data-k="${k}"]`);
     if(el) el.style.display = INV.unit==='pcs' ? 'none' : '';
