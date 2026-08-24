@@ -268,7 +268,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700;cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:800}
-.kfield .tot.rangeph{font-weight:600;font-style:italic;opacity:.62}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pad button{background:#F1F6F2;border:0;border-radius:9px;padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:#1f3a2d}
 .pad button:hover{background:#E4EFE7}
@@ -1481,10 +1480,8 @@ function drawInvPad(){
   const untouched = INV.back==='0' && INV.floor==='0';
   if(untouched && INV.rLoKO!=null){
     totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
-    totEl.classList.add('rangeph');
     totPcsEl.textContent='';
   } else {
-    totEl.classList.remove('rangeph');
     const v=invPadVals();
     totEl.textContent=
       (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
