@@ -494,32 +494,41 @@ const ITEMS = [{"id": 0, "plu": 787183, "bio": false, "promo": null, "name": "ED
 /* Fixed walk order through the store — not sorted by recency. Whenever a
    category is completed, the picker's grid keeps this order so the next
    category to work on is simply the next one in the list. */
+/* Der 4. Eintrag war frueher eine Liste englischer it.category-Werte aus der
+   alten Datenpipeline. Die neue Pipeline (tools/build_store_page.py) liefert
+   in it.category nur noch rohen Marketing-/Regaltext (z.B. "Der Kühlung Bei
+   Den Beeren!!"), der zu nichts mehr passt -- ohne Gegenmassnahme landet dann
+   jeder Artikel in Sonstiges. Deshalb matcht tileOf() jetzt stattdessen gegen
+   deutsche Stichwoerter im Artikelnamen (it.name), klein geschrieben. */
 const TILES = [
-  ['salate','Salate','Gemüse',['iceberg lettuce','other lettuce','romaine lettuce']],
-  ['paprika','Paprika & Chili','Gemüse',['bell pepper','pointed pepper','chili pepper']],
-  ['wurzel','Wurzelgemüse','Gemüse',['carrot','beet','celeriac','radish','ginger','kohlrabi','parsnip','parsley root']],
-  ['pilze','Pilze','Gemüse',['mushroom']],
-  ['blattgemuese','Blattgemüse','Gemüse',['spinach','chicory','fennel','celery']],
-  ['kohl','Kohlgemüse','Gemüse',['broccoli','cauliflower','white cabbage','savoy cabbage','pointed cabbage','chinese cabbage','pak choi']],
-  ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['cucumber','mini cucumber','eggplant','zucchini','corn']],
-  ['tomaten','Tomaten','Gemüse',['tomato','mini tomato']],
-  ['beeren','Beeren & Gekühlte Früchte','Obst',['blackberry','blueberry','currant','raspberry','strawberry','fig']],
-  ['huelsen','Bohnen & Erbsen','Gemüse',['bean','snow pea']],
-  ['kartoffeln','Kartoffeln','Gemüse',['all-purpose potato','waxy potato','starchy potato','sweet potato']],
-  ['zwiebel','Zwiebelgemüse','Gemüse',['onion','garlic','shallot','green onion','leek']],
-  ['bananen','Bananen','Obst',['banana']],
-  ['kernobst','Kernobst','Obst',['apple','pear']],
-  ['steinobst','Steinobst','Obst',['peach','nectarine','plum','cherry']],
-  ['zitrus','Zitrusfrüchte','Obst',['grapefruit','lemon','lime','mandarin','orange']],
-  ['trauben','Trauben','Obst',['grapes']],
-  ['exotisch','Exotisch','Obst',['avocado','dates','kiwi','mango','melon','pineapple','pomegranate','watermelon','physalis','passionfruit']],
-  ['nuesse','Nüsse','Obst',['peanut','walnut']],
-  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salad mix','arugula','lambs lettuce']],
-  ['kraeuter','Kräuter','Gemüse',['basil','parsley','rosemary','chives','dill','mint','cress','mirepoix','coriander','sage','thyme','lemongrass']]
+  ['salate','Salate','Gemüse',['salatherzen','eisbergsalat','kopfsalat','romana','trio-salat','mix salat','rucola salat','chicoree']],
+  ['paprika','Paprika & Chili','Gemüse',['paprika','peperoni','pfeffer chili','pfeffer jalapeno','pimiento','pap.']],
+  ['wurzel','Wurzelgemüse','Gemüse',['karotte','möhren','rote bete','rote beet','sellerie','ingwer','kohlrabi','pastinake','petersilienw','radieschen']],
+  ['pilze','Pilze','Gemüse',['pfifferlinge','champignon','buchenpilze','steinpilze']],
+  ['blattgemuese','Blattgemüse','Gemüse',['spinat','fenchel','staudensellerie','sellerie lose']],
+  ['kohl','Kohlgemüse','Gemüse',['weißkohl','spitzkohl','blumenkohl','bluccoli','broccoli','rotkohl','chinakohl','wirsing']],
+  ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['gurke','aubergine','zucchini','zuckermais','suppeng']],
+  ['tomaten','Tomaten','Gemüse',['tomate','tom -','tom ','cherrystr','strauchto']],
+  ['beeren','Beeren & Gekühlte Früchte','Obst',['himbeere','heidelbeere','brombeere','granatapfelkerne','granatäpfel','v-quark']],
+  ['huelsen','Bohnen & Erbsen','Gemüse',['böhnchen','zuckerschoten']],
+  ['kartoffeln','Kartoffeln','Gemüse',['kartoffel','kart ls','kartof mini','reibekuchen','gemüsetaler','gemüsegrillis','süßkartoffel röstis']],
+  ['zwiebel','Zwiebelgemüse','Gemüse',['zwiebel','knoblauch','knobl','schalotten','porree']],
+  ['bananen','Bananen','Obst',['banane']],
+  ['kernobst','Kernobst','Obst',['äpfel','apfel','birnen']],
+  ['steinobst','Steinobst','Obst',['pfirsich','nektarine','pflaume','plattpfir']],
+  ['zitrus','Zitrusfrüchte','Obst',['zitrone','limette','orange','grapefruit','mandarin']],
+  ['trauben','Trauben','Obst',['trauben']],
+  ['exotisch','Exotisch','Obst',['avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi']],
+  ['nuesse','Nüsse','Obst',['erdnuss','walnuss']],
+  ['salatbeutel','Salate im Beutel & Salat-Bowls','Gemüse',['salatmix','salat-mix','salatbowl','baby-spinat','baby salatmix','rucola salatmix','feldsal','wildkräutersalat','fein&pikant','sweet&crispy','knackige salat','knusprige','sommer genuss','mungobohnenkeime']],
+  ['kraeuter','Kräuter','Gemüse',['basilikum','petersilie','rosmarin','schnittlauch','dill','minze','kresse','koriander','salbei','thymian','zitronengras']],
+  ['eier','Eier','Sonstiges',['eier ']]
 ];
-const CAT_TO_TILE = {};
-TILES.forEach(t=>t[3].forEach(c=>{CAT_TO_TILE[c]=t[0]}));
-function tileOf(it){ return CAT_TO_TILE[it.category] || 'sonstiges'; }
+function tileOf(it){
+  const n=it.name.toLowerCase();
+  const hit=TILES.find(t=>t[3].some(kw=>n.includes(kw)));
+  return hit ? hit[0] : 'sonstiges';
+}
 function tileLabel(id){ const t=TILES.find(x=>x[0]===id); return t? t[1] : (id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id)); }
 
 /* Store-walk order is user-adjustable (see Kategorien overlay "Reihenfolge"
@@ -919,7 +928,7 @@ function renderCatOverlay(){
     body = `<div class="catsec"><div class="lb">${results.length} Treffer für „${CATQUERY.trim()}"</div></div>
       <div class="catres">${results.map(i=>{
         const tid=tileOf(i);
-        const tdef=TILES.find(x=>x[3].includes(i.category));
+        const tdef=TILES.find(x=>x[0]===tid);
         const accent = i.promo ? '#FC9511' : (tdef && tdef[2]==='Obst' ? '#C1CE5D' : '#429359');
         const done=ST[i.id].answered;
         return `<div class="row" data-a="catpick-item" data-id="${i.id}">
@@ -932,7 +941,7 @@ function renderCatOverlay(){
       }).join('')}</div>`;
   } else {
     const favChips = RECENTLY_ANSWERED.map(ix=>ITEMS[ix]).filter(Boolean).map(i=>{
-      const tdef=TILES.find(x=>x[3].includes(i.category));
+      const tdef=TILES.find(x=>x[0]===tileOf(i));
       const accent = tdef && tdef[2]==='Obst' ? '#C1CE5D' : '#429359';
       const shortName = i.name.length>26 ? i.name.slice(0,24)+'…' : i.name;
       return `<button class="catfavchip" type="button" data-a="catpick-item" data-id="${i.id}">
