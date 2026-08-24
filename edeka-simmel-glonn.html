@@ -228,6 +228,8 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .catrow .nm{font-weight:800;font-size:14px;letter-spacing:-.01em}
 .catrow .cnt{font-size:11.5px;color:#8a8a8a;margin-top:2px}
 .catrow .rebtns{display:flex;gap:6px;flex:0 0 auto}
+.catrow .renameInput{flex:1;min-width:0;font-weight:800;font-size:14px;letter-spacing:-.01em;
+  font-family:inherit;color:var(--ink);border:1.5px solid var(--green);border-radius:8px;padding:6px 9px;outline:0}
 .reordBtn{width:32px;height:32px;border-radius:8px;border:1px solid #dde3e0;background:#f1f3f2;font-size:13px;
   cursor:pointer;color:var(--ink)}
 .reordBtn:hover:not(:disabled){background:#e3e8e5}
@@ -559,7 +561,18 @@ function tileOf(it){
   const hit=TILES.find(t=>t[3].some(kw=>n.includes(kw)));
   return hit ? hit[0] : 'sonstiges';
 }
-function tileLabel(id){ const t=TILES.find(x=>x[0]===id); return t? t[1] : (id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id)); }
+/* Kategorie-Namen sind im Bearbeiten-Screen umbenennbar (siehe .catrow), persistiert
+   pro Geraet wie TILE_ORDER/CAT_OVERRIDE. Nur der ANGEZEIGTE Name aendert sich --
+   die Stichwoerter, nach denen tileOf() Artikel zuordnet, bleiben unberuehrt. */
+function loadTileLabels(){
+  try{ const v=JSON.parse(localStorage.getItem('catTileLabels')||'{}'); return (v&&typeof v==='object')?v:{}; }catch(e){ return {}; }
+}
+function saveTileLabels(){ try{ localStorage.setItem('catTileLabels', JSON.stringify(TILE_LABELS)); }catch(e){} }
+let TILE_LABELS = loadTileLabels();
+function tileLabel(id){
+  if(TILE_LABELS[id]) return TILE_LABELS[id];
+  const t=TILES.find(x=>x[0]===id); return t? t[1] : (id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id));
+}
 
 /* Store-walk order is user-adjustable (see Kategorien overlay "Reihenfolge"
    edit mode) and persisted per device; falls back to TILES' own order and
@@ -698,6 +711,7 @@ let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
 let CATOPEN=true;          // overlay visible; starts open like the design
 let CATQUERY='';           // the overlay's own search field, not #q
 let CAT_EDIT=false;        // Kategorien overlay is in "adjust order" mode
+let RENAME_TILE_ID=null;   // tile id currently shown with a rename input, or null
 let CATFILTER=null;        // {kind:'tile'|'promo'|'item', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
@@ -931,7 +945,7 @@ function renderCatOverlay(){
   const topPx = hdr ? hdr.offsetHeight : 0;
   const q=CATQUERY.trim().toLowerCase();
 
-  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:t[1], type:t[2]}; });
+  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:tileLabel(t[0]), type:t[2]}; });
   tileDefs.push({id:'promo', label:'Aktionsartikel', type:'Aktion'});
   tileDefs.push({id:'sonstiges', label:'Sonstiges', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
@@ -943,16 +957,28 @@ function renderCatOverlay(){
   let body;
   if(CAT_EDIT){
     const orderTiles = tiles.filter(t=>t.id!=='promo' && t.id!=='sonstiges');
-    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen · gilt für alle Filialen auf diesem Gerät</div></div>
-      <div class="catedit">${orderTiles.map((tl,i)=>`
-        <div class="catrow">
+    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen und Namen bearbeiten · gilt für alle Filialen auf diesem Gerät</div></div>
+      <div class="catedit">${orderTiles.map((tl,i)=>{
+        if(RENAME_TILE_ID===tl.id){
+          return `<div class="catrow">
+            <span class="dot" style="background:${tl.accent}"></span>
+            <input class="renameInput" id="renameInput" type="text" maxlength="40" value="${tl.label.replace(/"/g,'&quot;')}">
+            <div class="rebtns">
+              <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="Speichern">✓</button>
+              <button class="reordBtn" data-a="cat-rename-cancel" type="button" title="Abbrechen">✕</button>
+            </div>
+          </div>`;
+        }
+        return `<div class="catrow">
           <span class="dot" style="background:${tl.accent}"></span>
           <div class="tx"><div class="nm">${tl.label}</div><div class="cnt">${tl.count} Artikel</div></div>
           <div class="rebtns">
+            <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="Umbenennen">✎</button>
             <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="nach oben"${i===0?' disabled':''}>▲</button>
             <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="nach unten"${i===orderTiles.length-1?' disabled':''}>▼</button>
           </div>
-        </div>`).join('')}</div>`;
+        </div>`;
+      }).join('')}</div>`;
   } else if(q){
     const digitsQ=q.replace(/\D/g,'');
     const results = ITEMS.filter(i=>i.name.toLowerCase().includes(q) || pluApproxMatch(i.plu, digitsQ)).slice(0,40);
@@ -998,7 +1024,7 @@ function renderCatOverlay(){
           <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : 'Wo bist du gerade?'}</h2>
           <div class="sub">${CAT_EDIT ? 'Mit ▲ ▼ die Kategorie an die richtige Stelle im Rundgang schieben.' : 'Kategorie antippen → nur diese Artikel im Ordersatz. Jeder Artikel in maximal 3 Taps.'}</div>
         </div>
-        <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? '✓ Fertig' : '✎ Reihenfolge'}</button>
+        <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? '✓ Fertig' : '✎ Bearbeiten'}</button>
         <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
       </div>
       ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
@@ -1031,6 +1057,38 @@ function renderCatOverlay(){
   root.querySelectorAll('[data-a="cat-down"]').forEach(el=>{
     el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,1));
   });
+  root.querySelectorAll('[data-a="cat-rename"]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      RENAME_TILE_ID=el.dataset.id; renderCatOverlay();
+      const inp=document.getElementById('renameInput');
+      if(inp){ inp.focus(); inp.select(); }
+    });
+  });
+  root.querySelectorAll('[data-a="cat-rename-save"]').forEach(el=>{
+    el.addEventListener('click', ()=>saveTileRename(el.dataset.id));
+  });
+  root.querySelectorAll('[data-a="cat-rename-cancel"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ RENAME_TILE_ID=null; renderCatOverlay(); });
+  });
+  const renameInput=document.getElementById('renameInput');
+  if(renameInput){
+    renameInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter') saveTileRename(RENAME_TILE_ID);
+      else if(e.key==='Escape'){ RENAME_TILE_ID=null; renderCatOverlay(); }
+    });
+  }
+}
+/* Leerer/auf den Vorgabewert zurueckgesetzter Name loescht die Uebersteuerung
+   wieder, statt eine sinnlose "gleich wie Standard"-Eintragung zu behalten. */
+function saveTileRename(tileId){
+  const inp=document.getElementById('renameInput');
+  const val = inp ? inp.value.trim() : '';
+  const def = TILES.find(x=>x[0]===tileId);
+  if(val && def && val!==def[1]) TILE_LABELS[tileId]=val;
+  else delete TILE_LABELS[tileId];
+  saveTileLabels();
+  RENAME_TILE_ID=null;
+  renderCatOverlay();
 }
 
 /* ---------- Kategorie eines einzelnen Artikels uebersteuern ----------
@@ -1048,7 +1106,7 @@ function renderCatItemPicker(){
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
   const current=tileOf(it);
-  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:t[1], type:t[2]}; });
+  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:tileLabel(t[0]), type:t[2]}; });
   tileDefs.push({id:'sonstiges', label:'Sonstiges', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
     const accent = t.id==='sonstiges' ? '#8a8a8a' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
