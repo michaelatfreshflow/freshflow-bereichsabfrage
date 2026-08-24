@@ -224,6 +224,10 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
   cursor:pointer;color:var(--ink)}
 .reordBtn:hover:not(:disabled){background:#e3e8e5}
 .reordBtn:disabled{opacity:.3;cursor:default}
+.catrow.addrow{cursor:pointer;border-style:dashed;background:#f7f9f8}
+.catrow.addrow .nm{color:var(--green)}
+.catrow .owntag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a8a8a;
+  background:#eef1ef;border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:middle}
 .catres{display:flex;flex-direction:column;gap:7px}
 .catres .row{display:flex;align-items:center;gap:14px;background:#fff;border-radius:10px;padding:12px 16px;
   cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05)}
@@ -549,16 +553,64 @@ function loadTileLabels(){
 }
 function saveTileLabels(){ try{ localStorage.setItem('catTileLabels', JSON.stringify(TILE_LABELS)); }catch(e){} }
 let TILE_LABELS = loadTileLabels();
+/* Eigene Kategorien: zusaetzlich zu den fest verdrahteten TILES kann der
+   Kaufmann eigene Kacheln anlegen (z.B. "Deko" oder "Feiertagsartikel").
+   Persistiert pro Geraet wie TILE_LABELS/CAT_OVERRIDE. Eine eigene Kategorie
+   hat keine Namens-Stichwoerter -- Artikel landen nur per CAT_OVERRIDE darin. */
+function loadCustomTiles(){
+  try{ const v=JSON.parse(localStorage.getItem('catCustomTiles')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; }
+}
+function saveCustomTiles(){ try{ localStorage.setItem('catCustomTiles', JSON.stringify(CUSTOM_TILES)); }catch(e){} }
+let CUSTOM_TILES = loadCustomTiles();
+function isCustomTile(id){ return CUSTOM_TILES.some(c=>c.id===id); }
+function slugifyTileName(s){
+  return s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'kategorie';
+}
+function addCustomTile(name){
+  const label=name.trim();
+  if(!label) return null;
+  const base='custom-'+slugifyTileName(label);
+  const used=new Set(TILES.map(t=>t[0]).concat(CUSTOM_TILES.map(c=>c.id)));
+  let id=base, n=2;
+  while(used.has(id)){ id=base+'-'+n; n++; }
+  CUSTOM_TILES.push({id, label});
+  saveCustomTiles();
+  TILE_ORDER.push(id);
+  saveTileOrder();
+  return id;
+}
+/* Loeschen entfernt die Kachel aus Reihenfolge/Namen und faellt fuer Artikel,
+   die per CAT_OVERRIDE darin lagen, zurueck auf die Stichwort-Zuordnung --
+   das kann eine echte Kategorie treffen (z.B. "Banane" im Namen) oder,
+   ohne Treffer, Sonstiges. */
+function deleteCustomTile(id){
+  CUSTOM_TILES=CUSTOM_TILES.filter(c=>c.id!==id);
+  saveCustomTiles();
+  TILE_ORDER=TILE_ORDER.filter(x=>x!==id);
+  saveTileOrder();
+  delete TILE_LABELS[id];
+  saveTileLabels();
+  Object.keys(CAT_OVERRIDE).forEach(k=>{ if(CAT_OVERRIDE[k]===id) delete CAT_OVERRIDE[k]; });
+  saveCatOverride();
+  if(CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===id) CATFILTER=null;
+}
+function tileType(id){
+  const t=TILES.find(x=>x[0]===id);
+  return t ? t[2] : 'Sonstiges';
+}
 function tileLabel(id){
   if(TILE_LABELS[id]) return TILE_LABELS[id];
-  const t=TILES.find(x=>x[0]===id); return t? t[1] : (id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id));
+  const t=TILES.find(x=>x[0]===id); if(t) return t[1];
+  const c=CUSTOM_TILES.find(x=>x.id===id); if(c) return c.label;
+  return id==='promo'?'Aktionsartikel':(id==='sonstiges'?'Sonstiges':id);
 }
 
 /* Store-walk order is user-adjustable (see Kategorien overlay "Reihenfolge"
-   edit mode) and persisted per device; falls back to TILES' own order and
-   heals itself if TILES gains/loses an id since the order was saved. */
+   edit mode) and persisted per device; falls back to TILES' own order (plus
+   any eigene Kategorien) and heals itself if that set changes since the
+   order was saved. */
 function loadTileOrder(){
-  const ids = TILES.map(t=>t[0]);
+  const ids = TILES.map(t=>t[0]).concat(CUSTOM_TILES.map(c=>c.id));
   let saved=null;
   try{ saved = JSON.parse(localStorage.getItem('catTileOrder')||'null'); }catch(e){}
   if(!Array.isArray(saved)) return ids.slice();
@@ -689,6 +741,8 @@ let CATOPEN=true;          // overlay visible; starts open like the design
 let CATQUERY='';           // the overlay's own search field, not #q
 let CAT_EDIT=false;        // Kategorien overlay is in "adjust order" mode
 let RENAME_TILE_ID=null;   // tile id currently shown with a rename input, or null
+let ADDING_TILE=false;     // "+ Neue Kategorie" input is open in the Bearbeiten screen
+let DELETE_TILE_ID=null;   // eigene Kategorie currently showing its "wirklich löschen?" confirm row
 let CATFILTER=null;        // {kind:'tile'|'promo'|'item', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
@@ -749,7 +803,7 @@ function stepHTML(it,s,ix){
   const cls='stp'+(showUnsure?' unsure':'')+(s.step==='ko'?' ko':'');
   let minusOff,plusOff,big,small;
   if(s.step==='need'){
-    minusOff=false; plusOff=false; big='–'; small='noch nicht gezählt';
+    minusOff=false; plusOff=false; big='–'; small='';
   } else if(s.step==='range'){
     const r=it.rungs[s.plan];
     minusOff=r.lo==null; plusOff=r.hi==null;
@@ -921,7 +975,7 @@ function renderCatOverlay(){
   const topPx = hdr ? hdr.offsetHeight : 0;
   const q=CATQUERY.trim().toLowerCase();
 
-  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:tileLabel(t[0]), type:t[2]}; });
+  const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   tileDefs.push({id:'promo', label:'Aktionsartikel', type:'Aktion'});
   tileDefs.push({id:'sonstiges', label:'Sonstiges', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
@@ -933,8 +987,32 @@ function renderCatOverlay(){
   let body;
   if(CAT_EDIT){
     const orderTiles = tiles.filter(t=>t.id!=='promo' && t.id!=='sonstiges');
-    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen und Namen bearbeiten · gilt für alle Filialen auf diesem Gerät</div></div>
-      <div class="catedit">${orderTiles.map((tl,i)=>{
+    const addRow = ADDING_TILE
+      ? `<div class="catrow">
+          <span class="dot" style="background:#429359"></span>
+          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="Name der neuen Kategorie">
+          <div class="rebtns">
+            <button class="reordBtn" data-a="cat-add-save" type="button" title="Anlegen">✓</button>
+            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="Abbrechen">✕</button>
+          </div>
+        </div>`
+      : `<div class="catrow addrow" data-a="cat-add-open">
+          <span class="dot" style="background:transparent"></span>
+          <div class="tx"><div class="nm">+ Neue Kategorie</div></div>
+        </div>`;
+    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen, Namen bearbeiten und eigene Kategorien anlegen · gilt für alle Filialen auf diesem Gerät</div></div>
+      <div class="catedit">${addRow}${orderTiles.map((tl,i)=>{
+        if(DELETE_TILE_ID===tl.id){
+          const n=tileStats(tl.id).list.length;
+          return `<div class="catrow">
+            <span class="dot" style="background:${tl.accent}"></span>
+            <div class="tx"><div class="nm">„${tl.label}" wirklich löschen?</div><div class="cnt">${n} Artikel fallen zurück auf ihre automatische Kategorie</div></div>
+            <div class="rebtns">
+              <button class="reordBtn" data-a="cat-delete-confirm" data-id="${tl.id}" type="button" title="Löschen bestätigen">✓</button>
+              <button class="reordBtn" data-a="cat-delete-cancel" type="button" title="Abbrechen">✕</button>
+            </div>
+          </div>`;
+        }
         if(RENAME_TILE_ID===tl.id){
           return `<div class="catrow">
             <span class="dot" style="background:${tl.accent}"></span>
@@ -947,8 +1025,9 @@ function renderCatOverlay(){
         }
         return `<div class="catrow">
           <span class="dot" style="background:${tl.accent}"></span>
-          <div class="tx"><div class="nm">${tl.label}</div><div class="cnt">${tl.count} Artikel</div></div>
+          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel</div></div>
           <div class="rebtns">
+            ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="Löschen">🗑</button>`:''}
             <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="Umbenennen">✎</button>
             <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="nach oben"${i===0?' disabled':''}>▲</button>
             <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="nach unten"${i===orderTiles.length-1?' disabled':''}>▼</button>
@@ -1045,6 +1124,43 @@ function renderCatOverlay(){
       else if(e.key==='Escape'){ RENAME_TILE_ID=null; renderCatOverlay(); }
     });
   }
+  const addOpenEl=root.querySelector('[data-a="cat-add-open"]');
+  if(addOpenEl) addOpenEl.addEventListener('click', ()=>{ ADDING_TILE=true; renderCatOverlay(); });
+  const addSaveEl=root.querySelector('[data-a="cat-add-save"]');
+  if(addSaveEl) addSaveEl.addEventListener('click', saveNewTile);
+  const addCancelEl=root.querySelector('[data-a="cat-add-cancel"]');
+  if(addCancelEl) addCancelEl.addEventListener('click', ()=>{ ADDING_TILE=false; renderCatOverlay(); });
+  const addTileInput=document.getElementById('addTileInput');
+  if(addTileInput){
+    addTileInput.focus();
+    addTileInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter') saveNewTile();
+      else if(e.key==='Escape'){ ADDING_TILE=false; renderCatOverlay(); }
+    });
+  }
+  root.querySelectorAll('[data-a="cat-delete"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ DELETE_TILE_ID=el.dataset.id; renderCatOverlay(); });
+  });
+  root.querySelectorAll('[data-a="cat-delete-cancel"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ DELETE_TILE_ID=null; renderCatOverlay(); });
+  });
+  root.querySelectorAll('[data-a="cat-delete-confirm"]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      deleteCustomTile(el.dataset.id);
+      DELETE_TILE_ID=null;
+      renderCatOverlay();
+    });
+  });
+}
+/* Enter/✓ im "+ Neue Kategorie"-Feld: leerer Name tut nichts, sonst wird die
+   Kachel angelegt, ans Ende der Reihenfolge gehaengt und der Editor bleibt
+   offen, damit direkt die naechste Kategorie angelegt werden kann. */
+function saveNewTile(){
+  const inp=document.getElementById('addTileInput');
+  const val=inp ? inp.value : '';
+  ADDING_TILE=false;
+  if(val && val.trim()) addCustomTile(val);
+  renderCatOverlay();
 }
 /* Leerer/auf den Vorgabewert zurueckgesetzter Name loescht die Uebersteuerung
    wieder, statt eine sinnlose "gleich wie Standard"-Eintragung zu behalten. */
@@ -1074,7 +1190,7 @@ function renderCatItemPicker(){
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
   const current=tileOf(it);
-  const tileDefs = TILE_ORDER.map(id=>{ const t=TILES.find(x=>x[0]===id); return {id:t[0], label:tileLabel(t[0]), type:t[2]}; });
+  const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   tileDefs.push({id:'sonstiges', label:'Sonstiges', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
     const accent = t.id==='sonstiges' ? '#8a8a8a' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
