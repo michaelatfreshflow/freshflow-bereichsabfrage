@@ -1088,7 +1088,7 @@ function renderCatOverlay(){
         <div style="flex:1">
           <div class="eyebrow">KATEGORIEN</div>
           <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : 'Wo bist du gerade?'}</h2>
-          <div class="sub">${CAT_EDIT ? 'Mit ▲ ▼ die Kategorie an die richtige Stelle im Rundgang schieben.' : 'Kategorie antippen → nur diese Artikel im Ordersatz. Jeder Artikel in maximal 3 Taps.'}</div>
+          ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ die Kategorie an die richtige Stelle im Rundgang schieben.</div>' : ''}
         </div>
         <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? '✓ Fertig' : '✎ Bearbeiten'}</button>
         <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
