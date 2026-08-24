@@ -397,7 +397,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       </div>
       <div>
         <div class="seg" id="invUnitSeg" style="margin-bottom:14px">
-          <button data-u="pcs" class="on">Stück</button><button data-u="cs">Kisten</button></div>
+          <button data-u="pcs">Stück</button><button data-u="cs" class="on">Kisten</button></div>
         <div class="kfield"><label>Lager</label><div class="box" id="invBack">0</div></div>
         <div class="kfield"><label>Fläche</label><div class="box act" id="invFloor">0</div></div>
         <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
@@ -694,7 +694,7 @@ let TAPS=0;
 let MANAGE_MODE=false;
 let SORT={col:null, dir:1};   // col: null | 'inv' | 'ord'; dir: 1=auf, -1=ab
 
-/* ---------- Kategorien overlay state (separate from FILT/CATFILT/SORT above,
+/* ---------- Kategorien overlay state (separate from CATFILT/SORT above,
    which stay exactly as they were) ---------- */
 let CATOPEN=true;          // overlay visible; starts open like the design
 let CATQUERY='';           // the overlay's own search field, not #q
@@ -892,7 +892,7 @@ function stats(){
 
 /* ---------- Kategorien overlay: state helpers, rendering, interactions.
    Kept in its own section so it composes with (never replaces) the existing
-   search/FILT/CATFILT filtering above. */
+   search/CATFILT filtering above. */
 function itemsForFilter(f){
   if(!f) return ITEMS;
   if(f.kind==='promo') return ITEMS.filter(i=>i.promo);
@@ -981,15 +981,7 @@ function renderCatOverlay(){
         </div>`;
       }).join('')}</div>`;
   } else {
-    const favChips = RECENTLY_ANSWERED.map(ix=>ITEMS[ix]).filter(Boolean).map(i=>{
-      const tdef=TILES.find(x=>x[0]===tileOf(i));
-      const accent = tdef && tdef[2]==='Obst' ? '#C1CE5D' : '#429359';
-      const shortName = i.name.length>26 ? i.name.slice(0,24)+'…' : i.name;
-      return `<button class="catfavchip" type="button" data-a="catpick-item" data-id="${i.id}">
-        <span class="dot" style="background:${accent}"></span>${shortName}</button>`;
-    }).join('');
-    body = (favChips ? `<div class="catfav"><div class="lb">Zuletzt erfasst</div><div class="chips">${favChips}</div></div>` : '')
-      + `<div class="catsec"><div class="lb">${tiles.length} Kategorien</div>
+    body = `<div class="catsec"><div class="lb">${tiles.length} Kategorien</div>
           <div class="all" data-a="catpick-all">Alle ${ITEMS.length} Artikel zeigen</div></div>
         <div class="catgrid">${tiles.map(tl=>`
           <div class="cattile${tl.fin?' fin':''}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
@@ -1404,7 +1396,7 @@ document.getElementById('resetX').addEventListener('click', closeResetDlg);
 document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
-  CATFINISHED={}; RECENTLY_ANSWERED=[]; CATFILTER=null; CATCONFIRM=null; CATCELEBRATE=null;
+  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATCELEBRATE=null;
   render();
   closeResetDlg();
 });
@@ -1456,7 +1448,6 @@ document.getElementById('colh').addEventListener('click', e=>{
    Wert in der Plan-Sprosse, zeigt applyKo() wieder die Spanne, sonst die Zahl
    in KO. */
 let INV={ix:null,back:'0',floor:'0',act:'floor',unit:'pcs',backTouched:true,rLoKO:null,rHiKO:null};
-let LAST_INV_UNIT='pcs';
 function invPadVals(){
   const b=parseFloat(INV.back||'0')||0, f=parseFloat(INV.floor||'0')||0;
   const it=ITEMS[INV.ix], cs=it&&it.case?it.case:1;
@@ -1480,7 +1471,7 @@ function openInvPad(ix){
   const it=ITEMS[ix], s=ST[ix];
   const canPcs = it.case!=null;
   const cs = it.case||1;
-  const unit = canPcs ? LAST_INV_UNIT : 'cs';
+  const unit = 'cs';
   const r = (s.step==='range' && it.rungs[s.plan] && it.rungs[s.plan].kind!=='any') ? it.rungs[s.plan] : null;
   if(r){
     const loKO = r.lo==null?0:r.lo;
@@ -1556,7 +1547,7 @@ document.getElementById('invUnitSeg').addEventListener('click',e=>{
     const nv = newUnit==='pcs' ? String(v.pcs) : String(Math.round(v.cases*100)/100);
     INV.back='0'; INV.floor=nv; INV.backTouched=true;
   }
-  INV.unit=newUnit; LAST_INV_UNIT=newUnit; INV.act='floor';
+  INV.unit=newUnit; INV.act='floor';
   [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
   drawInvPad();
 });
@@ -1584,7 +1575,6 @@ document.getElementById('invSpeichern').onclick=()=>{
   const next=Math.max(0,Math.min(99,invPadVals().cases));
   applyKo(it, s, next);
   pushChange(it, s.step==='ko' ? `Bestand → ${csNum(next)} KO · Bestellung ${s.order} KO` : `Bestand → ${csNum(next)} KO (Spanne bestätigt)`);
-  touchRecent(ix);
   closeInvPad(); render();
 };
 
@@ -1623,7 +1613,6 @@ document.getElementById('ordSpeichern').onclick=()=>{
   s.order=next; s.answered=true;
   if(next!==ORD.orig) s.manual=true;
   if(next!==ORD.orig) pushChange(ITEMS[ix], `Bestellung ${ORD.orig} → ${next} CS`);
-  touchRecent(ix);
   closeOrdPad(); render();
 };
 
