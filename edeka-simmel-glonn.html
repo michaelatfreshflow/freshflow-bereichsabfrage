@@ -823,6 +823,7 @@ function render(){
     let pills=`<span class="pill">Best. ${it.prevOrder!=null?it.prevOrder:0} KO</span>`;
     const pl = promoLabel(it.promo);
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
+    else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">Aktion</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
     if(s.hidden) pills+=`<span class="pill hid">Ausgeblendet</span>`;
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="Kategorie ändern">${tileLabel(tileOf(it))} ✎</button>`;
