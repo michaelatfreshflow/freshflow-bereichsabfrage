@@ -1306,10 +1306,11 @@ list.addEventListener('click',e=>{
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
+    const wholeOnly = it.case===1;
     let newKo;
-    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? gridStep(r.lo,-1,r.lo<=1?0.25:0.5) : Math.ceil(r.hi); }
+    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? gridStep(r.lo,-1,wholeOnly?1:(r.lo<=1?0.25:0.5)) : Math.ceil(r.hi); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
-    else { const inQuarterZone = d<0 ? s.ko<=1 : s.ko<1; newKo = gridStep(s.ko,d,inQuarterZone?0.25:0.5); }
+    else { const inQuarterZone = d<0 ? s.ko<=1 : s.ko<1; newKo = gridStep(s.ko,d,wholeOnly?1:(inQuarterZone?0.25:0.5)); }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
     pushChange(it, s.step==='ko' ? `Bestand → ${csNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
@@ -1498,10 +1499,13 @@ function drawInvPad(){
       (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
                        : '= '+v.pcs+' '+uw(it));
   }
+  const wholeOnly = INV.unit!=='pcs' && cs===1;
   ['0.25','0.5','0.75'].forEach(k=>{
     const el=document.querySelector(`#invPad button[data-k="${k}"]`);
-    if(el) el.style.display = INV.unit==='pcs' ? 'none' : '';
+    if(el) el.style.display = (INV.unit==='pcs'||wholeOnly) ? 'none' : '';
   });
+  const dotBtn=document.querySelector('#invPad button[data-k="."]');
+  if(dotBtn) dotBtn.disabled = wholeOnly;
 }
 document.getElementById('invBack').addEventListener('click',()=>{INV.act='back'; drawInvPad();});
 document.getElementById('invFloor').addEventListener('click',()=>{INV.act='floor'; drawInvPad();});
@@ -1517,6 +1521,9 @@ document.getElementById('invUnitSeg').addEventListener('click',e=>{
 document.getElementById('invPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
   if(k==='swap'){ INV.act=INV.act==='floor'?'back':'floor'; drawInvPad(); return; }
+  const it=ITEMS[INV.ix];
+  const wholeOnly = INV.unit!=='pcs' && it.case===1;
+  if(wholeOnly && (k==='.' || ['0.25','0.5','0.75'].includes(k))) return;
   let v=INV[INV.act];
   if(k==='del'){ v=v.slice(0,-1); if(v===''||v==='.') v='0'; INV[INV.act]=v; }
   else if(['0.25','0.5','0.75'].includes(k)){
