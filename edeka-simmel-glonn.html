@@ -23,7 +23,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 
 /* ---------- green header ---------- */
 .hdr{background:var(--green);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px}
-.hdr .back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;opacity:.95;cursor:default}
+.hdr .back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;opacity:.95;cursor:pointer}
 .hdr .mid{flex:1}
 .hdr .t1{font-weight:700;font-size:15.5px;letter-spacing:.1px}
 .hdr .t1 .dim{opacity:.75;font-weight:600}
@@ -166,9 +166,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 /* ---------- Kategorien overlay (product-category quick filter; a different
    concept from the numeric "Bereich" range used everywhere else on this page,
    so it is named "Kategorie(n)" throughout, never "Bereich") ---------- */
-.tools .btn.pri .catic{display:inline-grid;grid-template-columns:1fr 1fr;gap:2px;width:12px;margin-right:6px;vertical-align:-1px}
-.tools .btn.pri .catic span{height:5px;border-radius:1px;background:rgba(255,255,255,.55)}
-.tools .btn.pri .catic span:nth-child(1),.tools .btn.pri .catic span:nth-child(4){background:#C1CE5D}
 .catchip{display:inline-flex;align-items:center;gap:8px;background:var(--ok-bg);color:#1f4d39;border-radius:99px;
   padding:6px 6px 6px 12px;font-size:13px;font-weight:700}
 .catchip .n{opacity:.65;font-weight:500}
@@ -311,7 +308,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
 <div class="stage">
 <div class="win">
   <div class="hdr">
-    <div class="back">‹ Zurück</div>
+    <div class="back" id="backLink">‹ Zurück</div>
     <div class="mid">
       <div class="t1">Ordersatz &nbsp;Mon, Aug 24 &nbsp;<span class="dim">| &nbsp;Edeka Simmel, Glonn</span></div>
       <div class="t2">Bestellschluss heute 22:00 Uhr</div>
@@ -330,7 +327,6 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       <svg class="mgic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       <span id="manageBtnLabel">Bestellung verwalten</span>
     </button>
-    <button class="btn pri" id="catBtn" type="button"><span class="catic"><span></span><span></span><span></span><span></span></span>Kategorien</button>
     <span id="catChipWrap"></span>
     <span class="sp"></span>
     <div class="filtwrap" id="filtwrap">
@@ -975,8 +971,11 @@ window.addEventListener('popstate', e=>{
 });
 history.replaceState({page:'cat'}, '', location.href);
 function pickCategory(kind,id,label){ goToList({kind,id,label}); }
-function clearCatFilter(){ CATFILTER=null; render(); }
-function openCat(){ goToCategories(); }
+function clearCatFilter(){
+  CATFILTER=null;
+  history.replaceState({page:'list', filter:null}, '', location.href);
+  render();
+}
 function closeCat(){ CATOPEN=false; render(); }
 
 function renderCatChip(){
@@ -1422,7 +1421,7 @@ function renderCatCelebrate(){
   </div>`;
 }
 
-document.getElementById('catBtn').addEventListener('click', openCat);
+document.getElementById('backLink').addEventListener('click', goToCategories);
 
 const manageBtn = document.getElementById('manageBtn');
 manageBtn.addEventListener('click', ()=>{
