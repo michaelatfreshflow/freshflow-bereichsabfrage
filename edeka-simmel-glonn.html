@@ -1340,7 +1340,7 @@ list.addEventListener('click',e=>{
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
     let newKo;
-    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? Math.floor(r.lo) : Math.ceil(r.hi); }
+    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? gridStep(r.lo,-1,r.lo<=1?0.25:0.5) : Math.ceil(r.hi); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
     else { const inQuarterZone = d<0 ? s.ko<=1 : s.ko<1; newKo = gridStep(s.ko,d,inQuarterZone?0.25:0.5); }
     newKo = Math.max(0, Math.min(99, newKo));
