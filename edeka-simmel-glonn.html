@@ -169,9 +169,6 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .catchip{display:inline-flex;align-items:center;gap:8px;background:var(--ok-bg);color:#1f4d39;border-radius:99px;
   padding:6px 14px;font-size:13px;font-weight:700;border:0;cursor:pointer;font-family:inherit}
 .catchip .n{opacity:.65;font-weight:500}
-.catnav{width:26px;height:26px;border-radius:99px;border:1px solid #cfe0d7;background:#fff;color:var(--green);
-  font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;padding:0}
-.catnav:hover{background:#F1F7F3}
 
 .catov{position:absolute;left:0;right:0;bottom:0;background:#FAFBFA;display:flex;z-index:20}
 .catsheet{flex:1;display:flex;flex-direction:column;background:#FAFBFA;overflow:hidden}
@@ -337,6 +334,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
     <div class="m">Spanne<b id="fmar">0,00 %</b></div>
     <div class="m">Übernahmequote<b id="fans">0 %</b></div>
     <div class="sp"></div>
+    <button class="cta" id="nextRegalBtn" type="button" style="background:#fff;color:var(--green);border:1.5px solid var(--green)">Nächstes Regal ›</button>
     <button class="cta" id="cta">Bestellung abschließen ›</button>
   </div>
   <div id="catOverlayRoot"></div>
@@ -968,7 +966,6 @@ function catWalkIndex(walk, f){
 function catStep(dir){
   const walk=catWalkList();
   let i=catWalkIndex(walk, CATFILTER);
-  if(i<0) return;
   for(let n=0;n<walk.length;n++){
     i=(i+dir+walk.length)%walk.length;
     if(itemsForFilter(walk[i]).length>0) break;
@@ -980,30 +977,16 @@ function catStep(dir){
 
 function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
-  if(!CATFILTER){ wrap.innerHTML=''; return; }
+  if(!CATFILTER){
+    wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="Regal wählen">Alle anzeigen</button>`;
+    document.getElementById('catChipBtn').onclick=goToCategories;
+    return;
+  }
   const n=itemsForFilter(CATFILTER).length;
-  const walkable = catWalkIndex(catWalkList(), CATFILTER)>=0;
   const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
   const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} offen)</span>` : '';
-  wrap.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px">
-    ${walkable?`<button class="catnav" id="catPrevBtn" type="button" title="Voriges Regal">‹</button>`:''}
-    <button class="catchip" id="catChipBtn" type="button" title="Regal wechseln oder Filter aufheben">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>
-    ${walkable?`<button class="catnav" id="catNextBtn" type="button" title="Nächstes Regal">›</button>`:''}</span>`;
+  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="Regal wechseln oder Filter aufheben">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
-  if(walkable){
-    document.getElementById('catPrevBtn').onclick=()=>catStep(-1);
-    document.getElementById('catNextBtn').onclick=()=>{
-      if(CATFILTER.kind==='tile'){
-        const s=tileStats(CATFILTER.id);
-        if(s.open===0 && !s.fin){
-          CATCONFIRM={id:CATFILTER.id, label:CATFILTER.label, after:'next'};
-          render();
-          return;
-        }
-      }
-      catStep(1);
-    };
-  }
 }
 
 function renderCatOverlay(){
@@ -1306,14 +1289,21 @@ function renderCatConfirm(){
         <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:8px">${CATCONFIRM.label} abschließen?</div>
         <div style="font-size:14.5px;color:#3d4a44;line-height:1.55;margin-top:10px">${bodyText}</div>
       </div>
-      <div class="sfoot" style="padding:20px 26px 24px;gap:10px">
-        <button type="button" id="catConfirmNo" style="flex:1;border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer">Noch nicht</button>
-        <button type="button" class="cta" id="catConfirmYes" style="flex:1;border-radius:99px">Ja, abschließen</button>
+      <div class="sfoot" style="padding:20px 26px 24px;gap:10px;flex-direction:column">
+        <button type="button" class="cta" id="catConfirmYes" style="border-radius:99px;width:100%">Ja, abschließen</button>
+        <div style="display:flex;gap:10px;width:100%">
+          <button type="button" id="catConfirmNo" style="flex:1;border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer">Abbrechen</button>
+          <button type="button" id="catConfirmContinue" style="flex:1;border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:12px 18px;font-size:14.5px;font-weight:600;cursor:pointer">Trotzdem weiter</button>
+        </div>
       </div>
     </div>
   </div>`;
   document.getElementById('catConfirmNo').onclick=()=>{ CATCONFIRM=null; render(); };
   document.getElementById('catConfirmYes').onclick=startCatCelebration;
+  document.getElementById('catConfirmContinue').onclick=()=>{
+    const target=CATCONFIRM; CATCONFIRM=null;
+    if(target.after==='next') catStep(1); else goToCategories();
+  };
 }
 
 function startCatCelebration(){
@@ -1808,6 +1798,14 @@ function openSummary(){
   document.getElementById('ov2').classList.add('on');
 }
 document.getElementById('cta').onclick=openSummary;
+document.getElementById('nextRegalBtn').onclick=()=>{
+  if(CATFILTER && (CATFILTER.kind==='tile' || CATFILTER.kind==='promo')){
+    CATCONFIRM={id:CATFILTER.id, label:CATFILTER.label, after:'next'};
+    render();
+  } else {
+    catStep(1);
+  }
+};
 document.getElementById('s2X').onclick=()=>document.getElementById('ov2').classList.remove('on');
 document.getElementById('s2Abbrechen').onclick=()=>document.getElementById('ov2').classList.remove('on');
 document.getElementById('s2Go').onclick=()=>{
