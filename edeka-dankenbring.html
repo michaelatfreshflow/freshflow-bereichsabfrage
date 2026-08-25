@@ -1173,6 +1173,12 @@ function goToCategories(){
   if(history.state && history.state.page==='list') history.back();
   else applyCatPage();
 }
+/* Header-Zurück: anders als goToCategories() (das auf der Regale-Uebersicht
+   bewusst ein No-op ist, z.B. beim Schliessen eines Keypads) soll der
+   "‹ Zurück"-Link im Header von der Regale-Uebersicht aus zum Dashboard
+   zurueckgehen -- ein einfaches history.back() reicht, weil der Dashboard-
+   State immer eine Ebene unter 'cat' liegt (siehe enterApp()). */
+function headerBack(){ history.back(); }
 window.addEventListener('popstate', e=>{
   const st=e.state;
   if(!st || st.page==='dash'){ showDash(); return; }
@@ -1653,7 +1659,7 @@ function renderCatCelebrate(){
   </div>`;
 }
 
-document.getElementById('backLink').addEventListener('click', goToCategories);
+document.getElementById('backLink').addEventListener('click', headerBack);
 
 const manageBtn = document.getElementById('manageBtn');
 manageBtn.addEventListener('click', ()=>{
