@@ -280,9 +280,249 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
 .ov{z-index:9999}
 .sheet{max-height:96vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 @media(max-height:760px){ .sbody{grid-template-columns:1fr 1fr 240px;gap:14px;padding:12px 16px} }
+
+/* ---------- Dashboard (statischer Demo-Landingscreen) ----------
+   Reine Demo-Ansicht mit festen Werten -- nichts hier liest ITEMS/ST oder
+   BigQuery. .stage (die eigentliche Bereichsabfrage-App) bleibt unveraendert
+   und wird erst sichtbar, wenn man ueber den FAB "einsteigt" (siehe JS). */
+.dashstage{display:none;width:100%;height:100%;background:#F4F5F4;flex-direction:column;overflow-y:auto}
+body.dash-active .dashstage{display:flex}
+body.dash-active .stage{display:none}
+.dash-hdr{background:var(--green);color:#fff;padding:16px 28px;display:flex;align-items:center;gap:16px;flex:0 0 auto}
+.dash-hdr .sp{flex:1}
+.dash-store{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:99px;padding:9px 16px;font-weight:700;font-size:14px}
+.dash-divider{width:1px;align-self:stretch;background:rgba(255,255,255,.25)}
+.dash-lang{display:flex;align-items:center;gap:5px;font-weight:700;font-size:13px}
+.dash-profile{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:0 0 auto}
+
+.dash-body{flex:1;padding:26px 28px 34px;max-width:1180px;margin:0 auto;width:100%;box-sizing:border-box}
+.dash-sec-lb{font-size:13.5px;color:var(--ink);font-weight:600;margin:0 0 10px}
+.dash-sec-lb .dt{color:var(--mute);font-weight:500}
+.dash-row1{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;margin-bottom:26px}
+.dash-row1-right{display:flex;flex-direction:column}
+.dash-kpis{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1}
+
+.dash-card{background:#fff;border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.08);padding:18px 20px}
+.dash-ordercard{background:var(--amber-bg);border:1px solid #F5DFB3;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;min-height:150px;box-sizing:border-box}
+.dash-ordercard .top{display:flex;align-items:center;justify-content:space-between}
+.dash-ordercard .nm{font-weight:800;font-size:17px}
+.dash-pill-open{background:var(--amber);color:#fff;font-weight:700;font-size:11.5px;border-radius:99px;padding:4px 12px}
+.dash-ordercard .cnt{font-size:15px;color:#4a4a4a;margin-top:10px}
+.dash-ordercard .bottom{margin-top:auto;display:flex;justify-content:flex-end}
+.dash-more{text-align:right;margin-top:10px;font-weight:600;font-size:13.5px;color:var(--ink)}
+
+.dash-kpi{background:#fff;border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.08);padding:16px 18px;box-sizing:border-box}
+.dash-kpi .lb{font-size:13px;color:var(--ink);font-weight:600}
+.dash-kpi .val{font-size:24px;font-weight:800;margin-top:8px;letter-spacing:-.01em}
+.dash-kpi .chg{display:block;font-weight:700;font-size:14px;color:var(--green);margin-top:6px}
+.dash-kpi .rng{font-size:11.5px;color:var(--mute);margin-top:8px}
+
+.dash-row2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-bottom:30px}
+.dash-mini .lb{font-size:13.5px;color:var(--ink);font-weight:600;margin-bottom:14px}
+.dash-city{font-weight:700;font-size:14px}
+.dash-temp{font-size:26px;font-weight:800;margin-top:8px;display:flex;align-items:center;gap:10px}
+.dash-rainpill{background:var(--blue-bg);color:#1a4a63;font-size:11px;font-weight:700;border-radius:99px;padding:3px 10px;display:inline-block;margin-top:10px}
+.dash-mini-more{margin-top:16px;font-weight:600;font-size:13px;color:var(--ink)}
+
+.dash-evrow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.dash-evrow:last-of-type{border-bottom:0}
+.dash-evrow .nm{font-weight:700;font-size:13.5px;line-height:1.3;max-width:130px}
+.dash-evrow .dt{text-align:right;font-size:12.5px;color:var(--mute);line-height:1.35;white-space:nowrap}
+
+.dash-vidrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+.dash-vidrow:last-of-type{border-bottom:0}
+.dash-play{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--ok-bg);color:var(--green);display:grid;place-items:center}
+
+.dash-chart{margin-bottom:20px}
+.dash-chart-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px}
+.dash-chart-title{display:flex;align-items:center;gap:10px}
+.dash-chart-title .val{font-weight:800;font-size:16px}
+.dash-chart-title .chg{font-weight:700;font-size:13.5px;color:var(--green)}
+.dash-chart-title .nm{font-weight:700;font-size:14.5px}
+.dash-chart-legend{text-align:right;font-size:11.5px;color:var(--mute);line-height:1.5}
+.dash-chart-legend .k1{color:#9a9a9a}
+.dash-chart-legend .k2{color:#3D7EEA;font-weight:700}
+.dash-chart>svg{width:100%;height:auto;display:block}
+.dash-chart-title svg{width:18px;height:18px;flex:0 0 auto}
+.dash-chart-foot{font-size:11px;color:var(--mute);margin-top:4px}
+
+.dash-nav{position:sticky;bottom:0;flex:0 0 auto;background:#fff;border-top:1px solid var(--line);display:grid;
+  grid-template-columns:repeat(4,1fr);align-items:center;padding:10px 0 12px;z-index:2}
+.dash-navitem{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--mute)}
+.dash-navitem.on{color:var(--amber)}
+.dash-fab{position:absolute;left:50%;top:-22px;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;
+  background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer}
+.dash-fab:hover{background:var(--green-d)}
 </style>
 </head>
 <body>
+<div class="dashstage" id="dashStage">
+  <div class="dash-hdr">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M5 2h11l-4 5 4 5H8v10H5V2z"/></svg>
+    <div class="sp"></div>
+    <div class="dash-store">Edeka Dankenbring
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <span class="dash-divider"></span>
+    <span class="chk" style="width:30px;height:30px;font-size:16px">✓</span>
+    <div class="dash-lang">DE
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="dash-profile">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="dash-row1">
+      <div>
+        <div class="dash-sec-lb">Die heutigen Bestellungen</div>
+        <div class="dash-ordercard">
+          <div class="top">
+            <div class="nm">Edeka</div>
+            <span class="dash-pill-open">OFFEN</span>
+          </div>
+          <div class="cnt">5h22m verbleibend</div>
+          <div class="bottom">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a6a2c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </div>
+        </div>
+        <div class="dash-more">Mehr Bestellungen ›</div>
+      </div>
+      <div class="dash-row1-right">
+        <div class="dash-sec-lb">Heutige Übersicht <span class="dt">25. Aug. 2026</span></div>
+        <div class="dash-kpis">
+          <div class="dash-kpi">
+            <div class="lb">Umsatz</div>
+            <div class="val">129.085 €</div>
+            <div class="chg">▲ +3,4 %</div>
+            <div class="rng">Juli 26 - Aug. 25</div>
+          </div>
+          <div class="dash-kpi">
+            <div class="lb">Abschriften</div>
+            <div class="val">1.886 €</div>
+            <div class="chg">▼ -28,9 %</div>
+            <div class="rng">Juli 26 - Aug. 25</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-row2">
+      <div class="dash-card dash-mini">
+        <div class="lb">Wetter</div>
+        <div class="dash-city">Berlin</div>
+        <div class="dash-temp">12°C | 19°C
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a94c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 15a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.6A3.5 3.5 0 0 0 7 15h10z"/><line x1="9" y1="19" x2="9" y2="21"/><line x1="13" y1="19" x2="13" y2="21"/><line x1="17" y1="19" x2="17" y2="21"/></svg>
+        </div>
+        <span class="dash-rainpill">Regen</span>
+        <div class="dash-mini-more">Siehe Wetter ›</div>
+      </div>
+      <div class="dash-card dash-mini">
+        <div class="lb">Zukünftige Ereignisse</div>
+        <div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>
+        <div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>
+        <div class="dash-mini-more">Alle Ereignisse ›</div>
+      </div>
+      <div class="dash-card dash-mini">
+        <div class="lb">Tutorial Videos</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Einführung in die Bestellvorbereitungen</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Wie kann man Elemente ausblenden?</div>
+        <div class="dash-mini-more">Alle Videos ›</div>
+      </div>
+    </div>
+
+    <div class="dash-sec-lb">Dashboards</div>
+
+    <div class="dash-card dash-chart">
+      <div class="dash-chart-hd">
+        <div class="dash-chart-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="14 6 21 6 21 13"/></svg>
+          <span class="nm">Umsatz</span>
+          <span class="val">129.085 €</span>
+          <span class="chg">▲ +3,4 %</span>
+        </div>
+        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>Juli 26 - Aug. 25</div>
+      </div>
+      <svg viewBox="0 0 860 210" preserveAspectRatio="none">
+        <line x1="0" y1="20" x2="860" y2="20" stroke="#ececec"/>
+        <line x1="0" y1="70" x2="860" y2="70" stroke="#ececec"/>
+        <line x1="0" y1="120" x2="860" y2="120" stroke="#ececec"/>
+        <line x1="0" y1="170" x2="860" y2="170" stroke="#ececec"/>
+        <text x="0" y="16" font-size="11" fill="#9a9a9a">7.717 €</text>
+        <text x="0" y="66" font-size="11" fill="#9a9a9a">5.788 €</text>
+        <text x="0" y="116" font-size="11" fill="#9a9a9a">3.858 €</text>
+        <text x="0" y="166" font-size="11" fill="#9a9a9a">1.929 €</text>
+        <polygon fill="#DDE8FB" opacity=".6" points="0,170 26,130 54,95 80,70 108,55 133,75 161,35 187,20 215,170 241,130 269,95 295,70 323,55 348,75 376,35 402,20 430,170 456,130 484,95 510,70 538,55 563,75 591,35 617,20 645,170 671,130 699,95 725,70 753,55 778,75 806,35 832,20 860,150 860,200 0,200"/>
+        <polyline fill="none" stroke="#9CB7DE" stroke-width="2" stroke-dasharray="4 4" points="0,178 26,148 54,118 80,95 108,80 133,95 161,60 187,45 215,178 241,148 269,118 295,95 323,80 348,95 376,60 402,45 430,178 456,148 484,118 510,95 538,80 563,95 591,60 617,45 645,178 671,148 699,118 725,95 753,80 778,95 806,60 832,45 860,165"/>
+        <polyline fill="none" stroke="#3D7EEA" stroke-width="2.4" points="0,170 26,130 54,95 80,70 108,55 133,75 161,35 187,20 215,170 241,130 269,95 295,70 323,55 348,75 376,35 402,20 430,170 456,130 484,95 510,70 538,55 563,75 591,35 617,20 645,170 671,130 699,95 725,70 753,55 778,75 806,35 832,20 860,150"/>
+        <text x="0" y="205" font-size="11" fill="#9a9a9a">26 So</text>
+        <text x="180" y="205" font-size="11" fill="#9a9a9a">30 Do</text>
+        <text x="330" y="205" font-size="11" fill="#9a9a9a">3 Mo</text>
+        <text x="410" y="205" font-size="11" fill="#9a9a9a">7 Fr</text>
+        <text x="540" y="205" font-size="11" fill="#9a9a9a">11 Di</text>
+        <text x="620" y="205" font-size="11" fill="#9a9a9a">15 Sa</text>
+        <text x="740" y="205" font-size="11" fill="#9a9a9a">19 Mi</text>
+        <text x="800" y="205" font-size="11" fill="#9a9a9a">23 So</text>
+      </svg>
+      <div class="dash-chart-foot">*Vor 52 Wochen</div>
+    </div>
+
+    <div class="dash-card dash-chart">
+      <div class="dash-chart-hd">
+        <div class="dash-chart-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 21 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          <span class="nm">Abschriften im Verkaufspreis</span>
+          <span class="val">1.886 €</span>
+          <span class="chg">▼ -28,9 %</span>
+        </div>
+        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>Juli 26 - Aug. 25</div>
+      </div>
+      <svg viewBox="0 0 860 150" preserveAspectRatio="none">
+        <line x1="0" y1="15" x2="860" y2="15" stroke="#ececec"/>
+        <line x1="0" y1="55" x2="860" y2="55" stroke="#ececec"/>
+        <line x1="0" y1="95" x2="860" y2="95" stroke="#ececec"/>
+        <text x="0" y="11" font-size="11" fill="#9a9a9a">127 €</text>
+        <text x="0" y="51" font-size="11" fill="#9a9a9a">95 €</text>
+        <text x="0" y="91" font-size="11" fill="#9a9a9a">63 €</text>
+        <polyline fill="none" stroke="#9CB7DE" stroke-width="2" stroke-dasharray="4 4" points="0,40 26,25 54,15 80,20 108,30 133,20 161,10 187,20 215,45 241,30 269,18 295,22 323,32 348,22 376,12 402,22 430,50 456,33 484,20 510,25 538,35 563,25 591,14 617,24 645,55 671,38 699,24 725,28 753,38 778,28 806,16 832,26 860,50"/>
+        <polyline fill="none" stroke="#3D7EEA" stroke-width="2.4" points="0,60 26,45 54,38 80,42 108,50 133,42 161,35 187,42 215,68 241,52 269,42 295,45 323,52 348,45 376,38 402,45 430,75 456,58 484,48 510,50 538,58 563,50 591,42 617,48 645,85 671,68 699,55 725,58 753,66 778,58 806,48 832,55 860,72"/>
+        <text x="0" y="145" font-size="11" fill="#9a9a9a">26 So</text>
+        <text x="180" y="145" font-size="11" fill="#9a9a9a">30 Do</text>
+        <text x="330" y="145" font-size="11" fill="#9a9a9a">3 Mo</text>
+        <text x="410" y="145" font-size="11" fill="#9a9a9a">7 Fr</text>
+        <text x="540" y="145" font-size="11" fill="#9a9a9a">11 Di</text>
+        <text x="620" y="145" font-size="11" fill="#9a9a9a">15 Sa</text>
+        <text x="740" y="145" font-size="11" fill="#9a9a9a">19 Mi</text>
+        <text x="800" y="145" font-size="11" fill="#9a9a9a">23 So</text>
+      </svg>
+      <div class="dash-chart-foot">*Vor 52 Wochen</div>
+    </div>
+  </div>
+
+  <div class="dash-nav">
+    <button class="dash-fab" id="dashFab" type="button" title="Aktuelle Bestellung öffnen">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </button>
+    <div class="dash-navitem on">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+      Dashboard
+    </div>
+    <div class="dash-navitem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/></svg>
+      Bestellungen
+    </div>
+    <div class="dash-navitem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 20v-6h6v6"/></svg>
+      Mein Markt
+    </div>
+    <div class="dash-navitem">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Einstellungen
+    </div>
+  </div>
+</div>
+
 <div class="stage">
 <div class="win">
   <div class="hdr">
@@ -901,11 +1141,25 @@ function tileStats(tileId){
   const done = fin ? list.length : list.filter(i=>rowClear(i,ST[i.id])).length;
   return {list, fin, done, open:list.length-done};
 }
-/* Regale ist die Startseite, keine Popover-Karte ueber der Liste -- der
-   Wechsel zur (gefilterten oder vollen) Artikelliste pusht einen echten
-   History-State, damit der physische Zurueck-Knopf (oder das Regale-
-   Pill selbst) wieder exakt auf der Regale-Uebersicht landet, nicht auf
-   irgendeiner vergessenen Filteransicht. */
+/* Dashboard (statischer Demo-Landingscreen) ist jetzt die echte Startseite --
+   .stage (die Bereichsabfrage-App) wird erst sichtbar, wenn man ueber den FAB
+   einsteigt. Laeuft ueber denselben History-State-Mechanismus wie Regale/Liste
+   unten, damit der physische Zurueck-Knopf von der Liste zurueck zum
+   Dashboard fuehrt. */
+function showDash(){ document.body.classList.add('dash-active'); }
+function showApp(){ document.body.classList.remove('dash-active'); }
+function enterApp(){
+  history.pushState({page:'cat'}, '', location.href);
+  showApp();
+  applyCatPage();
+}
+document.getElementById('dashFab').addEventListener('click', enterApp);
+
+/* Regale ist die Startseite der App (nach dem Dashboard), keine Popover-Karte
+   ueber der Liste -- der Wechsel zur (gefilterten oder vollen) Artikelliste
+   pusht einen echten History-State, damit der physische Zurueck-Knopf (oder
+   das Regale-Pill selbst) wieder exakt auf der Regale-Uebersicht landet,
+   nicht auf irgendeiner vergessenen Filteransicht. */
 function goToList(filter){
   CATFILTER=filter; CATOPEN=false; CATQUERY='';
   history.pushState({page:'list', filter}, '', location.href);
@@ -921,10 +1175,13 @@ function goToCategories(){
 }
 window.addEventListener('popstate', e=>{
   const st=e.state;
-  if(st && st.page==='list'){ CATFILTER=st.filter||null; CATOPEN=false; CATQUERY=''; render(); }
+  if(!st || st.page==='dash'){ showDash(); return; }
+  showApp();
+  if(st.page==='list'){ CATFILTER=st.filter||null; CATOPEN=false; CATQUERY=''; render(); }
   else applyCatPage();
 });
-history.replaceState({page:'cat'}, '', location.href);
+history.replaceState({page:'dash'}, '', location.href);
+showDash();
 function pickCategory(kind,id,label){ goToList({kind,id,label}); }
 function closeCat(){ CATOPEN=false; render(); }
 
