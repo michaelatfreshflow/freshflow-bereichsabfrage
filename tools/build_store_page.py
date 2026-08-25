@@ -204,6 +204,10 @@ def build_items(rows, ladders):
             unit=("kg" if str(o.get("unit", "")).upper() == "KG" else "piece"),
             category=(cat[0] if isinstance(cat, list) and cat else None),
             prevOrder=int(ord_sys) if ord_sys is not None else 0,
+            # ⛔ Pull real display size / hidden state, never default them (the pull() query
+            # already filters to display>0 AND NOT hidden, so hidden is always False here --
+            # but auslage must come from the real value, not a silent 1-for-everyone fallback.
+            auslage=F(o.get("disp")), hidden=False,
             _oi=int(F(o.get("oi")) or 10 ** 9)))
     items.sort(key=lambda x: (x["_oi"], x["name"]))
     for i, x in enumerate(items):
@@ -254,6 +258,11 @@ def inject(page, items, day, store_label=None):
     if store_label:
         s = re.sub(r'(<span class="dim">\|\s*&nbsp;)[^<]*(</span>)',
                    lambda mm: mm.group(1) + store_label + mm.group(2), s, count=1)
+        s, n_title = re.subn(r'(<title>Freshflow · Bereiche-Bestandsabfrage · )[^<]*(</title>)',
+                             lambda mm: mm.group(1) + store_label + mm.group(2), s, count=1)
+        if n_title != 1:
+            raise Refusal(f"<title> rewritten {n_title} times, expected exactly 1. The browser "
+                          f"tab would still show the old store's name.")
     open(page, "w", encoding="utf-8").write(s)
 
 
