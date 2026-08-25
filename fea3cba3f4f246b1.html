@@ -864,7 +864,7 @@ function render(){
     /* inventory cell */
     let box='';
     if(s.mode==='any'){
-      box = `<div class="stmt skip">${L.any}<span class="sub">${L.anysub}</span></div>`;
+      box = `<div class="stmt skip" style="text-align:center">–</div>`;
     } else {
       box = stepHTML(it,s,ix);
     }
