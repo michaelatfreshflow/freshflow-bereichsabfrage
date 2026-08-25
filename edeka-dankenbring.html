@@ -970,11 +970,14 @@ function catStep(dir){
 
 function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
+  const nextBtn=document.getElementById('nextRegalBtn');
   if(!CATFILTER){
     wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="Regal wählen">Alle anzeigen</button>`;
     document.getElementById('catChipBtn').onclick=goToCategories;
+    if(nextBtn) nextBtn.style.display='none';
     return;
   }
+  if(nextBtn) nextBtn.style.display='';
   const n=itemsForFilter(CATFILTER).length;
   const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
   const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} offen)</span>` : '';
