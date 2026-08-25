@@ -4,14 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Freshflow · Bereiche-Bestandsabfrage · Edeka Dankenbring, Hodenhagen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
 :root{
-  --green:#2E6A50; --green-d:#255742; --ink:#12211b; --mute:#8a8a8a; --line:#ececec;
-  --amber:#E8830C; --amber-bg:#FDF3E4; --red:#C1350F; --red-bg:#FBE0D8;
-  --blue:#1B4FA8; --blue-bg:#DDE8FB; --ok:#2E6A50; --ok-bg:#E9F3EE;
+  --green:#306A57; --green-d:#2B3A36; --ink:#18181B; --mute:#71717A; --line:#E7E6E6;
+  --amber:#FAAF3B; --amber-bg:#FFF7EB; --red:#E65050; --red-bg:#FDEEEE;
+  --blue:#08548A; --blue-bg:#C7E8ED; --ok:#6EA050; --ok-bg:#EDF3EC;
 }
-html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;color:var(--ink)}
+html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink)}
 .stage{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
 .note{color:#9a9a9a;font-size:12.5px;line-height:1.55;margin:0 0 16px;max-width:900px}
 .note b{color:#e6e6e6}
@@ -56,7 +59,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .filtwrap{position:relative;display:inline-flex}
 .filtwrap .btn.on,.filtwrap .btn.active{background:var(--green);border-color:var(--green);color:#fff}
 .filtpop{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #dcdcdc;border-radius:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;min-width:190px;z-index:50;display:none}
+  box-shadow:0 2px 8px rgba(39,39,42,.118);padding:6px;min-width:190px;z-index:50;display:none}
 .filtpop.on{display:block}
 .filtpop .fopt{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;font-size:13px;color:var(--ink);cursor:pointer}
 .filtpop .fopt:hover{background:#F7F9F8}
@@ -89,7 +92,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .meta{color:#9a9a9a;font-size:11.5px;margin-top:3px}
 .pills{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
 .pill{border:1px solid #e0e0e0;border-radius:99px;padding:1px 8px;font-size:10.5px;color:#5d6b64;background:#fff}
-.pill.b{border-color:#cfe0d7;background:#F1F7F3;color:#2E6A50}
+.pill.b{border-color:#cfe0d7;background:#F1F7F3;color:var(--green)}
 .pill.promo{border-color:#e6b5a6;background:var(--red-bg);color:#8d2b0c;font-weight:700}
 .pill.count{border-color:#e08c72;color:#7a2d10;background:#FDF1EC;font-weight:700}
 .pill.noladder{border-color:#bdbdbd;background:#efefef;color:#5c5c5c;font-weight:700}
@@ -101,9 +104,9 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 /* ---------- statement cell ---------- */
 .stmt{border:1.5px solid #e3e3e3;border-radius:10px;padding:9px 12px;font-size:14.5px;font-weight:700;background:#fff}
 .stmt.skip{border-color:#e8e8e8;background:#fafafa;color:#a0a0a0;font-weight:600}
-.stmt.no2{border-color:#C1350F;background:#FBE9E3;color:#7c2409}
+.stmt.no2{border-color:var(--red);background:#FBE9E3;color:#7c2409}
 .stmt.no2 .sub{color:#a15238}
-.stmt .sub{display:block;font-weight:500;font-size:11px;color:#8a8a8a;margin-top:2px}
+.stmt .sub{display:block;font-weight:500;font-size:11px;color:var(--mute);margin-top:2px}
 
 /* ---------- Bestand-Stepper (ersetzt die Kachel weniger/✓/mehr) ----------
    Selbe Geometrie wie der Bestellmengen-Stepper (.step) -- gleiche Knopfgroesse,
@@ -117,13 +120,13 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .stp .fld{min-width:126px;height:44px;border:1px solid #e3e3e3;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:1px;background:#fff;cursor:pointer}
 .stp .val{font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
-.stp .sub{font-size:10.5px;font-weight:600;color:#8a8a8a}
+.stp .sub{font-size:10.5px;font-weight:600;color:var(--mute)}
 .stp.unsure .fld{border-color:var(--amber)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-.chips .lb{font-size:11.5px;color:#8a8a8a;width:100%;font-weight:600}
+.chips .lb{font-size:11.5px;color:var(--mute);width:100%;font-weight:600}
 .chip{border:1.5px solid #d9d9d9;background:#fff;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
 .chip:hover{border-color:var(--green);color:var(--green)}
-.dsz{font-size:11.5px;color:#8a8a8a;margin-top:6px}
+.dsz{font-size:11.5px;color:var(--mute);margin-top:6px}
 .dsz u{text-decoration-color:#c9c9c9}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
@@ -135,7 +138,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .bang.sm{display:inline-grid;width:14px;height:14px;font-size:9px;margin:0 0 0 5px;vertical-align:1px;cursor:default}
 .why{font-size:11px;color:#a86a12;margin-top:5px;font-weight:600}
 .why.r{text-align:right}
-.invpcs{font-size:11.5px;color:#8a8a8a;margin-top:5px}
+.invpcs{font-size:11.5px;color:var(--mute);margin-top:5px}
 
 /* ---------- order cell ---------- */
 .step{display:flex;align-items:center;justify-content:flex-end;gap:0}
@@ -144,13 +147,13 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .step button:last-child{border-radius:0 9px 9px 0}
 .step .v{min-width:64px;height:44px;border:1px solid #e3e3e3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:14.5px;font-weight:700;background:#fff;cursor:pointer}
 .step .v.chg{border-color:var(--amber)}
-.step .v .sub{font-size:10.5px;font-weight:600;color:#8a8a8a}
+.step .v .sub{font-size:10.5px;font-weight:600;color:var(--mute)}
 .ref{margin-top:7px;text-align:right;font-size:11.5px;color:#a0a0a0}
 .ref b{color:#6d6d6d}
 
 /* ---------- bottom bar ---------- */
 .foot{display:flex;align-items:center;gap:26px;padding:14px 18px;border-top:1px solid var(--line);background:#fff}
-.foot .m{font-size:12px;color:#8a8a8a}
+.foot .m{font-size:12px;color:var(--mute)}
 .foot .m b{display:block;font-size:16px;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}
 .foot .sp{flex:1}
 .cta{background:var(--green);color:#fff;border:0;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer}
@@ -182,23 +185,23 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .cathdr .editBtn.on{background:#C1CE5D;color:#1b2420}
 .catsearch{padding:16px 24px 0}
 .catsearch .box{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:12px 16px;
-  box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  box-shadow:0 2px 6px rgba(0,0,0,.08)}
 .catsearch input{flex:1;border:0;outline:0;font-size:15.5px;background:transparent;color:var(--ink)}
 .catbody{flex:1;overflow-y:auto;padding:16px 24px 22px}
-.catsec .lb{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a8a8a;margin-bottom:9px}
+.catsec .lb{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin-bottom:9px}
 .catsec{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
 .catsec .all{flex:none;white-space:nowrap;font-size:12.5px;font-weight:700;color:var(--green);cursor:pointer;
   border-bottom:1px solid rgba(46,106,80,.35)}
 .catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
 .cattile{background:#fff;border:1px solid #e4e9e6;border-radius:10px;padding:9px;cursor:pointer;display:flex;
-  align-items:center;gap:11px;box-shadow:0 2px 10px rgba(0,0,0,.05);transition:box-shadow .18s}
-.cattile:hover{box-shadow:0 8px 22px rgba(0,0,0,.11)}
+  align-items:center;gap:11px;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:box-shadow .18s}
+.cattile:hover{box-shadow:0 2px 8px rgba(39,39,42,.118)}
 .cattile.fin{border-color:rgba(46,106,80,.35)}
 .cattile .ic{width:48px;height:48px;border-radius:8px;overflow:hidden;flex:0 0 auto;background:#eee}
 .cattile .ic img{width:100%;height:100%;object-fit:cover;display:block}
 .cattile .tx{flex:1;min-width:0}
 .cattile .nm{font-weight:800;font-size:13.5px;letter-spacing:-.01em;line-height:1.25}
-.cattile .cnt{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:#8a8a8a}
+.cattile .cnt{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:var(--mute)}
 .cattile .cnt .dot{width:6px;height:6px;border-radius:99px;flex:0 0 auto}
 .cattile .fertig{flex:none;background:var(--green);color:#fff;border-radius:99px;padding:3px 8px;font-size:9.5px;font-weight:800;white-space:nowrap}
 .catedit{display:flex;flex-direction:column;gap:7px}
@@ -206,7 +209,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .catrow .dot{width:9px;height:9px;border-radius:99px;flex:0 0 auto}
 .catrow .tx{flex:1;min-width:0}
 .catrow .nm{font-weight:800;font-size:14px;letter-spacing:-.01em}
-.catrow .cnt{font-size:11.5px;color:#8a8a8a;margin-top:2px}
+.catrow .cnt{font-size:11.5px;color:var(--mute);margin-top:2px}
 .catrow .rebtns{display:flex;gap:6px;flex:0 0 auto}
 .catrow .renameInput{flex:1;min-width:0;font-weight:800;font-size:14px;letter-spacing:-.01em;
   font-family:inherit;color:var(--ink);border:1.5px solid var(--green);border-radius:8px;padding:6px 9px;outline:0}
@@ -216,14 +219,14 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .reordBtn:disabled{opacity:.3;cursor:default}
 .catrow.addrow{cursor:pointer;border-style:dashed;background:#f7f9f8}
 .catrow.addrow .nm{color:var(--green)}
-.catrow .owntag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a8a8a;
+.catrow .owntag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);
   background:#eef1ef;border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:middle}
 
 
 .catcelebrate{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none;background:rgba(46,90,72,.14)}
 .catcelebrate canvas{position:absolute;inset:0;width:100%;height:100%}
 .catcelebrate .card{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;
-  background:var(--green);color:#fff;border-radius:14px;padding:20px 32px;box-shadow:0 8px 40px rgba(0,0,0,.4);
+  background:var(--green);color:#fff;border-radius:14px;padding:20px 32px;box-shadow:0 4px 12px rgba(0,0,0,.35);
   animation:ffpop .3s cubic-bezier(.2,.7,.2,1)}
 @keyframes ffpop{0%{transform:translate(-50%,-50%) scale(.7);opacity:0}55%{transform:translate(-50%,-50%) scale(1.05);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
 .catcelebrate .eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C1CE5D}
@@ -250,12 +253,12 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .sfoot{display:flex;align-items:center;padding:0 22px}
 .sfoot .lnk{color:var(--green);font-weight:700;cursor:pointer}
 .sfoot .sp{flex:1}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:#12211b;color:#fff;padding:10px 18px;
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:10px 18px;
   border-radius:99px;font-size:13.5px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.on{opacity:1}
-.undobar{position:fixed;left:50%;transform:translate(-50%,8px);bottom:26px;background:#12211b;color:#fff;
+.undobar{position:fixed;left:50%;transform:translate(-50%,8px);bottom:26px;background:var(--ink);color:#fff;
   padding:10px 10px 10px 18px;border-radius:99px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:12px;
-  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .undobar.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .undobar button{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:99px;padding:7px 14px;
   font-size:13px;font-weight:800;cursor:pointer}
@@ -978,7 +981,7 @@ function renderCatOverlay(){
   tileDefs.push({id:'sonstiges', label:'Nicht zugeordnet', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
-    const accent = t.id==='sonstiges' ? '#8a8a8a' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
+    const accent = t.id==='sonstiges' ? 'var(--mute)' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
     return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, icon:`assets/categories/${t.id}.png`, accent};
   }).filter(t=>t.id!=='sonstiges' || t.count>0);
 
@@ -1056,9 +1059,9 @@ function renderCatOverlay(){
         <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
       </div>
       ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
-        <span style="color:#8a8a8a;font-size:17px">⌕</span>
+        <span style="color:var(--mute);font-size:17px">⌕</span>
         <input id="catQ" type="search" placeholder="Artikel suchen" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
-        <span style="color:#8a8a8a;line-height:1" title="Barcode scannen (Demo)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
+        <span style="color:var(--mute);line-height:1" title="Barcode scannen (Demo)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
       </div></div>`}
       <div class="catbody">${body}</div>
     </div>
@@ -1181,7 +1184,7 @@ function renderCatItemPicker(){
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   tileDefs.push({id:'sonstiges', label:'Nicht zugeordnet', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
-    const accent = t.id==='sonstiges' ? '#8a8a8a' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
+    const accent = t.id==='sonstiges' ? 'var(--mute)' : (t.type==='Obst' ? '#C1CE5D' : '#429359');
     return {id:t.id, label:t.label, icon:`assets/categories/${t.id}.png`, accent};
   });
   root.innerHTML = `<div class="catov" style="top:${topPx}px">
