@@ -608,13 +608,11 @@ const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
 /* ---------- language ---------- */
 let LANG='de';
 const T={
- de:{any:'Kein Bestand nötig', count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
-     anysub:'Bestellung ändert sich nicht mit dem Bestand',
+ de:{count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
      countsub:'Turnusmässige Zählung fällig', nolsub:'Modell rechnet hier kein Bereich',
      unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen',
      onlyopen:'Nur offene', all:'Alle'},
- en:{any:'No inventory needed', count:'Count: enter inventory', noladder:'Enter inventory',
-     anysub:'Order does not change with inventory',
+ en:{count:'Count: enter inventory', noladder:'Enter inventory',
      countsub:'Periodic count due', nolsub:'Model produces no band here',
      unsure:'App inventory contradicts Plan A', bulk:'Bestätigen all',
      onlyopen:'Open only', all:'All'}
@@ -680,7 +678,7 @@ function mode(it){
    Ansicht danach wieder die Spanne zeigt -- das Warndreieck soll nicht zurueckkommen. */
 function initState(it){
   const p=planIdx(it), m=mode(it), pre=(m==='any'||m==='ask');
-  const home = (m==='count'||m==='noladder') ? 'need' : 'range';
+  const home = (m==='count'||m==='noladder'||m==='any') ? 'need' : 'range';
   const order=it.rungs[p].order??0, chosen=pre?p:null, auto=(m==='ask');
   return {mode:m, plan:p, chosen, order,
           answered:pre, auto, manual:false, touched:false,
@@ -862,12 +860,7 @@ function render(){
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="Regal ändern">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
-    let box='';
-    if(s.mode==='any'){
-      box = `<div class="stmt skip" style="text-align:center">–</div>`;
-    } else {
-      box = stepHTML(it,s,ix);
-    }
+    const box = stepHTML(it,s,ix);
     const noteTxt = s.touched ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     let cell = `<div class="withbang">${box}${bang(noteTxt)}</div>`;
     cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div>`;
