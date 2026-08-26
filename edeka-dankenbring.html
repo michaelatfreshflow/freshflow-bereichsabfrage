@@ -992,19 +992,44 @@ const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
 const koNum=v=>v<1-1e-9 ? v.toLocaleString('de-DE',{maximumFractionDigits:2}) : csNum(v);
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
+/* KO-Zahl und Stueckzahl stehen uebereinander und meinen dieselbe Grenze -- sie muessen
+   sich ineinander umrechnen lassen. Bisher kam die KO-Zahl aus dem rohen Modellwert und
+   wurde von snapNice() auf eine "runde" Kisten-Bruchzahl geschnappt. Dieses Raster
+   (0 / .1 / .2 / .25 / .3 …) weiss nichts von der Kistengroesse und sprang darum ueber
+   Stueckgrenzen: 0,25324 KO wurde zu 0,25, und 0,25 × 12 = 3, waehrend die Zeile darunter
+   korrekt bei 4 Stueck anfing. Das betraf 67 von 181 Zeilen.
+   Die KO-Zahl wird jetzt aus der Stueckgrenze zurueckgerechnet -- die ist die harte, vom
+   Seitenbauer als ceil(Grenze × Kiste) bestimmte Zahl -- und nur so grob gerundet, dass
+   sie mal Kistengroesse wieder genau diese Stueckzahl ergibt. Grob nach fein, dieselbe
+   Staffelung wie dec() im Seitenbauer. */
+function koOfPieces(piece,cs){
+  if(cs==null || !(cs>0) || piece==null) return null;
+  const exact=piece/cs;
+  const cands=[snapNice(exact), Math.round(exact*10)/10, Math.round(exact*100)/100,
+               Math.round(exact*1000)/1000];
+  for(const c of cands) if(Math.round(c*cs)===piece) return c;
+  return exact;
+}
+/* Bewusst NICHT csNum(): das wuerde die eben passend gerundete Zahl erneut auf das
+   snapNice-Raster schnappen und den Bezug zur Stueckzahl wieder kaputt machen. */
+const koFmt=v=>v.toLocaleString('de-DE',{maximumFractionDigits:3});
+/* Eine Sprosse ohne obere Grenze hatte hier eine erfundene 99 (bzw. 999 Stueck) stehen,
+   nur um die Spanne zu fuellen -- die las sich wie eine echte Zahl. Sie heisst jetzt
+   "mind. x". Nach oben und unten begrenzte Sprossen stehen durchgehend als "a – b", das
+   frueher nur bei der 0-Sprosse benutzte "bis" und das "a bis b" dazwischen fallen weg. */
 function koText(r,it){
-  if(r.plo!=null && r.plo===r.phi){
-    const cs = it&&it.case?it.case:1;
-    return csNum(r.plo/cs) + ' KO';
-  }
-  return (r.lo==null?'0':csNum(r.lo)) + ' – ' + (r.hi==null?'99':csNum(r.hi)) + ' KO';
+  const cs = it&&it.case ? it.case : null;
+  if(r.plo!=null && r.plo===r.phi) return koFmt(koOfPieces(r.plo,cs) ?? r.plo) + ' KO';
+  const loK = koOfPieces(r.plo,cs) ?? (r.lo==null?0:r.lo);
+  if(r.hi==null) return loK>0 ? 'mind. ' + koFmt(loK) + ' KO' : 'egal wie viel';
+  const hiK = koOfPieces(r.phi,cs) ?? r.hi;
+  return koFmt(loK) + ' – ' + koFmt(hiK) + ' KO';
 }
 function stText(r,it){
   const u=uw(it);
-  if(r.phi==null) return `${r.plo} - 999 ${u}`;
+  if(r.phi==null) return r.plo>0 ? `mind. ${r.plo} ${u}` : 'egal wie viel';
   if(r.plo===r.phi) return `genau ${r.plo} ${u}`;
-  if(r.plo===0) return `bis ${r.phi} ${u}`;
-  return `${r.plo} bis ${r.phi} ${u}`;
+  return `${r.plo} – ${r.phi} ${u}`;
 }
 /* Snapt einen KO-Wert in Schrittrichtung auf das naechste Rasterfeld (0,9 → 0,75
    abwaerts bei Rasterweite 0,25); von einem Rasterpunkt aus ist es dann genau ein
@@ -1022,28 +1047,32 @@ function snapGrid(ko,d,size){
 function unitStep(it){
   const cs=it.case;
   if(cs==null || cs<=1) return null;
+  if(it.unit!=='piece') return null;
   return Math.max(1, Math.ceil(cs/12));
 }
-/* Ein Druck auf −/+ : unter 1 KO auf dem Einheitenraster (unitStep Stueck bzw. kg),
-   ab 1 KO im Halbschritt wie bisher (1 → 1,5 → 2 …), bei Kiste = 1 durchgehend in
-   ganzen Kisten. Genau 1 KO ist immer ein Halt -- aufwaerts wird auf 1 gekappt, damit
-   auch bei krummer Teilung (15er Kiste, Schritt 2 → 14/15) die volle Kiste getroffen
-   wird, abwaerts setzt der Halbschritt erst ab 1 wieder ein. Bewusst asymmetrisch bei
-   genau 1 KO: abwaerts taucht es noch ins Einheitenraster ein (14er Kiste: 1 → 12 St.),
-   aufwaerts gilt ab 1 die Halbschrittweite (1 → 1,5). */
+/* Ein Druck auf −/+ : unter 1 KO haengt die Schrittweite an der Ware. Stueckware laeuft
+   auf dem Einheitenraster (unitStep), Gewichtsware in Viertelkisten -- ein Stueck kann man
+   vom Regal abzaehlen, ein Kilo nicht, lose Ware wird geschaetzt, und dafuer ist die
+   Viertelkiste das passende Mass. Ab 1 KO gilt fuer beide der Halbschritt wie bisher
+   (1 → 1,5 → 2 …), bei Kiste = 1 durchgehend ganze Kisten. Genau 1 KO ist immer ein Halt --
+   auf dem Einheitenraster wird dafuer aufwaerts auf 1 gekappt, damit auch bei krummer
+   Teilung (15er Kiste, Schritt 2 → 14/15) die volle Kiste getroffen wird. Bewusst
+   asymmetrisch bei genau 1 KO: abwaerts taucht es noch ins feine Raster ein (14er Kiste:
+   1 → 12 St.), aufwaerts gilt ab 1 die Halbschrittweite (1 → 1,5). */
 function stepKo(it,ko,d){
-  const eps=1e-9, u=unitStep(it);
-  if(u===null) return snapGrid(ko,d,1);
+  const eps=1e-9;
+  if(it.case==null || it.case===1) return snapGrid(ko,d,1);
   const belowZone = d<0 ? ko<=1+eps : ko<1-eps;
   if(!belowZone) return Math.max(1, snapGrid(ko,d,0.5));
+  const u=unitStep(it);
+  if(u===null) return Math.max(0, Math.min(1, snapGrid(ko,d,0.25)));
   const size=u/it.case;
   let next=snapGrid(ko,d,size);
-  /* Bei krummer Teilung (18,14 kg je Kiste, Schritt 2 kg) liegt der oberste Rasterpunkt
-     dicht unter 1 KO und zeigt dieselbe Einheitenzahl wie die volle Kiste -- ein Tipp,
-     der sichtbar nichts aendert. Naeher als ein halber Schritt an 1 KO faellt er darum
-     weg: aufwaerts direkt auf 1 KO, abwaerts direkt auf den Punkt darunter. Genau ein
-     halber Schritt Abstand bleibt erhalten (8,5-kg-Kiste: 8 kg und 8,5 kg sind zwei
-     unterscheidbare Mengen), darum der strikte Vergleich mit eps. */
+  /* Geht die Kiste im Schritt nicht glatt auf (25er Kiste, Schritt 3 → 24), liegt der
+     oberste Rasterpunkt ein Stueck unter der vollen Kiste -- ein Tipp, der kaum etwas
+     aendert. Naeher als ein halber Schritt an 1 KO faellt er darum weg: aufwaerts direkt
+     auf 1 KO, abwaerts direkt auf den Punkt darunter. Genau ein halber Schritt Abstand
+     bleibt erhalten, darum der strikte Vergleich mit eps. */
   if(next>0 && next<1 && 1-next < size/2-eps) next = d<0 ? next-size : 1;
   return d<0 ? Math.max(0,next) : Math.min(1,next);
 }
@@ -1083,7 +1112,7 @@ function stepHTML(it,s,ix){
 function chipFor(it,i){
   const r=it.rungs[i];
   const u=' '+ua(it);
-  if(r.kind==='atleast') return (LANG==='de'?'ab ':'from ')+r.plo+u;
+  if(r.kind==='atleast') return (LANG==='de'?'mind. ':'min. ')+r.plo+u;
   if(r.kind==='lessthan') return (r.phi===0?'0'+u:'0–'+r.phi+u);
   return (r.plo===r.phi?String(r.plo):r.plo+'–'+r.phi)+u;
 }
@@ -1897,19 +1926,26 @@ function invPadVals(){
    einer Zahl -- Lager und Fläche starten trotzdem bei 0, kein Vorschlag mehr,
    der Kaufmann tippt beide Zahlen selbst ein. rLoKO/rHiKO sind die ungerundeten
    Sprossen-Grenzen fuer genau diese Anzeige. */
-function invRangeText(loKO,hiKO,unit,cs,it){
+/* Gleiche Sprache und dieselbe Herleitung wie der Stepper darueber: aus den Stueck-
+   grenzen der Sprosse, nicht aus dem rohen KO-Wert. Der Stueck-Zweig rundete den rohen
+   Wert bisher selbst (Math.round), was ebenfalls neben plo/phi landen konnte. */
+function invRangeText(plo,phi,unit,cs,it){
   if(unit==='pcs'){
-    const loP=Math.round((loKO==null?0:loKO)*cs), hiP=hiKO==null?99:Math.round(hiKO*cs);
-    return `${loP} – ${hiP} ${ua(it)}`;
+    if(phi==null) return plo>0 ? `mind. ${plo} ${ua(it)}` : 'egal wie viel';
+    return `${plo} – ${phi} ${ua(it)}`;
   }
-  const loK=loKO==null?0:loKO, hiK=hiKO==null?99:hiKO;
-  return `${csNum(loK)} – ${csNum(hiK)} KO`;
+  const loK=koOfPieces(plo,cs) ?? 0;
+  if(phi==null) return loK>0 ? `mind. ${koFmt(loK)} KO` : 'egal wie viel';
+  return `${koFmt(loK)} – ${koFmt(koOfPieces(phi,cs) ?? 0)} KO`;
 }
 function openInvPad(ix){
   const it=ITEMS[ix], s=ST[ix];
   const canPcs = it.case!=null;
   const r = (s.step==='range' && it.rungs[s.plan] && it.rungs[s.plan].kind!=='any') ? it.rungs[s.plan] : null;
-  INV={ix, back:'0', floor:'0', act:'floor', unit:'cs', rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null};
+  /* rLoKO/rHiKO bleiben die rohen Grenzen -- sie entscheiden, OB der getippte Wert noch
+     in der Sprosse liegt. rPlo/rPhi sind die Stueckgrenzen und dienen nur der Anzeige. */
+  INV={ix, back:'0', floor:'0', act:'floor', unit:'cs', rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,
+       rPlo: r ? r.plo : null, rPhi: r ? r.phi : null};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -1935,7 +1971,7 @@ function drawInvPad(){
   const untouched = INV.back==='0' && INV.floor==='0';
   const inRange = INV.rLoKO!=null && (untouched || (v.cases>=INV.rLoKO && (INV.rHiKO==null || v.cases<INV.rHiKO)));
   if(inRange){
-    totEl.textContent = invRangeText(INV.rLoKO,INV.rHiKO,INV.unit,cs,it);
+    totEl.textContent = invRangeText(INV.rPlo,INV.rPhi,INV.unit,cs,it);
     totPcsEl.textContent='';
   } else {
     totEl.textContent=
