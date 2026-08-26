@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Freshflow · Bereiche-Bestandsabfrage · Edeka Dankenbring, Hodenhagen</title>
@@ -223,15 +224,32 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
   background:#eef1ef;border-radius:99px;padding:2px 7px;margin-left:6px;vertical-align:middle}
 
 
-.catcelebrate{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none;background:rgba(46,90,72,.14)}
+/* Die Feier laeuft ueber dem naechsten Regal, nicht davor: startCatCelebration() blendet
+   sofort weiter, dieses Overlay legt sich nur noch drueber. Tint und Karte gehen darum
+   nach gut einer Sekunde von selbst weg, damit die Liste schnell wieder lesbar ist,
+   waehrend die Fruechte im Canvas zu Ende fallen (2,9 s). pointer-events bleibt none --
+   man kann waehrenddessen schon weiterarbeiten, der erste Tipp raeumt alles sofort weg. */
+@keyframes celebTint{0%,55%{background:rgba(46,90,72,.14)}100%{background:rgba(46,90,72,0)}}
+@keyframes celebCard{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}
+  9%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+  16%,62%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-72%) scale(.97)}}
+.catcelebrate{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none;
+  animation:celebTint 1700ms ease forwards}
 .catcelebrate canvas{position:absolute;inset:0;width:100%;height:100%}
-.catcelebrate .card{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;
+.catcelebrate .card{position:absolute;left:50%;top:42%;text-align:center;
   background:var(--green);color:#fff;border-radius:14px;padding:20px 32px;box-shadow:0 4px 12px rgba(0,0,0,.35);
-  animation:ffpop .3s cubic-bezier(.2,.7,.2,1)}
-@keyframes ffpop{0%{transform:translate(-50%,-50%) scale(.7);opacity:0}55%{transform:translate(-50%,-50%) scale(1.05);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+  animation:celebCard 1700ms cubic-bezier(.2,.7,.2,1) forwards}
 .catcelebrate .eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C1CE5D}
 .catcelebrate h2{margin:6px 0 0;font-size:30px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
 .catcelebrate .sub{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px}
+.catcelebrate .hint{font-size:11px;color:rgba(255,255,255,.5);margin-top:10px}
+/* Wer Bewegung abbestellt hat, bekommt die Karte ohne Ein- und Ausblenden; sie wird
+   stattdessen nach 900 ms hart entfernt (siehe startCatCelebration). */
+@media (prefers-reduced-motion: reduce){
+  .catcelebrate{animation:none;background:rgba(46,90,72,.14)}
+  .catcelebrate .card{animation:none;transform:translate(-50%,-50%)}
+}
 
 /* ---------- keypad modal ---------- */
 .ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-end;justify-content:center;z-index:9}
@@ -949,8 +967,11 @@ let DELETE_TILE_ID=null;   // eigenes Regal currently showing its "wirklich lös
 let CATFILTER=null;        // {kind:'tile'|'promo', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
-let CATCELEBRATE=null;     // {id,label} | null — celebration playing for this tile
+let CATCELEBRATE=null;     // {id,label,seq,reduced} | null — celebration playing over the next shelf
 let CATFX=null;            // celebration canvas animation state
+let CELEB_TIMER=null;      // reduced-motion teardown timer
+let CELEB_SEQ=0;           // zaehlt Feiern hoch, damit renderCatCelebrate() dieselbe nicht neu aufbaut
+let CELEB_EAT_UNTIL=0;     // Zeitstempel: bis hierhin wird der Klick nach einem Abbruch-Tipp geschluckt
 
 /* Modellzahlen landen roh auf haesslichen Nachkommastellen (1,77 / 0,96); fuer
    die Anzeige wird auf die naeheste "runde" Kisten-Bruchzahl geschnappt, statt
@@ -964,6 +985,11 @@ function snapNice(v){
   return sign*(intPart+best);
 }
 const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
+/* Unter 1 KO laeuft der Bestand-Stepper auf dem Einheitenraster (1/Kiste). Dessen Halte
+   treffen die "runden" Kisten-Bruchzahlen von snapNice() nicht mehr -- 1/6 ist 0,17,
+   1/20 ist 0,05 -- darum wird unter 1 KO auf zwei Nachkommastellen genau angezeigt.
+   Ab 1 KO bleibt es bei der gewohnten snapNice()-Anzeige. */
+const koNum=v=>v<1-1e-9 ? v.toLocaleString('de-DE',{maximumFractionDigits:2}) : csNum(v);
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
 function koText(r,it){
@@ -980,16 +1006,46 @@ function stText(r,it){
   if(r.plo===0) return `bis ${r.phi} ${u}`;
   return `${r.plo} bis ${r.phi} ${u}`;
 }
-/* Unter 1 KO steppt es in Viertelschritten, ab 1 KO in Halbschritten -- eine ganze
-   Kiste ist bei z.B. 0,9 KO ein zu grober Sprung, und ab 1 KO reicht ein Halbschritt
-   (1 → 1,5 → 2 → 2,5 …). Snapt zuerst auf das naechste Raster in Schrittrichtung
-   (0,9 → 0,75 abwaerts), von einem Rasterpunkt aus ist es dann ein klarer ±Schritt.
-   Bewusst asymmetrisch bei genau 1 KO: abwaerts von 1 taucht es noch in die Viertel
-   ein (1 → 0,75), aufwaerts ab 1 gilt die Halbschrittweite (1 → 1,5) -- die Grenze
-   ist also <=1 abwaerts, <1 aufwaerts. */
-function gridStep(ko,d,size){
+/* Snapt einen KO-Wert in Schrittrichtung auf das naechste Rasterfeld (0,9 → 0,75
+   abwaerts bei Rasterweite 0,25); von einem Rasterpunkt aus ist es dann genau ein
+   ±Schritt. Rohbaustein fuer stepKo(), nirgends sonst direkt benutzt. */
+function snapGrid(ko,d,size){
   const eps=1e-9;
   return d<0 ? Math.max(0, Math.floor((ko-eps)/size)*size) : Math.ceil((ko+eps)/size)*size;
+}
+/* Unter 1 KO wird in ganzen Stueck/kg gesteppt statt in Vierteln: eine Kiste zu 14 Stueck
+   in Viertel zu teilen ergibt 3,5 Stueck -- eine Menge, die es im Regal nicht gibt. Die
+   Schrittweite ist ceil(Kiste/12) Einheiten, damit die Zone unter einer Kiste ungefaehr
+   6 bis 12 Halte hat: bei 6er und 12er Kisten ist das 1 Stueck, bei 14 sind es 2, bei
+   120 sind es 10. Rueckgabe null = keine sinnvolle Untereinheit (Kiste = 1 Stueck oder
+   Kistengroesse unbekannt), dann laeuft alles in ganzen Kisten. */
+function unitStep(it){
+  const cs=it.case;
+  if(cs==null || cs<=1) return null;
+  return Math.max(1, Math.ceil(cs/12));
+}
+/* Ein Druck auf −/+ : unter 1 KO auf dem Einheitenraster (unitStep Stueck bzw. kg),
+   ab 1 KO im Halbschritt wie bisher (1 → 1,5 → 2 …), bei Kiste = 1 durchgehend in
+   ganzen Kisten. Genau 1 KO ist immer ein Halt -- aufwaerts wird auf 1 gekappt, damit
+   auch bei krummer Teilung (15er Kiste, Schritt 2 → 14/15) die volle Kiste getroffen
+   wird, abwaerts setzt der Halbschritt erst ab 1 wieder ein. Bewusst asymmetrisch bei
+   genau 1 KO: abwaerts taucht es noch ins Einheitenraster ein (14er Kiste: 1 → 12 St.),
+   aufwaerts gilt ab 1 die Halbschrittweite (1 → 1,5). */
+function stepKo(it,ko,d){
+  const eps=1e-9, u=unitStep(it);
+  if(u===null) return snapGrid(ko,d,1);
+  const belowZone = d<0 ? ko<=1+eps : ko<1-eps;
+  if(!belowZone) return Math.max(1, snapGrid(ko,d,0.5));
+  const size=u/it.case;
+  let next=snapGrid(ko,d,size);
+  /* Bei krummer Teilung (18,14 kg je Kiste, Schritt 2 kg) liegt der oberste Rasterpunkt
+     dicht unter 1 KO und zeigt dieselbe Einheitenzahl wie die volle Kiste -- ein Tipp,
+     der sichtbar nichts aendert. Naeher als ein halber Schritt an 1 KO faellt er darum
+     weg: aufwaerts direkt auf 1 KO, abwaerts direkt auf den Punkt darunter. Genau ein
+     halber Schritt Abstand bleibt erhalten (8,5-kg-Kiste: 8 kg und 8,5 kg sind zwei
+     unterscheidbare Mengen), darum der strikte Vergleich mit eps. */
+  if(next>0 && next<1 && 1-next < size/2-eps) next = d<0 ? next-size : 1;
+  return d<0 ? Math.max(0,next) : Math.min(1,next);
 }
 /* Welche Sprosse enthaelt einen ganzen KO-Wert -- dieselbe lo<=ko<hi-Regel wie ueberall
    sonst, Fallback auf die Plan-Sprosse falls keine passt (kann bei "any"/none vorkommen). */
@@ -1009,11 +1065,13 @@ function stepHTML(it,s,ix){
     minusOff=false; plusOff=false; big='–'; small='';
   } else if(s.step==='range'){
     const r=it.rungs[s.plan];
-    minusOff=r.lo==null; plusOff=r.hi==null;
+    /* lo<=0 heisst: die Plan-Sprosse faengt schon bei 0 an, unter ihr liegt nichts mehr.
+       − landete dort per applyKo() wieder in derselben Sprosse und tat sichtbar nichts. */
+    minusOff=r.lo==null||r.lo<=0; plusOff=r.hi==null;
     big=koText(r,it); small=stText(r,it);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
-    big=csNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
+    big=koNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
   }
   return `<div class="${cls}">
     <button class="sb" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''}>−</button>
@@ -1555,21 +1613,52 @@ function renderCatConfirm(){
   };
 }
 
+/* Frueher wartete der Weiterschritt auf das Ende der Animation -- 2,9 s Zuschauen, bevor
+   das naechste Regal kam. Jetzt umgekehrt: Regal abhaken, sofort weiterblenden, und die
+   Feier laeuft als reines Overlay ueber dem schon sichtbaren naechsten Regal aus. Der
+   Weiterschritt ruft render() und baut das Overlay dabei gleich mit auf. */
 function startCatCelebration(){
   const target=CATCONFIRM; CATCONFIRM=null;
-  CATCELEBRATE={id:target.id, label:target.label, after:target.after||'grid'};
-  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  render();
-  if(reduced){
-    setTimeout(()=>{
-      CATFINISHED[target.id]=true; CATCELEBRATE=null;
-      if(target.after==='next') catStep(1); else goToCategories();
-    }, 900);
-    return;
-  }
+  const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  CATFINISHED[target.id]=true;
+  CATCELEBRATE={id:target.id, label:target.label, after:target.after||'grid', seq:++CELEB_SEQ, reduced};
+  if(target.after==='next') catStep(1); else goToCategories();
+  /* catStep() rendert synchron, goToCategories() laeuft aber ueber history.back() und
+     damit erst im naechsten Tick (oder gar nicht, wenn kein Eintrag zurueckliegt). Das
+     Overlay wird darum hier selbst aufgebaut statt sich auf den render() des Weiter-
+     schritts zu verlassen -- der Idempotenz-Riegel macht ein zweites Bauen zum No-op. */
+  renderCatCelebrate();
+  if(reduced){ CELEB_TIMER=setTimeout(endCatCelebration, 900); return; }
   CATFX={t0:null, init:false, fruits:[], shards:[], rings:[]};
   requestAnimationFrame(catCelebrateLoop);
 }
+/* Einziger Abbau-Weg -- vom Timer, vom Ende der Canvas-Schleife und vom Abbruch-Tipp.
+   Raeumt nur das Overlay ab; die Liste steht schon auf dem naechsten Regal und wird
+   darum bewusst nicht neu gerendert. */
+function endCatCelebration(){
+  if(!CATCELEBRATE && !CELEB_TIMER) return;
+  CATCELEBRATE=null; CATFX=null;
+  clearTimeout(CELEB_TIMER); CELEB_TIMER=null;
+  const root=document.getElementById('catCelebrateRoot');
+  if(root){ root.innerHTML=''; delete root.dataset.seq; }
+}
+/* Abbrechen: der erste Tipp waehrend der Feier raeumt sie weg. Der darauf folgende
+   click wird geschluckt (Zeitfenster statt Flag, damit ein Tipp, aus dem doch eine
+   Wischgeste wird, nicht den naechsten echten Klick mitnimmt) -- sonst trifft ein Tipp,
+   der nur die Karte wegwischen soll, darunter aus Versehen einen Stepper. Scrollen
+   bricht ebenfalls ab, wird aber nicht geschluckt: wer scrollt, will weiterarbeiten. */
+document.addEventListener('pointerdown', e=>{
+  if(!CATCELEBRATE) return;
+  CELEB_EAT_UNTIL = e.timeStamp + 700;
+  endCatCelebration();
+}, true);
+document.addEventListener('click', e=>{
+  if(!CELEB_EAT_UNTIL || e.timeStamp > CELEB_EAT_UNTIL) return;
+  CELEB_EAT_UNTIL=0; e.stopPropagation(); e.preventDefault();
+}, true);
+['wheel','touchmove','keydown'].forEach(ev=>document.addEventListener(ev, ()=>{
+  if(CATCELEBRATE) endCatCelebration();
+}, true));
 
 function catCelebrateLoop(now){
   if(!CATCELEBRATE || !CATFX) return;
@@ -1644,21 +1733,29 @@ function catCelebrateLoop(now){
   });
 
   if(el<2900){ requestAnimationFrame(catCelebrateLoop); return; }
-  const id=CATCELEBRATE.id, after=CATCELEBRATE.after;
-  CATFINISHED[id]=true; CATCELEBRATE=null; CATFX=null;
-  if(after==='next') catStep(1); else goToCategories();
+  endCatCelebration();
 }
 
+/* Laeuft bei jedem render() mit, und waehrend der Feier rendert die Liste weiter (der
+   Kaufmann arbeitet ja schon am naechsten Regal). Darum wird pro Feier genau einmal
+   gebaut -- ein erneutes innerHTML wuerde die CSS-Animation von vorn starten lassen und
+   die Karte zurueckpoppen. */
 function renderCatCelebrate(){
   const root=document.getElementById('catCelebrateRoot');
-  if(!CATCELEBRATE){ root.innerHTML=''; return; }
-  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!CATCELEBRATE){ if(root.dataset.seq){ root.innerHTML=''; delete root.dataset.seq; } return; }
+  if(root.dataset.seq===String(CATCELEBRATE.seq)) return;
+  root.dataset.seq=CATCELEBRATE.seq;
+  const reduced = CATCELEBRATE.reduced;
+  /* Steht schon auf dem naechsten Regal -- CATFILTER ist zu diesem Zeitpunkt bereits umgesetzt. */
+  const weiter = CATCELEBRATE.after==='next' && CATFILTER
+    ? `Weiter mit ${CATFILTER.label}` : 'Zurück zur Regal-Übersicht';
   root.innerHTML = `<div class="catcelebrate">
     ${reduced ? '' : '<canvas id="catCelebrateCanvas"></canvas>'}
     <div class="card">
       <div class="eyebrow">REGAL ABGESCHLOSSEN</div>
       <h2>${CATCELEBRATE.label}</h2>
-      <div class="sub">Sauber. Weiter zum nächsten Regal.</div>
+      <div class="sub">${weiter}</div>
+      <div class="hint">Tippen zum Überspringen</div>
     </div>
   </div>`;
 }
@@ -1682,14 +1779,18 @@ list.addEventListener('click',e=>{
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
-    const wholeOnly = it.case===1;
     let newKo;
-    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = d<0 ? gridStep(r.lo,-1,wholeOnly?1:(r.lo<=1?0.25:0.5)) : Math.ceil(r.hi); }
+    /* Aus der Spannenansicht heraus wird von der jeweiligen Sprossengrenze aus gesteppt --
+       beide Richtungen ueber dasselbe stepKo(), damit − und + gleich weit tragen. Frueher
+       nahm + Math.ceil(r.hi) und sprang dabei ueber das Raster hinweg (hi 0,54 → 1 statt
+       0,57 bei einer 14er Kiste). stepKo() liefert immer einen Wert echt oberhalb von
+       r.hi bzw. echt unterhalb von r.lo, die Sprosse wird also sicher verlassen. */
+    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = stepKo(it, d<0 ? (r.lo??0) : r.hi, d); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
-    else { const inQuarterZone = d<0 ? s.ko<=1 : s.ko<1; newKo = gridStep(s.ko,d,wholeOnly?1:(inQuarterZone?0.25:0.5)); }
+    else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
-    pushChange(it, s.step==='ko' ? `Bestand → ${csNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
+    pushChange(it, s.step==='ko' ? `Bestand → ${koNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
@@ -1728,7 +1829,7 @@ document.getElementById('resetX').addEventListener('click', closeResetDlg);
 document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
-  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATCELEBRATE=null;
+  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; endCatCelebration();
   render();
   closeResetDlg();
 });
@@ -1887,7 +1988,7 @@ document.getElementById('invSpeichern').onclick=()=>{
   const ix=INV.ix, it=ITEMS[ix], s=ST[ix]; TAPS++;
   const next=Math.max(0,Math.min(99,invPadVals().cases));
   applyKo(it, s, next);
-  pushChange(it, s.step==='ko' ? `Bestand → ${csNum(next)} KO · Bestellung ${s.order} KO` : `Bestand → ${csNum(next)} KO (Spanne bestätigt)`);
+  pushChange(it, s.step==='ko' ? `Bestand → ${koNum(next)} KO · Bestellung ${s.order} KO` : `Bestand → ${koNum(next)} KO (Spanne bestätigt)`);
   closeInvPad(); render();
 };
 
