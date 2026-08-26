@@ -191,8 +191,9 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .catbody{flex:1;overflow-y:auto;padding:16px 24px 22px}
 .catsec .lb{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin-bottom:9px}
 .catsec{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
-.catsec .all{flex:none;white-space:nowrap;font-size:12.5px;font-weight:700;color:var(--green);cursor:pointer;
-  border-bottom:1px solid rgba(46,106,80,.35)}
+.catsec .qf{display:inline-flex;gap:8px}
+/* Schnellfilter "Offene Artikel" -- amber wie die Warndreiecke, auf die er zeigt. */
+.catchip.warn{background:var(--amber-bg);color:#8a6a12}
 .catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
 .cattile{background:#fff;border:1px solid #e4e9e6;border-radius:10px;padding:9px;cursor:pointer;display:flex;
   align-items:center;gap:11px;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:box-shadow .18s}
@@ -1075,7 +1076,14 @@ function render(){
     const s=ST[ix], L=t();
     const digitsQ = q.replace(/\D/g,'');
     const hasInvBang = !s.touched && (s.mode==='unsure' || it.invNote); /* mirrors invBang in rowClear() */
-    const catHide = (CATFILT.invNote && !hasInvBang) || (CATFILT.ordNote && !it.ordNote) || (CATFILT.bio && !it.bio) || (CATFILT.promo && !it.promo);
+    /* Die vier Merkmalsfilter sind ein ODER: angehakt heisst "zeig mir auch das", nicht
+       "und ausserdem". Als UND schnitten sie sich gegenseitig weg -- Bestand ! und
+       Bestellmenge ! zusammen liessen von 40 und 71 Zeilen 17 uebrig, alle vier zusammen
+       genau eine. Ohne Haken bleibt alles sichtbar. 'Ausgeblendet' gehoert nicht dazu,
+       das ist ein eigener Schalter weiter unten. */
+    const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
+    const catHide = filtOn && !((CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
+                             || (CATFILT.bio && it.bio) || (CATFILT.promo && it.promo));
     let catFilterHide = false;
     if(CATFILTER){
       if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
@@ -1239,6 +1247,27 @@ function renderCatChip(){
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
 
+/* Wie viele Zeilen tragen ueberhaupt ein ! -- an der Bestandsspalte oder am Bestellwert.
+   Dieselbe Regel wie die beiden Haken im Filter, damit der Schnellfilter genau das
+   findet, was er ankuendigt. Ausgeblendete zaehlen nicht mit, die blendet die Liste
+   ohnehin aus. Die Zahl sinkt, waehrend der Kaufmann die Zeilen abarbeitet. */
+function attnCount(){
+  return ITEMS.filter((it,ix)=>{
+    const s=ST[ix];
+    if(s.hidden && !MANAGE_MODE) return false;
+    return (!s.touched && (s.mode==='unsure' || it.invNote)) || !!it.ordNote;
+  }).length;
+}
+/* Der Schnellfilter setzt CATFILT direkt; Haken und der aktive Zustand des Filter-
+   Knopfs muessen danach nachgezogen werden, sonst zeigt die Filterliste etwas anderes
+   an als die Liste tatsaechlich filtert. */
+function syncFiltUI(){
+  document.querySelectorAll('#filtPop input[type=checkbox]').forEach(cb=>{
+    cb.checked = !!CATFILT[cb.dataset.k];
+  });
+  const b=document.getElementById('filtBtn');
+  if(b) b.classList.toggle('active', Object.values(CATFILT).some(Boolean));
+}
 function renderCatOverlay(){
   const root=document.getElementById('catOverlayRoot');
   if(!CATOPEN){ root.innerHTML=''; return; }
@@ -1304,8 +1333,12 @@ function renderCatOverlay(){
         </div>`;
       }).join('')}</div>`;
   } else {
+    const nAttn = attnCount();
     body = `<div class="catsec"><div class="lb">${tiles.length} Regale</div>
-          <div class="all" data-a="catpick-all">Alle ${ITEMS.length} Artikel zeigen</div></div>
+          <div class="qf">
+            <button class="catchip" type="button" data-a="catpick-all">Alle</button>
+            ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">Offene Artikel</button>` : ''}
+          </div></div>
         <div class="catgrid">${tiles.map(tl=>`
           <div class="cattile${tl.fin?' fin':''}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
             <div class="ic"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
@@ -1357,6 +1390,15 @@ function renderCatOverlay(){
   });
   const allBtn=root.querySelector('[data-a="catpick-all"]');
   if(allBtn) allBtn.addEventListener('click', ()=>goToList(null));
+  /* Schnellfilter: raus aus dem Regal, ueber alle Artikel, beide !-Haken an. Bio und
+     Werbung werden dabei bewusst abgeraeumt -- der Knopf soll immer dasselbe zeigen,
+     egal was vorher im Filter stand. */
+  const attnBtn=root.querySelector('[data-a="catpick-attn"]');
+  if(attnBtn) attnBtn.addEventListener('click', ()=>{
+    CATFILT.invNote=true; CATFILT.ordNote=true; CATFILT.bio=false; CATFILT.promo=false;
+    syncFiltUI();
+    goToList(null);
+  });
   root.querySelectorAll('[data-a="cat-up"]').forEach(el=>{
     el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,-1));
   });
@@ -1742,13 +1784,13 @@ document.getElementById('cPromo').textContent = ITEMS.filter(it=>it.promo).lengt
 
 const filtBtn = document.getElementById('filtBtn');
 const filtPop = document.getElementById('filtPop');
+/* Der Filter-Knopf oeffnet immer die Filterliste. Er war in einer Regal-Ansicht mit dem
+   Regal-Abschluss belegt -- derselbe Knopf tat je nach Ansicht etwas voellig anderes, und
+   wer in "Wurzelgemuese" filtern wollte, stand ploetzlich vor "Regal abschliessen?".
+   Der Abschluss geht ueber "Naechstes Regal ›", das denselben Dialog auch bei offenen
+   Artikeln zeigt, samt "Trotzdem weiter" -- es geht also nichts verloren. */
 filtBtn.addEventListener('click', e=>{
   e.stopPropagation();
-  if(CATFILTER && CATFILTER.kind==='tile'){
-    CATCONFIRM={id:CATFILTER.id, label:CATFILTER.label};
-    render();
-    return;
-  }
   const open = filtPop.classList.toggle('on');
   filtBtn.classList.toggle('on', open);
   filtBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
