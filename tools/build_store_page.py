@@ -39,6 +39,10 @@ DE_REASON = {
     "item_with_display_size_but_no_data": "keine Daten"}
 WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+# The newer pages carry the date in German, the way the app itself writes it: "Mi., 26. Aug.".
+WD_DE = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."]
+MON_DE = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.",
+          "Nov.", "Dez."]
 
 
 class Refusal(Exception):
@@ -144,20 +148,36 @@ def classic_ladder(cs, T, rqb, ek, vk, sl):
     return out, order_at(T)
 
 
+def dec(x):
+    """One decimal, the signed-off style, unless that would print a real edge as 0,0. A rung can
+    open at 0,0121 cases: rounded to one decimal it reads as zero, the rung above it also reads as
+    starting at zero, and the two both claim the same piece."""
+    for n in (1, 2, 3):
+        t = de(x, n)
+        if t.strip("0,") or x == 0:
+            return t
+    return de(x, 3)
+
+
 def label(lo, hi, cs):
     """Case range, piece range, and the shape. Both edges use ceil so the PIECE ranges stay a
-    partition: the last piece of one rung is exactly one below the first of the next."""
-    lo_p = 0 if lo <= 0.05 else int(math.ceil(lo * cs - 1e-9))
+    partition: the last piece of one rung is exactly one below the first of the next.
+
+    ⛔ The shape is decided on the PIECE bound, not on the case bound. Treating any lower edge
+    under 0,05 cases as zero put two rungs on piece 0 for 6 of 176 items at Nahkauf
+    Heidenoldendorf, one of them printing "egal wie viel · ab 0 St. -> 0 Kisten" directly under
+    "0 St. -> 1 Kiste". The piece ranges are what the owner types, so they decide."""
+    lo_p = 0 if lo <= 0 else int(math.ceil(lo * cs - 1e-9))
     hi_p = None if hi is None else int(math.ceil(hi * cs - 1e-9)) - 1
     if hi is None:
-        kind = "any" if lo <= 0.05 else "atleast"
-        expr = "egal wie viel" if lo <= 0.05 else "≥ %s" % de(lo)
-        pcs = "ab 0 St." if lo <= 0.05 else "ab %d St." % lo_p
-    elif lo <= 0.05:
-        kind, expr = "lessthan", "&lt; %s" % de(hi)
+        kind = "any" if lo_p <= 0 else "atleast"
+        expr = "egal wie viel" if lo_p <= 0 else "≥ %s" % dec(lo)
+        pcs = "ab 0 St." if lo_p <= 0 else "ab %d St." % lo_p
+    elif lo_p <= 0:
+        kind, expr = "lessthan", "&lt; %s" % dec(hi)
         pcs = "%d St." % hi_p if hi_p <= 0 else "0 bis %d St." % hi_p
     else:
-        kind, expr = "between", "≥ %s &nbsp; &lt; %s" % (de(lo), de(hi))
+        kind, expr = "between", "≥ %s &nbsp; &lt; %s" % (dec(lo), dec(hi))
         pcs = "%d St." % lo_p if hi_p <= lo_p else "%d bis %d St." % (lo_p, hi_p)
     return kind, expr, pcs, lo_p, hi_p
 
@@ -247,11 +267,16 @@ def inject(page, items, day, store_label=None):
                       f"page; fix the splice.")
     s = s[:m.start(1)] + json.dumps(items, ensure_ascii=False) + s[m.end(1):]
     y, mo, d = (int(v) for v in day.split("-"))
-    wd = WD[date(y, mo, d).weekday()]
-    # ⛔ Match BOTH labels. The header was renamed to the app's German ("Ordersatz") once and the
-    # date silently stopped updating, so a sheet showed the wrong day in a store.
-    s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z]{3}, [A-Za-z]{3} \d+',
-                   lambda mm: '%s &nbsp;%s, %s %d' % (mm.group(1), wd, MON[mo - 1], d), s)
+    wi = date(y, mo, d).weekday()
+    # ⛔ Match BOTH labels AND both date spellings. The header was renamed to the app's German
+    # ("Ordersatz") once and the date silently stopped updating, so a sheet showed the wrong day in
+    # a store. The newer pages then switched the date itself to German and broke it a second time.
+    s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{2,4}\., '
+                   r'\d+\. [A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{3,5}\.?',
+                   lambda mm: '%s &nbsp;%s, %d. %s' % (mm.group(1), WD_DE[wi], d, MON_DE[mo - 1]), s)
+    if n == 0:
+        s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z]{3}, [A-Za-z]{3} \d+',
+                       lambda mm: '%s &nbsp;%s, %s %d' % (mm.group(1), WD[wi], MON[mo - 1], d), s)
     if n != 1:
         raise Refusal(f"header date rewritten {n} times, expected exactly 1. The page would show "
                       f"the wrong day.")
