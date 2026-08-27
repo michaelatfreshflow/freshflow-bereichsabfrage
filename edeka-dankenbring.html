@@ -222,17 +222,32 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .hdr .rgt{display:flex;align-items:center;gap:12px;font-size:var(--ff-text-primary-caption-12);text-align:right;line-height:1.3}
 .chk{width:26px;height:26px;border-radius:50%;background:#8FD3A8;color:var(--ff-color-dark-green);display:grid;place-items:center;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-extra-bold)}
 
-/* ---------- language switcher ---------- */
-.LangSwitch{display:inline-flex;align-items:center;gap:2px;background:var(--ff-grey-100);
-  border-radius:var(--ff-radius-pill);padding:2px}
-.LangSwitch--onGreen{background:rgba(255,255,255,.16)}
-.LangSwitch__btn{border:0;background:none;cursor:pointer;border-radius:var(--ff-radius-pill);
-  padding:4px 9px;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);
-  color:var(--ff-grey-600);-webkit-tap-highlight-color:transparent;font-family:inherit}
-.LangSwitch--onGreen .LangSwitch__btn{color:rgba(255,255,255,.75)}
-.LangSwitch__btn.on{background:var(--ff-color-white);color:var(--ff-color-primary)}
-.LangSwitch--onGreen .LangSwitch__btn.on{background:var(--ff-color-white);color:var(--ff-color-primary)}
-
+/* ---------- language menu (dashboard only) ----------
+   Sits in the green dashboard header where the static "DE ⌄" used to. The popup
+   follows the app's menu chrome: white, AppBorderRadius.c8, grey.shade200
+   border, primaryBodyText14. */
+.LangMenu{position:relative}
+.LangMenu__btn{display:flex;align-items:center;gap:5px;border:0;background:none;cursor:pointer;
+  color:var(--ff-color-white);font-family:inherit;
+  font-weight:var(--ff-weight-bold);font-size:var(--ff-text-primary-body-text-14);
+  padding:6px 4px;border-radius:var(--ff-radius-c8);-webkit-tap-highlight-color:transparent}
+.LangMenu__btn svg{transition:transform .16s}
+.LangMenu.on .LangMenu__btn svg{transform:rotate(180deg)}
+.LangMenu__pop{position:absolute;top:calc(100% + 8px);right:0;min-width:172px;z-index:60;
+  background:var(--ff-color-white);border:1px solid var(--ff-grey-200);
+  border-radius:var(--ff-radius-c8);box-shadow:0 8px 24px rgba(39,39,42,.18);
+  padding:6px;display:none;flex-direction:column;gap:2px}
+.LangMenu.on .LangMenu__pop{display:flex}
+.LangMenu__pop button{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  border:0;background:none;cursor:pointer;width:100%;text-align:left;font-family:inherit;
+  padding:9px 10px;border-radius:var(--ff-radius-c4);
+  font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-medium);
+  color:var(--ff-grey-900);-webkit-tap-highlight-color:transparent}
+.LangMenu__pop button i{font-style:normal;font-size:var(--ff-text-primary-caption-12);
+  font-weight:var(--ff-weight-bold);color:var(--ff-grey-400)}
+.LangMenu__pop button:hover{background:var(--ff-grey-100)}
+.LangMenu__pop button.on{background:var(--ff-primary-10);color:var(--ff-color-primary)}
+.LangMenu__pop button.on i{color:var(--ff-color-primary)}
 /* ---------- toolbars ---------- */
 .srch{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line)}
 .srch input{border:0;outline:0;font-size:var(--ff-text-primary-body-text-16);flex:1;color:var(--ink)}
@@ -1064,10 +1079,16 @@ body.dash-active .stage{display:none}
     </div>
     <span class="dash-divider"></span>
     <span class="chk" style="width:30px;height:30px;font-size:var(--ff-text-primary-body-text-16)">✓</span>
-    <div class="dash-lang LangSwitch" id="langDash">
-      <button type="button" class="LangSwitch__btn" data-lang="de">DE</button>
-      <button type="button" class="LangSwitch__btn" data-lang="en">EN</button>
-      <button type="button" class="LangSwitch__btn" data-lang="fr">FR</button>
+    <div class="LangMenu" id="langMenu">
+      <button type="button" class="LangMenu__btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
+        <span id="langCurrent">DE</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="LangMenu__pop" id="langPop" role="listbox">
+        <button type="button" role="option" data-lang="de"><span>Deutsch</span><i>DE</i></button>
+        <button type="button" role="option" data-lang="en"><span>English</span><i>EN</i></button>
+        <button type="button" role="option" data-lang="fr"><span>Français</span><i>FR</i></button>
+      </div>
     </div>
     <div class="dash-profile">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ff-color-white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
@@ -1077,7 +1098,7 @@ body.dash-active .stage{display:none}
   <div class="dash-body">
     <div class="dash-row1">
       <div>
-        <div class="dash-sec-lb">Die heutigen Bestellungen</div>
+        <div class="dash-sec-lb" id="dbTodayOrders">Die heutigen Bestellungen</div>
         <div class="dash-ordercard">
           <div class="top">
             <div class="nm">Edeka</div>
@@ -1088,19 +1109,19 @@ body.dash-active .stage{display:none}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a6a2c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </div>
         </div>
-        <div class="dash-more">Mehr Bestellungen ›</div>
+        <div class="dash-more" id="dbMoreOrders">Mehr Bestellungen ›</div>
       </div>
       <div class="dash-row1-right">
-        <div class="dash-sec-lb">Heutige Übersicht <span class="dt">26. Aug. 2026</span></div>
+        <div class="dash-sec-lb"><span id="dbOverview">Heutige Übersicht</span> <span class="dt">26. Aug. 2026</span></div>
         <div class="dash-kpis">
           <div class="dash-kpi">
-            <div class="lb">Umsatz</div>
+            <div class="lb" id="dbRevenue">Umsatz</div>
             <div class="val">129.085 €</div>
             <div class="chg">▲ +3,4 %</div>
             <div class="rng">Juli 27 - Aug. 26</div>
           </div>
           <div class="dash-kpi">
-            <div class="lb">Abschriften</div>
+            <div class="lb" id="dbShrink">Abschriften</div>
             <div class="val">1.886 €</div>
             <div class="chg">▼ -28,9 %</div>
             <div class="rng">Juli 27 - Aug. 26</div>
@@ -1111,7 +1132,7 @@ body.dash-active .stage{display:none}
 
     <div class="dash-row2">
       <div class="dash-card dash-mini">
-        <div class="lb">Wetter</div>
+        <div class="lb" id="dbWeather">Wetter</div>
         <div class="dash-city">Berlin</div>
         <div class="dash-temp">12°C | 19°C
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a94c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 15a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.6A3.5 3.5 0 0 0 7 15h10z"/><line x1="9" y1="19" x2="9" y2="21"/><line x1="13" y1="19" x2="13" y2="21"/><line x1="17" y1="19" x2="17" y2="21"/></svg>
@@ -1120,13 +1141,13 @@ body.dash-active .stage{display:none}
         <div class="dash-mini-more">Siehe Wetter ›</div>
       </div>
       <div class="dash-card dash-mini">
-        <div class="lb">Zukünftige Ereignisse</div>
+        <div class="lb" id="dbUpcoming">Zukünftige Ereignisse</div>
         <div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>
         <div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>
         <div class="dash-mini-more">Alle Ereignisse ›</div>
       </div>
       <div class="dash-card dash-mini">
-        <div class="lb">Tutorial Videos</div>
+        <div class="lb" id="dbTutorials">Tutorial Videos</div>
         <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Einführung in die Bestellvorbereitungen</div>
         <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Wie kann man Elemente ausblenden?</div>
         <div class="dash-mini-more">Alle Videos ›</div>
@@ -1207,19 +1228,19 @@ body.dash-active .stage{display:none}
     </button>
     <div class="dash-navitem on">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
-      Dashboard
+      <span id="dbNav1">Dashboard</span>
     </div>
     <div class="dash-navitem">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/></svg>
-      Bestellungen
+      <span id="dbNav2">Bestellungen</span>
     </div>
     <div class="dash-navitem">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 20v-6h6v6"/></svg>
-      Mein Markt
+      <span id="dbNav3">Mein Markt</span>
     </div>
     <div class="dash-navitem">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Einstellungen
+      <span id="dbNav4">Einstellungen</span>
     </div>
   </div>
 </div>
@@ -1232,7 +1253,7 @@ body.dash-active .stage{display:none}
       <div class="t1" id="lblOrdersatz">Ordersatz &nbsp;Mi., 26. Aug. &nbsp;<span class="dim">| &nbsp;Edeka Dankenbring, Hodenhagen</span></div>
       <div class="t2" id="lblDeadline">Bestellschluss heute 13:00 Uhr</div>
     </div>
-    <div class="rgt"><div class="LangSwitch LangSwitch--onGreen" id="langApp"><button type="button" class="LangSwitch__btn" data-lang="de">DE</button><button type="button" class="LangSwitch__btn" data-lang="en">EN</button><button type="button" class="LangSwitch__btn" data-lang="fr">FR</button></div><span class="chk">✓</span><div>Di., 25. Aug.<br>&nbsp;</div></div>
+    <div class="rgt"><span class="chk">✓</span><div>Di., 25. Aug.<br>&nbsp;</div></div>
   </div>
 
   <div class="srch">
@@ -1875,6 +1896,9 @@ const t=()=>T[LANG];
 const LANG_LABELS={
   hdrItem:'item', hdrInv:'inventory', hdrOrd:'order',
   lblFilter:'filter', cta:'completeOrderArrow', backLink:'backArrow',
+  dbTodayOrders:'todayOrders', dbOverview:'todayOverview', dbRevenue:'revenue',
+  dbShrink:'shrink', dbWeather:'weather', dbUpcoming:'upcoming', dbTutorials:'tutorials',
+  dbNav1:'navDashboard', dbNav2:'navOrders', dbNav3:'navMyStore', dbNav4:'navSettings',
   lblOrdersatz:'ordersatz', lblDeadline:'deadlineToday',
   lblCases:'caseCount', lblEk:'cost', lblVk:'retail', lblMargin:'margin',
   lblAcceptance:'acceptance',
@@ -1887,14 +1911,19 @@ function applyLang(){
     const el=document.getElementById(id);
     if(el && L[key]) el.textContent=L[key];
   }
+  /* carries a trailing chevron the .arb string does not have */
+  const mo=document.getElementById('dbMoreOrders');
+  if(mo) mo.textContent = L.seeMoreOrders + ' \u203a';
   const mb=document.getElementById('manageBtnLabel');
   if(mb) mb.textContent = (typeof MANAGE_MODE!=='undefined' && MANAGE_MODE) ? L.manageDone : L.manageOrder;
   const q=document.getElementById('q');
   if(q) q.placeholder=L.search;
   const qi=document.getElementById('catQ');
   if(qi) qi.placeholder=L.searchItems;
-  document.querySelectorAll('.LangSwitch__btn').forEach(b=>
+  document.querySelectorAll('.LangMenu__pop button').forEach(b=>
     b.classList.toggle('on', b.dataset.lang===LANG));
+  const cur=document.getElementById('langCurrent');
+  if(cur) cur.textContent=LANG.toUpperCase();
   document.documentElement.lang=LANG;
 }
 function setLang(next){
@@ -1905,9 +1934,34 @@ function setLang(next){
   if(typeof renderCatOverlay==='function') renderCatOverlay();
   if(typeof renderCatConfirm==='function') renderCatConfirm();
 }
+/* Menu: the trigger toggles, an option picks, anything else closes it. */
 document.addEventListener('click', e=>{
-  const b=e.target.closest('.LangSwitch__btn');
-  if(b) setLang(b.dataset.lang);
+  const menu=document.getElementById('langMenu');
+  if(!menu) return;
+  if(e.target.closest('#langBtn')){
+    const open=menu.classList.toggle('on');
+    document.getElementById('langBtn').setAttribute('aria-expanded', open?'true':'false');
+    return;
+  }
+  const opt=e.target.closest('.LangMenu__pop button');
+  if(opt){
+    setLang(opt.dataset.lang);
+    menu.classList.remove('on');
+    document.getElementById('langBtn').setAttribute('aria-expanded','false');
+    return;
+  }
+  if(!e.target.closest('#langMenu')){
+    menu.classList.remove('on');
+    document.getElementById('langBtn')?.setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  const menu=document.getElementById('langMenu');
+  if(menu && menu.classList.contains('on')){
+    menu.classList.remove('on');
+    document.getElementById('langBtn').setAttribute('aria-expanded','false');
+  }
 });
 
 

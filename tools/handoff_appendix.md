@@ -668,6 +668,18 @@ Using the app's wording means some German moved to match it — "Anzahl Kisten" 
 "Anzahl Kollis", "Übernahmequote" became "Übernahme". That is the app's vocabulary, so
 it is a correction rather than a regression, but it is a visible change.
 
+### The control
+
+A dropdown in the dashboard header, where the static "DE ⌄" used to sit — trigger shows
+the current code, popup lists the languages by their own names (Deutsch / English /
+Français) with the active one marked. Opens on click, closes on pick, on an outside
+click, or on Escape.
+
+**Dashboard only.** There is no switcher on the order screen: a store owner picks a
+language once, they do not toggle it mid-order. The dashboard itself is now translated
+too — card titles, bottom-nav labels and the orders link — since it would be odd for the
+one screen carrying the control to be the one that ignores it.
+
 ### How it works
 
 Static chrome is relabelled by id from `LANG_LABELS`; everything rendered from a
