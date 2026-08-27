@@ -622,6 +622,55 @@ predicate the shelf progress uses, so the dialog and the tile can never disagree
 Proposed keys: `shelfCompleteDialogPendingMessage` (plural, `one`/`other`) and
 `shelfCompleteDialogAllCheckedMessage`.
 
+## Languages: DE / EN / FR
+
+The demo now switches language, so colleagues who do not read German can use it.
+`tools/gen_strings.py --check` verifies the table against the app.
+
+**46 strings are the app's own wording**, taken verbatim from `Mobile/i10n/intl_*.arb`
+— matched by looking up the prototype's German against `intl_de_DE.arb` and pulling the
+sibling EN/FR. So the demo says what the app says:
+
+| | de | en | fr |
+|---|---|---|---|
+| `missingInputOrderSetCategoryCaption` | Ordersatz | Order Guide | Guide de commande |
+| `tableInventoryHeader` | Bestand | Inventory | Inventaire |
+| `commonCaseUnitLabel` | KO | CS | CS |
+| `orderItemFieldFrontInventoryLabel` | Fläche | Floor | Rayon |
+| `needsAttentionGroupDisplaySizeCaption` | Auslage | Display size | Linéaire |
+| `commonAcceptanceRateCaption` | Übernahme | Acceptance | Acceptation |
+
+**49 are Bereichsabfrage-specific** — the shelf picker, the stepper wording, the
+completion dialog. Those have no counterpart in the app and are translated in the
+prototype. They are the list that still needs real `.arb` keys, and
+`gen_strings.py` prints them.
+
+### Note: German changed too
+
+Using the app's wording means some German moved to match it — "Anzahl Kisten" became
+"Anzahl Kollis", "Übernahmequote" became "Übernahme". That is the app's vocabulary, so
+it is a correction rather than a regression, but it is a visible change.
+
+### How it works
+
+Static chrome is relabelled by id from `LANG_LABELS`; everything rendered from a
+template already reads `t()` and comes back translated on the next `render()`. Product
+names, PLUs and prices are data and stay as they are. The switcher sits in the order
+header and on the dashboard, matching the existing `DE ⌄` control.
+
+### Four bugs this surfaced, all worth knowing
+
+- **Duplicate `id` attributes.** Adding `id="lblX"` to an element that already had one
+  silently does nothing — the parser keeps the first. Hit three times.
+- **A broad string replace hit the string table itself**, turning the German value
+  `'egal wie viel'` into `t().anyAmount` — a self-reference evaluated before `t`
+  existed, which killed the whole script at load.
+- **`textContent` on a label wiped its value child.** The footer labels contain
+  `<b id="fcases">`; relabelling the parent deleted the number the code then tried to
+  update. Labels need their own span.
+- **A replace matched a closing tag**, producing `</svg id="lblFilter">`. Malformed, and
+  the browser silently dropped the attribute.
+
 ## The state machine
 
 The behaviour behind the Bestand cell -- five item modes, three stepper views, two

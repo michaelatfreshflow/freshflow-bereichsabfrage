@@ -222,6 +222,17 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .hdr .rgt{display:flex;align-items:center;gap:12px;font-size:var(--ff-text-primary-caption-12);text-align:right;line-height:1.3}
 .chk{width:26px;height:26px;border-radius:50%;background:#8FD3A8;color:var(--ff-color-dark-green);display:grid;place-items:center;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-extra-bold)}
 
+/* ---------- language switcher ---------- */
+.LangSwitch{display:inline-flex;align-items:center;gap:2px;background:var(--ff-grey-100);
+  border-radius:var(--ff-radius-pill);padding:2px}
+.LangSwitch--onGreen{background:rgba(255,255,255,.16)}
+.LangSwitch__btn{border:0;background:none;cursor:pointer;border-radius:var(--ff-radius-pill);
+  padding:4px 9px;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);
+  color:var(--ff-grey-600);-webkit-tap-highlight-color:transparent;font-family:inherit}
+.LangSwitch--onGreen .LangSwitch__btn{color:rgba(255,255,255,.75)}
+.LangSwitch__btn.on{background:var(--ff-color-white);color:var(--ff-color-primary)}
+.LangSwitch--onGreen .LangSwitch__btn.on{background:var(--ff-color-white);color:var(--ff-color-primary)}
+
 /* ---------- toolbars ---------- */
 .srch{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line)}
 .srch input{border:0;outline:0;font-size:var(--ff-text-primary-body-text-16);flex:1;color:var(--ink)}
@@ -1053,8 +1064,10 @@ body.dash-active .stage{display:none}
     </div>
     <span class="dash-divider"></span>
     <span class="chk" style="width:30px;height:30px;font-size:var(--ff-text-primary-body-text-16)">✓</span>
-    <div class="dash-lang">DE
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="dash-lang LangSwitch" id="langDash">
+      <button type="button" class="LangSwitch__btn" data-lang="de">DE</button>
+      <button type="button" class="LangSwitch__btn" data-lang="en">EN</button>
+      <button type="button" class="LangSwitch__btn" data-lang="fr">FR</button>
     </div>
     <div class="dash-profile">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ff-color-white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
@@ -1216,15 +1229,15 @@ body.dash-active .stage{display:none}
   <div class="hdr">
     <div class="back" id="backLink">‹ Zurück</div>
     <div class="mid">
-      <div class="t1">Ordersatz &nbsp;Mi., 26. Aug. &nbsp;<span class="dim">| &nbsp;Edeka Dankenbring, Hodenhagen</span></div>
-      <div class="t2">Bestellschluss heute 13:00 Uhr</div>
+      <div class="t1" id="lblOrdersatz">Ordersatz &nbsp;Mi., 26. Aug. &nbsp;<span class="dim">| &nbsp;Edeka Dankenbring, Hodenhagen</span></div>
+      <div class="t2" id="lblDeadline">Bestellschluss heute 13:00 Uhr</div>
     </div>
-    <div class="rgt"><span class="chk">✓</span><div>Di., 25. Aug.<br>&nbsp;</div></div>
+    <div class="rgt"><div class="LangSwitch LangSwitch--onGreen" id="langApp"><button type="button" class="LangSwitch__btn" data-lang="de">DE</button><button type="button" class="LangSwitch__btn" data-lang="en">EN</button><button type="button" class="LangSwitch__btn" data-lang="fr">FR</button></div><span class="chk">✓</span><div>Di., 25. Aug.<br>&nbsp;</div></div>
   </div>
 
   <div class="srch">
     <span style="color:var(--ff-grey-400)">⌕</span>
-    <input id="q" type="search" placeholder="Suche" autocomplete="off">
+    <input id="q" type="search" placeholder="Suche" id="qInput" autocomplete="off">
   </div>
 
   <div class="tools">
@@ -1236,14 +1249,14 @@ body.dash-active .stage{display:none}
     <span class="sp"></span>
     <div class="filtwrap" id="filtwrap">
       <button class="btn" id="filtBtn" type="button" aria-haspopup="true" aria-expanded="false">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>Filter
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span id="lblFilter">Filter</span>
       </button>
       <div class="filtpop" id="filtPop">
-        <label class="fopt"><input type="checkbox" id="fInv" data-k="invNote"><span>Bestand<span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cInv">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span>Bestellmenge<span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cOrd">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fBio" data-k="bio"><span>Bio</span><b id="cBio">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span>Werb.</span><b id="cPromo">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span>Ausgeblendet</span><b id="cHidden">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fInv" data-k="invNote"><span id="fltInv">Bestand</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cInv">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span id="fltOrd">Bestellmenge</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cOrd">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fBio" data-k="bio"><span id="fltBio">Bio</span><b id="cBio">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span id="fltSale">Werb.</span><b id="cPromo">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span id="fltHidden">Ausgeblendet</span><b id="cHidden">0</b></label>
       </div>
     </div>
     <button class="resetBtn" id="resetBtn" type="button" title="Zurücksetzen" aria-label="Zurücksetzen">
@@ -1251,15 +1264,15 @@ body.dash-active .stage{display:none}
     </button>
   </div>
 
-  <div class="colh" id="colh"><div>Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv">Bestand<span class="sortarrow" id="arrow-inv"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div><div><span class="sortlabel" data-a="sort" data-col="ord">Bestellung<span class="sortarrow" id="arrow-ord"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div></div>
+  <div class="colh" id="colh"><div id="hdrItem">Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv"><span id="hdrInv">Bestand</span><span class="sortarrow" id="arrow-inv"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div><div><span class="sortlabel" data-a="sort" data-col="ord"><span id="hdrOrd">Bestellung</span><span class="sortarrow" id="arrow-ord"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div></div>
   <div class="list" id="list"></div>
 
   <div class="foot">
-    <div class="m">Anzahl Kisten<b id="fcases">0</b></div>
-    <div class="m">EK<b id="fcost">0,00 €</b></div>
-    <div class="m">VK<b id="fret">0,00 €</b></div>
-    <div class="m">Spanne<b id="fmar">0,00 %</b></div>
-    <div class="m">Übernahmequote<b id="fans">0 %</b></div>
+    <div class="m"><span id="lblCases">Anzahl Kisten</span><b id="fcases">0</b></div>
+    <div class="m"><span id="lblEk">EK</span><b id="fcost">0,00 €</b></div>
+    <div class="m"><span id="lblVk">VK</span><b id="fret">0,00 €</b></div>
+    <div class="m"><span id="lblMargin">Spanne</span><b id="fmar">0,00 %</b></div>
+    <div class="m"><span id="lblAcceptance">Übernahmequote</span><b id="fans">0 %</b></div>
     <div class="sp"></div>
     <button class="cta" id="nextRegalBtn" type="button" style="background:var(--ff-color-white);color:var(--green);border:1.5px solid var(--green)">Nächstes Regal ›</button>
     <button class="cta" id="cta">Bestellung abschließen ›</button>
@@ -1523,37 +1536,355 @@ const FC = ['Tu','We','Th','Fr','Sa','Su','Mo'];
 
 /* ---------- language ---------- */
 let LANG='de';
+/* GENERATED -- see tools/gen_strings.py.
+   Entries marked [arb] are taken verbatim from Mobile/i10n/intl_*.arb so the
+   demo reads exactly like the app; the rest are Bereichsabfrage-specific and
+   are translated here, awaiting real .arb keys. */
 const T={
- de:{count:'Zählen: Bestand eingeben', noladder:'Bestand eingeben',
-     countsub:'Turnusmässige Zählung fällig', nolsub:'Modell rechnet hier kein Bereich',
-     unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen',
-     onlyopen:'Nur offene', all:'Alle',
-     /* Shelf picker. Proposed .arb keys follow the app's
-        <feature><Thing><Role> pattern -- see intl_de_DE.arb. */
-     shelfEyebrow:'Regale',              // shelfPickerEyebrow
-     shelfTitle:'Wo bist du gerade?',    // shelfPickerTitle
-     shelfCount:'Regale',                // shelfPickerShelfCountLabel  {count} Regale
-     shelfItems:'Artikel',               // shelfGridItemItemCountLabel {count} Artikel
-     shelfDone:'✓ Fertig',               // shelfGridItemDoneBadge
-     shelfCurrent:'aktuell',             // shelfAssignCurrentLabel
-     shelfChoose:'wählen'},              // shelfAssignChooseLabel
- en:{count:'Count: enter inventory', noladder:'Enter inventory',
-     countsub:'Periodic count due', nolsub:'Model produces no band here',
-     unsure:'App inventory contradicts Plan A', bulk:'Bestätigen all',
-     onlyopen:'Open only', all:'All',
-     shelfEyebrow:'Shelves', shelfTitle:'Where are you right now?',
-     shelfCount:'shelves', shelfItems:'items', shelfDone:'✓ Done',
-     shelfCurrent:'current', shelfChoose:'choose'}
+  de:{
+    ordersatz:'Ordersatz',  // [arb] missingInputOrderSetCategoryCaption
+    back:'Zurück',  // [arb] commonBack
+    item:'Artikel',  // [arb] commonItem
+    inventory:'Bestand',  // [arb] tableInventoryHeader
+    order:'Bestellung',  // [arb] tableOrderHeader
+    search:'Suche',  // [arb] commonSearch
+    filter:'Filtern',  // [arb] commonFilterBy
+    cancel:'Abbrechen',  // [arb] commonCancel
+    close:'Schließen',  // [arb] commonClose
+    save:'Speichern',  // [arb] commonSave
+    confirm:'Bestätigen',  // [arb] commonConfirm
+    continue:'Fortfahren',  // [arb] commonContinue
+    completeOrder:'Bestellung abschließen',  // [arb] commonCompleteOrder
+    manageOrder:'Bestellung verwalten',  // [arb] orderManageItemsCaption
+    caseCount:'Anzahl Kollis',  // [arb] commonCaseCount
+    caseUnit:'KO',  // [arb] commonCaseUnitLabel
+    piece:'Stück',  // [arb] orderItemUnitPiece
+    displaySize:'Auslage',  // [arb] needsAttentionGroupDisplaySizeCaption
+    backStock:'Lager',  // [arb] orderItemFieldBackInventoryLabel
+    frontStock:'Fläche',  // [arb] orderItemFieldFrontInventoryLabel
+    total:'Gesamt',  // [arb] tableTotalInventoryHeader
+    cost:'EK',  // [arb] commonOrderCost
+    retail:'VK',  // [arb] commonRetailPrice
+    margin:'Spanne',  // [arb] commonProfitMargin
+    acceptance:'Übernahme',  // [arb] commonAcceptanceRateCaption
+    shrink:'Abschriften',  // [arb] missingInputShrinkCategoryCaption
+    revenue:'Umsatz',  // [arb] revenueOverviewTitle
+    weather:'Wetter',  // [arb] dashboardWeatherCardTitle
+    todayOverview:'Heutige Übersicht',  // [arb] dashboardRevenueSalesOverviewCardTitle
+    todayOrders:'Die heutigen Bestellungen',  // [arb] dashboardTodayOrdersCardTitle
+    tutorials:'Tutorial Videos',  // [arb] dashboardTutorialsCardTitle
+    upcoming:'Zukünftige Ereignisse',  // [arb] dashboardUpcomingEventsCardTitle
+    seeMoreOrders:'Mehr Bestellungen',  // [arb] dashboardOrdersCardSeeAllCaption
+    currentOrder:'Aktuelle Bestellung',  // [arb] fabNewOrder
+    statusOpen:'Offen',  // [arb] orderStatusOpen
+    deadline:'Bestellfrist',  // [arb] ordersListDeadlineCaption
+    hiddenItems:'Versteckte Elemente',  // [arb] sortHiddenItemsCaption
+    clearFilters:'Filter zurücksetzen',  // [arb] filterClearCaption
+    bio:'Bio',  // [arb] orderItemLabelBio
+    sale:'Werb.',  // [arb] orderItemLabelSale
+    navDashboard:'Dashboard',  // [arb] navDashboard
+    navOrders:'Bestellungen',  // [arb] navOrders
+    navMyStore:'Mein Markt',  // [arb] navMyStore
+    navSettings:'Einstellungen',  // [arb] navSettings
+    orderQuantity:'Bestellmenge',  // [arb] needsAttentionGroupOrderCaption
+    allEvents:'Ereignisse',  // [arb] dashboardEventsTableColumnHeader
+    backArrow:'‹ Zurück',
+    completeOrderArrow:'Bestellung abschließen ›',
+    deadlineToday:'Bestellschluss heute 13:00 Uhr',
+    manageDone:'Beenden',
+    shelfEyebrow:'Regale',
+    shelfTitle:'Wo bist du gerade?',
+    shelfCount:'Regale',
+    shelfItems:'Artikel',
+    shelfDone:'✓ Fertig',
+    shelfCurrent:'aktuell',
+    shelfChoose:'wählen',
+    shelfSelect:'Regal wählen',
+    shelfNext:'Nächstes Regal',
+    shelfClose:'Regal abschließen',
+    shelfCloseQ:'abschließen?',
+    shelfCloseYes:'Ja, abschließen',
+    openItems:'Offene Artikel',
+    showAll:'Alle anzeigen',
+    all:'Alle',
+    onlyopen:'Nur offene',
+    more:'mehr',
+    less:'weniger',
+    undo:'Rückgängig',
+    reset:'Zurücksetzen',
+    resetQ:'Wirklich zurücksetzen?',
+    bulk:'Alle bestätigen',
+    searchItems:'Artikel suchen',
+    scanDemo:'Barcode scannen (Demo)',
+    editShelves:'Bearbeiten',
+    adjustDisplay:'Auslage anpassen',
+    adjustOrder:'Bestellung anpassen',
+    switchToBack:'Zu Lager wechseln',
+    enterInventory:'Bitte geben Sie den Bestand für den folgenden Artikel ein.',
+    enterDisplay:'Bitte geben Sie die Auslage für den folgenden Artikel ein.',
+    enterOrder:'Bitte geben Sie die Bestellung für den folgenden Artikel ein.',
+    count:'Zählen: Bestand eingeben',
+    noladder:'Bestand eingeben',
+    countsub:'Turnusmässige Zählung fällig',
+    nolsub:'Modell rechnet hier kein Bereich',
+    unsure:'App-Bestand widerspricht Plan A',
+    atLeast:'mind.',
+    exactly:'genau',
+    anyAmount:'egal wie viel',
+    prevOrder:'Best.',
+    case:'Kiste',
+    dlgPendingOne:'Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt.',
+    dlgPendingMany:'Du hast noch {n} offene Artikel, die deine Aufmerksamkeit benötigen.',
+    dlgAllChecked:'Du hast alle Artikel geprüft.',
+    dlgClosing:'Sobald du das Regal abschließt, wird dieses als erledigt markiert.',
+  },
+  en:{
+    ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
+    back:'Back',  // [arb] commonBack
+    item:'Item',  // [arb] commonItem
+    inventory:'Inventory',  // [arb] tableInventoryHeader
+    order:'Order',  // [arb] tableOrderHeader
+    search:'Search',  // [arb] commonSearch
+    filter:'Filter',  // [arb] commonFilterBy
+    cancel:'Cancel',  // [arb] commonCancel
+    close:'Close',  // [arb] commonClose
+    save:'Save',  // [arb] commonSave
+    confirm:'Confirm',  // [arb] commonConfirm
+    continue:'Continue',  // [arb] commonContinue
+    completeOrder:'Complete order',  // [arb] commonCompleteOrder
+    manageOrder:'Manage order',  // [arb] orderManageItemsCaption
+    caseCount:'Case Count',  // [arb] commonCaseCount
+    caseUnit:'CS',  // [arb] commonCaseUnitLabel
+    piece:'Piece',  // [arb] orderItemUnitPiece
+    displaySize:'Display size',  // [arb] needsAttentionGroupDisplaySizeCaption
+    backStock:'Back',  // [arb] orderItemFieldBackInventoryLabel
+    frontStock:'Floor',  // [arb] orderItemFieldFrontInventoryLabel
+    total:'Total',  // [arb] tableTotalInventoryHeader
+    cost:'Order Cost',  // [arb] commonOrderCost
+    retail:'Retail Price',  // [arb] commonRetailPrice
+    margin:'Margin',  // [arb] commonProfitMargin
+    acceptance:'Acceptance',  // [arb] commonAcceptanceRateCaption
+    shrink:'Shrink',  // [arb] missingInputShrinkCategoryCaption
+    revenue:'Revenue',  // [arb] revenueOverviewTitle
+    weather:'Weather',  // [arb] dashboardWeatherCardTitle
+    todayOverview:'Today\'s Overview',  // [arb] dashboardRevenueSalesOverviewCardTitle
+    todayOrders:'Today\'s Orders',  // [arb] dashboardTodayOrdersCardTitle
+    tutorials:'Tutorial Videos',  // [arb] dashboardTutorialsCardTitle
+    upcoming:'Upcoming Events',  // [arb] dashboardUpcomingEventsCardTitle
+    seeMoreOrders:'See More Orders',  // [arb] dashboardOrdersCardSeeAllCaption
+    currentOrder:'Current Order',  // [arb] fabNewOrder
+    statusOpen:'Open',  // [arb] orderStatusOpen
+    deadline:'Deadline',  // [arb] ordersListDeadlineCaption
+    hiddenItems:'Hidden Items',  // [arb] sortHiddenItemsCaption
+    clearFilters:'Clear filters',  // [arb] filterClearCaption
+    bio:'Bio',  // [arb] orderItemLabelBio
+    sale:'Sale',  // [arb] orderItemLabelSale
+    navDashboard:'Dashboard',  // [arb] navDashboard
+    navOrders:'Orders',  // [arb] navOrders
+    navMyStore:'My Store',  // [arb] navMyStore
+    navSettings:'Settings',  // [arb] navSettings
+    orderQuantity:'Order quantity',  // [arb] needsAttentionGroupOrderCaption
+    allEvents:'Event',  // [arb] dashboardEventsTableColumnHeader
+    backArrow:'‹ Back',
+    completeOrderArrow:'Complete order ›',
+    deadlineToday:'Order deadline today 13:00',
+    manageDone:'Done',
+    shelfEyebrow:'Shelves',
+    shelfTitle:'Where are you right now?',
+    shelfCount:'shelves',
+    shelfItems:'items',
+    shelfDone:'✓ Done',
+    shelfCurrent:'current',
+    shelfChoose:'choose',
+    shelfSelect:'Choose shelf',
+    shelfNext:'Next shelf',
+    shelfClose:'Complete shelf',
+    shelfCloseQ:'— complete?',
+    shelfCloseYes:'Yes, complete',
+    openItems:'Open items',
+    showAll:'Show all',
+    all:'All',
+    onlyopen:'Open only',
+    more:'more',
+    less:'less',
+    undo:'Undo',
+    reset:'Reset',
+    resetQ:'Really reset?',
+    bulk:'Confirm all',
+    searchItems:'Search items',
+    scanDemo:'Scan barcode (demo)',
+    editShelves:'Edit',
+    adjustDisplay:'Adjust display size',
+    adjustOrder:'Adjust order',
+    switchToBack:'Switch to back stock',
+    enterInventory:'Please enter the inventory for the following item.',
+    enterDisplay:'Please enter the display size for the following item.',
+    enterOrder:'Please enter the order for the following item.',
+    count:'Count: enter inventory',
+    noladder:'Enter inventory',
+    countsub:'Periodic count due',
+    nolsub:'Model produces no band here',
+    unsure:'App inventory contradicts Plan A',
+    atLeast:'min.',
+    exactly:'exactly',
+    anyAmount:'any amount',
+    prevOrder:'Ord.',
+    case:'Case',
+    dlgPendingOne:'You still have 1 open item that needs your attention.',
+    dlgPendingMany:'You still have {n} open items that need your attention.',
+    dlgAllChecked:'You have checked every item.',
+    dlgClosing:'Once you complete the shelf, it will be marked as done.',
+  },
+  fr:{
+    ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
+    back:'Retour',  // [arb] commonBack
+    item:'Article',  // [arb] commonItem
+    inventory:'Inventaire',  // [arb] tableInventoryHeader
+    order:'Commande',  // [arb] tableOrderHeader
+    search:'Recherche',  // [arb] commonSearch
+    filter:'Filtrer',  // [arb] commonFilterBy
+    cancel:'Annuler',  // [arb] commonCancel
+    close:'Fermer',  // [arb] commonClose
+    save:'Enregistrer',  // [arb] commonSave
+    confirm:'Confirmer',  // [arb] commonConfirm
+    continue:'Continuer',  // [arb] commonContinue
+    completeOrder:'Compléter la commande',  // [arb] commonCompleteOrder
+    manageOrder:'Gérer la commande',  // [arb] orderManageItemsCaption
+    caseCount:'Nb de colis',  // [arb] commonCaseCount
+    caseUnit:'CS',  // [arb] commonCaseUnitLabel
+    piece:'Pièce',  // [arb] orderItemUnitPiece
+    displaySize:'Linéaire',  // [arb] needsAttentionGroupDisplaySizeCaption
+    backStock:'Réserve',  // [arb] orderItemFieldBackInventoryLabel
+    frontStock:'Rayon',  // [arb] orderItemFieldFrontInventoryLabel
+    total:'Total',  // [arb] tableTotalInventoryHeader
+    cost:'Prix d\'achat',  // [arb] commonOrderCost
+    retail:'Prix de vente',  // [arb] commonRetailPrice
+    margin:'Marge',  // [arb] commonProfitMargin
+    acceptance:'Acceptation',  // [arb] commonAcceptanceRateCaption
+    shrink:'Casse',  // [arb] missingInputShrinkCategoryCaption
+    revenue:'Chiffre d\'affaires',  // [arb] revenueOverviewTitle
+    weather:'Météo',  // [arb] dashboardWeatherCardTitle
+    todayOverview:'Synthèse du jour',  // [arb] dashboardRevenueSalesOverviewCardTitle
+    todayOrders:'Les commandes du jour',  // [arb] dashboardTodayOrdersCardTitle
+    tutorials:'Tutoriels vidéos',  // [arb] dashboardTutorialsCardTitle
+    upcoming:'Prochains événement',  // [arb] dashboardUpcomingEventsCardTitle
+    seeMoreOrders:'Voir plus de commandes',  // [arb] dashboardOrdersCardSeeAllCaption
+    currentOrder:'Commande en cours',  // [arb] fabNewOrder
+    statusOpen:'Ouverte',  // [arb] orderStatusOpen
+    deadline:'Heure limite',  // [arb] ordersListDeadlineCaption
+    hiddenItems:'Éléments masqués',  // [arb] sortHiddenItemsCaption
+    clearFilters:'Effacer les filtres',  // [arb] filterClearCaption
+    bio:'Bio',  // [arb] orderItemLabelBio
+    sale:'Promo',  // [arb] orderItemLabelSale
+    navDashboard:'Tableau de bord',  // [arb] navDashboard
+    navOrders:'Commandes',  // [arb] navOrders
+    navMyStore:'Mon magasin',  // [arb] navMyStore
+    navSettings:'Paramètres',  // [arb] navSettings
+    orderQuantity:'Quantité commandée',  // [arb] needsAttentionGroupOrderCaption
+    allEvents:'Événement',  // [arb] dashboardEventsTableColumnHeader
+    backArrow:'‹ Retour',
+    completeOrderArrow:'Compléter la commande ›',
+    deadlineToday:'Heure limite aujourd’hui 13:00',
+    manageDone:'Terminer',
+    shelfEyebrow:'Rayons',
+    shelfTitle:'Où êtes-vous en ce moment ?',
+    shelfCount:'rayons',
+    shelfItems:'articles',
+    shelfDone:'✓ Terminé',
+    shelfCurrent:'actuel',
+    shelfChoose:'choisir',
+    shelfSelect:'Choisir un rayon',
+    shelfNext:'Rayon suivant',
+    shelfClose:'Clôturer le rayon',
+    shelfCloseQ:'— clôturer ?',
+    shelfCloseYes:'Oui, clôturer',
+    openItems:'Articles ouverts',
+    showAll:'Tout afficher',
+    all:'Tous',
+    onlyopen:'Ouverts uniquement',
+    more:'plus',
+    less:'moins',
+    undo:'Annuler',
+    reset:'Réinitialiser',
+    resetQ:'Vraiment réinitialiser ?',
+    bulk:'Tout confirmer',
+    searchItems:'Rechercher des articles',
+    scanDemo:'Scanner un code-barres (démo)',
+    editShelves:'Modifier',
+    adjustDisplay:'Ajuster le linéaire',
+    adjustOrder:'Ajuster la commande',
+    switchToBack:'Passer à la réserve',
+    enterInventory:'Veuillez saisir l\'inventaire pour l\'article suivant.',
+    enterDisplay:'Veuillez saisir le linéaire pour l\'article suivant.',
+    enterOrder:'Veuillez saisir la commande pour l\'article suivant.',
+    count:'Compter : saisir l\'inventaire',
+    noladder:'Saisir l\'inventaire',
+    countsub:'Comptage périodique dû',
+    nolsub:'Le modèle ne calcule pas de plage ici',
+    unsure:'L\'inventaire de l\'app contredit le plan A',
+    atLeast:'min.',
+    exactly:'exactement',
+    anyAmount:'peu importe',
+    prevOrder:'Cde',
+    case:'Colis',
+    dlgPendingOne:'Il vous reste 1 article ouvert qui nécessite votre attention.',
+    dlgPendingMany:'Il vous reste {n} articles ouverts qui nécessitent votre attention.',
+    dlgAllChecked:'Vous avez vérifié tous les articles.',
+    dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
+  },
 };
 const t=()=>T[LANG];
+
+/* ---------- language ----------
+   Static chrome is re-labelled by id; everything rendered from a template
+   already reads t() and comes back translated on the next render(). Product
+   names, PLUs and prices are data and stay as they are. */
+const LANG_LABELS={
+  hdrItem:'item', hdrInv:'inventory', hdrOrd:'order',
+  lblFilter:'filter', cta:'completeOrderArrow', backLink:'backArrow',
+  lblOrdersatz:'ordersatz', lblDeadline:'deadlineToday',
+  lblCases:'caseCount', lblEk:'cost', lblVk:'retail', lblMargin:'margin',
+  lblAcceptance:'acceptance',
+  fltInv:'inventory', fltOrd:'orderQuantity', fltBio:'bio', fltSale:'sale',
+  fltHidden:'hiddenItems'
+};
+function applyLang(){
+  const L=t();
+  for(const [id,key] of Object.entries(LANG_LABELS)){
+    const el=document.getElementById(id);
+    if(el && L[key]) el.textContent=L[key];
+  }
+  const mb=document.getElementById('manageBtnLabel');
+  if(mb) mb.textContent = (typeof MANAGE_MODE!=='undefined' && MANAGE_MODE) ? L.manageDone : L.manageOrder;
+  const q=document.getElementById('q');
+  if(q) q.placeholder=L.search;
+  const qi=document.getElementById('catQ');
+  if(qi) qi.placeholder=L.searchItems;
+  document.querySelectorAll('.LangSwitch__btn').forEach(b=>
+    b.classList.toggle('on', b.dataset.lang===LANG));
+  document.documentElement.lang=LANG;
+}
+function setLang(next){
+  if(next===LANG) return;
+  LANG=next;
+  applyLang();
+  if(typeof render==='function') render();
+  if(typeof renderCatOverlay==='function') renderCatOverlay();
+  if(typeof renderCatConfirm==='function') renderCatConfirm();
+}
+document.addEventListener('click', e=>{
+  const b=e.target.closest('.LangSwitch__btn');
+  if(b) setLang(b.dataset.lang);
+});
+
 
 /* it.unit comes straight from prod_orders_output.case.unit ("KG" or "Piece", read at
    build time and normalised to 'kg'/'pcs') -- never re-derived from whether it.case
    happens to be a whole number. A whole-number KG case (e.g. exactly 20.0kg) is common
    (about a third of this store's KG items on 2026-08-19) and used to be mislabelled
    "20 St." with no way to tell it apart from a 20-piece case. */
-const uw=it=>it&&it.unit==='kg' ? 'kg' : (LANG==='de'?'Stück':'pieces');   // long form, for prose
-const ua=it=>it&&it.unit==='kg' ? 'kg' : (LANG==='de'?'St.':'pcs');       // short form, for chips/meta
+const uw=it=>it&&it.unit==='kg' ? 'kg' : ({de:'Stück',en:'pieces',fr:'pièces'})[LANG];   // long form, for prose
+const ua=it=>it&&it.unit==='kg' ? 'kg' : ({de:'St.',en:'pcs',fr:'pcs'})[LANG];       // short form, for chips/meta
 
 /* ---------- live Telegram push: one message per row change ----------
    Routed through an Apps Script Web App so the bot token stays server-side
@@ -1697,16 +2028,16 @@ const koFmt=v=>v.toLocaleString('de-DE',{maximumFractionDigits:3});
    frueher nur bei der 0-Sprosse benutzte "bis" und das "a bis b" dazwischen fallen weg. */
 function koText(r,it){
   const cs = it&&it.case ? it.case : null;
-  if(r.plo!=null && r.plo===r.phi) return koFmt(koOfPieces(r.plo,cs) ?? r.plo) + ' KO';
+  if(r.plo!=null && r.plo===r.phi) return koFmt(koOfPieces(r.plo,cs) ?? r.plo) + ' '+t().caseUnit;
   const loK = koOfPieces(r.plo,cs) ?? (r.lo==null?0:r.lo);
-  if(r.hi==null) return loK>0 ? 'mind. ' + koFmt(loK) + ' KO' : 'egal wie viel';
+  if(r.hi==null) return loK>0 ? t().atLeast+' ' + koFmt(loK) + ' '+t().caseUnit : t().anyAmount;
   const hiK = koOfPieces(r.phi,cs) ?? r.hi;
-  return koFmt(loK) + ' – ' + koFmt(hiK) + ' KO';
+  return koFmt(loK) + ' – ' + koFmt(hiK) + ' '+t().caseUnit;
 }
 function stText(r,it){
   const u=uw(it);
-  if(r.phi==null) return r.plo>0 ? `mind. ${r.plo} ${u}` : 'egal wie viel';
-  if(r.plo===r.phi) return `genau ${r.plo} ${u}`;
+  if(r.phi==null) return r.plo>0 ? `${t().atLeast} ${r.plo} ${u}` : t().anyAmount;
+  if(r.plo===r.phi) return `${t().exactly} ${r.plo} ${u}`;
   return `${r.plo} – ${r.phi} ${u}`;
 }
 /* Snapt einen KO-Wert in Schrittrichtung auf das naechste Rasterfeld (0,9 → 0,75
@@ -1793,7 +2124,7 @@ function stepHTML(it,s,ix){
     big=koText(r,it); small=stText(r,it);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
-    big=koNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
+    big=koNum(s.ko)+(' '+t().caseUnit); small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
   }
   const {v,u} = splitUnit(big);
   return `<div class="${cls}">
@@ -1808,7 +2139,7 @@ function stepHTML(it,s,ix){
 function chipFor(it,i){
   const r=it.rungs[i];
   const u=' '+ua(it);
-  if(r.kind==='atleast') return (LANG==='de'?'mind. ':'min. ')+r.plo+u;
+  if(r.kind==='atleast') return t().atLeast+' '+r.plo+u;
   if(r.kind==='lessthan') return (r.phi===0?'0'+u:'0–'+r.phi+u);
   return (r.plo===r.phi?String(r.plo):r.plo+'–'+r.phi)+u;
 }
@@ -1882,8 +2213,8 @@ function render(){
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
-    const meta = `<b>${it.plu!=null?it.plu:'–'}</b> · Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
-    let pills=`<span class="pill">Best. ${it.prevOrder!=null?it.prevOrder:0} KO</span>`;
+    const meta = `<b>${it.plu!=null?it.plu:'–'}</b> · ${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${it.ek!=null?eur(it.ek):'?'} · ${t().retail} ${it.vk!=null?eur(it.vk):'?'}`;
+    let pills=`<span class="pill">${t().prevOrder} ${it.prevOrder!=null?it.prevOrder:0} ${t().caseUnit}</span>`;
     const pl = promoLabel(it.promo);
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
@@ -1895,7 +2226,7 @@ function render(){
     const box = stepHTML(it,s,ix);
     const noteTxt = s.touched ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt)}</div>`;
-    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div></div>`;
+    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">${t().displaySize} <u>${s.auslage!=null?s.auslage:1}</u> ${t().caseUnit}</div></div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
@@ -1904,7 +2235,7 @@ function render(){
     let ord = `<div class="withbang"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
       <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="weniger">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">
-        <span class="ColumnCounterField__value"><b>${shown}</b><i>KO</i></span>
+        <span class="ColumnCounterField__value"><b>${shown}</b><i>${t().caseUnit}</i></span>
         ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="mehr">${ICON_PLUS}</button>
@@ -2031,7 +2362,7 @@ function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
   const nextBtn=document.getElementById('nextRegalBtn');
   if(!CATFILTER){
-    wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="Regal wählen">Alle anzeigen</button>`;
+    wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfSelect}">${t().showAll}</button>`;
     document.getElementById('catChipBtn').onclick=goToCategories;
     if(nextBtn) nextBtn.style.display='none';
     return;
@@ -2581,7 +2912,7 @@ const manageBtn = document.getElementById('manageBtn');
 manageBtn.addEventListener('click', ()=>{
   MANAGE_MODE = !MANAGE_MODE;
   manageBtn.classList.toggle('on', MANAGE_MODE);
-  document.getElementById('manageBtnLabel').textContent = MANAGE_MODE ? 'Beenden' : 'Bestellung verwalten';
+  document.getElementById('manageBtnLabel').textContent = MANAGE_MODE ? t().manageDone : t().manageOrder;
   render();
 });
 
@@ -2605,7 +2936,7 @@ list.addEventListener('click',e=>{
     else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
-    pushChange(it, s.step==='ko' ? `Bestand → ${koNum(s.ko)} KO · Bestellung ${s.order} KO` : `Bestand zurückgesetzt`);
+    pushChange(it, s.step==='ko' ? `Bestand → ${koNum(s.ko)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand zurückgesetzt`);
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
@@ -2717,12 +3048,12 @@ function invPadVals(){
    Wert bisher selbst (Math.round), was ebenfalls neben plo/phi landen konnte. */
 function invRangeText(plo,phi,unit,cs,it){
   if(unit==='pcs'){
-    if(phi==null) return plo>0 ? `mind. ${plo} ${ua(it)}` : 'egal wie viel';
+    if(phi==null) return plo>0 ? `${t().atLeast} ${plo} ${ua(it)}` : t().anyAmount;
     return `${plo} – ${phi} ${ua(it)}`;
   }
   const loK=koOfPieces(plo,cs) ?? 0;
-  if(phi==null) return loK>0 ? `mind. ${koFmt(loK)} KO` : 'egal wie viel';
-  return `${koFmt(loK)} – ${koFmt(koOfPieces(phi,cs) ?? 0)} KO`;
+  if(phi==null) return loK>0 ? `${t().atLeast} ${koFmt(loK)} ${t().caseUnit}` : t().anyAmount;
+  return `${koFmt(loK)} – ${koFmt(koOfPieces(phi,cs) ?? 0)} ${t().caseUnit}`;
 }
 function openInvPad(ix){
   const it=ITEMS[ix], s=ST[ix];
@@ -2738,13 +3069,13 @@ function openInvPad(ix){
   const pcsBtn = us.querySelector('button[data-u="pcs"]');
   if(pcsBtn) pcsBtn.textContent = uw(it);
   document.getElementById('invName').textContent=it.name;
-  document.getElementById('invMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
+  document.getElementById('invMeta').textContent=`${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
   drawInvPad();
   document.getElementById('ovInv').classList.add('on');
 }
 function drawInvPad(){
   const it=ITEMS[INV.ix], cs=it.case||1;
-  const u = INV.unit==='pcs' ? ' '+ua(it) : ' KO';
+  const u = INV.unit==='pcs' ? ' '+ua(it) : (' '+t().caseUnit);
   document.getElementById('invFloor').textContent=INV.floor+u;
   const backEl=document.getElementById('invBack');
   backEl.textContent=INV.back+u;
@@ -2761,9 +3092,9 @@ function drawInvPad(){
     totPcsEl.textContent='';
   } else {
     totEl.textContent=
-      (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+' KO');
+      (INV.unit==='pcs'? v.pcs+' '+ua(it) : csNum(v.cases)+(' '+t().caseUnit));
     totPcsEl.textContent =
-      (INV.unit==='pcs'? '= '+csNum(v.cases)+' KO'
+      (INV.unit==='pcs'? '= '+csNum(v.cases)+(' '+t().caseUnit)
                        : '= '+v.pcs+' '+uw(it));
   }
   const wholeOnly = INV.unit!=='pcs' && cs===1;
@@ -2810,7 +3141,7 @@ document.getElementById('invSpeichern').onclick=()=>{
   const ix=INV.ix, it=ITEMS[ix], s=ST[ix]; TAPS++;
   const next=Math.max(0,Math.min(99,invPadVals().cases));
   applyKo(it, s, next);
-  pushChange(it, s.step==='ko' ? `Bestand → ${koNum(next)} KO · Bestellung ${s.order} KO` : `Bestand → ${koNum(next)} KO (Spanne bestätigt)`);
+  pushChange(it, s.step==='ko' ? `Bestand → ${koNum(next)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand → ${koNum(next)} ${t().caseUnit} (Spanne bestätigt)`);
   closeInvPad(); render();
 };
 
@@ -2822,14 +3153,14 @@ function openOrdPad(ix){
   const current=s.answered?s.order:planO;
   ORD={ix,val:String(current),orig:current};
   document.getElementById('ordName').textContent=it.name;
-  document.getElementById('ordMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
+  document.getElementById('ordMeta').textContent=`${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
   drawOrdPad();
   document.getElementById('ovOrd').classList.add('on');
 }
 function drawOrdPad(){
   const it=ITEMS[ORD.ix];
   document.getElementById('ordVal').textContent=ORD.val;
-  document.getElementById('ordUnit').textContent=ORD.val+' KO';
+  document.getElementById('ordUnit').textContent=ORD.val+(' '+t().caseUnit);
   const n=parseInt(ORD.val||'0',10)||0;
   document.getElementById('ordUnitPcs').textContent = it.case!=null ? `= ${Math.round(n*it.case)} ${uw(it)}` : '';
 }
@@ -2859,7 +3190,7 @@ function openAusPad(ix){
   const current = s.auslage!=null ? s.auslage : 1;
   AUS={ix,val:String(current),orig:current};
   document.getElementById('ausName').textContent=it.name;
-  document.getElementById('ausMeta').textContent=`Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
+  document.getElementById('ausMeta').textContent=`${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
   drawAusPad();
   document.getElementById('ovAus').classList.add('on');
 }
@@ -2880,7 +3211,7 @@ document.getElementById('ausSpeichern').onclick=()=>{
   const ix=AUS.ix, s=ST[ix]; TAPS++;
   const next=Math.max(0,parseInt(AUS.val||'0',10)||0);
   s.auslage=next;
-  if(next!==AUS.orig) pushChange(ITEMS[ix], `Auslage ${AUS.orig} → ${next} KO`);
+  if(next!==AUS.orig) pushChange(ITEMS[ix], `Auslage ${AUS.orig} → ${next} ${t().caseUnit}`);
   closeAusPad(); render();
 };
 
@@ -2949,12 +3280,15 @@ document.getElementById('s2Go').onclick=()=>{
     if(s.hidden) return;
     if(!s.answered&&s.mode==='ask'){s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
-  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} KO gesamt`);
+  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} ${t().caseUnit} gesamt`);
   document.getElementById('ov2').classList.remove('on');
   toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
   render();
 };
 render();
+
+/* initial labelling -- LANG defaults to 'de' */
+applyLang();
 </script>
 </body>
 </html>
