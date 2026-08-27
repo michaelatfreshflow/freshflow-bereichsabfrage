@@ -472,6 +472,41 @@ replaced by a stepper). So the Bestand column is intentionally ahead of the app,
 `InventoryCounterField` is a new component rather than a like-for-like port. Worth
 confirming with Shahana that this is the intended direction before she builds it.
 
+## Cell alignment and the reserved status slot
+
+Two corrections after comparing against a screenshot of the live order screen.
+
+### The value cells are right-aligned, not centred
+
+`PVTRowCell(alignment: Alignment.topCenter)` positions the cell *block*, but the block's
+own contents hug the trailing edge:
+
+- `_InventoryCell` is `Padding(right: 10) > Column(crossAxisAlignment: CrossAxisAlignment.end)`
+  — `inv_sim_inventory_cell.dart:68-72`
+- `_OrderCell`'s rows use `MainAxisAlignment.end` — `inv_sim_order_cell.dart:186`
+
+I had read only the outer `PVTRowCell` and centred both columns. Right-aligning them is
+what lines the Bestand column up under its right-aligned header — verified, header and
+cell right edges are both at the same x.
+
+### The status slot is always reserved
+
+This is the one that actually broke the alignment. The `!` badge is not appended when a
+row happens to have a warning — the slot is **always** rendered, holding either the icon
+or nothing:
+
+| | reserved width | source |
+|---|---|---|
+| order | `SizedBox(width: 24.w)` around `FieldStatusIcon` or `SizedBox.shrink()` | `column_counter_field.dart:180-188` |
+| inventory | `Container(width: 38.w, padding: left 4.w, alignment: topLeft)` | `inv_sim_inventory_cell.dart:190-206` |
+
+The prototype emitted the badge only when there was a note, so a row with a warning
+pushed its stepper left while a row without kept it flush right — the columns visibly
+failed to line up down the table. `bang()` now always emits the slot.
+
+Verified across 25 rows, 9 of which carry a badge: exactly one distinct right edge for
+the inventory steppers and one for the order steppers.
+
 ## The state machine
 
 The behaviour behind the Bestand cell -- five item modes, three stepper views, two

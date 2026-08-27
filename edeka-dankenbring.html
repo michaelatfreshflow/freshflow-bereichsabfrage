@@ -298,12 +298,17 @@ body.isFiltering{
 .colh > *:not(:last-child),
 .row  > *:not(:last-child){padding-right:10px}
 
-/* Both value cells are PVTRowCell(alignment: Alignment.topCenter) --
-   inv_sim_inventory_cell.dart:15 and inv_sim_order_cell.dart:13. The prototype
-   had Bestand flush left and Bestellung flush right, which left a void down the
-   middle of the table once the columns became fractions. */
+/* PVTRowCell(alignment: Alignment.topCenter) positions the cell block, but the
+   block's own contents are right-aligned: _InventoryCell is
+   Padding(right: 10) > Column(crossAxisAlignment: CrossAxisAlignment.end)
+   (inv_sim_inventory_cell.dart:68-72) and _OrderCell's rows use
+   MainAxisAlignment.end (inv_sim_order_cell.dart:186). So both value columns
+   hug the trailing edge -- which is also what lines them up under the
+   right-aligned Bestand header. */
 .row > *:nth-child(2),
-.row > *:nth-child(3){display:flex;flex-direction:column;align-items:center}
+.row > *:nth-child(3){display:flex;flex-direction:column;align-items:flex-end}
+/* the display-size row is MainAxisAlignment.end too */
+.dsz{text-align:right}
 
 /* Headers do NOT follow their cells. order_item_table_header.dart:77 gives the
    inventory header Alignment.centerRight in invSim, and the order header takes
@@ -492,7 +497,13 @@ body.isFiltering{
 .dsz u{text-decoration-color:var(--ff-grey-300)}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
-.withbang{display:flex;align-items:flex-start;gap:9px}
+.withbang{display:flex;align-items:flex-start}
+/* _StatusIconBox: Container(width: 38.w, padding: EdgeInsets.only(left: 4.w),
+   alignment: Alignment.topLeft) -- inv_sim_inventory_cell.dart:193-205 */
+.row > *:nth-child(2) .statusSlot{flex:0 0 auto;width:38px;padding-left:4px;display:flex;align-items:flex-start}
+/* ColumnCounterField's own SizedBox(width: 24.w) -- column_counter_field.dart:180 */
+.row > *:nth-child(3) .statusSlot{flex:0 0 auto;width:24px;display:flex;justify-content:center}
+.statusSlot svg{display:block}
 .withbang>.stmt{flex:1}
 /* FieldStatusIcon -> AppStatusIcon -> AppIcon.asset(height/width: 16.w).
    The asset is assets/icons/warning_rounded.svg: a 16x16 circle filled
@@ -1685,7 +1696,15 @@ function chipFor(it,i){
   if(r.kind==='lessthan') return (r.phi===0?'0'+u:'0–'+r.phi+u);
   return (r.plo===r.phi?String(r.plo):r.plo+'–'+r.phi)+u;
 }
-function bang(note){ return note ? `<span class="bang" title="${note}">${ICON_WARN}</span>` : ''; }
+/* The status slot is ALWAYS rendered, with or without an icon -- that is what
+   keeps every field aligned across rows. ColumnCounterField does exactly this
+   with SizedBox(width: 24.w) holding either FieldStatusIcon or
+   SizedBox.shrink() (column_counter_field.dart:180-188), and the inventory
+   cell's _StatusIconBox is a fixed Container(width: 38.w) either way
+   (inv_sim_inventory_cell.dart:190-206). */
+function bang(note){
+  return `<span class="statusSlot"${note?` title="${note}"`:''}>${note?ICON_WARN:''}</span>`;
+}
 /* a row counts as erfasst for category progress once neither bang shows —
    mirrors the two bang() calls in render() exactly, not the answered flag. */
 function rowClear(it,s){
