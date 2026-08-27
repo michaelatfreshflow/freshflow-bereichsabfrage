@@ -401,6 +401,85 @@ body.isFiltering{
    gleiche Feldhoehe, gleiche Schriftgroessen. Nur das Feld ist breiter, weil eine
    Spanne ("0,3 – 99 KO") mehr Platz braucht als eine reine Bestellmenge. */
 /* ===========================================================================
+   AppFormDialog -- lib/presentation/shared/dialogs/app_form_dialog.dart
+   and PrimaryTextButton -- lib/core/widgets/buttons/text_button.dart
+
+     .AppFormDialog        DecoratedBox(color: white, borderRadius: c8)
+                             > SizedBox(width: 680.w)
+       __header            Header(title:, onClose:) -- bottom border grey.shade200,
+                           padding EdgeInsets.symmetric(horizontal: 24, vertical: 18)
+       __title             primaryTitle18.semiBold.grey900
+       __close             InkWell > Container(width: 100.w, alignment: centerRight)
+                             > AppIcon.asset(AppIcons.close)
+       __body              padding EdgeInsets.fromLTRB(32, 32, 32, 48),
+                           primaryBodyText16.medium.grey800
+       __actions           padding EdgeInsets.only(left: 8, right: 24),
+                           deny on the left, cancel + confirm right-aligned,
+                           _buttonGap 12, _bottomPadding 27
+
+   PrimaryTextButton: height 48 (PrimaryButtonSize.medium), fully rounded
+   (BorderRadius.circular(size.height)), label primaryBodyText16.semiBold,
+   padding EdgeInsets.symmetric(horizontal: 16).
+     --dark  background AppColors.primary,  foreground white
+     --none  background transparent,        foreground AppColors.primary
+   =========================================================================== */
+.AppFormDialog{
+  width:min(680px, calc(100% - 48px));
+  align-self:center;
+  background:var(--ff-color-white);
+  border-radius:var(--ff-radius-c8);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.AppFormDialog__header{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--ff-grey-200);
+}
+.AppFormDialog__title{
+  padding:18px 24px;
+  font-size:var(--ff-text-primary-title-18);
+  font-weight:var(--ff-weight-semibold);
+  color:var(--ff-grey-900);
+}
+.AppFormDialog__close{
+  width:100px;padding:18px 24px;
+  display:flex;align-items:center;justify-content:flex-end;
+  border:0;background:none;cursor:pointer;color:var(--ff-grey-900);
+  -webkit-tap-highlight-color:transparent;
+}
+.AppFormDialog__close svg{display:block}
+.AppFormDialog__body{
+  padding:32px 32px 48px;
+  font-size:var(--ff-text-primary-body-text-16);
+  font-weight:var(--ff-weight-medium);
+  color:var(--ff-grey-800);
+  line-height:1.5;
+}
+.AppFormDialog__actions{
+  display:flex;align-items:center;gap:12px;
+  padding:0 24px 27px 8px;
+}
+.AppFormDialog__actionsEnd{
+  margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.PrimaryTextButton{
+  height:48px;padding:0 16px;
+  border:0;border-radius:24px;      /* BorderRadius.circular(size.height) */
+  font-size:var(--ff-text-primary-body-text-16);
+  font-weight:var(--ff-weight-semibold);
+  cursor:pointer;white-space:nowrap;
+  display:inline-flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.PrimaryTextButton--dark{background:var(--ff-color-primary);color:var(--ff-color-white)}
+.PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary)}
+/* overlayColor: buttonTheme.foreground.withValues(alpha: 0.1) */
+.PrimaryTextButton--dark:active{background:var(--ff-primary-500)}
+.PrimaryTextButton--none:active{background:var(--ff-primary-10)}
+
+/* ===========================================================================
    InventoryCounterField  --  the Bestand stepper
    Suggested home: lib/presentation/shared/fields/inventory_counter_field.dart
 
@@ -1687,6 +1766,7 @@ function rungOfKo(it,ko,planIdx){
    amber, solange sie unberuehrt sind (kein 'touched'). */
 /* assets/icons/warning_rounded.svg and info_squared.svg, verbatim. */
 const ICON_WARN='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
+const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.2983 0.710224C13.2058 0.61752 13.0959 0.543973 12.9749 0.493791C12.8539 0.44361 12.7242 0.417779 12.5933 0.417779C12.4623 0.417779 12.3326 0.44361 12.2116 0.493791C12.0907 0.543973 11.9808 0.61752 11.8883 0.710224L6.99827 5.59022L2.10827 0.700223C2.01569 0.607642 1.90578 0.534202 1.78481 0.484097C1.66385 0.433992 1.5342 0.408203 1.40327 0.408203C1.27234 0.408203 1.14269 0.433992 1.02173 0.484097C0.900763 0.534202 0.790852 0.607642 0.69827 0.700223C0.605688 0.792805 0.532248 0.902716 0.482143 1.02368C0.432038 1.14464 0.40625 1.27429 0.40625 1.40522C0.40625 1.53615 0.432038 1.6658 0.482143 1.78677C0.532248 1.90773 0.605688 2.01764 0.69827 2.11022L5.58827 7.00022L0.69827 11.8902C0.605688 11.9828 0.532248 12.0927 0.482143 12.2137C0.432038 12.3346 0.40625 12.4643 0.40625 12.5952C0.40625 12.7262 0.432038 12.8558 0.482143 12.9768C0.532248 13.0977 0.605688 13.2076 0.69827 13.3002C0.790852 13.3928 0.900763 13.4662 1.02173 13.5163C1.14269 13.5665 1.27234 13.5922 1.40327 13.5922C1.5342 13.5922 1.66385 13.5665 1.78481 13.5163C1.90578 13.4662 2.01569 13.3928 2.10827 13.3002L6.99827 8.41022L11.8883 13.3002C11.9809 13.3928 12.0908 13.4662 12.2117 13.5163C12.3327 13.5665 12.4623 13.5922 12.5933 13.5922C12.7242 13.5922 12.8538 13.5665 12.9748 13.5163C13.0958 13.4662 13.2057 13.3928 13.2983 13.3002C13.3909 13.2076 13.4643 13.0977 13.5144 12.9768C13.5645 12.8558 13.5903 12.7262 13.5903 12.5952C13.5903 12.4643 13.5645 12.3346 13.5144 12.2137C13.4643 12.0927 13.3909 11.9828 13.2983 11.8902L8.40827 7.00022L13.2983 2.11022C13.6783 1.73022 13.6783 1.09022 13.2983 0.710224Z" fill="currentColor"/></svg>';
 const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg>';
 /* The value box splits the number from its unit -- value is primaryBodyText16.medium,
    unit primaryCaption12.light -- so the combined string koText() builds has to come
@@ -2311,26 +2391,30 @@ function renderCatConfirm(){
   const root=document.getElementById('catConfirmRoot');
   if(!CATCONFIRM){ root.innerHTML=''; return; }
   const st=tileStats(CATCONFIRM.id);
+  /* Copy states what is still outstanding rather than what is done -- the
+     number the owner needs before committing is the unchecked one. */
   const bodyText = st.open>0
-    ? `${st.done} von ${st.list.length} Artikeln sind erfasst, ${st.open} bleiben offen. Nach dem Abschließen gilt das Regal für heute als fertig.`
-    : `Alle ${st.list.length} Artikel in diesem Regal sind erfasst. Nach dem Abschließen gilt das Regal für heute als fertig.`;
+    ? `${st.open} Artikel hast du noch nicht geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
+    : `Du hast alle Artikel geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`;
   root.innerHTML = `<div class="ov on" style="z-index:9999">
-    <div class="sheet" style="max-width:460px;border-radius:var(--ff-radius-c12);align-self:center;padding-bottom:0">
-      <div style="padding:26px 26px 0">
-        <div style="font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);color:var(--green)">Regal abschließen</div>
-        <div style="font-size:22px;font-weight:var(--ff-weight-bold);margin-top:8px">${CATCONFIRM.label} abschließen?</div>
-        <div style="font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-700);line-height:1.55;margin-top:10px">${bodyText}</div>
+    <div class="AppFormDialog">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">${CATCONFIRM.label} abschließen?</div>
+        <button type="button" class="AppFormDialog__close" id="catConfirmClose" aria-label="Schließen">${CLOSE_ICON}</button>
       </div>
-      <div class="sfoot" style="padding:20px 26px 24px;gap:10px;flex-direction:column">
-        <button type="button" class="cta" id="catConfirmYes" style="border-radius:var(--ff-radius-pill);width:100%">Ja, abschließen</button>
-        <div style="display:flex;gap:10px;width:100%">
-          <button type="button" id="catConfirmNo" style="flex:1;border:1.5px solid var(--ff-color-tag-info);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);padding:12px 18px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);cursor:pointer">Abbrechen</button>
-          <button type="button" id="catConfirmContinue" style="flex:1;border:1.5px solid var(--ff-color-tag-info);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);padding:12px 18px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);cursor:pointer">Trotzdem weiter</button>
+      <div class="AppFormDialog__body">${bodyText}</div>
+      <div class="AppFormDialog__actions">
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmContinue">Trotzdem weiter</button>
+        <div class="AppFormDialog__actionsEnd">
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmNo">Abbrechen</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="catConfirmYes">Ja, abschließen</button>
         </div>
       </div>
     </div>
   </div>`;
-  document.getElementById('catConfirmNo').onclick=()=>{ CATCONFIRM=null; render(); };
+  const dismiss=()=>{ CATCONFIRM=null; render(); };
+  document.getElementById('catConfirmNo').onclick=dismiss;
+  document.getElementById('catConfirmClose').onclick=dismiss;
   document.getElementById('catConfirmYes').onclick=startCatCelebration;
   document.getElementById('catConfirmContinue').onclick=()=>{
     const target=CATCONFIRM; CATCONFIRM=null;

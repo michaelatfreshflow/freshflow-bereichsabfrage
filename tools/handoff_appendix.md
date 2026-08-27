@@ -572,6 +572,49 @@ the status slot — `_inventoryPadding`'s own comment says "keep the label align
 the status-icon slot in cells below". The prototype rendered the icon at 16 px with a
 6 px margin, so the label sat ~30 px too far right. The badge is now a 48 px box.
 
+## The shelf-completion dialog
+
+Rebuilt on the design system's own dialog rather than hand-rolled markup.
+
+`lib/presentation/shared/dialogs/app_form_dialog.dart` — `AppFormDialog` /
+`AppFormDialogContent`, already used by `askNeedsAttentionConfirmation` and the other
+`ask*Confirmation` helpers.
+
+| CSS | Dart |
+|---|---|
+| `.AppFormDialog` | `DecoratedBox(color: white, borderRadius: c8) > SizedBox(width: 680.w)` |
+| `__header` | `Header(title:, onClose:)` — bottom border `grey.shade200`, padding `h24 v18` |
+| `__title` | `primaryTitle18.semiBold.grey900` |
+| `__close` | `InkWell > Container(width: 100.w, alignment: centerRight) > AppIcon.asset(AppIcons.close)` |
+| `__body` | padding `EdgeInsets.fromLTRB(32, 32, 32, 48)`, `primaryBodyText16.medium.grey800` |
+| `__actions` | padding `EdgeInsets.only(left: 8, right: 24)`, `_buttonGap` 12, `_bottomPadding` 27 |
+| `.PrimaryTextButton` | height 48 (`PrimaryButtonSize.medium`), `BorderRadius.circular(size.height)`, `primaryBodyText16.semiBold`, padding `h16` |
+| `--dark` | `PrimaryButtonTheme.dark` — `AppColors.primary` on white text |
+| `--none` | `PrimaryButtonTheme.none` — transparent on `AppColors.primary` text |
+
+**Button order follows the widget, not the old markup.** `_buildActions` puts the deny
+button on the *left* and right-aligns cancel + confirm, with confirm as the only filled
+one. The prototype had a full-width primary stacked over two equal outlined buttons,
+which read as three peers.
+
+The eyebrow ("REGAL ABSCHLIESSEN") is gone — `AppFormDialog` carries its title in the
+`Header`, and the app has no eyebrow pattern.
+
+### Copy
+
+It now names what is outstanding rather than what is done — the number the owner needs
+before committing is the unchecked one:
+
+    st.open > 0
+      ? `${st.open} Artikel hast du noch nicht geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
+      : `Du hast alle Artikel geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
+
+`st.open` comes from `tileStats`, which counts items failing `rowClear` — the same
+predicate the shelf progress uses, so the dialog and the tile can never disagree.
+
+Both strings still need `.arb` keys: `shelfCompleteDialogPendingMessage` and
+`shelfCompleteDialogAllCheckedMessage`.
+
 ## The state machine
 
 The behaviour behind the Bestand cell -- five item modes, three stepper views, two
