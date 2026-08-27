@@ -437,6 +437,41 @@ Verified: header and rows match exactly in both states (491.9/326/326 and
 434.7/354.6/354.6); ratios hold at 900 px and 1400 px viewports; no row overflow and no
 clipped values at 900 px.
 
+## Header and row: styling props taken from source
+
+Every value below was read out of the Dart, not matched by eye.
+
+### Header
+
+| | prototype was | app | source |
+|---|---|---|---|
+| text | 14 px, bold (700) | `primaryBodyText16.semiBold.grey800` | `order_item_table.dart:387` |
+| height | padding 10 px | `48.h` | `order_item_table.dart:328` |
+| info badge | 15×15 div, 1 px `#9aa8e0`, letter "i" | `AppIcons.infoSquared` — 16×16 SVG, `rx 1.5`, `#6F78A5` (`AppColors.informational`) | `pvt_header.dart:50-56` |
+
+### Row
+
+| | prototype was | app | source |
+|---|---|---|---|
+| item name | 14 px, extraBold (800) | `primaryTitle18.bold.darkGreen` — 18/700/`#2b3a36` | `item_name.dart:56` |
+| meta line | 12 px, `grey400` | `primaryBodyText14.regular.grey500` — 14/400/`#71717a` | `item_information_row.dart:46` |
+| leading token (PLU) | same as rest | `.semibold` | `item_information_row.dart:61` |
+| display-size caption | 12 px, `grey500` | `primarySubTitle10.medium.darkGreen` — 10/500/`#2b3a36` | `display_size_caption.dart:16` |
+| status badge | 22 px circle, `AppColors.warning` `#faaf3b` | `warning_rounded.svg` — 16×16 circle `#FF8502` (`AppColors.needsAttention`) + white mark, at `16.w` | `field_status_icon.dart` → `status_icon.dart:15` |
+
+Both SVGs are embedded verbatim from `Mobile/assets/icons/`. The item name being
+18 px rather than 14 is the biggest single visual change — it is what makes the row
+read like the app's.
+
+### One deliberate difference that remains
+
+In the app the **inventory cell is a text field, not a counter** — `_InventoryCell`
+builds `_InventoryField`, so there are no +/- buttons on Bestand; only the order cell
+has them. This prototype puts a stepper there on purpose (the older tile design was
+replaced by a stepper). So the Bestand column is intentionally ahead of the app, and
+`InventoryCounterField` is a new component rather than a like-for-like port. Worth
+confirming with Shahana that this is the intended direction before she builds it.
+
 ## The state machine
 
 The behaviour behind the Bestand cell -- five item modes, three stepper views, two
