@@ -2694,7 +2694,7 @@ function renderCatChip(){
   if(nextBtn) nextBtn.style.display='';
   const n=itemsForFilter(CATFILTER).length;
   const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
-  const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} offen)</span>` : '';
+  const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} dringend)</span>` : '';
   wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
