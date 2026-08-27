@@ -324,12 +324,16 @@ body.isFiltering{
 .row > *:nth-child(2),
 .row > *:nth-child(3){display:flex;flex-direction:column;align-items:flex-end}
 /* the display-size row is MainAxisAlignment.end too */
+/* _InventoryCell is a single Column holding both rows
+   (inv_sim_inventory_cell.dart:70-72), so this block shrink-wraps to its widest
+   child -- the stepper plus its status slot -- and the caption aligns to that
+   block rather than to the cell. */
+.invCell{display:flex;flex-direction:column;align-items:stretch;width:max-content}
+
 /* display_size_caption.dart:16 -- primarySubTitle10.medium.darkGreen.
-   The row it sits in ends with its own _StatusIconBox (38) plus
-   _trailingPaddingWhenIdle (7), so the caption stops 45px short of the cell
-   edge and lines up under the field rather than under the status slot
-   (inv_sim_inventory_cell.dart:113-136). */
-.dsz{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-medium);color:var(--ff-color-dark-green);margin-top:6px;padding-right:45px}
+   DEPARTURE: the app right-aligns this row (MainAxisAlignment.end). Left-aligned
+   here by choice, so it reads as a label belonging to the stepper above it. */
+.dsz{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-medium);color:var(--ff-color-dark-green);margin-top:6px;text-align:left}
 
 /* Headers do NOT follow their cells. order_item_table_header.dart:77 gives the
    inventory header Alignment.centerRight in invSim, and the order header takes
@@ -1810,8 +1814,8 @@ function render(){
     /* inventory cell */
     const box = stepHTML(it,s,ix);
     const noteTxt = s.touched ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
-    let cell = `<div class="withbang">${box}${bang(noteTxt)}</div>`;
-    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div>`;
+    let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt)}</div>`;
+    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div></div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);

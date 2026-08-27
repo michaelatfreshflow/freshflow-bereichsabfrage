@@ -174,6 +174,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -728,11 +729,16 @@ against white is a doubling. Worth a special case if this migration is ever re-r
 
 ### The display-size caption sat under the status slot
 
-The caption's row ends with its own `_StatusIconBox` (38) plus
-`_trailingPaddingWhenIdle` (7), so it stops 45 px short of the cell edge and lines up
-under the *field* — `inv_sim_inventory_cell.dart:113-136`. Without that the caption ran
-to the cell edge, 38 px right of the stepper. Now `padding-right: 45px`; the text lands
-7 px inside the stepper's right edge, matching the app.
+The caption ran to the cell edge, 38 px right of the stepper. `_InventoryCell` is a
+single `Column` holding both rows (`inv_sim_inventory_cell.dart:70-72`), so the two
+share one shrink-wrapped block — the prototype had them as loose siblings of the grid
+cell instead. They are now wrapped in `.invCell`, which shrink-wraps to its widest child
+(the stepper plus its status slot).
+
+**DEPARTURE:** the app right-aligns this row (`MainAxisAlignment.end`, ending 7 px
+inside the field). It is left-aligned here by choice, so it reads as a label belonging
+to the stepper above it. Verified: the caption's left edge and the stepper's left edge
+are identical on every row.
 
 ### The header label sat right of its column's content
 
