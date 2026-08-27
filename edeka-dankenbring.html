@@ -1354,6 +1354,13 @@ function syncFiltUI(){
   const b=document.getElementById('filtBtn');
   if(b) b.classList.toggle('active', Object.values(CATFILT).some(Boolean));
 }
+/* "Alle Artikel zeigen" soll auch wirklich alle zeigen. Ohne das blieben die Haken aus
+   der Filterliste stehen -- besonders leicht ueber den Schnellfilter direkt daneben --
+   und man landete auf einer Liste, die deutlich weniger zeigt, als der Knopf verspricht. */
+function clearFilt(){
+  Object.keys(CATFILT).forEach(k=>CATFILT[k]=false);
+  syncFiltUI();
+}
 function renderCatOverlay(){
   const root=document.getElementById('catOverlayRoot');
   if(!CATOPEN){ root.innerHTML=''; return; }
@@ -1475,7 +1482,7 @@ function renderCatOverlay(){
     el.addEventListener('click', ()=>pickCategory('tile', el.dataset.id, el.dataset.label));
   });
   const allBtn=root.querySelector('[data-a="catpick-all"]');
-  if(allBtn) allBtn.addEventListener('click', ()=>goToList(null));
+  if(allBtn) allBtn.addEventListener('click', ()=>{ clearFilt(); goToList(null); });
   /* Schnellfilter: raus aus dem Regal, ueber alle Artikel, beide !-Haken an. Bio und
      Werbung werden dabei bewusst abgeraeumt -- der Knopf soll immer dasselbe zeigen,
      egal was vorher im Filter stand. */
