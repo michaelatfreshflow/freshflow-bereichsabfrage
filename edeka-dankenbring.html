@@ -404,6 +404,10 @@ body.isFiltering{
    leading token (PLU) is .semibold, line 61. */
 .meta{color:var(--ff-grey-500);font-size:var(--ff-text-primary-body-text-14);margin-top:3px}
 .meta b:first-child{font-weight:var(--ff-weight-semibold)}
+/* item_information_row.dart is a Column of rows, not one dotted line */
+.meta .metarow{display:block}
+.meta .metarow + .metarow{margin-top:2px}
+.meta .metarow b{margin-right:5px}
 .pills{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
 .pill{border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);padding:1px 8px;font-size:var(--ff-text-primary-sub-title-10);color:#5d6b64;background:var(--ff-color-white)}
 .pill.b{border-color:var(--ff-primary-30);background:var(--ff-grey-100);color:var(--green)}
@@ -1102,9 +1106,9 @@ body.dash-active .stage{display:none}
         <div class="dash-ordercard">
           <div class="top">
             <div class="nm">Edeka</div>
-            <span class="dash-pill-open">OFFEN</span>
+            <span class="dash-pill-open" id="dbOpenPill">OFFEN</span>
           </div>
-          <div class="cnt">5h22m verbleibend</div>
+          <div class="cnt"><span id="dbCountdown">5h22m verbleibend</span></div>
           <div class="bottom">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a6a2c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </div>
@@ -1138,19 +1142,19 @@ body.dash-active .stage{display:none}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a94c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 15a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.6A3.5 3.5 0 0 0 7 15h10z"/><line x1="9" y1="19" x2="9" y2="21"/><line x1="13" y1="19" x2="13" y2="21"/><line x1="17" y1="19" x2="17" y2="21"/></svg>
         </div>
         <span class="dash-rainpill">Regen</span>
-        <div class="dash-mini-more">Siehe Wetter ›</div>
+        <div class="dash-mini-more" id="dbSeeWeather">Siehe Wetter ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbUpcoming">Zukünftige Ereignisse</div>
         <div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>
         <div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>
-        <div class="dash-mini-more">Alle Ereignisse ›</div>
+        <div class="dash-mini-more" id="dbAllEvents">Alle Ereignisse ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbTutorials">Tutorial Videos</div>
         <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Einführung in die Bestellvorbereitungen</div>
         <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Wie kann man Elemente ausblenden?</div>
-        <div class="dash-mini-more">Alle Videos ›</div>
+        <div class="dash-mini-more" id="dbAllVideos">Alle Videos ›</div>
       </div>
     </div>
 
@@ -1295,7 +1299,7 @@ body.dash-active .stage{display:none}
     <div class="m"><span id="lblMargin">Spanne</span><b id="fmar">0,00 %</b></div>
     <div class="m"><span id="lblAcceptance">Übernahmequote</span><b id="fans">0 %</b></div>
     <div class="sp"></div>
-    <button class="cta" id="nextRegalBtn" type="button" style="background:var(--ff-color-white);color:var(--green);border:1.5px solid var(--green)">Nächstes Regal ›</button>
+    <button class="cta" id="nextRegalBtn" type="button" style="background:var(--ff-color-white);color:var(--green);border:1.5px solid var(--green)">x</button>
     <button class="cta" id="cta">Bestellung abschließen ›</button>
   </div>
   <div id="catOverlayRoot"></div>
@@ -1316,7 +1320,7 @@ body.dash-active .stage{display:none}
 
 <div class="ov" id="ovInv">
   <div class="sheet">
-    <div class="sh"><h3>Bitte geben Sie den Bestand für den folgenden Artikel ein.</h3><button class="x" id="invX">✕</button></div>
+    <div class="sh"><h3 id="kpInvTitle">x</h3><button class="x" id="invX">✕</button></div>
     <div class="sbody">
       <div>
         <div class="nm" id="invName"></div>
@@ -1324,10 +1328,10 @@ body.dash-active .stage{display:none}
       </div>
       <div>
         <div class="seg" id="invUnitSeg" style="margin-bottom:14px">
-          <button data-u="pcs">Stück</button><button data-u="cs" class="on">Kisten</button></div>
-        <div class="kfield"><label>Lager</label><div class="box" id="invBack">0</div></div>
-        <div class="kfield"><label>Fläche</label><div class="box act" id="invFloor">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
+          <button data-u="pcs" id="uPcs">Stück</button><button data-u="cs" class="on" id="uCs">Kisten</button></div>
+        <div class="kfield"><label id="kLager">Lager</label><div class="box" id="invBack">0</div></div>
+        <div class="kfield"><label id="kFlaeche">Fläche</label><div class="box act" id="invFloor">0</div></div>
+        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="invPad">
         <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
@@ -1335,25 +1339,25 @@ body.dash-active .stage{display:none}
         <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
         <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
         <button data-k="0">0</button><button data-k=".">.</button><button data-k="del">⌫</button>
-        <button class="wide" data-k="swap">Zu Lager wechseln ⟳</button>
+        <button class="wide" data-k="swap" id="kpSwap">x</button>
       </div>
     </div>
     <div class="sfoot"><span class="lnk" id="invAbbrechen">Abbrechen</span><span class="sp"></span>
-      <button class="cta" id="invSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
+      <button class="cta" id="invSpeichern" style="padding:11px 30px">x</button></div>
   </div>
 </div>
 
 <div class="ov" id="ovOrd">
   <div class="sheet">
-    <div class="sh"><h3>Bitte geben Sie die Bestellung für den folgenden Artikel ein.</h3><button class="x" id="ordX">✕</button></div>
+    <div class="sh"><h3 id="kpOrdTitle">x</h3><button class="x" id="ordX">✕</button></div>
     <div class="sbody">
       <div>
         <div class="nm" id="ordName"></div>
         <div class="meta" id="ordMeta"></div>
       </div>
       <div>
-        <div class="kfield"><label>Bestellung</label><div class="box act" id="ordVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
+        <div class="kfield"><label class="kOrder">Bestellung</label><div class="box act" id="ordVal">0</div></div>
+        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="ordPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -1363,13 +1367,13 @@ body.dash-active .stage{display:none}
       </div>
     </div>
     <div class="sfoot"><span class="lnk" id="ordAbbrechen">Abbrechen</span><span class="sp"></span>
-      <button class="cta" id="ordSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
+      <button class="cta" id="ordSpeichern" style="padding:11px 30px">x</button></div>
   </div>
 </div>
 
 <div class="ov" id="ovAus">
   <div class="sheet">
-    <div class="sh"><h3>Bitte geben Sie die Auslage für den folgenden Artikel ein.</h3><button class="x" id="ausX">✕</button></div>
+    <div class="sh"><h3 id="kpAusTitle">x</h3><button class="x" id="ausX">✕</button></div>
     <div class="sbody">
       <div>
         <div class="nm" id="ausName"></div>
@@ -1386,13 +1390,13 @@ body.dash-active .stage{display:none}
       </div>
     </div>
     <div class="sfoot"><span class="lnk" id="ausAbbrechen">Abbrechen</span><span class="sp"></span>
-      <button class="cta" id="ausSpeichern" style="padding:11px 30px">Speichern ✓</button></div>
+      <button class="cta" id="ausSpeichern" style="padding:11px 30px">x</button></div>
   </div>
 </div>
 
 <div class="ov" id="ovReset">
   <div class="sheet" style="max-width:420px;border-radius:var(--ff-radius-c15);align-self:center">
-    <div class="sh"><h3>Wirklich zurücksetzen?</h3><button class="x" id="resetX">✕</button></div>
+    <div class="sh"><h3 id="kpResetTitle">x</h3><button class="x" id="resetX">✕</button></div>
     <div style="padding:4px 22px 18px;font-size:var(--ff-text-primary-body-text-14);color:#5d6b64;line-height:1.5">Alle Antworten und Mengen für diese Bestellung werden gelöscht. Das kann nicht rückgängig gemacht werden.</div>
     <div class="sfoot"><span class="lnk" id="resetAbbrechen">Abbrechen</span><span class="sp"></span>
       <button class="cta danger" id="resetGo" style="padding:11px 26px">Zurücksetzen</button></div>
@@ -1645,6 +1649,67 @@ const T={
     backArrow:'‹ Zurück',
     completeOrderArrow:'Bestellung abschließen ›',
     deadlineToday:'Bestellschluss heute 13:00 Uhr',
+    unitPieces:'Stück',
+    unitCases:'Kisten',
+    saveTick:'Speichern ✓',
+    switchBack:'${t().switchBack}',
+    switchFront:'${t().switchFront}',
+    dlgYes:'Ja, abschließen',
+    dlgAnyway:'Trotzdem weiter',
+    dlgTitleVerb:'abschließen?',
+    nextShelfArrow:'Nächstes Regal ›',
+    resetConfirm:'${t().resetConfirm}',
+    shelfChangeTip:'Regal wechseln oder Filter aufheben',
+    openOrderTip:'Aktuelle Bestellung öffnen',
+    hideItem:'Ausblenden',
+    unhideItem:'Wieder einblenden',
+    changeShelf:'Regal ändern',
+    needRealNumber:'Artikel brauchen noch eine echte Zahl',
+    needRealSub:'Zählungen, widersprüchliche Bestände und fehlende Leiter',
+    openConfirmed:'offene Artikel werden mit <b>✓</b> bestätigt',
+    casesInOrder:'Kisten in der Bestellung',
+    enterFirst:'Erst Zahlen nachtragen',
+    confirmFinish:'bestätigen und abschließen',
+    orderDone:'Bestellung abgeschlossen',
+    legMin:'Mindestens x Stück?',
+    legMax:'Maximal x Stück?',
+    legBetween:'Zwischen x und y Stück?',
+    legPreset:'Vorausgewählt',
+    legNoCount:'Keine Zählung nötig',
+    legContradict:'Bestand widersprüchlich',
+    legNoLadder:'Keine Leiter',
+    legOpenNone:'Offen, nichts markiert',
+    legCount:'Zählen',
+    rangeUpOpen:'Sprosse nach oben offen',
+    rangeDownOpen:'Sprosse nach unten offen',
+    rangeBounded:'beidseitig begrenzt, nur hier nötig',
+    rNotBalanced:'nicht ausgeglichen',
+    rNoSales:'zuletzt kein Abverkauf',
+    rSalesMissing:'Abverkauf fehlt',
+    rIntakeMissing:'Wareneingang fehlt',
+    rSharedPlu:'mehrere Artikel auf einer PLU',
+    rNeverCounted:'noch nie gezählt',
+    rPeriodic:'turnusmässige Zählung',
+    rPeriodicReal:'turnusmässige Zählung, echte Zahl',
+    rThinHistory:'zu wenig Historie',
+    rNewItem:'neuer Artikel',
+    rPromo:'Aktion',
+    rPlanAMismatch:'App-Bestand passt nicht zu Plan A',
+    rOrderDetached:'Bestellung hängt nicht am Bestand',
+    rShrinkRetail:'Abschriften im Verkaufspreis',
+    rBangOrder:'Ausrufezeichen am Bestellwert',
+    rWithdrawn:'Bestätigung zurückgenommen, wartet auf Markt',
+    rPreselected:'✓ vorgewählt, noch nicht vom Markt bestätigt',
+    seeWeather:'Siehe Wetter ›',
+    allEventsLink:'Alle Ereignisse ›',
+    allVideos:'Alle Videos ›',
+    statusOpenCaps:'OFFEN',
+    timeLeft:'verbleibend',
+    scanTip:'Barcode scannen (Demo)',
+    confirmFinishFull:'Bestätigen und abschließen',
+    legBangInv:'! Bestand',
+    legBangOrder:'! Bestellung',
+    legCountLabel:'Zählen',
     manageDone:'Beenden',
     shelfEyebrow:'Regale',
     shelfTitle:'Wo bist du gerade?',
@@ -1666,7 +1731,7 @@ const T={
     less:'weniger',
     undo:'Rückgängig',
     reset:'Zurücksetzen',
-    resetQ:'Wirklich zurücksetzen?',
+    resetQ:'${t().resetConfirm}',
     bulk:'Alle bestätigen',
     searchItems:'Artikel suchen',
     scanDemo:'Barcode scannen (Demo)',
@@ -1674,9 +1739,9 @@ const T={
     adjustDisplay:'Auslage anpassen',
     adjustOrder:'Bestellung anpassen',
     switchToBack:'Zu Lager wechseln',
-    enterInventory:'Bitte geben Sie den Bestand für den folgenden Artikel ein.',
-    enterDisplay:'Bitte geben Sie die Auslage für den folgenden Artikel ein.',
-    enterOrder:'Bitte geben Sie die Bestellung für den folgenden Artikel ein.',
+    enterInventory:'${t().enterInventory}',
+    enterDisplay:'${t().enterDisplay}',
+    enterOrder:'${t().enterOrder}',
     count:'Zählen: Bestand eingeben',
     noladder:'Bestand eingeben',
     countsub:'Turnusmässige Zählung fällig',
@@ -1742,6 +1807,67 @@ const T={
     backArrow:'‹ Back',
     completeOrderArrow:'Complete order ›',
     deadlineToday:'Order deadline today 13:00',
+    unitPieces:'Pieces',
+    unitCases:'Cases',
+    saveTick:'Save ✓',
+    switchBack:'Switch to back stock ⟳',
+    switchFront:'Switch to floor ⟳',
+    dlgYes:'Yes, complete',
+    dlgAnyway:'Continue anyway',
+    dlgTitleVerb:'— complete?',
+    nextShelfArrow:'Next shelf ›',
+    resetConfirm:'Really reset?',
+    shelfChangeTip:'Change shelf or clear the filter',
+    openOrderTip:'Open the current order',
+    hideItem:'Hide',
+    unhideItem:'Show again',
+    changeShelf:'Change shelf',
+    needRealNumber:'items still need a real number',
+    needRealSub:'counts, contradictory inventories and missing ladders',
+    openConfirmed:'open items will be confirmed as <b>✓</b>',
+    casesInOrder:'cases in the order',
+    enterFirst:'Enter the numbers first',
+    confirmFinish:'confirm and finish',
+    orderDone:'Order completed',
+    legMin:'At least x pieces?',
+    legMax:'At most x pieces?',
+    legBetween:'Between x and y pieces?',
+    legPreset:'Preselected',
+    legNoCount:'No count needed',
+    legContradict:'Inventory contradictory',
+    legNoLadder:'No ladder',
+    legOpenNone:'Open, nothing flagged',
+    legCount:'Count',
+    rangeUpOpen:'Range open at the top',
+    rangeDownOpen:'Range open at the bottom',
+    rangeBounded:'bounded both ends, only needed here',
+    rNotBalanced:'not balanced',
+    rNoSales:'no recent sales',
+    rSalesMissing:'sales missing',
+    rIntakeMissing:'order intake missing',
+    rSharedPlu:'several items on one PLU',
+    rNeverCounted:'never counted',
+    rPeriodic:'periodic count',
+    rPeriodicReal:'periodic count, real number',
+    rThinHistory:'not enough history',
+    rNewItem:'new item',
+    rPromo:'Promotion',
+    rPlanAMismatch:'App inventory does not match Plan A',
+    rOrderDetached:'Order not tied to inventory',
+    rShrinkRetail:'Shrink at retail price',
+    rBangOrder:'Warning on the order value',
+    rWithdrawn:'Confirmation withdrawn, waiting on the store',
+    rPreselected:'✓ preselected, not yet confirmed by the store',
+    seeWeather:'See weather ›',
+    allEventsLink:'All events ›',
+    allVideos:'All videos ›',
+    statusOpenCaps:'OPEN',
+    timeLeft:'left',
+    scanTip:'Scan barcode (demo)',
+    confirmFinishFull:'Confirm and finish',
+    legBangInv:'! Inventory',
+    legBangOrder:'! Order',
+    legCountLabel:'Count',
     manageDone:'Done',
     shelfEyebrow:'Shelves',
     shelfTitle:'Where are you right now?',
@@ -1839,6 +1965,67 @@ const T={
     backArrow:'‹ Retour',
     completeOrderArrow:'Compléter la commande ›',
     deadlineToday:'Heure limite aujourd’hui 13:00',
+    unitPieces:'Pièces',
+    unitCases:'Colis',
+    saveTick:'Enregistrer ✓',
+    switchBack:'Passer à la réserve ⟳',
+    switchFront:'Passer au rayon ⟳',
+    dlgYes:'Oui, clôturer',
+    dlgAnyway:'Continuer quand même',
+    dlgTitleVerb:'— clôturer ?',
+    nextShelfArrow:'Rayon suivant ›',
+    resetConfirm:'Vraiment réinitialiser ?',
+    shelfChangeTip:'Changer de rayon ou effacer le filtre',
+    openOrderTip:'Ouvrir la commande en cours',
+    hideItem:'Masquer',
+    unhideItem:'Réafficher',
+    changeShelf:'Changer de rayon',
+    needRealNumber:'articles ont encore besoin d’un chiffre réel',
+    needRealSub:'comptages, inventaires contradictoires et échelles manquantes',
+    openConfirmed:'articles ouverts seront confirmés par <b>✓</b>',
+    casesInOrder:'colis dans la commande',
+    enterFirst:'Saisir d’abord les chiffres',
+    confirmFinish:'confirmer et clôturer',
+    orderDone:'Commande clôturée',
+    legMin:'Au moins x pièces ?',
+    legMax:'Au plus x pièces ?',
+    legBetween:'Entre x et y pièces ?',
+    legPreset:'Présélectionné',
+    legNoCount:'Aucun comptage nécessaire',
+    legContradict:'Inventaire contradictoire',
+    legNoLadder:'Pas d’échelle',
+    legOpenNone:'Ouvert, rien de signalé',
+    legCount:'Comptage',
+    rangeUpOpen:'Plage ouverte vers le haut',
+    rangeDownOpen:'Plage ouverte vers le bas',
+    rangeBounded:'bornée des deux côtés, nécessaire ici seulement',
+    rNotBalanced:'non équilibré',
+    rNoSales:'aucune vente récente',
+    rSalesMissing:'ventes manquantes',
+    rIntakeMissing:'livraison manquante',
+    rSharedPlu:'plusieurs articles sur un même PLU',
+    rNeverCounted:'jamais compté',
+    rPeriodic:'comptage périodique',
+    rPeriodicReal:'comptage périodique, chiffre réel',
+    rThinHistory:'historique insuffisant',
+    rNewItem:'nouvel article',
+    rPromo:'Promotion',
+    rPlanAMismatch:'L’inventaire de l’app ne correspond pas au plan A',
+    rOrderDetached:'Commande non liée à l’inventaire',
+    rShrinkRetail:'Casse au prix de vente',
+    rBangOrder:'Alerte sur la quantité commandée',
+    rWithdrawn:'Confirmation retirée, en attente du magasin',
+    rPreselected:'✓ présélectionné, pas encore confirmé par le magasin',
+    seeWeather:'Voir la météo ›',
+    allEventsLink:'Tous les événements ›',
+    allVideos:'Toutes les vidéos ›',
+    statusOpenCaps:'OUVERTE',
+    timeLeft:'restantes',
+    scanTip:'Scanner un code-barres (démo)',
+    confirmFinishFull:'Confirmer et clôturer',
+    legBangInv:'! Inventaire',
+    legBangOrder:'! Commande',
+    legCountLabel:'Comptage',
     manageDone:'Terminer',
     shelfEyebrow:'Rayons',
     shelfTitle:'Où êtes-vous en ce moment ?',
@@ -1896,6 +2083,7 @@ const t=()=>T[LANG];
 const LANG_LABELS={
   hdrItem:'item', hdrInv:'inventory', hdrOrd:'order',
   lblFilter:'filter', cta:'completeOrderArrow', backLink:'backArrow',
+  dbOpenPill:'statusOpenCaps', dbSeeWeather:'seeWeather', dbAllEvents:'allEventsLink', dbAllVideos:'allVideos',
   dbTodayOrders:'todayOrders', dbOverview:'todayOverview', dbRevenue:'revenue',
   dbShrink:'shrink', dbWeather:'weather', dbUpcoming:'upcoming', dbTutorials:'tutorials',
   dbNav1:'navDashboard', dbNav2:'navOrders', dbNav3:'navMyStore', dbNav4:'navSettings',
@@ -1912,6 +2100,27 @@ function applyLang(){
     if(el && L[key]) el.textContent=L[key];
   }
   /* carries a trailing chevron the .arb string does not have */
+  /* sheets: several share a label, so these go by class or by a small list */
+  const tips={dashFab:'openOrderTip', resetBtn:'reset'};
+  for(const [id,key] of Object.entries(tips)){
+    const el=document.getElementById(id);
+    if(el && L[key]){ el.setAttribute('title', L[key]); el.setAttribute('aria-label', L[key]); }
+  }
+  const byId={s2Title:'completeOrder', nextRegalBtn:'nextShelfArrow',
+              kpInvTitle:'enterInventory', kpOrdTitle:'enterOrder',
+              kpAusTitle:'enterDisplay', kpResetTitle:'resetConfirm',
+              invSpeichern:'saveTick', ordSpeichern:'saveTick', ausSpeichern:'saveTick', s2Abbrechen:'back', s2Go:'confirmFinishFull',
+              uPcs:'unitPieces', uCs:'unitCases', kLager:'backStock', kFlaeche:'frontStock',
+              invAbbrechen:'cancel', ordAbbrechen:'cancel', ausAbbrechen:'cancel',
+              resetAbbrechen:'cancel', resetGo:'reset', catUndoBtn:'undo'};
+  for(const [id,key] of Object.entries(byId)){
+    const el=document.getElementById(id);
+    if(el && L[key]) el.textContent=L[key];
+  }
+  document.querySelectorAll('.kTotal').forEach(e=>e.textContent=L.total);
+  document.querySelectorAll('.kOrder').forEach(e=>e.textContent=L.order);
+  const cd=document.getElementById('dbCountdown');
+  if(cd) cd.textContent = cd.textContent.replace(/(verbleibend|left|restantes)\s*$/, L.timeLeft);
   const mo=document.getElementById('dbMoreOrders');
   if(mo) mo.textContent = L.seeMoreOrders + ' \u203a';
   const mb=document.getElementById('manageBtnLabel');
@@ -2215,12 +2424,12 @@ function stepHTML(it,s,ix){
   }
   const {v,u} = splitUnit(big);
   return `<div class="${cls}">
-    <button class="InventoryCounterField__button" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''} aria-label="weniger">${ICON_MINUS}</button>
+    <button class="InventoryCounterField__button" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''} aria-label="${t().less}">${ICON_MINUS}</button>
     <div class="InventoryCounterField__box" data-a="invpad" data-i="${ix}">
       <span class="InventoryCounterField__value"><b>${v}</b>${u?`<i>${u}</i>`:''}</span>
       ${small?`<span class="InventoryCounterField__label">${small}</span>`:''}
     </div>
-    <button class="InventoryCounterField__button" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''} aria-label="mehr">${ICON_PLUS}</button>
+    <button class="InventoryCounterField__button" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''} aria-label="${t().more}">${ICON_PLUS}</button>
   </div>`;
 }
 function chipFor(it,i){
@@ -2236,8 +2445,26 @@ function chipFor(it,i){
    SizedBox.shrink() (column_counter_field.dart:180-188), and the inventory
    cell's _StatusIconBox is a fixed Container(width: 38.w) either way
    (inv_sim_inventory_cell.dart:190-206). */
+/* invNote / ordNote arrive as German text baked into ITEMS -- they are data, not
+   source strings, so they cannot be wired at author time. They are composed of a
+   small set of reasons joined by ' · ', so translate token by token and leave
+   anything unrecognised alone. */
+const NOTE_TOKENS = {
+  'nicht ausgeglichen':'rNotBalanced', 'zuletzt kein Abverkauf':'rNoSales',
+  'Abverkauf fehlt':'rSalesMissing', 'Wareneingang fehlt':'rIntakeMissing',
+  'mehrere Artikel auf einer PLU':'rSharedPlu', 'noch nie gezählt':'rNeverCounted',
+  'turnusmässige Zählung, echte Zahl':'rPeriodicReal', 'turnusmässige Zählung':'rPeriodic',
+  'zu wenig Historie':'rThinHistory', 'neuer Artikel':'rNewItem', 'Aktion':'rPromo',
+};
+function noteText(raw){
+  if(!raw) return raw;
+  return String(raw).split(' · ')
+    .map(x=>{ const k=NOTE_TOKENS[x.trim()]; return k ? t()[k] : x; })
+    .join(' · ');
+}
 function bang(note){
-  return `<span class="statusSlot"${note?` title="${note}"`:''}>${note?ICON_WARN:''}</span>`;
+  const txt=noteText(note);
+  return `<span class="statusSlot"${txt?` title="${txt}"`:''}>${txt?ICON_WARN:''}</span>`;
 }
 /* a row counts as erfasst for category progress once neither bang shows —
    mirrors the two bang() calls in render() exactly, not the answered flag. */
@@ -2300,14 +2527,24 @@ function render(){
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
-    const meta = `<b>${it.plu!=null?it.plu:'–'}</b> · ${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${it.ek!=null?eur(it.ek):'?'} · ${t().retail} ${it.vk!=null?eur(it.vk):'?'}`;
+    /* item_information_row.dart puts the PLU and case size on one line and the
+       prices on the next, as bare numbers -- the app labels neither, and it
+       shows cost, margin, retail in that order. The prototype had one dotted
+       line with EK/VK captions instead. */
+    const unitName = it.unit==='kg' ? 'kg' : t().piece;
+    const marginPct = (it.ek!=null && it.vk) ? ((it.vk-it.ek)/it.vk*100) : null;
+    const meta =
+      `<span class="metarow"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:'?'}</span>`
+      + `<span class="metarow">${it.ek!=null?eur(it.ek):'?'}`
+      + `${marginPct!=null?' '+marginPct.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %':''}`
+      + ` ${it.vk!=null?eur(it.vk):'?'}</span>`;
     let pills=`<span class="pill">${t().prevOrder} ${it.prevOrder!=null?it.prevOrder:0} ${t().caseUnit}</span>`;
     const pl = promoLabel(it.promo);
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
     if(s.hidden) pills+=`<span class="pill hid">Ausgeblendet</span>`;
-    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="Regal ändern">${tileLabel(tileOf(it))} ✎</button>`;
+    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
@@ -2320,12 +2557,12 @@ function render(){
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
     let ord = `<div class="withbang"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
-      <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="weniger">${ICON_MINUS}</button>
-      <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">
+      <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="${t().less}">${ICON_MINUS}</button>
+      <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="${t().adjustOrder}">
         <span class="ColumnCounterField__value"><b>${shown}</b><i>${t().caseUnit}</i></span>
         ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
       </div>
-      <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="mehr">${ICON_PLUS}</button>
+      <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
     </div>${bang(s.manual?null:it.ordNote)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
@@ -2458,7 +2695,7 @@ function renderCatChip(){
   const n=itemsForFilter(CATFILTER).length;
   const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
   const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} offen)</span>` : '';
-  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="Regal wechseln oder Filter aufheben">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
+  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
 
@@ -2595,12 +2832,12 @@ function renderCatOverlay(){
           ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben.</div>' : ''}
         </div>
         <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? t().shelfDone : '✎ '+t().editShelves}</button>
-        <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
+        <button class="x" id="catCloseBtn" type="button" title="${t().close}">✕</button>
       </div>
       ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
         <span style="color:var(--mute);font-size:var(--ff-text-primary-title-17)">⌕</span>
         <input id="catQ" type="search" placeholder="${t().searchItems}" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
-        <span style="color:var(--mute);line-height:1" title="Barcode scannen (Demo)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
+        <span style="color:var(--mute);line-height:1" title="${t().scanTip}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
       </div></div>`}
       <div class="catbody">${body}</div>
     </div>
@@ -2743,7 +2980,7 @@ function renderCatItemPicker(){
           <h2>${it.name}</h2>
           <div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>
         </div>
-        <button class="x" id="catItemPickClose" type="button" title="Schließen">✕</button>
+        <button class="x" id="catItemPickClose" type="button" title="${t().close}">✕</button>
       </div>
       <div class="catbody">
         <div class="ShelfGrid">${tiles.map(tl=>`
@@ -2823,15 +3060,15 @@ function renderCatConfirm(){
   root.innerHTML = `<div class="ov on" style="z-index:9999">
     <div class="AppFormDialog">
       <div class="AppFormDialog__header">
-        <div class="AppFormDialog__title">${CATCONFIRM.label} abschließen?</div>
-        <button type="button" class="AppFormDialog__close" id="catConfirmClose" aria-label="Schließen">${CLOSE_ICON}</button>
+        <div class="AppFormDialog__title">${CATCONFIRM.label} ${t().dlgTitleVerb}</div>
+        <button type="button" class="AppFormDialog__close" id="catConfirmClose" aria-label="${t().close}">${CLOSE_ICON}</button>
       </div>
       <div class="AppFormDialog__body">${bodyText}</div>
       <div class="AppFormDialog__actions">
-        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmContinue">Trotzdem weiter</button>
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmContinue">${t().dlgAnyway}</button>
         <div class="AppFormDialog__actionsEnd">
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmNo">Abbrechen</button>
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="catConfirmYes">Ja, abschließen</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catConfirmNo">${t().cancel}</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="catConfirmYes">${t().dlgYes}</button>
         </div>
       </div>
     </div>
@@ -3169,7 +3406,7 @@ function drawInvPad(){
   backEl.classList.toggle('act',INV.act==='back');
   document.getElementById('invFloor').classList.toggle('act',INV.act==='floor');
   document.querySelector('#invPad button[data-k="swap"]').innerHTML =
-    (INV.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
+    (INV.act==='back' ? t().switchFront : t().switchBack);
   const totEl=document.getElementById('invUnit'), totPcsEl=document.getElementById('invUnitPcs');
   const v=invPadVals();
   const untouched = INV.back==='0' && INV.floor==='0';
@@ -3308,19 +3545,19 @@ function legend(){
     if(s.mode==='ask') g['ask_'+(r.kind==='atleast'?'at':r.kind==='lessthan'?'lt':'bet')]++;
     else g[s.mode]++;});
   const L=[
-   ['Mindestens x Stück?',g.ask_at,'Sprosse nach oben offen'],
-   ['Maximal x Stück?',g.ask_lt,'Sprosse nach unten offen'],
-   ['Zwischen x und y Stück?',g.ask_bet,'beidseitig begrenzt, nur hier nötig'],
-   ['Keine Zählung nötig',g.any,'Bestellung hängt nicht am Bestand'],
-   ['Zählen',g.count,'turnusmässige Zählung, echte Zahl'],
-   ['Bestand widersprüchlich',g.unsure,'App-Bestand passt nicht zu Plan A'],
-   ['Keine Leiter',g.noladder,'Modell rechnet kein Bereich']];
+   [t().legMin,g.ask_at,t().rangeUpOpen],
+   [t().legMax,g.ask_lt,t().rangeDownOpen],
+   [t().legBetween,g.ask_bet,t().rangeBounded],
+   [t().legNoCount,g.any,t().rOrderDetached],
+   [t().legCountLabel,g.count,t().rPeriodicReal],
+   [t().legContradict,g.unsure,t().rPlanAMismatch],
+   [t().legNoLadder,g.noladder,'Modell rechnet kein Bereich']];
   const pre=ST.filter(x=>x.auto).length;
   const openAsk=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].mode==='ask').length;
-  L.unshift(['Vorausgewählt',pre,'✓ vorgewählt, noch nicht vom Markt bestätigt']);
-  L.push(['Offen, nichts markiert',openAsk,'Bestätigung zurückgenommen, wartet auf Markt']);
-  L.push(['! Bestand',ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
-  L.push(['! Bestellung',ITEMS.filter(it=>it.ordNote).length,'Ausrufezeichen am Bestellwert']);
+  L.unshift([t().legPreset,pre,t().rPreselected]);
+  L.push([t().legOpenNone,openAsk,t().rWithdrawn]);
+  L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
+  L.push([t().legBangOrder,ITEMS.filter(it=>it.ordNote).length,t().rBangOrder]);
 
   document.getElementById('legend').innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
@@ -3334,20 +3571,20 @@ function openSummary(){
   const de=LANG==='de';
   let h='';
   if(blocked.length){
-    h+=`<div class="stmt no2" style="font-size:var(--ff-text-primary-body-text-14)">${blocked.length} ${de?'Artikel brauchen noch eine echte Zahl':'Artikel brauchen noch eine echte Zahl'}
-        <span class="sub">${de?'Zählungen, widersprüchliche Bestände und fehlende Leiter':'counts, contradictory inventories and missing ladders'}</span></div>
+    h+=`<div class="stmt no2" style="font-size:var(--ff-text-primary-body-text-14)">${blocked.length} ${t().needRealNumber}
+        <span class="sub">${t().needRealSub}</span></div>
         <ul style="font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500);line-height:1.7;margin:12px 0 0;padding-left:18px">`
       +blocked.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
-      +(blocked.length>8?`<li>… ${blocked.length-8} ${de?'weitere':'more'}</li>`:'')+'</ul>';
+      +(blocked.length>8?`<li>… ${blocked.length-8} ${t().more}</li>`:'')+'</ul>';
   }
   h+=`<div style="margin-top:${blocked.length?18:0}px;font-size:var(--ff-text-primary-body-text-14);line-height:1.8;color:var(--ff-grey-700)">
-      <div><b>${implicit.length}</b> ${de?'offene Aussagen werden mit <b>✓</b> bestätigt':'open statements will be confirmed as <b>✓</b>'}</div>
-      <div><b>${cases}</b> ${de?'Kisten in der Bestellung':'cases in the order'}</div></div>`;
+      <div><b>${implicit.length}</b> ${t().openConfirmed}</div>
+      <div><b>${cases}</b> ${t().casesInOrder}</div></div>`;
   document.getElementById('s2Body').innerHTML=h;
   const go=document.getElementById('s2Go');
   go.disabled=blocked.length>0; go.style.opacity=blocked.length?.4:1;
-  go.textContent = blocked.length ? (de?'Erst Zahlen nachtragen':'Enter the numbers first')
-                                  : (de?`${implicit.length} bestätigen und abschließen`:`Bestätigen ${implicit.length} and finish`);
+  go.textContent = blocked.length ? t().enterFirst
+                                  : `${implicit.length} ${t().confirmFinish}`;
   document.getElementById('ov2').classList.add('on');
 }
 document.getElementById('cta').onclick=openSummary;

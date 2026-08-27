@@ -662,6 +662,40 @@ rather than by German text means the resolution order still holds:
 Verified: renaming a shelf keeps that name under DE, EN and FR, and the fixed
 store-walk order is unchanged in all three.
 
+### Coverage
+
+Swept the rendered DOM in EN and FR across every screen — order list, shelf picker,
+all three keypads, the completion dialog, the summary sheet, the legend, plus every
+`title`, `aria-label` and `placeholder`. **Zero German strings remain** outside product
+data (names, PLUs, prices), which stays as it is.
+
+The needs-attention tooltips needed a different mechanism: `invNote` / `ordNote` are
+German text baked into `ITEMS`, so they are data, not source strings. `noteText()`
+splits them on `·` and maps token by token, leaving anything unrecognised alone.
+
+Three product-voice calls, decided by Michael:
+
+| German | reads as |
+|---|---|
+| Aussagen | items / articles |
+| Sprosse | range / plage |
+| nicht ausgeglichen | not balanced / non équilibré |
+
+### The item cell now matches the app
+
+`item_information_row.dart` puts the PLU and case size on one line and the prices on
+the next, as **bare numbers with no captions**, in the order cost / margin / retail.
+The prototype had a single dotted line with EK and VK labels:
+
+    was:  80674384 · Kiste 10 St. · EK 2,52 € · VK 3,99 €
+    now:  80674384  10 Stück
+          2,52 €  36,84 %  3,99 €
+
+**Open question on the margin.** The prototype computes `(retail − cost) / retail`,
+the same formula its own footer uses. The app's screenshot shows 26,43 % where that
+formula gives ~31 %, which suggests the app works net of VAT. Worth confirming before
+anyone reads the number as real.
+
 ### Note: German changed too
 
 Using the app's wording means some German moved to match it — "Anzahl Kisten" became
