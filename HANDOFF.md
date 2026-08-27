@@ -182,6 +182,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -930,6 +931,28 @@ header and on the dashboard, matching the existing `DE ⌄` control.
   update. Labels need their own span.
 - **A replace matched a closing tag**, producing `</svg id="lblFilter">`. Malformed, and
   the browser silently dropped the attribute.
+
+## The filter chip and its states
+
+The urgency quick-filter in the shelf picker sets `CATFILT.invNote/ordNote` and then
+calls `goToList(null)`, which clears `CATFILTER` — it filters across every shelf rather
+than within one. `renderCatChip()` only read `CATFILTER`, so the toolbar chip fell into
+its "no filter" branch and claimed **Alle Artikel** while the list was in fact filtered
+down to the urgent rows. It now reads `CATFILT` too and shows
+**Dringende Artikel · N Artikel** in the warn style.
+
+The count is derived the same way the list filters (`!rowClear`), so chip and list
+cannot disagree — verified at 94 and 94.
+
+The quick filter is also renamed from "Offene Artikel" to **Dringende Artikel**, matching
+the `(N dringend)` counter the shelf chip already used. EN follows as *Urgent items*; FR
+stays *Articles à vérifier*.
+
+**Hover and press.** The app has no chip convention, so these follow the same shape as
+`InkWell` elsewhere in the file: a background overlay only, hover behind
+`@media (hover: hover)` because the store's iPad has no pointer. Tokens are all live
+ones — `primary-20`/`primary-30` for the normal chip, `findOnPage`/`orange-50` for the
+warn variant.
 
 ## The state machine
 

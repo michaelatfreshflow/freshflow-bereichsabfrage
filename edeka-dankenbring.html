@@ -689,6 +689,16 @@ body.isFiltering{
 .catchip{display:inline-flex;align-items:center;gap:8px;background:var(--ok-bg);color:#1f4d39;border-radius:var(--ff-radius-pill);
   padding:6px 14px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);border:0;cursor:pointer;font-family:inherit}
 .catchip .n{opacity:.65;font-weight:var(--ff-weight-medium)}
+/* The app has no chip-press convention, so these follow the same shape as
+   InkWell elsewhere in this file: a background overlay only, hover guarded
+   because the store's iPad has no pointer. */
+.catchip{-webkit-tap-highlight-color:transparent;transition:background-color .1s}
+.catchip:active{background:var(--ff-primary-30)}
+.catchip.warn:active{background:var(--ff-orange-50)}
+@media (hover:hover){
+  .catchip:hover{background:var(--ff-primary-20)}
+  .catchip.warn:hover{background:var(--ff-color-find-on-page)}
+}
 
 .catov{position:absolute;left:0;right:0;bottom:0;background:var(--ff-grey-50);display:flex;z-index:20}
 .catsheet{flex:1;display:flex;flex-direction:column;background:var(--ff-grey-50);overflow:hidden}
@@ -2691,6 +2701,17 @@ function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
   const nextBtn=document.getElementById('nextRegalBtn');
   if(!CATFILTER){
+    /* The urgency quick-filter leaves CATFILTER null -- it filters across every
+       shelf -- so the chip has to read CATFILT too, or it claims "all items"
+       while the list is filtered down to the urgent ones. */
+    const urgent = CATFILT.invNote && CATFILT.ordNote;
+    if(urgent){
+      const n = ITEMS.filter((it,ix)=>!ST[ix].hidden && !rowClear(it,ST[ix])).length;
+      wrap.innerHTML = `<button class="catchip warn" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${t().openItems} <span class="n">· ${n} ${t().shelfItems}</span></button>`;
+      document.getElementById('catChipBtn').onclick=goToCategories;
+      if(nextBtn) nextBtn.style.display='none';
+      return;
+    }
     wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfSelect}">${t().showAll}</button>`;
     document.getElementById('catChipBtn').onclick=goToCategories;
     if(nextBtn) nextBtn.style.display='none';
