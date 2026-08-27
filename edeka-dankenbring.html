@@ -344,6 +344,7 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
    focusing -- which is exactly what ColumnCounterField already does.
    =========================================================================== */
 
+.ColumnCounterField,
 .InventoryCounterField{
   box-sizing:border-box;
   display:inline-flex;align-items:flex-start;width:max-content;
@@ -351,8 +352,10 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
   border:1px solid var(--ff-grey-100);
   border-radius:var(--ff-radius-c40);
 }
+.ColumnCounterField *,
 .InventoryCounterField *{box-sizing:border-box}
 
+.ColumnCounterField__button,
 .InventoryCounterField__button{
   /* _CounterButton */
   height:38px;padding:0 13px;
@@ -362,40 +365,60 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
   color:var(--ff-color-favorite);
   -webkit-tap-highlight-color:transparent;
 }
+.ColumnCounterField__button svg,
 .InventoryCounterField__button svg{display:block}
 /* onPressed: null -- InkWell disables itself, but it has no disabled visual
    today. This grey is the one thing _CounterButton needs adding. */
+.ColumnCounterField__button:disabled,
 .InventoryCounterField__button:disabled{color:var(--ff-grey-300);cursor:default}
+.ColumnCounterField__button:active:not(:disabled),
 .InventoryCounterField__button:active:not(:disabled){background:var(--ff-primary-20)}
 
+.ColumnCounterField__box,
 .InventoryCounterField__box{
-  width:124px;height:40px;padding:0 7px;
+  height:40px;padding:0 7px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:var(--ff-color-white);
   border:1px solid var(--ff-grey-200);
   border-radius:var(--ff-radius-c4);
   cursor:pointer;overflow:hidden;
 }
+/* _ValueBox Size(72, 40) -- the shared widget, unchanged. inv_sim_order_cell
+   uses it exactly like this, and the order column's widest content is 43px,
+   so 72 is genuinely enough there. */
+.ColumnCounterField__box{width:72px}
+/* The one difference in the duplicate: 124 instead of 72. */
+.InventoryCounterField__box{width:124px}
+
+.ColumnCounterField--focused .ColumnCounterField__box,
 .InventoryCounterField--focused .InventoryCounterField__box{
   border-width:2px;border-color:var(--ff-color-accent-orange);
 }
 .InventoryCounterField--warn .InventoryCounterField__box{
   border-color:var(--ff-color-warning);
 }
+/* the order cell's "moved away from the model" border */
+.ColumnCounterField--changed .ColumnCounterField__box{
+  border-color:var(--ff-color-warning);
+}
 
+.ColumnCounterField__value,
 .InventoryCounterField__value{
   white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.1;
   color:var(--ff-grey-900);
 }
+.ColumnCounterField__value b,
 .InventoryCounterField__value b{
   font-size:var(--ff-text-primary-body-text-16);
   font-weight:var(--ff-weight-medium);
 }
+.ColumnCounterField__value i,
 .InventoryCounterField__value i{
   font-style:normal;margin-left:1.8px;
   font-size:var(--ff-text-primary-caption-12);
   font-weight:var(--ff-weight-light);
 }
+.ColumnCounterField__label,
 .InventoryCounterField__label{
   font-size:var(--ff-text-primary-sub-title-10);
   color:var(--ff-grey-500);white-space:nowrap;line-height:1.1;margin-top:1px;
@@ -419,13 +442,7 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .invpcs{font-size:var(--ff-text-primary-caption-12);color:var(--mute);margin-top:5px}
 
 /* ---------- order cell ---------- */
-.step{display:flex;align-items:center;justify-content:flex-end;gap:0}
-.step button{width:38px;height:44px;border:0;background:var(--ff-grey-100);font-size:var(--ff-text-primary-heading-20);color:var(--ff-grey-700);cursor:pointer}
-.step button:first-child{border-radius:var(--ff-radius-c8) 0 0 9px}
-.step button:last-child{border-radius:0 9px 9px 0}
-.step .v{min-width:64px;height:44px;border:1px solid var(--ff-grey-200);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);background:var(--ff-color-white);cursor:pointer}
-.step .v.chg{border-color:var(--amber)}
-.step .v .sub{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-semibold);color:var(--mute)}
+
 .ref{margin-top:7px;text-align:right;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-400)}
 .ref b{color:var(--ff-grey-500)}
 
@@ -1679,9 +1696,14 @@ function render(){
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
-    let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown} KO${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
-      <button data-a="inc" data-i="${ix}">+</button></div>${bang(s.manual?null:it.ordNote)}</div>`;
+    let ord = `<div class="withbang end"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
+      <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="weniger">${ICON_MINUS}</button>
+      <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">
+        <span class="ColumnCounterField__value"><b>${shown}</b><i>KO</i></span>
+        ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
+      </div>
+      <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="mehr">${ICON_PLUS}</button>
+    </div>${bang(s.manual?null:it.ordNote)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';

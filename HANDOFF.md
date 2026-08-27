@@ -168,6 +168,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -500,12 +501,42 @@ Per-button, never both — straight from `stepHTML()`:
 Verified in the live page: 223 steppers, every box exactly 124 px, none clipped, 140 of
 446 buttons greyed, keypad still opens on box tap, a disabled button is inert.
 
-### Still inconsistent
+### Both columns now use the component
 
-The **Bestellung** column still uses the old `.step` markup, so the two columns no
-longer match. In the app that cell is `inv_sim_order_cell`, which already uses
-`ColumnCounterField` — so it should get the same treatment, probably with its own
-measured width.
+The Bestellung column's bespoke `.step` markup is gone. In the app that cell is
+`inv_sim_order_cell`, which uses the **shared `ColumnCounterField` unmodified** — and
+measuring the order column's content confirms it fits: widest line is 43 px, so the
+shared `Size(72, 40)` box is genuinely enough there. No duplicate needed for that one.
+
+So the two columns differ exactly as they do in the app:
+
+| column | widget | value box |
+|---|---|---|
+| Bestand | `InventoryCounterField` (duplicate) | `Size(124, 40)` |
+| Bestellung | `ColumnCounterField` (shared, unchanged) | `Size(72, 40)` |
+
+The CSS lists both class names on every shared rule, so `grep ColumnCounterField` and
+`grep InventoryCounterField` each find the full anatomy — matching the fact that in
+Dart they are two files, not one parameterised widget.
+
+`.ColumnCounterField--changed` carries the order cell's amber "moved away from the
+model" border, which `.step .v.chg` used to.
+
+### On the icon size
+
+The `−` and `+` are `AppIcons.minus` / `AppIcons.plus` at their intrinsic 16 px, which
+is what `_CounterButton` renders: `AppIcon.asset(icon)` passes no width or height, so
+`SvgPicture` uses the asset's own size.
+
+They read heavier than the text glyphs the prototype used before, and that is correct
+rather than a mistake — the minus asset is a solid 16×5 bar, where a 20 px `−` glyph
+inks only about 11.7×1. Worth stating plainly because it looks like a bug: it is not.
+`_screenUtilDesignSize()` returns `Size(1194, 834)` in landscape, which is the target
+iPad exactly, so screenutil's scale factor is 1.0 and these are literally the pixels
+the app draws.
+
+If the icons should be lighter, that is a change to `_CounterButton` in the app — not
+something for this prototype to diverge on alone.
 
 ## The state machine
 
