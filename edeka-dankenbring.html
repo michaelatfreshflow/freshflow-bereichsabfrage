@@ -257,7 +257,60 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 /* ---------- progress ---------- */
 
 /* ---------- table ---------- */
-.colh{display:grid;grid-template-columns:1fr 330px 200px;gap:10px;padding:10px 18px;border-bottom:2px solid var(--ff-color-dark-grey);
+/* ===========================================================================
+   OrderItemTableColumnWidths -- Artikel / Bestand / Bestellung
+   Source: lib/presentation/features/order/widgets/table/
+           order_item_table_column_widths.dart
+
+   The app sizes these columns with PVTFractionColumnWidth, whose whole
+   implementation is `width * fraction` -- every column is a fraction of the
+   table's width and nothing is fixed. This prototype used
+   `1fr 330px 200px`, which is the opposite: two columns pinned in px and the
+   item column absorbing the rest.
+
+   This screen is three columns, no barcode, no preorder -- so it is _invSim()
+   with editing: true, showPreorderColumn: false, isSelecting: false, which
+   makes barcodeFrac 0 and reduces to:
+
+     col0   = isFiltering ? 0.38 : 0.43;
+     rem    = 1.0 - col0;
+     col1   = rem / 2;      // Bestand
+     orderW = rem / 2;      // Bestellung
+
+   There is no gap between PVT columns -- the fractions consume the full width
+   and the spacing lives as padding inside each cell, exactly as
+   inv_sim_inventory_cell.dart does with `_rightPadding = 10`. So gap is 0 here
+   and the 10px sits inside the cells instead, or the three fractions would no
+   longer sum to the table width.
+   =========================================================================== */
+:root{
+  --pvt-col-0: 0.43;   /* PVTFractionColumnWidth(0.43)     Artikel     */
+  --pvt-col-1: 0.285;  /* PVTFractionColumnWidth(rem / 2)  Bestand     */
+  --pvt-col-2: 0.285;  /* PVTFractionColumnWidth(rem / 2)  Bestellung  */
+}
+/* isFiltering: true -- item yields 5 points, split evenly between the other two */
+body.isFiltering{
+  --pvt-col-0: 0.38;
+  --pvt-col-1: 0.31;
+  --pvt-col-2: 0.31;
+}
+/* EdgeInsets.only(right: 10) inside the cell, not a gap between columns */
+.colh > *:not(:last-child),
+.row  > *:not(:last-child){padding-right:10px}
+
+/* Both value cells are PVTRowCell(alignment: Alignment.topCenter) --
+   inv_sim_inventory_cell.dart:15 and inv_sim_order_cell.dart:13. The prototype
+   had Bestand flush left and Bestellung flush right, which left a void down the
+   middle of the table once the columns became fractions. */
+.row > *:nth-child(2),
+.row > *:nth-child(3){display:flex;flex-direction:column;align-items:center}
+
+/* Headers do NOT follow their cells. order_item_table_header.dart:77 gives the
+   inventory header Alignment.centerRight in invSim, and the order header takes
+   _headerCell's default, Alignment.center. */
+.colh > *:nth-child(2){text-align:right}
+.colh > *:nth-child(3){text-align:center}
+.colh{display:grid;grid-template-columns:calc(var(--pvt-col-0) * 100%) calc(var(--pvt-col-1) * 100%) calc(var(--pvt-col-2) * 100%);gap:0;padding:10px 18px;border-bottom:2px solid var(--ff-color-dark-grey);
   font-weight:var(--ff-weight-bold);font-size:var(--ff-text-primary-body-text-14)}
 .colh .i{display:inline-grid;place-items:center;width:15px;height:15px;border:1px solid #9aa8e0;border-radius:var(--ff-radius-c2);
   font-size:var(--ff-text-primary-sub-title-10);color:var(--ff-color-accent-blue);font-style:italic;margin-left:6px;vertical-align:1px}
@@ -265,7 +318,7 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .colh .sortlabel:hover{color:var(--green)}
 .colh .sortarrow{display:inline-block;min-width:10px;margin-left:3px;font-size:var(--ff-text-primary-caption-12);color:var(--green)}
 .list{max-height:660px;overflow:auto}
-.row{display:grid;grid-template-columns:1fr 330px 200px;gap:10px;padding:11px 18px;border-bottom:1px solid var(--ff-grey-100);align-items:start}
+.row{display:grid;grid-template-columns:calc(var(--pvt-col-0) * 100%) calc(var(--pvt-col-1) * 100%) calc(var(--pvt-col-2) * 100%);gap:0;padding:11px 18px;border-bottom:1px solid var(--ff-grey-100);align-items:start}
 .row.done{background:var(--ff-grey-50)}
 .row.hide{display:none}
 .row.ishidden{opacity:.55;background:var(--ff-grey-50)}
@@ -432,7 +485,6 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
 .withbang{display:flex;align-items:flex-start;gap:9px}
-.withbang.end{justify-content:flex-end}
 .withbang>.stmt{flex:1}
 .bang{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--amber);color:var(--ff-color-white);
   font-weight:var(--ff-weight-extra-bold);font-size:var(--ff-text-primary-body-text-14);display:grid;place-items:center;margin-top:6px;cursor:help;line-height:1}
@@ -1061,7 +1113,7 @@ body.dash-active .stage{display:none}
     </button>
   </div>
 
-  <div class="colh" id="colh"><div>Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv">Bestand<span class="sortarrow" id="arrow-inv"></span></span> <span class="i">i</span></div><div style="text-align:right"><span class="sortlabel" data-a="sort" data-col="ord">Bestellung<span class="sortarrow" id="arrow-ord"></span></span> <span class="i">i</span></div></div>
+  <div class="colh" id="colh"><div>Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv">Bestand<span class="sortarrow" id="arrow-inv"></span></span> <span class="i">i</span></div><div><span class="sortlabel" data-a="sort" data-col="ord">Bestellung<span class="sortarrow" id="arrow-ord"></span></span> <span class="i">i</span></div></div>
   <div class="list" id="list"></div>
 
   <div class="foot">
@@ -1669,6 +1721,9 @@ function render(){
        genau eine. Ohne Haken bleibt alles sichtbar. 'Ausgeblendet' gehoert nicht dazu,
        das ist ein eigener Schalter weiter unten. */
     const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
+    /* OrderItemTableColumnWidths takes isFiltering and narrows the item column
+       when it is set -- so the flag has to reach the layout, not just the rows. */
+    document.body.classList.toggle('isFiltering', !!filtOn);
     const catHide = filtOn && !((CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
                              || (CATFILT.bio && it.bio) || (CATFILT.promo && it.promo));
     let catFilterHide = false;
@@ -1696,7 +1751,7 @@ function render(){
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
-    let ord = `<div class="withbang end"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
+    let ord = `<div class="withbang"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
       <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="weniger">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">
         <span class="ColumnCounterField__value"><b>${shown}</b><i>KO</i></span>

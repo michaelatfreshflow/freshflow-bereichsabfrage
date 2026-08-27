@@ -368,6 +368,75 @@ the app draws.
 If the icons should be lighter, that is a change to `_CounterButton` in the app — not
 something for this prototype to diverge on alone.
 
+## Table columns: Artikel / Bestand / Bestellung
+
+Source: `lib/presentation/features/order/widgets/table/order_item_table_column_widths.dart`
+
+The app has no CSS classes here -- the columns are a `Map<int, PVTColumnWidth>`, and
+the relevant type is one line:
+
+    class PVTFractionColumnWidth implements PVTColumnWidth {
+      double calculateWidth(..., double width) => width * fraction;
+    }
+
+**Every column is a fraction of the table width. Nothing is fixed.** The prototype had
+`grid-template-columns: 1fr 330px 200px` — the opposite: two columns pinned in px, the
+item column absorbing whatever was left. On a wider screen only Artikel grew; on a
+narrower one the other two never yielded.
+
+### Which branch this screen is
+
+Three columns, no barcode, no preorder → `_invSim()` with `editing: true`,
+`showPreorderColumn: false`, `isSelecting: false`, so `barcodeFrac` is 0 and it reduces to:
+
+    col0   = isFiltering ? 0.38 : 0.43;
+    rem    = 1.0 - col0;
+    col1   = rem / 2;      // Bestand
+    orderW = rem / 2;      // Bestellung
+
+| | Artikel | Bestand | Bestellung |
+|---|---|---|---|
+| normal | 0.43 | 0.285 | 0.285 |
+| `isFiltering` | 0.38 | 0.31 | 0.31 |
+
+The fractions live as CSS custom properties named after the Dart map keys
+(`--pvt-col-0/1/2`), and `body.isFiltering` carries the second set. The page already
+tracked `filtOn`; it now reaches the layout, not just the row filter.
+
+### No gap between columns
+
+PVT columns consume the full width, and the spacing lives as padding *inside* each
+cell — `inv_sim_inventory_cell.dart` does exactly this with `_rightPadding = 10`. So
+`gap` is 0 and the 10 px sits inside the cells, or the three fractions would no longer
+sum to the table width.
+
+### Alignment, which does not follow the header
+
+| | header | cell |
+|---|---|---|
+| Artikel | `Alignment.centerLeft` | left |
+| Bestand | `Alignment.centerRight` (invSim) | `Alignment.topCenter` |
+| Bestellung | `Alignment.center` (the `_headerCell` default) | `Alignment.topCenter` |
+
+Both value cells are `PVTRowCell(alignment: Alignment.topCenter)` —
+`inv_sim_inventory_cell.dart:15` and `inv_sim_order_cell.dart:13`. The prototype had
+Bestand flush left and Bestellung flush right, which left a void down the middle once
+the columns became fractions. Centring them both is what the app does *and* looks
+better.
+
+### A CSS trap worth knowing
+
+The fractions were first composed into a single `--pvt-cols` variable on `:root`. That
+silently broke the `isFiltering` override: a custom property substitutes its own
+`var()`s at computed-value time **on the element that declares it**, so `--pvt-cols`
+froze `:root`'s numbers and no descendant could override them. The `calc()` has to sit
+on the consuming rule. Measured 0.426/0.287/0.287 instead of 0.38/0.31/0.31 before the
+fix.
+
+Verified: header and rows match exactly in both states (491.9/326/326 and
+434.7/354.6/354.6); ratios hold at 900 px and 1400 px viewports; no row overflow and no
+clipped values at 900 px.
+
 ## The state machine
 
 The behaviour behind the Bestand cell -- five item modes, three stepper views, two
