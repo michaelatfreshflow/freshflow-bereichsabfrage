@@ -642,12 +642,17 @@ body.isFiltering{
 .dsz u{text-decoration-color:var(--ff-grey-300)}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
-.withbang{display:flex;align-items:flex-start}
+/* The badge centres against the stepper. The app top-aligns it
+   (_StatusIconBox uses Alignment.topLeft) but pairs that with
+   topPadding: _iconTopOffset = 50 in the inventory cell, to clear the tag stack
+   above the field. This prototype has no tag stack, so a literal top-align puts
+   a 16px badge at the top of a 48px pill and it reads as misaligned. */
+.withbang{display:flex;align-items:center}
 /* _StatusIconBox: Container(width: 38.w, padding: EdgeInsets.only(left: 4.w),
    alignment: Alignment.topLeft) -- inv_sim_inventory_cell.dart:193-205 */
-.row > *:nth-child(2) .statusSlot{flex:0 0 auto;width:38px;padding-left:4px;display:flex;align-items:flex-start}
+.row > *:nth-child(2) .statusSlot{flex:0 0 auto;width:38px;padding-left:4px;display:flex;align-items:center}
 /* ColumnCounterField's own SizedBox(width: 24.w) -- column_counter_field.dart:180 */
-.row > *:nth-child(3) .statusSlot{flex:0 0 auto;width:24px;display:flex;justify-content:center}
+.row > *:nth-child(3) .statusSlot{flex:0 0 auto;width:24px;display:flex;align-items:center;justify-content:center}
 .statusSlot svg{display:block}
 .withbang>.stmt{flex:1}
 /* FieldStatusIcon -> AppStatusIcon -> AppIcon.asset(height/width: 16.w).

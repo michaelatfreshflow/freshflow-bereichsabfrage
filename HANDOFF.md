@@ -181,6 +181,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -494,6 +495,20 @@ alignment. This actually happened while building the preview.
 passing `null` disables the `InkWell` -- but the widget has no disabled appearance, so
 a null callback goes dead silently. The grey (`grey.shade300`) is the one thing
 `_CounterButton` needs adding, and this prototype already carries it.
+
+### The status badge centres on the stepper
+
+The app top-aligns it — `_StatusIconBox` uses `Alignment.topLeft` — but pairs that with
+`topPadding: _iconTopOffset = 50` in the inventory cell, whose own comment says it
+"positions the inventory-row status icon's top roughly at the inventory field's top
+(i.e. below the tag stack)".
+
+This prototype has no tag stack, so copying the top-align literally put a 16 px badge at
+the top of a 48 px pill and it read as misaligned. It now centres against the field.
+Verified across 111 badges: a single distinct offset of 0 from the stepper's centre.
+
+Worth knowing when this is built: if the tag stack appears in Flutter, the app's
+`_iconTopOffset` is the right mechanism again and this centring should go.
 
 ### Which button greys out
 
