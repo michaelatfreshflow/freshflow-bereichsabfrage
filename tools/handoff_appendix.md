@@ -645,6 +645,23 @@ completion dialog. Those have no counterpart in the app and are translated in th
 prototype. They are the list that still needs real `.arb` keys, and
 `gen_strings.py` prints them.
 
+### Shelf names
+
+All 23 shelf names translate too, via `SHELF_NAMES` keyed by tile id — Salate /
+Lettuce / Salades, Kernobst / Pome fruit / Fruits à pépins, and so on.
+
+These are **demo-only**. They are the store's own shelf labels, not app strings: there
+is no `.arb` counterpart and a real store names its shelves itself. Keying by tile id
+rather than by German text means the resolution order still holds:
+
+1. a name the owner typed (`TILE_LABELS`) — wins in **every** language, because it is
+   their word, not a translatable string
+2. the localised built-in name
+3. a shelf the owner created themselves
+
+Verified: renaming a shelf keeps that name under DE, EN and FR, and the fixed
+store-walk order is unchanged in all three.
+
 ### Note: German changed too
 
 Using the app's wording means some German moved to match it — "Anzahl Kisten" became

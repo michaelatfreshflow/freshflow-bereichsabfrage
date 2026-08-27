@@ -1500,11 +1500,44 @@ function tileType(id){
   const t=TILES.find(x=>x[0]===id);
   return t ? t[2] : 'Sonstiges';
 }
+/* Shelf names per locale. Demo-only: these are the store's own shelf labels,
+   not app strings -- there is no .arb counterpart, and a real store names its
+   shelves itself. Keyed by tile id so a shelf the owner renamed, or one they
+   created, keeps their wording untouched in every language. */
+const SHELF_NAMES = {
+  salate:        {de:'Salate',                   en:'Lettuce',                   fr:'Salades'},
+  paprika:       {de:'Paprika & Chili',          en:'Peppers & Chilli',          fr:'Poivrons & piments'},
+  wurzel:        {de:'Wurzelgemüse',             en:'Root vegetables',           fr:'Légumes racines'},
+  pilze:         {de:'Pilze',                    en:'Mushrooms',                 fr:'Champignons'},
+  blattgemuese:  {de:'Blattgemüse',              en:'Leafy greens',              fr:'Légumes-feuilles'},
+  kohl:          {de:'Kohlgemüse',               en:'Brassicas',                 fr:'Choux'},
+  fruchtgemuese: {de:'Sonstiges Fruchtgemüse',   en:'Other fruiting vegetables', fr:'Autres légumes-fruits'},
+  tomaten:       {de:'Tomaten',                  en:'Tomatoes',                  fr:'Tomates'},
+  beeren:        {de:'Beeren & Gekühlte Früchte',en:'Berries & chilled fruit',   fr:'Baies & fruits réfrigérés'},
+  huelsen:       {de:'Bohnen & Erbsen',          en:'Beans & peas',              fr:'Haricots & petits pois'},
+  kartoffeln:    {de:'Kartoffeln',               en:'Potatoes',                  fr:'Pommes de terre'},
+  zwiebel:       {de:'Zwiebelgemüse',            en:'Onions & garlic',           fr:'Oignons & aulx'},
+  bananen:       {de:'Bananen',                  en:'Bananas',                   fr:'Bananes'},
+  kernobst:      {de:'Kernobst',                 en:'Pome fruit',                fr:'Fruits à pépins'},
+  steinobst:     {de:'Steinobst',                en:'Stone fruit',               fr:'Fruits à noyau'},
+  zitrus:        {de:'Zitrusfrüchte',            en:'Citrus',                    fr:'Agrumes'},
+  trauben:       {de:'Trauben',                  en:'Grapes',                    fr:'Raisins'},
+  exotisch:      {de:'Exotisch',                 en:'Exotic',                    fr:'Exotiques'},
+  nuesse:        {de:'Trockenobst & Nüsse',      en:'Dried fruit & nuts',        fr:'Fruits secs & noix'},
+  salatbeutel:   {de:'Gekühlte Salate',          en:'Chilled salads',            fr:'Salades réfrigérées'},
+  kraeuter:      {de:'Kräuter',                  en:'Herbs',                     fr:'Herbes'},
+  eier:          {de:'Eier',                     en:'Eggs',                      fr:'Œufs'},
+  blumen:        {de:'Blumen & Pflanzen',        en:'Flowers & plants',          fr:'Fleurs & plantes'},
+  sonstiges:     {de:'Nicht zugeordnet',         en:'Unassigned',                fr:'Non affecté'},
+};
 function tileLabel(id){
+  /* A rename the owner typed wins in every language -- it is their word, not a
+     translatable string. Same for shelves they created themselves. */
   if(TILE_LABELS[id]) return TILE_LABELS[id];
+  const n=SHELF_NAMES[id]; if(n) return n[LANG] || n.de;
   const t=TILES.find(x=>x[0]===id); if(t) return t[1];
   const c=CUSTOM_TILES.find(x=>x.id===id); if(c) return c.label;
-  return id==='sonstiges'?'Nicht zugeordnet':id;
+  return id;
 }
 
 /* Store-walk order is user-adjustable (see Regale overlay "Reihenfolge"
@@ -2487,8 +2520,8 @@ function renderCatOverlay(){
     const nAttn = attnCount();
     body = `<div class="catsec"><div class="lb">${tiles.length} ${t().shelfCount}</div>
           <div class="qf">
-            <button class="catchip" type="button" data-a="catpick-all">Alle</button>
-            ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">Offene Artikel</button>` : ''}
+            <button class="catchip" type="button" data-a="catpick-all">${t().all}</button>
+            ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">${t().openItems}</button>` : ''}
           </div></div>
         <div class="ShelfGrid">${tiles.map(tl=>`
           <div class="ShelfGridItem${tl.fin?' ShelfGridItem--done':''}" data-key="shelf:${tl.id}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
@@ -2507,12 +2540,12 @@ function renderCatOverlay(){
           <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : t().shelfTitle}</h2>
           ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben.</div>' : ''}
         </div>
-        <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? '✓ Fertig' : '✎ Bearbeiten'}</button>
+        <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? t().shelfDone : '✎ '+t().editShelves}</button>
         <button class="x" id="catCloseBtn" type="button" title="Schließen">✕</button>
       </div>
       ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
         <span style="color:var(--mute);font-size:var(--ff-text-primary-title-17)">⌕</span>
-        <input id="catQ" type="search" placeholder="Artikel suchen" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
+        <input id="catQ" type="search" placeholder="${t().searchItems}" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
         <span style="color:var(--mute);line-height:1" title="Barcode scannen (Demo)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
       </div></div>`}
       <div class="catbody">${body}</div>
