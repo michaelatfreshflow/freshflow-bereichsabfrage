@@ -176,6 +176,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -779,17 +780,24 @@ The eyebrow ("REGAL ABSCHLIESSEN") is gone — `AppFormDialog` carries its title
 
 ### Copy
 
-It now names what is outstanding rather than what is done — the number the owner needs
-before committing is the unchecked one:
+It names what is still outstanding rather than what is done — the number the owner needs
+before committing is the unchecked one.
 
-    st.open > 0
-      ? `${st.open} Artikel hast du noch nicht geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
-      : `Du hast alle Artikel geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
+| state | string |
+|---|---|
+| more than one open | `Du hast noch {n} offene Artikel, die deine Aufmerksamkeit benötigen. Sobald du das Regal abschließt, wird dieses als erledigt markiert.` |
+| exactly one open | `Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt. Sobald du das Regal abschließt, wird dieses als erledigt markiert.` |
+| none open | `Du hast alle Artikel geprüft. Sobald du das Regal abschließt, wird dieses als erledigt markiert.` |
+
+**Singular needs its own case.** "1 offene Artikel, die … benötigen" is wrong in German —
+it has to decline to "1 offenen Artikel, der … benötigt". A store will hit that state
+routinely, so it is not a rounding error. In `.arb` terms this is a `plural` message with
+`one` and `other` arms, not a placeholder in one string.
 
 `st.open` comes from `tileStats`, which counts items failing `rowClear` — the same
 predicate the shelf progress uses, so the dialog and the tile can never disagree.
 
-Both strings still need `.arb` keys: `shelfCompleteDialogPendingMessage` and
+Proposed keys: `shelfCompleteDialogPendingMessage` (plural, `one`/`other`) and
 `shelfCompleteDialogAllCheckedMessage`.
 
 ## The state machine

@@ -2393,9 +2393,15 @@ function renderCatConfirm(){
   const st=tileStats(CATCONFIRM.id);
   /* Copy states what is still outstanding rather than what is done -- the
      number the owner needs before committing is the unchecked one. */
+  const closing = 'Sobald du das Regal abschließt, wird dieses als erledigt markiert.';
+  /* Singular needs its own case: "1 offene Artikel, die ... benötigen" is wrong
+     in German -- it has to decline to "1 offenen Artikel, der ... benötigt". */
+  const pending = st.open===1
+    ? 'Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt.'
+    : `Du hast noch ${st.open} offene Artikel, die deine Aufmerksamkeit benötigen.`;
   const bodyText = st.open>0
-    ? `${st.open} Artikel hast du noch nicht geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`
-    : `Du hast alle Artikel geprüft. Nach dem Abschließen gilt das Regal für heute als fertig.`;
+    ? `${pending} ${closing}`
+    : `Du hast alle Artikel geprüft. ${closing}`;
   root.innerHTML = `<div class="ov on" style="z-index:9999">
     <div class="AppFormDialog">
       <div class="AppFormDialog__header">
