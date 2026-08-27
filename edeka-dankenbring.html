@@ -324,7 +324,12 @@ body.isFiltering{
 .row > *:nth-child(2),
 .row > *:nth-child(3){display:flex;flex-direction:column;align-items:flex-end}
 /* the display-size row is MainAxisAlignment.end too */
-.dsz{text-align:right}
+/* display_size_caption.dart:16 -- primarySubTitle10.medium.darkGreen.
+   The row it sits in ends with its own _StatusIconBox (38) plus
+   _trailingPaddingWhenIdle (7), so the caption stops 45px short of the cell
+   edge and lines up under the field rather than under the status slot
+   (inv_sim_inventory_cell.dart:113-136). */
+.dsz{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-medium);color:var(--ff-color-dark-green);margin-top:6px;padding-right:45px}
 
 /* Headers do NOT follow their cells. order_item_table_header.dart:77 gives the
    inventory header Alignment.centerRight in invSim, and the order header takes
@@ -336,14 +341,25 @@ body.isFiltering{
 .colh{display:grid;grid-template-columns:minmax(0, 1fr) minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%)) minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%));gap:0;min-height:48px;align-items:center;padding:0 18px;border-bottom:2px solid var(--ff-color-dark-grey);font-weight:var(--ff-weight-semibold);font-size:var(--ff-text-primary-body-text-16);color:var(--ff-grey-800)}
 /* AppIcons.infoSquared (assets/icons/info_squared.svg) rendered inside
    SizedBox(48.w) -- pvt_header.dart:50-56. 16x16, rx 1.5, AppColors.informational. */
-.colh .i{display:inline-grid;place-items:center;width:16px;height:16px;vertical-align:-3px;margin-left:6px}
+/* pvt_header.dart:51-56 wraps the 16px icon in SizedBox(48.w, 48.w). That box
+   is what holds the header label off the trailing edge so it sits over the
+   field below rather than over its status slot -- see _inventoryPadding's
+   comment, "keep the label aligned with the status-icon slot in cells below". */
+.colh .i{display:inline-grid;place-items:center;width:48px;height:48px;vertical-align:middle}
+.colh .i svg{display:block}
 .colh .i svg{display:block}
 .colh .sortlabel{cursor:pointer;user-select:none}
 .colh .sortlabel:hover{color:var(--green)}
 .colh .sortarrow{display:inline-block;min-width:10px;margin-left:3px;font-size:var(--ff-text-primary-caption-12);color:var(--green)}
 .list{max-height:660px;overflow:auto}
 .row{display:grid;grid-template-columns:minmax(0, 1fr) minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%)) minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%));gap:0;padding:11px 18px;border-bottom:1px solid var(--ff-grey-100);align-items:start}
-.row.done{background:var(--ff-grey-50)}
+/* No tint. order_item_row_builder.dart:66 gives every unselected row
+   AppColors.white; only the SELECTED row is tinted, with orange.shade5. The
+   prototype had a ~1% #FCFDFC wash here to mark answered rows, and tokenizing
+   snapped it to grey-50 -- an 8.4 move, under the 12 I treated as
+   imperceptible, so it was substituted silently. Against a white neighbour that
+   doubled the contrast and the table read as banded. */
+.row.done{}
 .row.hide{display:none}
 .row.ishidden{opacity:.55;background:var(--ff-grey-50)}
 .itemcell{display:flex;align-items:flex-start;gap:8px}

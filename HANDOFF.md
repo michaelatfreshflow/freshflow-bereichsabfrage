@@ -173,6 +173,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -703,6 +704,43 @@ failed to line up down the table. `bang()` now always emits the slot.
 
 Verified across 25 rows, 9 of which carry a badge: exactly one distinct right edge for
 the inventory steppers and one for the order steppers.
+
+## Three things the token migration quietly broke
+
+### Row banding
+
+`order_item_row_builder.dart:66` gives **every unselected row `AppColors.white`**. Only
+the *selected* row is tinted, with `orange.shade5`. There is no "completed row" wash in
+the app.
+
+The prototype had `.row.done{background:#FCFDFC}` — a ~1% tint marking answered rows.
+Tokenizing snapped it to `grey-50` (`#f9fafa`), a move of **8.4**, under the 12 I was
+treating as imperceptible, so it was substituted silently and never appeared in the
+review table. Against a white neighbour that doubled the contrast, and since 181 of 223
+rows are pre-answered, most of the table picked up the tint and read as banded.
+
+The tint is gone. If a "done" affordance is wanted later, `orange.shade5` is the colour
+the app already uses for row emphasis.
+
+**Lesson for the threshold:** distance-from-token is the wrong measure for near-white
+fills. What matters is the contrast against what sits next to them, and 1% versus 2.4%
+against white is a doubling. Worth a special case if this migration is ever re-run.
+
+### The display-size caption sat under the status slot
+
+The caption's row ends with its own `_StatusIconBox` (38) plus
+`_trailingPaddingWhenIdle` (7), so it stops 45 px short of the cell edge and lines up
+under the *field* — `inv_sim_inventory_cell.dart:113-136`. Without that the caption ran
+to the cell edge, 38 px right of the stepper. Now `padding-right: 45px`; the text lands
+7 px inside the stepper's right edge, matching the app.
+
+### The header label sat right of its column's content
+
+`pvt_header.dart:51-56` wraps the 16 px info icon in `SizedBox(48.w, 48.w)`. That box is
+what holds the label off the trailing edge so it sits over the field rather than over
+the status slot — `_inventoryPadding`'s own comment says "keep the label aligned with
+the status-icon slot in cells below". The prototype rendered the icon at 16 px with a
+6 px margin, so the label sat ~30 px too far right. The badge is now a 48 px box.
 
 ## The state machine
 
