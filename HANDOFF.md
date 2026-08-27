@@ -172,6 +172,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -557,24 +558,47 @@ the relevant type is one line:
 item column absorbing whatever was left. On a wider screen only Artikel grew; on a
 narrower one the other two never yielded.
 
-### Which branch this screen is
+### Which branch this screen is, and where it departs
 
 Three columns, no barcode, no preorder → `_invSim()` with `editing: true`,
-`showPreorderColumn: false`, `isSelecting: false`, so `barcodeFrac` is 0 and it reduces to:
+`showPreorderColumn: false`, `isSelecting: false`, so `barcodeFrac` is 0 and the app
+would give 0.43 / 0.285 / 0.285 (0.38 / 0.31 / 0.31 while filtering).
 
-    col0   = isFiltering ? 0.38 : 0.43;
-    rem    = 1.0 - col0;
-    col1   = rem / 2;      // Bestand
-    orderW = rem / 2;      // Bestellung
+**Those numbers are not used, deliberately.** They size an inventory cell that is a
+*text field* — narrow, and able to shrink. This prototype puts a 124 pt stepper there,
+so the same fractions leave the value columns half empty while item names wrap to three
+lines. Measured across all 223 rows at 1180 px:
 
-| | Artikel | Bestand | Bestellung |
+| column | needs | got under the app's fractions | idle |
 |---|---|---|---|
-| normal | 0.43 | 0.285 | 0.285 |
-| `isFiltering` | 0.38 | 0.31 | 0.31 |
+| Bestand | 248 px | 326 px | 78 px |
+| Bestellung | 182 px | 326 px | **144 px** |
 
-The fractions live as CSS custom properties named after the Dart map keys
-(`--pvt-col-0/1/2`), and `body.isFiltering` carries the second set. The page already
-tracked `filtOn`; it now reaches the layout, not just the row filter.
+222 px sitting idle next to a cramped item column. So:
+
+    0: PVTFlexColumnWidth()            // Artikel — takes the remainder
+    1: PVTFractionColumnWidth(0.23)    // Bestand
+    2: PVTFractionColumnWidth(0.17)    // Bestellung
+
+Flex for the item column is still PVT vocabulary — the preorder branch already uses
+`4: const PVTFlexColumnWidth()`. Filtering keeps the app's *direction* (value columns
+gain, item yields), rebased: 0.25 / 0.19.
+
+Result at 1194 px: Artikel **492 → 686 px**, and every item name fits on one line
+instead of wrapping to three.
+
+### Floors, so a narrow viewport cannot clip a stepper
+
+Fractions alone would break at narrow widths, because unlike the app's text field this
+stepper cannot shrink. Each value column carries a floor equal to the fixed content it
+holds:
+
+    --inv-cell-min: 248px;   /* 124 box + 2x42 buttons + 38 status slot */
+    --ord-cell-min: 182px;   /*  72 box + 2x42 buttons + 24 status slot */
+
+expressed as `minmax(<floor>, <fraction>)`. Below the crossover the floor wins and the
+item column yields instead. Verified at an 860 px viewport: columns land on
+394 / 248 / 182 exactly, nothing clipped, no horizontal scroll.
 
 ### No gap between columns
 

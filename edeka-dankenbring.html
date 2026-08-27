@@ -284,15 +284,31 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
    longer sum to the table width.
    =========================================================================== */
 :root{
-  --pvt-col-0: 0.43;   /* PVTFractionColumnWidth(0.43)     Artikel     */
-  --pvt-col-1: 0.285;  /* PVTFractionColumnWidth(rem / 2)  Bestand     */
-  --pvt-col-2: 0.285;  /* PVTFractionColumnWidth(rem / 2)  Bestellung  */
+  /* DEPARTURE from OrderItemTableColumnWidths, and a deliberate one.
+     The app's 0.43/0.285/0.285 sizes an inventory cell that is a TEXT FIELD --
+     narrow, and able to shrink. This prototype puts a 124pt stepper there, so
+     the same fractions leave the value columns half empty while item names wrap
+     to three lines. Measured across all 223 rows at 1180px: Bestand needs 248px
+     of its 326, Bestellung 182px of its 326 -- 222px idle.
+
+     So the item column becomes PVTFlexColumnWidth (it takes the remainder,
+     which is already part of PVT's vocabulary -- see the preorder branch's
+     `4: const PVTFlexColumnWidth()`), and the two value columns keep fractions
+     sized to what they actually hold. */
+  --pvt-col-1: 0.23;   /* PVTFractionColumnWidth(0.23)  Bestand    */
+  --pvt-col-2: 0.17;   /* PVTFractionColumnWidth(0.17)  Bestellung */
+
+  /* Floors, so a narrow viewport can never clip a stepper: the fixed content
+     each column holds. Bestand = 124 box + 2x42 buttons + 38 status slot.
+     Bestellung = 72 box + 2x42 buttons + 24 status slot. */
+  --inv-cell-min: 248px;
+  --ord-cell-min: 182px;
 }
-/* isFiltering: true -- item yields 5 points, split evenly between the other two */
+/* isFiltering: the app narrows the item column to give the value columns more.
+   Same direction, rebased on the numbers above. */
 body.isFiltering{
-  --pvt-col-0: 0.38;
-  --pvt-col-1: 0.31;
-  --pvt-col-2: 0.31;
+  --pvt-col-1: 0.25;
+  --pvt-col-2: 0.19;
 }
 /* EdgeInsets.only(right: 10) inside the cell, not a gap between columns */
 .colh > *:not(:last-child),
@@ -317,7 +333,7 @@ body.isFiltering{
 .colh > *:nth-child(3){text-align:center}
 /* PageViewTable headerStyle: primaryBodyText16.semiBold.grey800, and
    headerHeight: 48.h -- order_item_table.dart:328 and :387. */
-.colh{display:grid;grid-template-columns:calc(var(--pvt-col-0) * 100%) calc(var(--pvt-col-1) * 100%) calc(var(--pvt-col-2) * 100%);gap:0;min-height:48px;align-items:center;padding:0 18px;border-bottom:2px solid var(--ff-color-dark-grey);font-weight:var(--ff-weight-semibold);font-size:var(--ff-text-primary-body-text-16);color:var(--ff-grey-800)}
+.colh{display:grid;grid-template-columns:minmax(0, 1fr) minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%)) minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%));gap:0;min-height:48px;align-items:center;padding:0 18px;border-bottom:2px solid var(--ff-color-dark-grey);font-weight:var(--ff-weight-semibold);font-size:var(--ff-text-primary-body-text-16);color:var(--ff-grey-800)}
 /* AppIcons.infoSquared (assets/icons/info_squared.svg) rendered inside
    SizedBox(48.w) -- pvt_header.dart:50-56. 16x16, rx 1.5, AppColors.informational. */
 .colh .i{display:inline-grid;place-items:center;width:16px;height:16px;vertical-align:-3px;margin-left:6px}
@@ -326,7 +342,7 @@ body.isFiltering{
 .colh .sortlabel:hover{color:var(--green)}
 .colh .sortarrow{display:inline-block;min-width:10px;margin-left:3px;font-size:var(--ff-text-primary-caption-12);color:var(--green)}
 .list{max-height:660px;overflow:auto}
-.row{display:grid;grid-template-columns:calc(var(--pvt-col-0) * 100%) calc(var(--pvt-col-1) * 100%) calc(var(--pvt-col-2) * 100%);gap:0;padding:11px 18px;border-bottom:1px solid var(--ff-grey-100);align-items:start}
+.row{display:grid;grid-template-columns:minmax(0, 1fr) minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%)) minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%));gap:0;padding:11px 18px;border-bottom:1px solid var(--ff-grey-100);align-items:start}
 .row.done{background:var(--ff-grey-50)}
 .row.hide{display:none}
 .row.ishidden{opacity:.55;background:var(--ff-grey-50)}
