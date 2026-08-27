@@ -167,6 +167,7 @@ Colours skipped: `#000`, `#111`, `#141414`, `#2a2a2a`, `#6e6e6e`, `#9a9a9a`, `#e
 
 
 
+
 ## Font notes
 
 Both `AppFonts` families are real: `Inter` and `Euclid Circular` are declared in
@@ -421,6 +422,90 @@ child out inside it. Supporting rules, each with a Dart counterpart:
 
 Verified at iPad width (1194x900) with thumbnails present: no overflow, and 0 of 23
 titles wrap.
+
+## The Bestand stepper: reuse, don't rebuild
+
+`lib/presentation/shared/fields/column_counter_field.dart` already ships a
++/- counter, and its own doc comment says it is generic *"so the widget can drive
+both order-flavoured counts and any future value-flavoured ones."* It is live in
+`inv_sim_order_cell` and `inv_sim_preorder_cell`.
+
+Its interaction split is already identical to this prototype's:
+
+> "Only the value box opens the modal -- the +/- buttons keep their own taps… The
+> +/- buttons do NOT focus the field at all."
+
+That is exactly `data-a="bstep"` on the buttons versus `data-a="invpad"` on the box.
+Arrived at independently, which is a good sign it is right.
+
+**Build `InventoryCounterField` as a duplicate, not a modification.** The shared widget
+is used by two other cells; widening it there would change them too.
+
+| CSS | Dart |
+|---|---|
+| `.InventoryCounterField` | `DecoratedBox(borderRadius: c40, color: grey.shade100, border: …)` |
+| `__button` | `_CounterButton`: `InkWell(borderRadius: c40) > Container(h38, pad h13) > AppIcon.asset(AppIcons.minus/plus)` |
+| `__box` | `_ValueBox`: `Container(constraints: BoxConstraints.tight(Size(124, 40)), padding: h7, …)` |
+| `__value` | `RichText`: value `primaryBodyText16.medium` + unit `primaryCaption12.light` |
+| `__label` | the `label` slot `_ValueBox` already exposes |
+| `--focused` | border `AppColors.accentOrange`, width 2 |
+| `--warn` | untouched-warning border |
+
+Everything -- colours, type, radii, icons, both radii -- is copied unchanged. The
+icons are `Mobile/assets/icons/minus.svg` and `plus.svg` verbatim, with the hardcoded
+`#34443F` swapped for `currentColor` so the disabled state can grey them.
+
+### The one difference: width
+
+The shared `_ValueBox` is `Size(72, 40)`, built for `"12"`. Measured across all 223
+items in this order guide at the app's real type sizes, **218 of them need more room
+than that box allows**:
+
+| | |
+|---|---|
+| widest value line | 105 px — `10,64 – 11,6 KO` |
+| widest label line | 77 px — `234 – 255 Stück` |
+| box needed | 105 + 14 padding + 2 border = 121, rounded to **124** |
+
+**Fixed, never auto.** Every stepper in the Bestand column has to line up; sizing each
+box to its own content would leave the column ragged.
+
+### Two things to watch in the Dart
+
+**Box model.** `BoxConstraints.tight` is the *outer* size with padding inside, so 124
+is the total. Written border-box here for the same reason -- with content-box the
+focused state's 2 px border silently widens that one cell and breaks the column's
+alignment. This actually happened while building the preview.
+
+**The disabled visual.** `_CounterButton.onPressed` is already `VoidCallback?`, so
+passing `null` disables the `InkWell` -- but the widget has no disabled appearance, so
+a null callback goes dead silently. The grey (`grey.shade300`) is the one thing
+`_CounterButton` needs adding, and this prototype already carries it.
+
+### Which button greys out
+
+Per-button, never both — straight from `stepHTML()`:
+
+    minusOff = r.lo == null || r.lo <= 0;   // rung starts at zero
+    plusOff  = r.hi == null;                // open-ended upward — the "mind." case
+
+| | − | + |
+|---|---|---|
+| `mind. 1,1 KO` | live | greyed |
+| `0 – 0,8 KO` | greyed | live |
+| `1,1 – 2,3 KO` | live | live |
+| `0 KO` typed | greyed | live |
+| `need` / `unsure` | live | live |
+
+Verified in the live page: 223 steppers, every box exactly 124 px, none clipped, 140 of
+446 buttons greyed, keypad still opens on box tap, a disabled button is inert.
+
+### Still inconsistent
+
+The **Bestellung** column still uses the old `.step` markup, so the two columns no
+longer match. In the app that cell is `inv_sim_order_cell`, which already uses
+`ColumnCounterField` — so it should get the same treatment, probably with its own
+measured width.
 
 ## The state machine
 

@@ -299,16 +299,107 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
    Selbe Geometrie wie der Bestellmengen-Stepper (.step) -- gleiche Knopfgroesse,
    gleiche Feldhoehe, gleiche Schriftgroessen. Nur das Feld ist breiter, weil eine
    Spanne ("0,3 – 99 KO") mehr Platz braucht als eine reine Bestellmenge. */
-.stp{display:inline-flex;align-items:center;gap:0;width:max-content}
-.stp .sb{width:38px;height:44px;border:0;background:var(--ff-grey-100);font-size:var(--ff-text-primary-heading-20);color:var(--ff-grey-700);cursor:pointer;padding:0}
-.stp .sb:disabled{color:var(--ff-grey-300);cursor:default}
-.stp .sb:first-child{border-radius:var(--ff-radius-c8) 0 0 9px}
-.stp .sb:last-child{border-radius:0 9px 9px 0}
-.stp .fld{min-width:126px;height:44px;border:1px solid var(--ff-grey-200);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1px;background:var(--ff-color-white);cursor:pointer}
-.stp .val{font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
-.stp .sub{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-semibold);color:var(--mute)}
-.stp.unsure .fld{border-color:var(--amber)}
+/* ===========================================================================
+   InventoryCounterField  --  the Bestand stepper
+   Suggested home: lib/presentation/shared/fields/inventory_counter_field.dart
+
+   A DUPLICATE of the shipped ColumnCounterField
+   (lib/presentation/shared/fields/column_counter_field.dart), not a
+   modification of it. Everything -- colours, type, radii, icons, the c40 pill,
+   the c4 value box -- is copied unchanged. The ONE difference is the value
+   box's width.
+
+     .InventoryCounterField          the c40 pill: DecoratedBox(
+                                       borderRadius: AppBorderRadius.c40,
+                                       color: AppColors.grey.shade100,
+                                       border: Border.all(AppColors.grey.shade100))
+       __button                      _CounterButton: InkWell(borderRadius: c40)
+                                       > Container(h38, padding h13)
+                                       > AppIcon.asset(AppIcons.minus/plus)
+       __box                         _ValueBox: Container(
+                                       constraints: BoxConstraints.tight(Size(124, 40)),
+                                       padding: EdgeInsets.symmetric(horizontal: 7),
+                                       decoration: BoxDecoration(
+                                         borderRadius: AppBorderRadius.c4,
+                                         color: AppColors.white,
+                                         border: Border.all(width: focused ? 2 : 1, ...)))
+       __value                       RichText: value primaryBodyText16.medium
+                                               + unit primaryCaption12.light
+       __label                       the `label` slot _ValueBox already exposes
+     --focused                       border AppColors.accentOrange, width 2
+     --warn                          untouched-warning border
+
+   WIDTH. The shared widget is Size(72, 40), built for "12". Measured across all
+   223 items in this order guide, 218 of them need more room than that allows:
+   widest value line 105px ("10,64 - 11,6 KO"), widest label 77px
+   ("234 - 255 Stueck"). 105 + 14 padding + 2 border = 121, rounded to 124.
+   Fixed, never auto -- every stepper in the Bestand column must line up.
+
+   BOX MODEL. BoxConstraints.tight is the OUTER size with padding inside, so
+   124 is the total. Written border-box here for the same reason: with
+   content-box the focused state's 2px border silently widens that one cell and
+   breaks the column's alignment.
+
+   Only the value box tap opens the keypad; the +/- buttons mutate without
+   focusing -- which is exactly what ColumnCounterField already does.
+   =========================================================================== */
+
+.InventoryCounterField{
+  box-sizing:border-box;
+  display:inline-flex;align-items:flex-start;width:max-content;
+  background:var(--ff-grey-100);
+  border:1px solid var(--ff-grey-100);
+  border-radius:var(--ff-radius-c40);
+}
+.InventoryCounterField *{box-sizing:border-box}
+
+.InventoryCounterField__button{
+  /* _CounterButton */
+  height:38px;padding:0 13px;
+  display:grid;place-items:center;
+  border:0;background:none;cursor:pointer;
+  border-radius:var(--ff-radius-c40);
+  color:var(--ff-color-favorite);
+  -webkit-tap-highlight-color:transparent;
+}
+.InventoryCounterField__button svg{display:block}
+/* onPressed: null -- InkWell disables itself, but it has no disabled visual
+   today. This grey is the one thing _CounterButton needs adding. */
+.InventoryCounterField__button:disabled{color:var(--ff-grey-300);cursor:default}
+.InventoryCounterField__button:active:not(:disabled){background:var(--ff-primary-20)}
+
+.InventoryCounterField__box{
+  width:124px;height:40px;padding:0 7px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--ff-color-white);
+  border:1px solid var(--ff-grey-200);
+  border-radius:var(--ff-radius-c4);
+  cursor:pointer;overflow:hidden;
+}
+.InventoryCounterField--focused .InventoryCounterField__box{
+  border-width:2px;border-color:var(--ff-color-accent-orange);
+}
+.InventoryCounterField--warn .InventoryCounterField__box{
+  border-color:var(--ff-color-warning);
+}
+
+.InventoryCounterField__value{
+  white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.1;
+  color:var(--ff-grey-900);
+}
+.InventoryCounterField__value b{
+  font-size:var(--ff-text-primary-body-text-16);
+  font-weight:var(--ff-weight-medium);
+}
+.InventoryCounterField__value i{
+  font-style:normal;margin-left:1.8px;
+  font-size:var(--ff-text-primary-caption-12);
+  font-weight:var(--ff-weight-light);
+}
+.InventoryCounterField__label{
+  font-size:var(--ff-text-primary-sub-title-10);
+  color:var(--ff-grey-500);white-space:nowrap;line-height:1.1;margin-top:1px;
+}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .chips .lb{font-size:var(--ff-text-primary-caption-12);color:var(--mute);width:100%;font-weight:var(--ff-weight-semibold)}
 .chip{border:1.5px solid var(--ff-color-tag-info);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);padding:5px 11px;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);cursor:pointer}
@@ -1466,9 +1557,20 @@ function rungOfKo(it,ko,planIdx){
    aktuellen Step: einmal gedrueckt oder eine Zahl eingetippt, bleibt es weg -- auch wenn
    die Ansicht danach (wieder ueber applyKo) zur Spanne zurueckspringt. Pflichtzeilen sind
    amber, solange sie unberuehrt sind (kein 'touched'). */
+/* The value box splits the number from its unit -- value is primaryBodyText16.medium,
+   unit primaryCaption12.light -- so the combined string koText() builds has to come
+   apart again. Strings without a unit ("egal wie viel", "–") fall through whole. */
+function splitUnit(str){
+  const m = String(str).match(/^(.*?)\s*(KO|kg)$/);
+  return m ? {v:m[1], u:m[2]} : {v:str, u:''};
+}
+/* Mobile/assets/icons/minus.svg and plus.svg, verbatim, with the hardcoded
+   #34443F swapped for currentColor so the disabled state can grey them. */
+const ICON_MINUS='<svg width="16" height="5" viewBox="0 0 16 5" fill="none" aria-hidden="true"><path d="M8 0.900391C7.12 0.900391 6.4 0.900558 6.4 0.900558H1.6C0.72 0.900558 0 1.62056 0 2.50056C0 3.38056 0.72 4.10056 1.6 4.10056H6.4H8H9.6H14.4C15.28 4.10056 16 3.38056 16 2.50056C16 1.62056 15.28 0.900558 14.4 0.900558C14.4 0.900558 11.4745 0.900705 9.6 0.900558C8.97516 0.900509 8.88 0.900391 8 0.900391Z" fill="currentColor"/></svg>';
+const ICON_PLUS='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 0C7.12 0 6.4 0.72 6.4 1.6V6.4H1.6C0.72 6.4 0 7.12 0 8C0 8.88 0.72 9.6 1.6 9.6H6.4V14.4C6.4 15.28 7.12 16 8 16C8.88 16 9.6 15.28 9.6 14.4V9.6H14.4C15.28 9.6 16 8.88 16 8C16 7.12 15.28 6.4 14.4 6.4H9.6V1.6C9.6 0.72 8.88 0 8 0Z" fill="currentColor"/></svg>';
 function stepHTML(it,s,ix){
   const showUnsure = !s.touched && (s.mode==='unsure'||s.mode==='count'||s.mode==='noladder');
-  const cls='stp'+(showUnsure?' unsure':'')+(s.step==='ko'?' ko':'');
+  const cls='InventoryCounterField'+(showUnsure?' InventoryCounterField--warn':'');
   let minusOff,plusOff,big,small;
   if(s.step==='need'){
     minusOff=false; plusOff=false; big='–'; small='';
@@ -1482,11 +1584,14 @@ function stepHTML(it,s,ix){
     minusOff=s.ko<=0; plusOff=s.ko>=99;
     big=koNum(s.ko)+' KO'; small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
   }
+  const {v,u} = splitUnit(big);
   return `<div class="${cls}">
-    <button class="sb" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''}>−</button>
-    <div class="fld" data-a="invpad" data-i="${ix}"><div class="val">${big}</div>
-    <div class="sub">${small}</div></div>
-    <button class="sb" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''}>+</button>
+    <button class="InventoryCounterField__button" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''} aria-label="weniger">${ICON_MINUS}</button>
+    <div class="InventoryCounterField__box" data-a="invpad" data-i="${ix}">
+      <span class="InventoryCounterField__value"><b>${v}</b>${u?`<i>${u}</i>`:''}</span>
+      ${small?`<span class="InventoryCounterField__label">${small}</span>`:''}
+    </div>
+    <button class="InventoryCounterField__button" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''} aria-label="mehr">${ICON_PLUS}</button>
   </div>`;
 }
 function chipFor(it,i){
