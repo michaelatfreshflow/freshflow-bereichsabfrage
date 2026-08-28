@@ -2799,7 +2799,7 @@ function renderCatOverlay(){
           <span class="dot" style="background:transparent"></span>
           <div class="tx"><div class="nm">+ Neues Regal</div></div>
         </div>`;
-    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen · gilt für alle Filialen auf diesem Gerät</div></div>
+    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen</div></div>
       <div class="catedit">${addRow}${orderTiles.map((tl,i)=>{
         if(DELETE_TILE_ID===tl.id){
           const n=tileStats(tl.id).list.length;
