@@ -2488,6 +2488,28 @@ function rowClear(it,s){
   const ordBang = !s.manual && it.ordNote;
   return !invBang && !ordBang;
 }
+
+/* Trifft eine Zeile die vier Merkmalsfilter -- die ODER-Regel aus render(), einmal
+   an einer Stelle, damit Liste und Chip-Zahl nicht auseinanderlaufen. */
+function filtMatch(it,s){
+  const hasInvBang = !s.touched && (s.mode==='unsure' || it.invNote); /* wie invBang in rowClear() */
+  return (CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
+      || (CATFILT.bio && it.bio) || (CATFILT.promo && it.promo);
+}
+/* Der !-Haken ist ein bewegliches Ziel: sobald der Kaufmann den Bestand eintraegt,
+   traegt die Zeile kein ! mehr und fiel damit im Filter "Dringende Artikel" noch
+   waehrend des Speicherns aus der Liste -- die Zeile, die man gerade bearbeitet,
+   verschwindet unter dem Finger weg und die naechste rutscht nach. Deshalb wird die
+   Auswahl beim Setzen des Filters (und beim Betreten der Liste) einmal festgehalten:
+   wer beim Filtern drin war, bleibt sichtbar, bis der Filter das naechste Mal frisch
+   greift. FILT_KEEP=null heisst "kein Merkmalsfilter aktiv". */
+let FILT_KEEP=null;
+function snapFilt(){
+  const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
+  FILT_KEEP = filtOn
+    ? new Set(ITEMS.reduce((a,it,ix)=>(filtMatch(it,ST[ix])&&a.push(ix),a), []))
+    : null;
+}
 const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
 const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 function promoLabel(promo){
@@ -2524,7 +2546,6 @@ function render(){
     const it=ITEMS[ix];
     const s=ST[ix], L=t();
     const digitsQ = q.replace(/\D/g,'');
-    const hasInvBang = !s.touched && (s.mode==='unsure' || it.invNote); /* mirrors invBang in rowClear() */
     /* Die vier Merkmalsfilter sind ein ODER: angehakt heisst "zeig mir auch das", nicht
        "und ausserdem". Als UND schnitten sie sich gegenseitig weg -- Bestand ! und
        Bestellmenge ! zusammen liessen von 40 und 71 Zeilen 17 uebrig, alle vier zusammen
@@ -2534,8 +2555,7 @@ function render(){
     /* OrderItemTableColumnWidths takes isFiltering and narrows the item column
        when it is set -- so the flag has to reach the layout, not just the rows. */
     document.body.classList.toggle('isFiltering', !!filtOn);
-    const catHide = filtOn && !((CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
-                             || (CATFILT.bio && it.bio) || (CATFILT.promo && it.promo));
+    const catHide = filtOn && !filtMatch(it,s) && !(FILT_KEEP && FILT_KEEP.has(ix));
     let catFilterHide = false;
     if(CATFILTER){
       if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
@@ -2641,7 +2661,7 @@ document.getElementById('dashFab').addEventListener('click', enterApp);
    das Regale-Pill selbst) wieder exakt auf der Regale-Uebersicht landet,
    nicht auf irgendeiner vergessenen Filteransicht. */
 function goToList(filter){
-  CATFILTER=filter; CATOPEN=false; CATQUERY='';
+  CATFILTER=filter; CATOPEN=false; CATQUERY=''; snapFilt();
   history.pushState({page:'list', filter}, '', location.href);
   render();
 }
@@ -2663,7 +2683,7 @@ window.addEventListener('popstate', e=>{
   const st=e.state;
   if(!st || st.page==='dash'){ showDash(); return; }
   showApp();
-  if(st.page==='list'){ CATFILTER=st.filter||null; CATOPEN=false; CATQUERY=''; render(); }
+  if(st.page==='list'){ CATFILTER=st.filter||null; CATOPEN=false; CATQUERY=''; snapFilt(); render(); }
   else applyCatPage();
 });
 history.replaceState({page:'dash'}, '', location.href);
@@ -2706,7 +2726,8 @@ function renderCatChip(){
        while the list is filtered down to the urgent ones. */
     const urgent = CATFILT.invNote && CATFILT.ordNote;
     if(urgent){
-      const n = ITEMS.filter((it,ix)=>!ST[ix].hidden && !rowClear(it,ST[ix])).length;
+      const n = ITEMS.filter((it,ix)=>!ST[ix].hidden &&
+        (filtMatch(it,ST[ix]) || (FILT_KEEP && FILT_KEEP.has(ix)))).length;
       wrap.innerHTML = `<button class="catchip warn" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${t().openItems} <span class="n">· ${n} ${t().shelfItems}</span></button>`;
       document.getElementById('catChipBtn').onclick=goToCategories;
       if(nextBtn) nextBtn.style.display='none';
@@ -2768,6 +2789,7 @@ function syncFiltUI(){
 function clearFilt(){
   Object.keys(CATFILT).forEach(k=>CATFILT[k]=false);
   syncFiltUI();
+  snapFilt();
 }
 function renderCatOverlay(){
   const root=document.getElementById('catOverlayRoot');
@@ -3359,6 +3381,7 @@ filtPop.querySelectorAll('input[type=checkbox]').forEach(cb=>{
   cb.addEventListener('change', ()=>{
     CATFILT[cb.dataset.k] = cb.checked;
     filtBtn.classList.toggle('active', Object.values(CATFILT).some(Boolean));
+    snapFilt();
     render();
   });
 });
