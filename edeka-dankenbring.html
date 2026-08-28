@@ -424,6 +424,11 @@ body.isFiltering{
 .stmt.skip{border-color:var(--ff-grey-200);background:var(--ff-grey-50);color:var(--ff-grey-400);font-weight:var(--ff-weight-semibold)}
 .stmt.no2{border-color:var(--red);background:var(--ff-color-missing-input-error-bg);color:#7c2409}
 .stmt.no2 .sub{color:#a15238}
+/* Nicht-blockierende Warnung in der Abschluss-Uebersicht: gleiche Kachel wie
+   .stmt.no2, aber bernsteinfarben statt rot -- rot heisst hier "geht nicht
+   weiter", bernstein heisst "geht weiter, schau aber nochmal hin". */
+.stmt.warn2{border-color:var(--amber);background:var(--amber-bg);color:#8a6a12}
+.stmt.warn2 .sub{color:#9a7b2a}
 .stmt .sub{display:block;font-weight:var(--ff-weight-medium);font-size:var(--ff-text-primary-caption-12);color:var(--mute);margin-top:2px}
 
 /* ---------- Bestand-Stepper (ersetzt die Kachel weniger/✓/mehr) ----------
@@ -916,6 +921,22 @@ body.isFiltering{
   font-size:var(--ff-text-primary-sub-title-10);
   font-weight:var(--ff-weight-extra-bold);
 }
+/* Der Offen-Zaehler haengt am Fertig-Haken und erscheint nur mit ihm zusammen.
+   Solange ein Regal noch offen ist, ist "da ist noch was zu tun" keine
+   Nachricht -- das ist der Normalzustand, und 15 bernsteinfarbene Zahlen beim
+   Betreten der Uebersicht sind nur Rauschen. Erst wenn der Kaufmann das Regal
+   selbst abgehakt hat, wird der Rest zur Aussage: "Nächstes Regal" hakt das
+   Regal ab, es loest die Zeilen darin nicht, und genau diese Luecke muss auf
+   der Uebersicht sichtbar bleiben statt unter dem Haken zu verschwinden. */
+.ShelfGridItem__badge--open{
+  background:var(--amber-bg);
+  color:#8a6a12;
+}
+/* Zwei Marken nebeneinander fressen die Spalte, in der der Regalname steht --
+   "Kartoffeln & Zwiebelgemüse" bricht dann in Vierbuchstaben-Stummel. Sie
+   stapeln sich darum, die Badge-Spalte bleibt so breit wie die breitere der
+   beiden und der Name behaelt seinen Platz. */
+.ShelfGridItem__badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
 .catedit{display:flex;flex-direction:column;gap:7px}
 .catrow{display:flex;align-items:center;gap:12px;background:var(--ff-color-white);border:1px solid var(--ff-grey-200);border-radius:10px;padding:10px 14px}
 .catrow .dot{width:9px;height:9px;border-radius:var(--ff-radius-pill);flex:0 0 auto}
@@ -1801,6 +1822,9 @@ const T={
     dlgPendingMany:'Du hast noch {n} dringende Artikel, die deine Aufmerksamkeit benötigen.',
     dlgAllChecked:'Du hast keinen dringenden Artikel in diesem Regal.',
     dlgClosing:'Wenn du dieses Regal abschließt, wird dieses als erledigt markiert.',
+    unresolvedTitle:'Artikel tragen noch ein !',
+    unresolvedSub:'Bestand nicht bestätigt oder Bestellmenge auffällig',
+    shelfOpenBadge:'offen',
   },
   en:{
     ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
@@ -1959,6 +1983,9 @@ const T={
     dlgPendingMany:'You still have {n} open items that need your attention.',
     dlgAllChecked:'You have checked every item.',
     dlgClosing:'Once you complete the shelf, it will be marked as done.',
+    unresolvedTitle:'items still carry a !',
+    unresolvedSub:'Inventory not confirmed, or the order quantity is flagged',
+    shelfOpenBadge:'open',
   },
   fr:{
     ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
@@ -2117,6 +2144,9 @@ const T={
     dlgPendingMany:'Il vous reste {n} articles ouverts qui nécessitent votre attention.',
     dlgAllChecked:'Vous avez vérifié tous les articles.',
     dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
+    unresolvedTitle:'articles portent encore un !',
+    unresolvedSub:'Stock non confirmé ou quantité de commande signalée',
+    shelfOpenBadge:'ouverts',
   },
 };
 const t=()=>T[LANG];
@@ -2665,10 +2695,20 @@ function itemsForFilter(f){
   if(!f) return ITEMS;
   return ITEMS.filter(i=>tileOf(i)===f.id);
 }
+/* `fin` (Regal abgehakt) und `open` (Zeilen, die noch ein ! tragen) sind zwei
+   verschiedene Dinge und duerfen sich nicht gegenseitig ueberschreiben. Frueher
+   setzte fin den Fortschritt auf 100% -- damit verschwanden offene Artikel in
+   dem Moment, in dem "Nächstes Regal" das Regal abhakte. "Nächstes Regal" hakt
+   nur ab; geloest wird eine Zeile ausschliesslich in der Zeile selbst. Beide
+   Zahlen kommen darum roh zurueck, und jeder Aufrufer entscheidet selbst. */
+function allShelvesDone(){
+  return TILE_ORDER.every(id =>
+    itemsForFilter({kind:'tile', id}).length===0 || !!CATFINISHED[id]);
+}
 function tileStats(tileId){
   const list = itemsForFilter({kind:'tile', id:tileId});
   const fin = !!CATFINISHED[tileId];
-  const done = fin ? list.length : list.filter(i=>rowClear(i,ST[i.id])).length;
+  const done = list.filter(i=>rowClear(i,ST[i.id])).length;
   return {list, fin, done, open:list.length-done};
 }
 /* Dashboard (statischer Demo-Landingscreen) ist jetzt die echte Startseite --
@@ -2747,9 +2787,23 @@ function catStep(dir){
   render();
 }
 
+/* Welche der beiden Fussleisten-Tasten zu sehen ist, haengt an genau einer
+   Frage: steht der Kaufmann IN einem Regal oder DARUEBER?
+
+     in einem Regal (CATFILTER.kind==='tile')  -> nur "Nächstes Regal ›"
+     darueber (Regale-Uebersicht, "Alle Artikel",
+               Schnellfilter "Dringende Artikel")  -> nur "Bestellung abschließen ›"
+
+   Abschliessen ist eine Aussage ueber die GANZE Bestellung, nicht ueber das
+   Regal, in dem man gerade steht -- und stand die Taste im Regal, war sie der
+   naechste Nachbar von "Nächstes Regal ›" und wurde entsprechend oft
+   verwechselt. Auf der Regale-Uebersicht liegt die .foot-Leiste jetzt frei
+   (siehe renderCatOverlay), damit sie dort ueberhaupt sichtbar ist. */
 function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
   const nextBtn=document.getElementById('nextRegalBtn');
+  const ctaBtn=document.getElementById('cta');
+  if(ctaBtn) ctaBtn.style.display = (CATFILTER && CATFILTER.kind==='tile') ? 'none' : '';
   if(!CATFILTER){
     /* The urgency quick-filter leaves CATFILTER null -- it filters across every
        shelf -- so the chip has to read CATFILT too, or it claims "all items"
@@ -2771,7 +2825,8 @@ function renderCatChip(){
   if(nextBtn) nextBtn.style.display='';
   const n=itemsForFilter(CATFILTER).length;
   const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
-  const openTxt = st && !st.fin && st.open>0 ? ` <span class="n">(${st.open} dringend)</span>` : '';
+  /* Bewusst ohne !st.fin: ein abgehaktes Regal mit offenen Zeilen sagt das auch. */
+  const openTxt = st && st.open>0 ? ` <span class="n">(${st.open} dringend)</span>` : '';
   wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
@@ -2826,12 +2881,20 @@ function renderCatOverlay(){
   if(!CATOPEN){ root.innerHTML=''; return; }
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
+  /* Die Regale-Uebersicht ist eine eigene Seite, kein Dialog -- sie bekommt
+     darum dieselbe Fussleiste wie die Artikelliste, mit "Bestellung
+     abschließen ›" darin. Das Overlay endet oberhalb von .foot statt bei 0,
+     sonst laege die Leiste darunter begraben. (Der Regal-Wechsel-Picker
+     weiter unten benutzt dasselbe .catov, bleibt aber bewusst bodenbuendig --
+     dort waere ein Abschluss-Knopf sinnlos.) */
+  const foot=document.querySelector('.foot');
+  const botPx = foot ? foot.offsetHeight : 0;
 
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
-    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, icon:`assets/categories/${t.id}.png`, accent};
+    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, icon:`assets/categories/${t.id}.png`, accent};
   });
 
   let body;
@@ -2896,11 +2959,13 @@ function renderCatOverlay(){
             <div class="ShelfGridItem__leading"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
             <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tl.label}</div>
               <div class="ShelfGridItem__meta"><span class="ShelfGridItem__statusDot" style="background:${tl.accent}"></span><span class="ShelfGridItem__count">${tl.count} ${t().shelfItems}</span></div></div>
-            ${tl.fin?`<span class="ShelfGridItem__badge">${t().shelfDone}</span>`:''}
+            ${tl.fin ? `<div class="ShelfGridItem__badges">${
+              tl.open>0?`<span class="ShelfGridItem__badge ShelfGridItem__badge--open">${tl.open} ${t().shelfOpenBadge}</span>`:''}${
+              `<span class="ShelfGridItem__badge">${t().shelfDone}</span>`}</div>` : ''}
           </div>`).join('')}</div>`;
   }
 
-  root.innerHTML = `<div class="catov" style="top:${topPx}px">
+  root.innerHTML = `<div class="catov" style="top:${topPx}px;bottom:${botPx}px">
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
@@ -3167,8 +3232,14 @@ function startCatCelebration(){
   const target=CATCONFIRM; CATCONFIRM=null;
   const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   CATFINISHED[target.id]=true;
-  CATCELEBRATE={id:target.id, label:target.label, after:target.after||'grid', seq:++CELEB_SEQ, reduced};
-  if(target.after==='next') catStep(1); else goToCategories();
+  /* War das das letzte offene Regal, gibt es kein "naechstes" mehr -- dann fuehrt
+     auch der ›-Weg zurueck auf die Regale-Uebersicht statt im Kreis auf ein schon
+     abgehaktes Regal. Das ist zugleich die Stelle, an der "Bestellung abschließen ›"
+     wieder auftaucht: die Taste lebt nur oberhalb der Regalebene. `after` steuert
+     ausserdem die Zeile in der Feier ("Weiter mit X" vs. "Zurück zur Übersicht"). */
+  const after = (target.after==='next' && !allShelvesDone()) ? 'next' : 'grid';
+  CATCELEBRATE={id:target.id, label:target.label, after, seq:++CELEB_SEQ, reduced};
+  if(after==='next') catStep(1); else goToCategories();
   /* catStep() rendert synchron, goToCategories() laeuft aber ueber history.back() und
      damit erst im naechsten Tick (oder gar nicht, wenn kein Eintrag zurueckliegt). Das
      Overlay wird darum hier selbst aufgebaut statt sich auf den render() des Weiter-
@@ -3641,9 +3712,26 @@ function legend(){
 }
 const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker()};
 /* ---------- complete order ---------- */
+/* Zwei Stufen von "noch nicht fertig", bewusst verschieden hart:
+
+     blocked     -- die Zeile hat gar keine belastbare Zahl (Zaehlung, fehlende
+                    Leiter, widerspruechlicher Bestand). Rot, und der
+                    Bestaetigen-Knopf bleibt gesperrt. Unveraendert.
+     unresolved  -- die Zeile traegt noch ein ! (dieselbe Regel wie rowClear()
+                    und der Schnellfilter "Dringende Artikel"). Bernstein, und
+                    der Knopf bleibt offen: abschliessen ist erlaubt, nur nicht
+                    aus Versehen.
+
+   Seit "Nächstes Regal ›" ein Regal abhakt, ohne dessen offene Zeilen zu
+   loesen, ist diese zweite Stufe der einzige Ort, an dem die Summe der
+   uebersprungenen Zeilen noch einmal auftaucht -- darum zaehlt sie ueber ALLE
+   Regale, nicht nur ueber das zuletzt besuchte. */
 function openSummary(){
   const implicit=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&ST[ix].mode==='ask');
   const blocked=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&['count','noladder','unsure'].includes(ST[ix].mode));
+  const blockedSet=new Set(blocked);
+  const unresolved=ITEMS.filter((it,ix)=>
+    !ST[ix].hidden && !rowClear(it,ST[ix]) && !blockedSet.has(it));
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+= s.answered?s.order:(it.rungs[s.plan].order??0)});
   const de=LANG==='de';
   let h='';
@@ -3654,7 +3742,14 @@ function openSummary(){
       +blocked.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
       +(blocked.length>8?`<li>… ${blocked.length-8} ${t().more}</li>`:'')+'</ul>';
   }
-  h+=`<div style="margin-top:${blocked.length?18:0}px;font-size:var(--ff-text-primary-body-text-14);line-height:1.8;color:var(--ff-grey-700)">
+  if(unresolved.length){
+    h+=`<div class="stmt warn2" style="margin-top:${blocked.length?12:0}px;font-size:var(--ff-text-primary-body-text-14)">${unresolved.length} ${t().unresolvedTitle}
+        <span class="sub">${t().unresolvedSub}</span></div>
+        <ul style="font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500);line-height:1.7;margin:12px 0 0;padding-left:18px">`
+      +unresolved.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
+      +(unresolved.length>8?`<li>… ${unresolved.length-8} ${t().more}</li>`:'')+'</ul>';
+  }
+  h+=`<div style="margin-top:${(blocked.length||unresolved.length)?18:0}px;font-size:var(--ff-text-primary-body-text-14);line-height:1.8;color:var(--ff-grey-700)">
       <div><b>${implicit.length}</b> ${t().openConfirmed}</div>
       <div><b>${cases}</b> ${t().casesInOrder}</div></div>`;
   document.getElementById('s2Body').innerHTML=h;
