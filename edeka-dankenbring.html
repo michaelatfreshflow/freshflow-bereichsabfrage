@@ -1490,6 +1490,30 @@ const TILES = [
   ['bananen-exoten','Bananen & Exoten','Obst',['banane','avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi','papaya','datteln']],
   ['sonstiges','Sonstiges','Sonstiges',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet','eier ','steingartenpflanzen','moosrosen','gladiolen']]
 ];
+/* Regal-ID -> Dateiname des Regal-Icons in assets/categories/. Die Bilddateien
+   heissen englisch, die Regal-IDs bleiben deutsch (sie stecken in
+   localStorage/catOverride und duerfen sich nicht aendern), deshalb diese
+   Zwischenschicht statt eines direkt aus t.id gebauten Pfads. Fehlt ein
+   Eintrag, faellt tileIcon() auf 'other' zurueck -- lieber das Sonstiges-Icon
+   als ein kaputtes Bild. */
+const TILE_ICON = {
+  'kartoffeln-zwiebeln': 'potatoes-onions',
+  'wurzelgemuese':       'root-vegetables',
+  'salate-kohl':         'salads-cabbage',
+  'tomaten':             'tomatoes',
+  'paprika-chili':       'peppers-chili',
+  'fruchtgemuese':       'fruiting-vegetables',
+  'pilze':               'mushrooms',
+  'kraeuter':            'herbs',
+  'gekuehltes-gemuese':  'chilled-vegetables',
+  'gekuehlte-fruechte':  'chilled-fruit',
+  'kernobst':            'pome-fruit',
+  'steinobst-trauben':   'stone-fruit-grapes',
+  'zitrusfruechte':      'citrus-fruit',
+  'bananen-exoten':      'bananas-exotics',
+  'sonstiges':           'other',
+};
+function tileIcon(id){ return `assets/categories/${TILE_ICON[id] || 'other'}.png`; }
 /* Als die 23 Kategorien auf 15 Regale zusammengelegt wurden, aenderten sich
    die Regal-IDs. Auf einem Geraet, das schon einmal benutzt wurde, zeigen
    catOverride/catTileLabels aber noch auf die alten IDs -- ohne Umschluesselung
@@ -2894,7 +2918,7 @@ function renderCatOverlay(){
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
-    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, icon:`assets/categories/${t.id}.png`, accent};
+    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, icon:tileIcon(t.id), accent};
   });
 
   let body;
@@ -3111,7 +3135,7 @@ function renderCatItemPicker(){
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   const tiles = tileDefs.map(t=>{
     const accent = shelfAccent(t);
-    return {id:t.id, label:t.label, icon:`assets/categories/${t.id}.png`, accent};
+    return {id:t.id, label:t.label, icon:tileIcon(t.id), accent};
   });
   root.innerHTML = `<div class="catov" style="top:${topPx}px">
     <div class="catsheet">
