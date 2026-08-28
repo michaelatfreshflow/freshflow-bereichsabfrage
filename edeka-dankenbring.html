@@ -1439,37 +1439,68 @@ const ITEMS = [{"id": 0, "plu": 80674384, "bio": false, "promo": null, "name": "
    Den Beeren!!"), der zu nichts mehr passt -- ohne Gegenmassnahme landet dann
    jeder Artikel in Sonstiges. Deshalb matcht tileOf() jetzt stattdessen gegen
    deutsche Stichwoerter im Artikelnamen (it.name), klein geschrieben. */
+/* 15 Regale = die 15 physischen Regalabschnitte der Abteilung. Die Reihenfolge
+   ist der Rundgang: Kartoffeln/Zwiebeln (Bodenkisten) -> Wurzel -> Nebelwand
+   Salat/Kohl -> Tomaten -> Paprika -> Fruchtgemuese -> Pilze -> Kraeuter ->
+   die beiden Kuehltheken -> Fruchtinsel (Kernobst -> Steinobst/Trauben ->
+   Zitrus -> Bananen/Exoten) -> Sonstiges als End-Cap.
+   Die Stichwortlisten sind die zusammengelegten Listen der frueheren 23
+   Kategorien -- ein Artikel landet also im selben Regal wie vorher, nur dass
+   z.B. Kartoffeln und Zwiebeln sich jetzt ein Regal teilen. Die
+   Array-Reihenfolge ist zugleich die Match-Reihenfolge (erster Treffer
+   gewinnt), deshalb muss z.B. 'granatäpfel' (Gekuehlte Fruechte) vor
+   'äpfel' (Kernobst) stehen und 'tomate' vor 'pflaume' (Pflaumen-Tomaten).
+   'sonstiges' ist der letzte Eintrag und gleichzeitig der Auffang-Eimer von
+   tileOf() -- ein Artikel ohne Stichworttreffer landet dort. */
 const TILES = [
-  ['salate','Salate','Gemüse',['salatherzen','eisbergsalat','kopfsalat','romana','trio-salat','mix salat','rucola salat','chicoree','lollo','rucola','ballensalat']],
-  ['paprika','Paprika & Chili','Gemüse',['paprika','peperoni','pfeffer chili','pfeffer jalapeno','pimiento','pap.','chili-schoten']],
-  ['wurzel','Wurzelgemüse','Gemüse',['karotte','möhren','rote bete','rote beet','sellerie','ingwer','kohlrabi','pastinake','petersilienw','radieschen','rettich','kurkuma']],
-  ['pilze','Pilze','Gemüse',['pfifferlinge','champignon','buchenpilze','steinpilze','austernpilze','kräuterseitlinge']],
-  ['blattgemuese','Blattgemüse','Gemüse',['spinat','fenchel','staudensellerie','sellerie lose']],
-  ['kohl','Kohlgemüse','Gemüse',['weißkohl','spitzkohl','blumenkohl','bluccoli','broccoli','rotkohl','chinakohl','wirsing','brokkoli','pak choi']],
-  ['fruchtgemuese','Sonstiges Fruchtgemüse','Gemüse',['gurke','aubergine','zucchini','zuckermais','suppeng','kürbis']],
+  ['kartoffeln-zwiebeln','Kartoffeln & Zwiebelgemüse','Gemüse',['kartoffel','kart ls','kartof mini','reibekuchen','gemüsetaler','gemüsegrillis','süßkartoffel röstis','zwiebel','knoblauch','knobl','schalotten','porree']],
+  ['wurzelgemuese','Wurzelgemüse','Gemüse',['karotte','möhren','rote bete','rote beet','sellerie','ingwer','kohlrabi','pastinake','petersilienw','radieschen','rettich','kurkuma']],
+  ['salate-kohl','Salate & Kohlgemüse','Gemüse',['salatherzen','eisbergsalat','kopfsalat','romana','trio-salat','mix salat','rucola salat','chicoree','lollo','rucola','ballensalat','spinat','fenchel','staudensellerie','sellerie lose','weißkohl','spitzkohl','blumenkohl','bluccoli','broccoli','rotkohl','chinakohl','wirsing','brokkoli','pak choi']],
   ['tomaten','Tomaten','Gemüse',['tomate','tom -','tom ','cherrystr','strauchto']],
-  ['beeren','Beeren & Gekühlte Früchte','Obst',['himbeere','heidelbeere','brombeere','granatapfelkerne','granatäpfel','v-quark','erdbeere','johannisbeere']],
-  ['huelsen','Bohnen & Erbsen','Gemüse',['böhnchen','zuckerschoten','buschbohnen','zuckererbsen']],
-  ['kartoffeln','Kartoffeln','Gemüse',['kartoffel','kart ls','kartof mini','reibekuchen','gemüsetaler','gemüsegrillis','süßkartoffel röstis']],
-  ['zwiebel','Zwiebelgemüse','Gemüse',['zwiebel','knoblauch','knobl','schalotten','porree']],
-  ['bananen','Bananen','Obst',['banane']],
-  ['kernobst','Kernobst','Obst',['äpfel','apfel','birnen']],
-  ['steinobst','Steinobst','Obst',['pfirsich','nektarine','pflaume','plattpfir']],
-  ['zitrus','Zitrusfrüchte','Obst',['zitrone','limette','orange','grapefruit','mandarin']],
-  ['trauben','Trauben','Obst',['trauben']],
-  ['exotisch','Exotisch','Obst',['avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi','papaya','datteln']],
-  ['nuesse','Trockenobst & Nüsse','Obst',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet']],
-  ['salatbeutel','Gekühlte Salate','Gemüse',['salatmix','salat-mix','salatbowl','baby-spinat','baby salatmix','rucola salatmix','feldsal','wildkräutersalat','fein&pikant','sweet&crispy','knackige salat','knusprige','sommer genuss','mungobohnenkeime']],
+  ['paprika-chili','Paprika & Chili','Gemüse',['paprika','peperoni','pfeffer chili','pfeffer jalapeno','pimiento','pap.','chili-schoten']],
+  ['fruchtgemuese','Fruchtgemüse','Gemüse',['gurke','aubergine','zucchini','zuckermais','suppeng','kürbis','böhnchen','zuckerschoten','buschbohnen','zuckererbsen']],
+  ['pilze','Pilze','Gemüse',['pfifferlinge','champignon','buchenpilze','steinpilze','austernpilze','kräuterseitlinge']],
   ['kraeuter','Kräuter','Gemüse',['basilikum','petersilie','rosmarin','schnittlauch','dill','minze','kresse','koriander','salbei','thymian','zitronengras','bohnenkraut','kräut.','m.kr.i.t']],
-  ['eier','Eier','Sonstiges',['eier ']],
-  ['blumen','Blumen & Pflanzen','Sonstiges',['steingartenpflanzen','moosrosen','gladiolen']]
+  ['gekuehltes-gemuese','Gekühltes Gemüse','Gemüse',['salatmix','salat-mix','salatbowl','baby-spinat','baby salatmix','rucola salatmix','feldsal','wildkräutersalat','fein&pikant','sweet&crispy','knackige salat','knusprige','sommer genuss','mungobohnenkeime']],
+  ['gekuehlte-fruechte','Gekühlte Früchte','Obst',['himbeere','heidelbeere','brombeere','granatapfelkerne','granatäpfel','v-quark','erdbeere','johannisbeere']],
+  ['kernobst','Kernobst','Obst',['äpfel','apfel','birnen']],
+  ['steinobst-trauben','Steinobst & Trauben','Obst',['pfirsich','nektarine','pflaume','plattpfir','trauben']],
+  ['zitrusfruechte','Zitrusfrüchte','Obst',['zitrone','limette','orange','grapefruit','mandarin']],
+  ['bananen-exoten','Bananen & Exoten','Obst',['banane','avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi','papaya','datteln']],
+  ['sonstiges','Sonstiges','Sonstiges',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet','eier ','steingartenpflanzen','moosrosen','gladiolen']]
 ];
+/* Als die 23 Kategorien auf 15 Regale zusammengelegt wurden, aenderten sich
+   die Regal-IDs. Auf einem Geraet, das schon einmal benutzt wurde, zeigen
+   catOverride/catTileLabels aber noch auf die alten IDs -- ohne Umschluesselung
+   waere ein Artikel mit Uebersteuerung auf z.B. 'zwiebel' in KEINEM Regal mehr
+   sichtbar. catTileOrder braucht das nicht, das heilt sich in loadTileOrder()
+   selbst. */
+const TILE_ALIAS = {
+  kartoffeln:'kartoffeln-zwiebeln', zwiebel:'kartoffeln-zwiebeln',
+  wurzel:'wurzelgemuese',
+  salate:'salate-kohl', blattgemuese:'salate-kohl', kohl:'salate-kohl',
+  paprika:'paprika-chili',
+  huelsen:'fruchtgemuese',
+  salatbeutel:'gekuehltes-gemuese',
+  beeren:'gekuehlte-fruechte',
+  steinobst:'steinobst-trauben', trauben:'steinobst-trauben',
+  zitrus:'zitrusfruechte',
+  bananen:'bananen-exoten', exotisch:'bananen-exoten',
+  nuesse:'sonstiges', eier:'sonstiges', blumen:'sonstiges',
+};
+function aliasTileId(id){ return TILE_ALIAS[id] || id; }
+
 /* Regal-Uebersteuerung: in "Bestellung verwalten" gesetzt, keyed auf die PLU
    (stabil ueber Datenneuzuege hinweg, anders als der Array-Index it.id), damit
    ein Artikel dauerhaft in seinem Regal bleibt statt bei jeder Neu-Ladung
    wieder ueber die Namens-Stichwoerter zu laufen. */
 function loadCatOverride(){
-  try{ const v=JSON.parse(localStorage.getItem('catOverride')||'{}'); return (v&&typeof v==='object')?v:{}; }catch(e){ return {}; }
+  try{
+    const v=JSON.parse(localStorage.getItem('catOverride')||'{}');
+    if(!v || typeof v!=='object') return {};
+    Object.keys(v).forEach(k=>{ v[k]=aliasTileId(v[k]); });
+    return v;
+  }catch(e){ return {}; }
 }
 function saveCatOverride(){
   try{ localStorage.setItem('catOverride', JSON.stringify(CAT_OVERRIDE)); }catch(e){}
@@ -1491,7 +1522,15 @@ function tileOf(it){
    pro Geraet wie TILE_ORDER/CAT_OVERRIDE. Nur der ANGEZEIGTE Name aendert sich --
    die Stichwoerter, nach denen tileOf() Artikel zuordnet, bleiben unberuehrt. */
 function loadTileLabels(){
-  try{ const v=JSON.parse(localStorage.getItem('catTileLabels')||'{}'); return (v&&typeof v==='object')?v:{}; }catch(e){ return {}; }
+  try{
+    const v=JSON.parse(localStorage.getItem('catTileLabels')||'{}');
+    if(!v || typeof v!=='object') return {};
+    const out={};
+    /* Beim Zusammenlegen kann ein umbenanntes Regal in einem anderen aufgehen --
+       dann gewinnt der erste Eigenname, den der Kaufmann vergeben hat. */
+    Object.keys(v).forEach(k=>{ const id=aliasTileId(k); if(!(id in out)) out[id]=v[k]; });
+    return out;
+  }catch(e){ return {}; }
 }
 function saveTileLabels(){ try{ localStorage.setItem('catTileLabels', JSON.stringify(TILE_LABELS)); }catch(e){} }
 let TILE_LABELS = loadTileLabels();
@@ -1545,30 +1584,21 @@ function tileType(id){
    shelves itself. Keyed by tile id so a shelf the owner renamed, or one they
    created, keeps their wording untouched in every language. */
 const SHELF_NAMES = {
-  salate:        {de:'Salate',                   en:'Lettuce',                   fr:'Salades'},
-  paprika:       {de:'Paprika & Chili',          en:'Peppers & Chilli',          fr:'Poivrons & piments'},
-  wurzel:        {de:'Wurzelgemüse',             en:'Root vegetables',           fr:'Légumes racines'},
-  pilze:         {de:'Pilze',                    en:'Mushrooms',                 fr:'Champignons'},
-  blattgemuese:  {de:'Blattgemüse',              en:'Leafy greens',              fr:'Légumes-feuilles'},
-  kohl:          {de:'Kohlgemüse',               en:'Brassicas',                 fr:'Choux'},
-  fruchtgemuese: {de:'Sonstiges Fruchtgemüse',   en:'Other fruiting vegetables', fr:'Autres légumes-fruits'},
-  tomaten:       {de:'Tomaten',                  en:'Tomatoes',                  fr:'Tomates'},
-  beeren:        {de:'Beeren & Gekühlte Früchte',en:'Berries & chilled fruit',   fr:'Baies & fruits réfrigérés'},
-  huelsen:       {de:'Bohnen & Erbsen',          en:'Beans & peas',              fr:'Haricots & petits pois'},
-  kartoffeln:    {de:'Kartoffeln',               en:'Potatoes',                  fr:'Pommes de terre'},
-  zwiebel:       {de:'Zwiebelgemüse',            en:'Onions & garlic',           fr:'Oignons & aulx'},
-  bananen:       {de:'Bananen',                  en:'Bananas',                   fr:'Bananes'},
-  kernobst:      {de:'Kernobst',                 en:'Pome fruit',                fr:'Fruits à pépins'},
-  steinobst:     {de:'Steinobst',                en:'Stone fruit',               fr:'Fruits à noyau'},
-  zitrus:        {de:'Zitrusfrüchte',            en:'Citrus',                    fr:'Agrumes'},
-  trauben:       {de:'Trauben',                  en:'Grapes',                    fr:'Raisins'},
-  exotisch:      {de:'Exotisch',                 en:'Exotic',                    fr:'Exotiques'},
-  nuesse:        {de:'Trockenobst & Nüsse',      en:'Dried fruit & nuts',        fr:'Fruits secs & noix'},
-  salatbeutel:   {de:'Gekühlte Salate',          en:'Chilled salads',            fr:'Salades réfrigérées'},
-  kraeuter:      {de:'Kräuter',                  en:'Herbs',                     fr:'Herbes'},
-  eier:          {de:'Eier',                     en:'Eggs',                      fr:'Œufs'},
-  blumen:        {de:'Blumen & Pflanzen',        en:'Flowers & plants',          fr:'Fleurs & plantes'},
-  sonstiges:     {de:'Nicht zugeordnet',         en:'Unassigned',                fr:'Non affecté'},
+  'kartoffeln-zwiebeln': {de:'Kartoffeln & Zwiebelgemüse', en:'Potatoes & onions',       fr:'Pommes de terre & oignons'},
+  'wurzelgemuese':       {de:'Wurzelgemüse',               en:'Root vegetables',         fr:'Légumes racines'},
+  'salate-kohl':         {de:'Salate & Kohlgemüse',        en:'Lettuce & brassicas',     fr:'Salades & choux'},
+  'tomaten':             {de:'Tomaten',                    en:'Tomatoes',                fr:'Tomates'},
+  'paprika-chili':       {de:'Paprika & Chili',            en:'Peppers & chilli',        fr:'Poivrons & piments'},
+  'fruchtgemuese':       {de:'Fruchtgemüse',               en:'Fruiting vegetables',     fr:'Légumes-fruits'},
+  'pilze':               {de:'Pilze',                      en:'Mushrooms',               fr:'Champignons'},
+  'kraeuter':            {de:'Kräuter',                    en:'Herbs',                   fr:'Herbes'},
+  'gekuehltes-gemuese':  {de:'Gekühltes Gemüse',           en:'Chilled vegetables',      fr:'Légumes réfrigérés'},
+  'gekuehlte-fruechte':  {de:'Gekühlte Früchte',           en:'Chilled fruit',           fr:'Fruits réfrigérés'},
+  'kernobst':            {de:'Kernobst',                   en:'Pome fruit',              fr:'Fruits à pépins'},
+  'steinobst-trauben':   {de:'Steinobst & Trauben',        en:'Stone fruit & grapes',    fr:'Fruits à noyau & raisins'},
+  'zitrusfruechte':      {de:'Zitrusfrüchte',              en:'Citrus',                  fr:'Agrumes'},
+  'bananen-exoten':      {de:'Bananen & Exoten',           en:'Bananas & exotics',       fr:'Bananes & exotiques'},
+  'sonstiges':           {de:'Sonstiges',                  en:'Other',                   fr:'Divers'},
 };
 function tileLabel(id){
   /* A rename the owner typed wins in every language -- it is their word, not a
@@ -2692,14 +2722,14 @@ function pickCategory(kind,id,label){ goToList({kind,id,label}); }
 function closeCat(){ CATOPEN=false; render(); }
 
 /* Regale-Rundgang: dieselbe Reihenfolge wie im Regale-Grid
-   (TILE_ORDER, dann Nicht zugeordnet) -- ‹/› neben dem
+   (TILE_ORDER, Sonstiges als letztes Regal) -- ‹/› neben dem
    Filter-Chip springen direkt zum naechsten/vorigen Regal, ohne
    den Umweg ueber die Regale-Seite. Leere Regale werden
    uebersprungen, sonst tippt man sich nur durch "0 Artikel"-Stopps.
    replaceState statt push, damit Zurueck immer in einem Schritt auf
    der Regale-Seite landet, egal wie oft man mit ‹/› weitergeklickt hat. */
 function catWalkList(){
-  return TILE_ORDER.concat(['sonstiges']).map(id=>
+  return TILE_ORDER.map(id=>
     ({kind:'tile', id, label: tileLabel(id)}));
 }
 function catWalkIndex(walk, f){
@@ -2798,16 +2828,15 @@ function renderCatOverlay(){
   const topPx = hdr ? hdr.offsetHeight : 0;
 
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
-  tileDefs.push({id:'sonstiges', label:'Nicht zugeordnet', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
     return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, icon:`assets/categories/${t.id}.png`, accent};
-  }).filter(t=>t.id!=='sonstiges' || t.count>0);
+  });
 
   let body;
   if(CAT_EDIT){
-    const orderTiles = tiles.filter(t=>t.id!=='sonstiges');
+    const orderTiles = tiles;
     const addRow = ADDING_TILE
       ? `<div class="catrow">
           <span class="dot" style="background:var(--ff-color-accent-green)"></span>
@@ -3015,7 +3044,6 @@ function renderCatItemPicker(){
   const topPx = hdr ? hdr.offsetHeight : 0;
   const current=tileOf(it);
   const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
-  tileDefs.push({id:'sonstiges', label:'Nicht zugeordnet', type:'Sonstiges'});
   const tiles = tileDefs.map(t=>{
     const accent = shelfAccent(t);
     return {id:t.id, label:t.label, icon:`assets/categories/${t.id}.png`, accent};
