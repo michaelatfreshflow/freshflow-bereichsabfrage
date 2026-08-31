@@ -2667,6 +2667,7 @@ function render(){
       return (va-vb)*SORT.dir;
     });
   }
+  const shownIdx=[];   // sichtbare Zeilen fuer stats(); NICHT 'shown' -- das ist weiter unten die Bestellmenge
   idxOrder.forEach(ix=>{
     const it=ITEMS[ix];
     const s=ST[ix], L=t();
@@ -2687,6 +2688,7 @@ function render(){
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
+    if(!hide) shownIdx.push(ix);
     /* item_information_row.dart puts the PLU and case size on one line and the
        prices on the next, as bare numbers -- the app labels neither, and it
        shows cost, margin, retail in that order. The prototype had one dotted
@@ -2732,19 +2734,31 @@ function render(){
       <div>${cell}</div><div>${ord}</div></div>`;
   });
   list.innerHTML=html;
-  stats();
+  stats(shownIdx);
 }
 
-function stats(){
-  let cases=0,cost=0,ret=0,kept=0,hiddenCount=0;
-  ITEMS.forEach((it,ix)=>{
-    const s=ST[ix];
-    if(s.hidden){ hiddenCount++; return; }
+/* Die Fussleiste rechnet ueber die Zeilen, die man tatsaechlich vor sich hat: in
+   einem Regal ueber dieses Regal, unter einem Merkmalsfilter ueber die gefilterte
+   Auswahl. Vorher summierte sie immer den ganzen Ordersatz -- man stand in
+   "Kräuter" und las die 1.310 EUR des gesamten Bereichs, in jedem Regal dieselbe
+   Zahl und damit keine Aussage. render() gibt die sichtbaren Indizes mit, damit
+   hier keine zweite Sichtbarkeitsregel entsteht, die von der Liste abweichen kann.
+   Ausgeblendete zaehlen weiterhin nie mit (sie sind nicht Teil der Bestellung,
+   auch wenn "Bestellung verwalten" sie gerade zeigt); der Ausgeblendet-Zaehler im
+   Filter bleibt dagegen absichtlich global -- er sagt, wie viele es im Ordersatz
+   ueberhaupt gibt, nicht wie viele die aktuelle Ansicht davon zeigt. */
+function stats(shown){
+  const scope = shown || ITEMS.map((_,ix)=>ix);
+  let cases=0,cost=0,ret=0,kept=0,visible=0;
+  scope.forEach(ix=>{
+    const it=ITEMS[ix], s=ST[ix];
+    if(s.hidden) return;
     const o=s.answered?s.order:(it.rungs[s.plan].order??0);
     cases+=o; if(it.case){cost+=o*it.case*(it.ek||0); ret+=o*it.case*(it.vk||0);}
     if(!s.manual) kept++;   // Uebernahme: the system's number still stands
+    visible++;
   });
-  const visible = ITEMS.length - hiddenCount;
+  const hiddenCount = ITEMS.reduce((n,_,ix)=>n+(ST[ix].hidden?1:0),0);
   document.getElementById('fcases').textContent=cases;
   document.getElementById('fcost').textContent=eur(cost);
   document.getElementById('fret').textContent=eur(ret);
