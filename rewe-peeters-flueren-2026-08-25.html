@@ -1808,15 +1808,15 @@ const T={
     rangeDownOpen:'Sprosse nach unten offen',
     rangeBounded:'beidseitig begrenzt, nur hier nötig',
     rNotBalanced:'Hohe Abschriften',
-    rNoSales:'zuletzt kein Abverkauf',
+    rNoSales:'Zuletzt kein Abverkauf',
     rSalesMissing:'Abverkauf fehlt',
     rIntakeMissing:'Wareneingang fehlt',
-    rSharedPlu:'mehrere Artikel auf einer PLU',
-    rNeverCounted:'noch nie gezählt',
-    rPeriodic:'turnusmässige Zählung',
-    rPeriodicReal:'turnusmässige Zählung, echte Zahl',
-    rThinHistory:'zu wenig Historie',
-    rNewItem:'neuer Artikel',
+    rSharedPlu:'Mehrere Artikel auf einer PLU',
+    rNeverCounted:'Noch nie gezählt',
+    rPeriodic:'Stichprobenzählung',
+    rPeriodicReal:'Stichprobenzählung',
+    rThinHistory:'Zu wenig Historie',
+    rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
     rPlanAMismatch:'App-Bestand passt nicht zu Plan A',
@@ -1869,7 +1869,7 @@ const T={
     enterOrder:'Bitte geben Sie die Bestellung für den folgenden Artikel ein.',
     count:'Zählen: Bestand eingeben',
     noladder:'Bestand eingeben',
-    countsub:'Turnusmässige Zählung fällig',
+    countsub:'Stichprobenzählung fällig',
     nolsub:'Modell rechnet hier kein Bereich',
     unsure:'App-Bestand widerspricht Plan A',
     atLeast:'mind.',
@@ -2659,7 +2659,7 @@ function whyTags(ix, kind){
   const it=ITEMS[ix], s=ST[ix];
   const raw = kind==='ord' ? (s.manual?null:it.ordNote)
                            : (s.touched ? null : it.invNote);
-  const tags = raw ? String(raw).split('·').map(x=>noteText(x.trim())) : [];
+  const tags = raw ? [...new Set(String(raw).split('·').map(x=>noteText(x.trim())))] : [];
   if(kind==='inv' && !s.touched && s.mode==='unsure') tags.push(t().unsure);
   return tags;
 }
