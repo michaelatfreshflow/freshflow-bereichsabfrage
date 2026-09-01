@@ -659,6 +659,39 @@ body.isFiltering{
 /* ColumnCounterField's own SizedBox(width: 24.w) -- column_counter_field.dart:180 */
 .row > *:nth-child(3) .statusSlot{flex:0 0 auto;width:24px;display:flex;align-items:center;justify-content:center}
 .statusSlot svg{display:block}
+/* Der Punkt selbst bleibt exakt so gross wie vorher -- nur seine Trefferflaeche
+   waechst auf die 44pt, die Apple als Minimum nennt. Deshalb ein transparenter
+   Knopf mit negativem Margin statt eines groesseren Punktes. */
+.whyBtn{
+  all:unset; cursor:pointer;
+  display:grid;place-items:center;
+  width:44px;height:44px;margin:-14px;
+  border-radius:var(--ff-radius-pill);
+  -webkit-tap-highlight-color:transparent;
+}
+.whyBtn:active{background:rgba(0,0,0,.06)}
+/* Popover statt Sheet: die Zeile, um die es geht, bleibt sichtbar, und der Pfeil
+   sagt, welcher Punkt gemeint ist. Zum Lesen und Wegtippen, kein Dialog. */
+.whyPop{
+  position:fixed;z-index:9998;
+  max-width:260px;
+  background:var(--ff-color-white);
+  border:1px solid var(--ff-grey-200);
+  border-radius:var(--ff-radius-c15);
+  box-shadow:0 8px 28px rgba(0,0,0,.16);
+  padding:10px 12px;
+}
+.whyPop .whyRow{display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-900);line-height:1.35}
+.whyPop .whyRow+.whyRow{margin-top:7px}
+.whyPop .whyRow svg{flex:0 0 auto;width:12px;height:12px;display:block}
+.whyPop:after{
+  content:'';position:absolute;width:10px;height:10px;
+  background:var(--ff-color-white);
+  border-left:1px solid var(--ff-grey-200);border-top:1px solid var(--ff-grey-200);
+  transform:rotate(45deg);
+}
+.whyPop.below:after{top:-6px;left:var(--arrow)}
+.whyPop.above:after{bottom:-6px;left:var(--arrow);transform:rotate(225deg)}
 .withbang>.stmt{flex:1}
 /* FieldStatusIcon -> AppStatusIcon -> AppIcon.asset(height/width: 16.w).
    The asset is assets/icons/warning_rounded.svg: a 16x16 circle filled
@@ -898,24 +931,6 @@ body.isFiltering{
    Uebersicht wirklich braucht: wie viele Artikel in diesem Regal ein ! tragen.
    shelfAccent() bleibt -- die Punkte im Bearbeiten-Modus (.catrow .dot) leben
    weiter davon. */
-/* Die Kachel traegt dieselben zwei Marker wie die Zeilen darunter, nur gezaehlt --
-   kein Wort noetig, die Uebersicht erklaert sich ueber die Zeichen, die der
-   Kaufmann in der Liste ohnehin liest. Der Farbfleck bleibt das Icon; die
-   Plakette selbst nimmt nur den blassen Ton dahinter (#ffeaea / #fff4e7), damit
-   ein Regal mit Arbeit auffaellt, ohne dass 15 Kacheln zu Warnschildern werden.
-   Ein sauberes Regal traegt gar keine Plakette. */
-.ShelfGridItem__attn{
-  flex:0 0 auto;
-  display:inline-flex;align-items:center;gap:3px;
-  padding:2px 6px 2px 4px;
-  border-radius:var(--ff-radius-pill);
-  font-size:var(--ff-text-primary-sub-title-10);
-  font-weight:var(--ff-weight-extra-bold);
-  line-height:1;
-}
-.ShelfGridItem__attn svg{display:block;width:11px;height:11px}
-.ShelfGridItem__attn--inv{background:var(--ff-color-missing-input-error-bg);color:#8d2b0c}
-.ShelfGridItem__attn--ord{background:var(--ff-orange-10);color:#8a6a12}
 
 .ShelfGridItem__count{
   /* Text(countLabel, style: theme.text.primaryCaption12.grey500,
@@ -1332,8 +1347,8 @@ body.dash-active .stage{display:none}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span id="lblFilter">Filter</span>
       </button>
       <div class="filtpop" id="filtPop">
-        <label class="fopt"><input type="checkbox" id="fInv" data-k="invNote"><span id="fltInv">Bestand</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/></svg></span></span><b id="cInv">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span id="fltOrd">Bestellmenge</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/></svg></span></span><b id="cOrd">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fInv" data-k="invNote"><span id="fltInv">Bestand</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cInv">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span id="fltOrd">Bestellmenge</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cOrd">0</b></label>
         <label class="fopt"><input type="checkbox" id="fBio" data-k="bio"><span id="fltBio">Bio</span><b id="cBio">0</b></label>
         <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span id="fltSale">Werb.</span><b id="cPromo">0</b></label>
         <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span id="fltHidden">Ausgeblendet</span><b id="cHidden">0</b></label>
@@ -1792,7 +1807,7 @@ const T={
     rangeUpOpen:'Sprosse nach oben offen',
     rangeDownOpen:'Sprosse nach unten offen',
     rangeBounded:'beidseitig begrenzt, nur hier nötig',
-    rNotBalanced:'nicht ausgeglichen',
+    rNotBalanced:'Hohe Abschriften',
     rNoSales:'zuletzt kein Abverkauf',
     rSalesMissing:'Abverkauf fehlt',
     rIntakeMissing:'Wareneingang fehlt',
@@ -1802,11 +1817,12 @@ const T={
     rPeriodicReal:'turnusmässige Zählung, echte Zahl',
     rThinHistory:'zu wenig Historie',
     rNewItem:'neuer Artikel',
-    rPromo:'Aktion',
+    rPromo:'Werbung',
+    rManualWarning:'Manuelle Warnung',
     rPlanAMismatch:'App-Bestand passt nicht zu Plan A',
     rOrderDetached:'Bestellung hängt nicht am Bestand',
     rShrinkRetail:'Abschriften im Verkaufspreis',
-    rBangOrder:'Punkt am Bestellwert',
+    rBangOrder:'Ausrufezeichen am Bestellwert',
     rWithdrawn:'Bestätigung zurückgenommen, wartet auf Markt',
     rPreselected:'✓ vorgewählt, noch nicht vom Markt bestätigt',
     seeWeather:'Siehe Wetter ›',
@@ -1816,8 +1832,8 @@ const T={
     timeLeft:'verbleibend',
     scanTip:'Barcode scannen (Demo)',
     confirmFinishFull:'Bestätigen und abschließen',
-    legBangInv:'Punkt Bestand',
-    legBangOrder:'Punkt Bestellung',
+    legBangInv:'! Bestand',
+    legBangOrder:'! Bestellung',
     legCountLabel:'Zählen',
     manageDone:'Beenden',
     shelfEyebrow:'Regale',
@@ -1865,7 +1881,7 @@ const T={
     dlgPendingMany:'Du hast noch {n} dringende Artikel, die deine Aufmerksamkeit benötigen.',
     dlgAllChecked:'Du hast keinen dringenden Artikel in diesem Regal.',
     dlgClosing:'Wenn du dieses Regal abschließt, wird dieses als erledigt markiert.',
-    unresolvedTitle:'Artikel tragen noch einen Punkt',
+    unresolvedTitle:'Artikel tragen noch ein !',
     unresolvedSub:'Bestand nicht bestätigt oder Bestellmenge auffällig',
     shelfOpenBadge:'offen',
   },
@@ -1953,7 +1969,7 @@ const T={
     rangeUpOpen:'Range open at the top',
     rangeDownOpen:'Range open at the bottom',
     rangeBounded:'bounded both ends, only needed here',
-    rNotBalanced:'not balanced',
+    rNotBalanced:'High shrink',
     rNoSales:'no recent sales',
     rSalesMissing:'sales missing',
     rIntakeMissing:'order intake missing',
@@ -1964,6 +1980,7 @@ const T={
     rThinHistory:'not enough history',
     rNewItem:'new item',
     rPromo:'Promotion',
+    rManualWarning:'Manual warning',
     rPlanAMismatch:'App inventory does not match Plan A',
     rOrderDetached:'Order not tied to inventory',
     rShrinkRetail:'Shrink at retail price',
@@ -1977,8 +1994,8 @@ const T={
     timeLeft:'left',
     scanTip:'Scan barcode (demo)',
     confirmFinishFull:'Confirm and finish',
-    legBangInv:'Inventory dot',
-    legBangOrder:'Order dot',
+    legBangInv:'! Inventory',
+    legBangOrder:'! Order',
     legCountLabel:'Count',
     manageDone:'Done',
     shelfEyebrow:'Shelves',
@@ -2026,7 +2043,7 @@ const T={
     dlgPendingMany:'You still have {n} open items that need your attention.',
     dlgAllChecked:'You have checked every item.',
     dlgClosing:'Once you complete the shelf, it will be marked as done.',
-    unresolvedTitle:'items still carry a dot',
+    unresolvedTitle:'items still carry a !',
     unresolvedSub:'Inventory not confirmed, or the order quantity is flagged',
     shelfOpenBadge:'open',
   },
@@ -2114,7 +2131,7 @@ const T={
     rangeUpOpen:'Plage ouverte vers le haut',
     rangeDownOpen:'Plage ouverte vers le bas',
     rangeBounded:'bornée des deux côtés, nécessaire ici seulement',
-    rNotBalanced:'non équilibré',
+    rNotBalanced:'Démarque élevée',
     rNoSales:'aucune vente récente',
     rSalesMissing:'ventes manquantes',
     rIntakeMissing:'livraison manquante',
@@ -2125,6 +2142,7 @@ const T={
     rThinHistory:'historique insuffisant',
     rNewItem:'nouvel article',
     rPromo:'Promotion',
+    rManualWarning:'Alerte manuelle',
     rPlanAMismatch:'L’inventaire de l’app ne correspond pas au plan A',
     rOrderDetached:'Commande non liée à l’inventaire',
     rShrinkRetail:'Casse au prix de vente',
@@ -2138,8 +2156,8 @@ const T={
     timeLeft:'restantes',
     scanTip:'Scanner un code-barres (démo)',
     confirmFinishFull:'Confirmer et clôturer',
-    legBangInv:'Point Inventaire',
-    legBangOrder:'Point Commande',
+    legBangInv:'! Inventaire',
+    legBangOrder:'! Commande',
     legCountLabel:'Comptage',
     manageDone:'Terminer',
     shelfEyebrow:'Rayons',
@@ -2187,7 +2205,7 @@ const T={
     dlgPendingMany:'Il vous reste {n} articles ouverts qui nécessitent votre attention.',
     dlgAllChecked:'Vous avez vérifié tous les articles.',
     dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
-    unresolvedTitle:'articles portent encore un point',
+    unresolvedTitle:'articles portent encore un !',
     unresolvedSub:'Stock non confirmé ou quantité de commande signalée',
     shelfOpenBadge:'ouverts',
   },
@@ -2516,8 +2534,8 @@ function rungOfKo(it,ko,planIdx){
    ist nicht bestaetigt). Die Bestellmenge ist der leisere Fall -- das Modell ist
    sich nur unsicher, die Zeile ist trotzdem bestellbar -- und bekommt darum einen
    orangenen Punkt ohne Ausrufezeichen. */
-const ICON_WARN='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/></svg>';
-const ICON_DOT='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/></svg>';
+const ICON_WARN='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
+const ICON_DOT='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
 const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.2983 0.710224C13.2058 0.61752 13.0959 0.543973 12.9749 0.493791C12.8539 0.44361 12.7242 0.417779 12.5933 0.417779C12.4623 0.417779 12.3326 0.44361 12.2116 0.493791C12.0907 0.543973 11.9808 0.61752 11.8883 0.710224L6.99827 5.59022L2.10827 0.700223C2.01569 0.607642 1.90578 0.534202 1.78481 0.484097C1.66385 0.433992 1.5342 0.408203 1.40327 0.408203C1.27234 0.408203 1.14269 0.433992 1.02173 0.484097C0.900763 0.534202 0.790852 0.607642 0.69827 0.700223C0.605688 0.792805 0.532248 0.902716 0.482143 1.02368C0.432038 1.14464 0.40625 1.27429 0.40625 1.40522C0.40625 1.53615 0.432038 1.6658 0.482143 1.78677C0.532248 1.90773 0.605688 2.01764 0.69827 2.11022L5.58827 7.00022L0.69827 11.8902C0.605688 11.9828 0.532248 12.0927 0.482143 12.2137C0.432038 12.3346 0.40625 12.4643 0.40625 12.5952C0.40625 12.7262 0.432038 12.8558 0.482143 12.9768C0.532248 13.0977 0.605688 13.2076 0.69827 13.3002C0.790852 13.3928 0.900763 13.4662 1.02173 13.5163C1.14269 13.5665 1.27234 13.5922 1.40327 13.5922C1.5342 13.5922 1.66385 13.5665 1.78481 13.5163C1.90578 13.4662 2.01569 13.3928 2.10827 13.3002L6.99827 8.41022L11.8883 13.3002C11.9809 13.3928 12.0908 13.4662 12.2117 13.5163C12.3327 13.5665 12.4623 13.5922 12.5933 13.5922C12.7242 13.5922 12.8538 13.5665 12.9748 13.5163C13.0958 13.4662 13.2057 13.3928 13.2983 13.3002C13.3909 13.2076 13.4643 13.0977 13.5144 12.9768C13.5645 12.8558 13.5903 12.7262 13.5903 12.5952C13.5903 12.4643 13.5645 12.3346 13.5144 12.2137C13.4643 12.0927 13.3909 11.9828 13.2983 11.8902L8.40827 7.00022L13.2983 2.11022C13.6783 1.73022 13.6783 1.09022 13.2983 0.710224Z" fill="currentColor"/></svg>';
 const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg>';
 /* The value box splits the number from its unit -- value is primaryBodyText16.medium,
@@ -2580,6 +2598,7 @@ const NOTE_TOKENS = {
   'mehrere Artikel auf einer PLU':'rSharedPlu', 'noch nie gezählt':'rNeverCounted',
   'turnusmässige Zählung, echte Zahl':'rPeriodicReal', 'turnusmässige Zählung':'rPeriodic',
   'zu wenig Historie':'rThinHistory', 'neuer Artikel':'rNewItem', 'Aktion':'rPromo',
+  'manual_warning':'rManualWarning',
 };
 function noteText(raw){
   if(!raw) return raw;
@@ -2587,10 +2606,62 @@ function noteText(raw){
     .map(x=>{ const k=NOTE_TOKENS[x.trim()]; return k ? t()[k] : x; })
     .join(' · ');
 }
-function bang(note,kind){
+function bang(note,kind,ix){
   const txt=noteText(note);
   const icon = kind==='ord' ? ICON_DOT : ICON_WARN;
-  return `<span class="statusSlot"${txt?` title="${txt}"`:''}>${txt?icon:''}</span>`;
+  if(!txt) return `<span class="statusSlot"></span>`;
+  return `<span class="statusSlot"><button type="button" class="whyBtn" data-a="why"`
+       + ` data-i="${ix}" data-kind="${kind==='ord'?'ord':'inv'}"`
+       + ` aria-label="${txt.replace(/"/g,'&quot;')}">${icon}</button></span>`;
+}
+let WHY_POP=null;
+function closeWhy(){ if(WHY_POP){ WHY_POP.remove(); WHY_POP=null; } }
+/* Anker am Punkt, und wenn unten kein Platz mehr ist, klappt es nach oben -- sonst
+   liegt das Fenster bei den letzten Zeilen halb hinter der Fussleiste. Der Pfeil
+   folgt dem Punkt, auch wenn das Fenster am Bildschirmrand einrastet. */
+function openWhy(btn, ix, kind){
+  closeWhy();
+  const tags=whyTags(ix,kind);
+  if(!tags.length) return;
+  const icon = kind==='ord' ? ICON_DOT : ICON_WARN;
+  const p=document.createElement('div');
+  p.className='whyPop';
+  p.innerHTML=tags.map(x=>`<div class="whyRow">${icon}<span>${x}</span></div>`).join('');
+  document.body.appendChild(p);
+
+  const r=btn.getBoundingClientRect();
+  const pw=p.offsetWidth, ph=p.offsetHeight;
+  const GAP=8, M=10;
+  let top=r.bottom+GAP, cls='below';
+  if(top+ph > window.innerHeight-M && r.top-GAP-ph > M){ top=r.top-GAP-ph; cls='above'; }
+  const cx=r.left+r.width/2;
+  const left=Math.max(M, Math.min(cx-pw/2, window.innerWidth-pw-M));
+  p.style.top=top+'px';
+  p.style.left=left+'px';
+  p.style.setProperty('--arrow', Math.max(10, Math.min(cx-left-5, pw-20))+'px');
+  p.classList.add(cls);
+  WHY_POP=p;
+}
+/* Tippen ausserhalb schliesst. Capture-Phase, damit es auch dann greift, wenn der
+   Treffer auf einem Element mit eigenem Handler liegt; der Punkt selbst ist
+   ausgenommen, sonst schloesse der oeffnende Tipp das Fenster sofort wieder. */
+document.addEventListener('click', e=>{
+  if(WHY_POP && !e.target.closest('.whyPop') && !e.target.closest('[data-a="why"]')) closeWhy();
+}, true);
+/* Das Fenster haengt an festen Koordinaten, also darf es Scrollen und
+   Groessenaenderung nicht ueberleben -- sonst steht es neben dem falschen Punkt. */
+window.addEventListener('scroll', closeWhy, true);
+window.addEventListener('resize', closeWhy);
+/* Die Gruende einer Zeile, in derselben Reihenfolge wie sie im Datensatz stehen.
+   Traegt die Bestandsspalte kein invNote, sondern nur den unsicheren Zustand,
+   ist DAS der Grund -- sonst oeffnete der Punkt ein leeres Fenster. */
+function whyTags(ix, kind){
+  const it=ITEMS[ix], s=ST[ix];
+  const raw = kind==='ord' ? (s.manual?null:it.ordNote)
+                           : (s.touched ? null : it.invNote);
+  const tags = raw ? String(raw).split('·').map(x=>noteText(x.trim())) : [];
+  if(kind==='inv' && !s.touched && s.mode==='unsure') tags.push(t().unsure);
+  return tags;
 }
 /* Die beiden Marker der Liste, einzeln benannt: das rote ! an der Bestandsspalte
    und der orangene Punkt an der Bestellmenge. rowClear() ist ihr UND, die
@@ -2711,7 +2782,7 @@ function render(){
     /* inventory cell */
     const box = stepHTML(it,s,ix);
     const noteTxt = s.touched ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
-    let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt)}</div>`;
+    let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt,'inv',ix)}</div>`;
     cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">${t().displaySize} <u>${s.auslage!=null?s.auslage:1}</u> ${t().caseUnit}</div></div>`;
 
     /* order cell */
@@ -2725,7 +2796,7 @@ function render(){
         ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
-    </div>${bang(s.manual?null:it.ordNote,'ord')}</div>`;
+    </div>${bang(s.manual?null:it.ordNote,'ord',ix)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';
@@ -2733,6 +2804,7 @@ function render(){
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${cell}</div><div>${ord}</div></div>`;
   });
+  closeWhy();          // der Knopf, an dem es haengt, wird gleich neu gebaut
   list.innerHTML=html;
   stats(shownIdx);
 }
@@ -2788,11 +2860,8 @@ function tileStats(tileId){
   const list = itemsForFilter({kind:'tile', id:tileId});
   const fin = !!CATFINISHED[tileId];
   const done = list.filter(i=>rowClear(i,ST[i.id])).length;
-  const vis = list.filter(i=>!ST[i.id].hidden || MANAGE_MODE);
   const attn = list.filter(i=>needsAttn(i,ST[i.id])).length;
-  const attnInv = vis.filter(i=>bangInv(i,ST[i.id])).length;
-  const attnOrd = vis.filter(i=>bangOrd(i,ST[i.id])).length;
-  return {list, fin, done, open:list.length-done, attn, attnInv, attnOrd};
+  return {list, fin, done, open:list.length-done, attn};
 }
 /* Dashboard (statischer Demo-Landingscreen) ist jetzt die echte Startseite --
    .stage (die Bereichsabfrage-App) wird erst sichtbar, wenn man ueber den FAB
@@ -2977,7 +3046,7 @@ function renderCatOverlay(){
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
-    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, attn:st.attn, attnInv:st.attnInv, attnOrd:st.attnOrd, icon:tileIcon(t.id), accent};
+    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, attn:st.attn, icon:tileIcon(t.id), accent};
   });
 
   let body;
@@ -3041,7 +3110,7 @@ function renderCatOverlay(){
           <div class="ShelfGridItem${tl.fin?' ShelfGridItem--done':''}" data-key="shelf:${tl.id}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
             <div class="ShelfGridItem__leading"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
             <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tl.label}</div>
-              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${tl.count} ${t().shelfItems}</span>${tl.attnInv?`<span class="ShelfGridItem__attn ShelfGridItem__attn--inv" title="${tl.attnInv} ${t().inventory}">${ICON_WARN}${tl.attnInv}</span>`:''}${tl.attnOrd?`<span class="ShelfGridItem__attn ShelfGridItem__attn--ord" title="${tl.attnOrd} ${t().orderQuantity}">${ICON_DOT}${tl.attnOrd}</span>`:''}</div></div>
+              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${tl.count} ${t().shelfItems}</span></div></div>
             ${tl.fin ? `<div class="ShelfGridItem__badges">${
               tl.open>0?`<span class="ShelfGridItem__badge ShelfGridItem__badge--open">${tl.open} ${t().shelfOpenBadge}</span>`:''}${
               `<span class="ShelfGridItem__badge">${t().shelfDone}</span>`}</div>` : ''}
@@ -3477,6 +3546,7 @@ function toast(m){const el=document.getElementById('toast');el.textContent=m;el.
 list.addEventListener('click',e=>{
   const b=e.target.closest('button, [data-a="ordpad"], [data-a="auslage"], [data-a="invpad"]'); if(!b) return;
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
+  if(a==='why'){ e.stopPropagation(); openWhy(b, ix, b.dataset.kind); return; }
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
     let newKo;
@@ -3787,7 +3857,7 @@ function legend(){
   const openAsk=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].mode==='ask').length;
   L.unshift([t().legPreset,pre,t().rPreselected]);
   L.push([t().legOpenNone,openAsk,t().rWithdrawn]);
-  L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,'Punkt an der Bestandsspalte']);
+  L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
   L.push([t().legBangOrder,ITEMS.filter(it=>it.ordNote).length,t().rBangOrder]);
 
   document.getElementById('legend').innerHTML=L.map(x=>
