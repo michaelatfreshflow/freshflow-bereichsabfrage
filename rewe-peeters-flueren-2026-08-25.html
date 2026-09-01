@@ -2962,9 +2962,7 @@ function renderCatChip(){
        while the list is filtered down to the urgent ones. */
     const urgent = CATFILT.invNote && CATFILT.ordNote;
     if(urgent){
-      const n = ITEMS.filter((it,ix)=>!ST[ix].hidden &&
-        (filtMatch(it,ST[ix]) || (FILT_KEEP && FILT_KEEP.has(ix)))).length;
-      wrap.innerHTML = `<button class="catchip warn" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${t().openItems} <span class="n">· ${n} ${t().shelfItems}</span></button>`;
+      wrap.innerHTML = `<button class="catchip warn" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${t().openItems}</button>`;
       document.getElementById('catChipBtn').onclick=goToCategories;
       if(nextBtn) nextBtn.style.display='none';
       return;
@@ -2975,11 +2973,10 @@ function renderCatChip(){
     return;
   }
   if(nextBtn) nextBtn.style.display='';
-  const n=itemsForFilter(CATFILTER).length;
-  const st = CATFILTER.kind==='tile' ? tileStats(CATFILTER.id) : null;
-  /* Bewusst ohne !st.fin: ein abgehaktes Regal mit offenen Zeilen sagt das auch. */
-  const openTxt = st && st.open>0 ? ` <span class="n">(${st.open} dringend)</span>` : '';
-  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label} <span class="n">· ${n} Artikel</span>${openTxt}</button>`;
+  /* Der Chip sagt nur noch, WELCHER Filter laeuft. Die Artikelzahl stand ohnehin
+     schon in der Liste darunter, und "· 20 Artikel (3 dringend)" las sich neben
+     "Dringende Artikel" wie eine zweite, konkurrierende Aussage. */
+  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
 
