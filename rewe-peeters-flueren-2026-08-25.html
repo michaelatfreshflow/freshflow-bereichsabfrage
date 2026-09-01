@@ -955,22 +955,9 @@ body.isFiltering{
   font-size:var(--ff-text-primary-sub-title-10);
   font-weight:var(--ff-weight-extra-bold);
 }
-/* Der Offen-Zaehler haengt am Fertig-Haken und erscheint nur mit ihm zusammen.
-   Solange ein Regal noch offen ist, ist "da ist noch was zu tun" keine
-   Nachricht -- das ist der Normalzustand, und 15 bernsteinfarbene Zahlen beim
-   Betreten der Uebersicht sind nur Rauschen. Erst wenn der Kaufmann das Regal
-   selbst abgehakt hat, wird der Rest zur Aussage: "Nächstes Regal" hakt das
-   Regal ab, es loest die Zeilen darin nicht, und genau diese Luecke muss auf
-   der Uebersicht sichtbar bleiben statt unter dem Haken zu verschwinden. */
-.ShelfGridItem__badge--open{
-  background:var(--amber-bg);
-  color:#8a6a12;
-}
-/* Zwei Marken nebeneinander fressen die Spalte, in der der Regalname steht --
-   "Kartoffeln & Zwiebelgemüse" bricht dann in Vierbuchstaben-Stummel. Sie
-   stapeln sich darum, die Badge-Spalte bleibt so breit wie die breitere der
-   beiden und der Name behaelt seinen Platz. */
-.ShelfGridItem__badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+/* Die Uebersicht traegt bewusst KEINE Zahlen mehr -- weder Dringend-Plaketten
+   noch einen Offen-Zaehler. Sie sagt, welche Regale es gibt, wie gross sie sind
+   und welche abgehakt sind. Alles andere steht in der Liste. */
 .catedit{display:flex;flex-direction:column;gap:7px}
 .catrow{display:flex;align-items:center;gap:12px;background:var(--ff-color-white);border:1px solid var(--ff-grey-200);border-radius:10px;padding:10px 14px}
 .catrow .dot{width:9px;height:9px;border-radius:var(--ff-radius-pill);flex:0 0 auto}
@@ -1883,7 +1870,6 @@ const T={
     dlgClosing:'Wenn du dieses Regal abschließt, wird dieses als erledigt markiert.',
     unresolvedTitle:'Artikel tragen noch ein !',
     unresolvedSub:'Bestand nicht bestätigt oder Bestellmenge auffällig',
-    shelfOpenBadge:'offen',
   },
   en:{
     ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
@@ -2045,7 +2031,6 @@ const T={
     dlgClosing:'Once you complete the shelf, it will be marked as done.',
     unresolvedTitle:'items still carry a !',
     unresolvedSub:'Inventory not confirmed, or the order quantity is flagged',
-    shelfOpenBadge:'open',
   },
   fr:{
     ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
@@ -2207,7 +2192,6 @@ const T={
     dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
     unresolvedTitle:'articles portent encore un !',
     unresolvedSub:'Stock non confirmé ou quantité de commande signalée',
-    shelfOpenBadge:'ouverts',
   },
 };
 const t=()=>T[LANG];
@@ -3043,7 +3027,7 @@ function renderCatOverlay(){
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
-    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, open:st.open, attn:st.attn, icon:tileIcon(t.id), accent};
+    return {id:t.id, label:t.label, count:st.list.length, fin:st.fin, attn:st.attn, icon:tileIcon(t.id), accent};
   });
 
   let body;
@@ -3108,9 +3092,7 @@ function renderCatOverlay(){
             <div class="ShelfGridItem__leading"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
             <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tl.label}</div>
               <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${tl.count} ${t().shelfItems}</span></div></div>
-            ${tl.fin ? `<div class="ShelfGridItem__badges">${
-              tl.open>0?`<span class="ShelfGridItem__badge ShelfGridItem__badge--open">${tl.open} ${t().shelfOpenBadge}</span>`:''}${
-              `<span class="ShelfGridItem__badge">${t().shelfDone}</span>`}</div>` : ''}
+            ${tl.fin ? `<span class="ShelfGridItem__badge">${t().shelfDone}</span>` : ''}
           </div>`).join('')}</div>`;
   }
 
