@@ -703,6 +703,26 @@ body.isFiltering{
 .why{font-size:var(--ff-text-primary-caption-12);color:#a86a12;margin-top:5px;font-weight:var(--ff-weight-semibold)}
 .why.r{text-align:right}
 .invpcs{font-size:var(--ff-text-primary-caption-12);color:var(--mute);margin-top:5px}
+/* Bewusst als Warnung, nicht als Fussnote: die Eingabe war der teure Weg, und das
+   soll auffallen. Farben und Radius aus .stmt.no2 uebernommen, damit im Sheet nicht
+   ein zweiter roter Stil neben dem bestehenden steht. */
+.invHint{
+  display:flex;align-items:flex-start;gap:8px;
+  margin-top:10px;
+  padding:9px 12px;
+  border:1.5px solid var(--red);
+  border-radius:10px;
+  background:var(--ff-color-missing-input-error-bg);
+  color:#7c2409;
+  font-size:var(--ff-text-primary-caption-12);
+  font-weight:var(--ff-weight-bold);
+  line-height:1.4;
+}
+.invHint svg{flex:0 0 auto;margin-top:1px}
+.invHint .hintTitle{display:block;margin-bottom:3px}
+.invHint span{font-weight:var(--ff-weight-medium)}
+.invHint .hintTitle{font-weight:var(--ff-weight-bold)}
+.invHint[hidden]{display:none}
 
 /* ---------- order cell ---------- */
 
@@ -1124,6 +1144,130 @@ body.dash-active .stage{display:none}
 .dash-fab{position:absolute;left:50%;top:-22px;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;
   background:var(--green);color:var(--ff-color-white);border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer}
 .dash-fab:hover{background:var(--green-d)}
+
+/* ---------- Scannen (Demo) ----------
+   Drei Teile, absichtlich getrennt vom Rest der Ansicht:
+   1) .scanFab -- liegt immer unten rechts im Fenster, auch ueber der Regale-Ansicht,
+      damit man nie erst einen Filter aufraeumen muss, um scannen zu koennen.
+   2) .scanCam -- der nachgestellte Kamerasucher. Kein echtes Kamerabild: ein
+      abgedunkelter Rahmen mit einem klaren Fenster in der Mitte und einer roten
+      Linie darin, damit sichtbar ist, WO der Barcode liegen muss.
+   3) .scanRes -- das Ergebnis als eigenes Popover. Es zeigt den gescannten
+      Artikel aus dem gesamten Ordersatz: ohne Regal, ohne Filter, auch
+      ausgeblendet und auch dann, wenn er in der Liste gerade wegfiltert. */
+/* Der FAB liegt ueber der Liste. Damit die letzte Zeile nicht dauerhaft unter ihm
+   klemmt, endet die Liste mit etwas Luft -- man kann jede Zeile freischieben. */
+.list{padding-bottom:88px}
+.scanFab{position:absolute;right:22px;bottom:calc(var(--foot-h, 74px) + 20px);z-index:30;
+  width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;
+  background:var(--green);color:var(--ff-color-white);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 26px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.18)}
+.scanFab:hover{background:var(--green-d)}
+.scanFab:active{transform:translateY(1px)}
+body.dash-active .scanFab{display:none}
+
+.scanCam{position:absolute;inset:0;z-index:60;display:none;background:#0b0d0c;
+  flex-direction:column;color:var(--ff-color-white)}
+.scanCam.on{display:flex}
+.scanCam__hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:rgba(0,0,0,.55);font-size:var(--ff-text-primary-body-text-14)}
+.scanCam__hdr .ttl{flex:1;font-weight:var(--ff-weight-bold);
+  font-size:var(--ff-text-primary-title-17)}
+.scanCam__hdr .x{border:0;background:rgba(255,255,255,.14);color:#fff;width:34px;height:34px;
+  border-radius:50%;font-size:18px;cursor:pointer}
+/* Der "Kamerablick": ein ruhiger, dunkler Verlauf mit angedeuteter Regalstruktur.
+   Er soll nach Kamera aussehen, aber nichts vortaeuschen, was Daten waeren. */
+.scanCam__view{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0 2px, rgba(255,255,255,0) 2px 26px),
+    radial-gradient(120% 90% at 50% 42%, #7d8783 0%, #4b5352 52%, #22272a 100%)}
+/* Das Fenster in der Mitte ist der Fokus: der grosse Schlagschatten dunkelt alles
+   ausserhalb ab, der Blick landet zwangslaeufig im freien Rechteck. */
+.scanCam__win{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(80%,540px);aspect-ratio:16/7;border-radius:14px;
+  background:rgba(255,255,255,.07);
+  box-shadow:0 0 0 9999px rgba(6,9,8,.74);
+  outline:2px solid rgba(255,255,255,.3);outline-offset:0}
+/* Vier Ecken-Winkel, wie in einer Scan-App */
+.scanCam__win i{position:absolute;width:30px;height:30px;border:3px solid var(--ff-color-white);
+  border-radius:3px}
+.scanCam__win i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0}
+.scanCam__win i:nth-child(2){right:-2px;top:-2px;border-left:0;border-bottom:0}
+.scanCam__win i:nth-child(3){left:-2px;bottom:-2px;border-right:0;border-top:0}
+.scanCam__win i:nth-child(4){right:-2px;bottom:-2px;border-left:0;border-top:0}
+/* Die rote Linie: liegt fest in der Mitte des Fensters -- dort gehoert der
+   Barcode hin. Sie pulsiert leicht, wandert aber nicht weg. */
+.scanCam__line{position:absolute;left:14px;right:14px;top:50%;height:3px;border-radius:3px;
+  transform:translateY(-50%);background:#FF2D2D;
+  box-shadow:0 0 12px 2px rgba(255,45,45,.75);animation:scanPulse 1.15s ease-in-out infinite}
+@keyframes scanPulse{0%,100%{opacity:.55}50%{opacity:1}}
+/* Ein angedeuteter Barcode hinter der Linie, damit die Zielhaltung klar ist. */
+.scanCam__ghost{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:3px;opacity:.28}
+.scanCam__ghost span{display:block;width:3px;height:54px;background:#fff;border-radius:1px}
+.scanCam__ghost span:nth-child(3n){width:6px}
+.scanCam__ghost span:nth-child(4n){height:40px}
+/* z-index: der Abdunkel-Schatten des Fensters liegt sonst ueber den Hinweisen
+   und schluckt sie fast vollstaendig. */
+.scanCam__hint{position:absolute;left:0;right:0;text-align:center;z-index:3;
+  font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);
+  color:var(--ff-color-white);text-shadow:0 1px 8px rgba(0,0,0,.75)}
+.scanCam__hint--top{top:18px}
+.scanCam__hint--bot{bottom:22px;color:rgba(255,255,255,.78);
+  font-weight:var(--ff-weight-regular);font-size:var(--ff-text-primary-body-text-14)}
+.scanCam__foot{display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:rgba(0,0,0,.55);font-size:var(--ff-text-primary-caption-12);
+  color:rgba(255,255,255,.72)}
+.scanCam__foot input{flex:0 0 150px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  color:#fff;border-radius:8px;padding:8px 10px;font:inherit;
+  font-size:var(--ff-text-primary-body-text-14)}
+.scanCam__foot input::placeholder{color:rgba(255,255,255,.5)}
+.scanCam__foot .sp{flex:1}
+.scanCam__foot button{border:0;border-radius:9px;padding:9px 16px;cursor:pointer;
+  background:var(--green);color:#fff;font:inherit;font-weight:var(--ff-weight-bold);
+  font-size:var(--ff-text-primary-body-text-14)}
+.scanCam.busy .scanCam__line{animation:scanFlash .28s linear infinite}
+@keyframes scanFlash{0%,100%{opacity:1;background:#FF2D2D}50%{opacity:.9;background:#8CE99A}}
+
+.scanRes{position:absolute;inset:0;z-index:70;display:none;
+  background:rgba(20,25,22,.5);align-items:flex-end;justify-content:center}
+.scanRes.on{display:flex}
+.scanRes__sheet{width:100%;background:var(--ff-color-white);
+  border-radius:var(--ff-radius-c15) var(--ff-radius-c15) 0 0;
+  display:flex;flex-direction:column;max-height:88%;overflow:hidden;
+  box-shadow:0 -18px 50px rgba(0,0,0,.35)}
+.scanRes__hdr{display:flex;align-items:flex-start;gap:12px;padding:16px 20px 12px;
+  border-bottom:1px solid var(--line)}
+.scanRes__hdr .eyebrow{font-size:var(--ff-text-primary-caption-12);color:var(--mute);
+  font-weight:var(--ff-weight-bold);letter-spacing:.6px;text-transform:uppercase}
+.scanRes__hdr h3{margin:2px 0 0;font-size:var(--ff-text-primary-title-17)}
+.scanRes__hdr .x{border:0;background:none;font-size:22px;color:var(--ff-grey-500);cursor:pointer}
+.scanRes__plu{display:inline-flex;align-items:center;gap:7px;margin-top:6px;
+  background:var(--ff-grey-100);border-radius:8px;padding:4px 9px;
+  font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-800);
+  font-variant-numeric:tabular-nums}
+.scanRes__note{padding:10px 20px;background:var(--ff-grey-100);color:var(--ff-grey-800);
+  border-left:3px solid var(--green);
+  font-size:var(--ff-text-primary-caption-12);line-height:1.5}
+.scanRes__tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px 0}
+.scanRes__tag{background:var(--amber-bg);color:#8a4b00;border-radius:7px;padding:4px 9px;
+  font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
+.scanRes__body{flex:1 1 auto;min-height:0;overflow-y:auto}
+.scanRes__empty{padding:34px 20px;text-align:center;color:var(--mute);
+  font-size:var(--ff-text-primary-body-text-14)}
+.scanRes__foot{display:flex;align-items:center;gap:12px;padding:12px 20px;
+  border-top:1px solid var(--line);background:var(--ff-color-white)}
+.scanRes__foot .sp{flex:1}
+/* Unten rechts steht kein "Fertig", sondern nochmal das Scan-Symbol: der naechste
+   Artikel ist der haeufigste naechste Schritt. Zugemacht wird ueber das ✕ oder
+   einen Griff daneben in die Bestellung. */
+.scanRes__scan{width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;
+  background:var(--green);color:var(--ff-color-white);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.22)}
+.scanRes__scan:hover{background:var(--green-d)}
+.scanRes__scan:active{transform:translateY(1px)}
 </style>
 </head>
 <body>
@@ -1335,7 +1479,7 @@ body.dash-active .stage{display:none}
       </button>
       <div class="filtpop" id="filtPop">
         <label class="fopt"><input type="checkbox" id="fInv" data-k="invNote"><span id="fltInv">Bestand</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cInv">0</b></label>
-        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span id="fltOrd">Bestellmenge</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cOrd">0</b></label>
+        <label class="fopt"><input type="checkbox" id="fOrd" data-k="ordNote"><span id="fltOrd">Bestellmenge</span><span class="bang sm"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M5.9 5.8 A2.1 2.1 0 1 1 8 7.9 V9" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M9 13H7V11H9V13Z" fill="white"/></svg></span></span><b id="cOrd">0</b></label>
         <label class="fopt"><input type="checkbox" id="fBio" data-k="bio"><span id="fltBio">Bio</span><b id="cBio">0</b></label>
         <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span id="fltSale">Werb.</span><b id="cPromo">0</b></label>
         <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span id="fltHidden">Ausgeblendet</span><b id="cHidden">0</b></label>
@@ -1359,6 +1503,34 @@ body.dash-active .stage{display:none}
     <button class="cta" id="nextRegalBtn" type="button" style="background:var(--ff-color-white);color:var(--green);border:1.5px solid var(--green)">x</button>
     <button class="cta" id="cta">Bestellung abschließen ›</button>
   </div>
+  <!-- Scannen (Demo): FAB immer unten rechts, darueber der nachgestellte Sucher,
+       darueber das Ergebnis-Popover. Alles drei liegt im .win-Rahmen, damit es
+       auch die Regale-Ansicht ueberdeckt und nie unerreichbar wird. -->
+  <button class="scanFab" id="scanFab" type="button" title="Barcode scannen (Demo)" aria-label="Barcode scannen (Demo)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg>
+  </button>
+  <div class="scanCam" id="scanCam" role="dialog" aria-modal="true">
+    <div class="scanCam__hdr">
+      <div class="ttl" id="scanCamTitle">Barcode scannen</div>
+      <button class="x" id="scanCamX" type="button" title="Schließen">✕</button>
+    </div>
+    <div class="scanCam__view">
+      <div class="scanCam__hint scanCam__hint--top" id="scanCamHint">Barcode in den Rahmen halten</div>
+      <div class="scanCam__win">
+        <i></i><i></i><i></i><i></i>
+        <div class="scanCam__ghost" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="scanCam__line"></div>
+      </div>
+      <div class="scanCam__hint scanCam__hint--bot" id="scanCamSub">Auf die rote Linie legen</div>
+    </div>
+    <div class="scanCam__foot">
+      <span id="scanCamDemo">Demo-Ansicht – kein Kamerabild</span>
+      <span class="sp"></span>
+      <input id="scanCamPlu" type="text" inputmode="numeric" autocomplete="off" placeholder="PLU">
+      <button id="scanCamGo" type="button">Scan</button>
+    </div>
+  </div>
+  <div class="scanRes" id="scanRes" role="dialog" aria-modal="true"><div class="scanRes__sheet" id="scanResSheet"></div></div>
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
   <div id="catCelebrateRoot"></div>
@@ -1389,6 +1561,7 @@ body.dash-active .stage{display:none}
         <div class="kfield"><label id="kLager">Lager</label><div class="box" id="invBack">0</div></div>
         <div class="kfield"><label id="kFlaeche">Fläche</label><div class="box act" id="invFloor">0</div></div>
         <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
+        <div class="invHint" id="invHint" hidden></div>
       </div>
       <div class="pad" id="invPad">
         <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
@@ -1818,6 +1991,21 @@ const T={
     statusOpenCaps:'OFFEN',
     timeLeft:'verbleibend',
     scanTip:'Barcode scannen (Demo)',
+    scanTitle:'Barcode scannen',
+    scanHint:'Barcode in den Rahmen halten',
+    scanSub:'Auf die rote Linie legen',
+    scanNoCam:'Demo-Ansicht – kein Kamerabild',
+    scanGo:'Scan',
+    scanSearching:'Barcode wird gelesen …',
+    scanResEyebrow:'Scan-Ergebnis',
+    scanAllNote:'Alle Artikel des Ordersatzes – unabhängig von Regal, Filter und ausgeblendeten Artikeln.',
+    scanNoHit:'Kein Artikel mit dieser Nummer im Ordersatz.',
+    scanHits:'Treffer',
+    scanAgain:'Erneut scannen',
+    scanTagHidden:'Ausgeblendet',
+    scanTagShelf:'Anderes Regal',
+    scanTagFilter:'Vom Filter ausgeschlossen',
+    scanNoHitSub:'Nummer prüfen oder noch einmal scannen.',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
     legBangOrder:'! Bestellung',
@@ -1858,6 +2046,9 @@ const T={
     noladder:'Bestand eingeben',
     countsub:'Stichprobenzählung fällig',
     nolsub:'Modell rechnet hier kein Bereich',
+    rangeConfirmedTitle:'Korrektur nicht nötig gewesen',
+    rangeConfirmedFacts:'Du hast {v} eingegeben, angezeigt war {r}. Deine Angabe liegt schon im angezeigten Bereich {r}.',
+    rangeConfirmedRule:'Nötig wäre eine Korrektur nur, wenn dein Bestand außerhalb des angezeigten Bereichs liegt.',
     unsure:'App-Bestand widerspricht Plan A',
     atLeast:'mind.',
     exactly:'genau',
@@ -1979,6 +2170,21 @@ const T={
     statusOpenCaps:'OPEN',
     timeLeft:'left',
     scanTip:'Scan barcode (demo)',
+    scanTitle:'Scan barcode',
+    scanHint:'Hold the barcode inside the frame',
+    scanSub:'Place it on the red line',
+    scanNoCam:'Demo view – no camera feed',
+    scanGo:'Scan',
+    scanSearching:'Reading barcode …',
+    scanResEyebrow:'Scan result',
+    scanAllNote:'Every item in the order guide – regardless of shelf, filter or hidden items.',
+    scanNoHit:'No item with this number in the order guide.',
+    scanHits:'matches',
+    scanAgain:'Scan again',
+    scanTagHidden:'Hidden',
+    scanTagShelf:'Different shelf',
+    scanTagFilter:'Excluded by filter',
+    scanNoHitSub:'Check the number or scan again.',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
     legBangOrder:'! Order',
@@ -2019,6 +2225,9 @@ const T={
     noladder:'Enter inventory',
     countsub:'Periodic count due',
     nolsub:'Model produces no band here',
+    rangeConfirmedTitle:'Correction was not needed',
+    rangeConfirmedFacts:'You entered {v}, the range shown was {r}. Your entry is already inside the range shown, {r}.',
+    rangeConfirmedRule:'A correction is only needed if your inventory lies outside the range shown.',
     unsure:'App inventory contradicts Plan A',
     atLeast:'min.',
     exactly:'exactly',
@@ -2140,6 +2349,21 @@ const T={
     statusOpenCaps:'OUVERTE',
     timeLeft:'restantes',
     scanTip:'Scanner un code-barres (démo)',
+    scanTitle:'Scanner un code-barres',
+    scanHint:'Placez le code-barres dans le cadre',
+    scanSub:'Posez-le sur la ligne rouge',
+    scanNoCam:'Vue démo – pas d’image caméra',
+    scanGo:'Scanner',
+    scanSearching:'Lecture du code-barres …',
+    scanResEyebrow:'Résultat du scan',
+    scanAllNote:'Tous les articles de l’assortiment – sans filtre, sans rayon, y compris les articles masqués.',
+    scanNoHit:'Aucun article avec ce numéro dans l’assortiment.',
+    scanHits:'résultats',
+    scanAgain:'Scanner à nouveau',
+    scanTagHidden:'Masqué',
+    scanTagShelf:'Autre rayon',
+    scanTagFilter:'Exclu par le filtre',
+    scanNoHitSub:'Vérifiez le numéro ou scannez à nouveau.',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
     legBangOrder:'! Commande',
@@ -2180,6 +2404,9 @@ const T={
     noladder:'Saisir l\'inventaire',
     countsub:'Comptage périodique dû',
     nolsub:'Le modèle ne calcule pas de plage ici',
+    rangeConfirmedTitle:'Correction non nécessaire',
+    rangeConfirmedFacts:'Vous avez saisi {v}, la plage affichée était {r}. Votre saisie se situe déjà dans la plage affichée, {r}.',
+    rangeConfirmedRule:'Une correction n\'est nécessaire que si votre stock se situe en dehors de la plage affichée.',
     unsure:'L\'inventaire de l\'app contredit le plan A',
     atLeast:'min.',
     exactly:'exactement',
@@ -2221,7 +2448,7 @@ function applyLang(){
   }
   /* carries a trailing chevron the .arb string does not have */
   /* sheets: several share a label, so these go by class or by a small list */
-  const tips={dashFab:'openOrderTip', resetBtn:'reset'};
+  const tips={dashFab:'openOrderTip', resetBtn:'reset', scanFab:'scanTip'};
   for(const [id,key] of Object.entries(tips)){
     const el=document.getElementById(id);
     if(el && L[key]){ el.setAttribute('title', L[key]); el.setAttribute('aria-label', L[key]); }
@@ -2232,7 +2459,9 @@ function applyLang(){
               invSpeichern:'saveTick', ordSpeichern:'saveTick', ausSpeichern:'saveTick', s2Abbrechen:'back', s2Go:'confirmFinishFull',
               uPcs:'unitPieces', uCs:'unitCases', kLager:'backStock', kFlaeche:'frontStock',
               invAbbrechen:'cancel', ordAbbrechen:'cancel', ausAbbrechen:'cancel',
-              resetAbbrechen:'cancel', resetGo:'reset', catUndoBtn:'undo'};
+              resetAbbrechen:'cancel', resetGo:'reset', catUndoBtn:'undo',
+              scanCamTitle:'scanTitle', scanCamHint:'scanHint', scanCamSub:'scanSub',
+              scanCamDemo:'scanNoCam', scanCamGo:'scanGo'};
   for(const [id,key] of Object.entries(byId)){
     const el=document.getElementById(id);
     if(el && L[key]) el.textContent=L[key];
@@ -2518,8 +2747,8 @@ function rungOfKo(it,ko,planIdx){
    ist nicht bestaetigt). Die Bestellmenge ist der leisere Fall -- das Modell ist
    sich nur unsicher, die Zeile ist trotzdem bestellbar -- und bekommt darum einen
    orangenen Punkt ohne Ausrufezeichen. */
-const ICON_WARN='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
-const ICON_DOT='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
+const ICON_INV_BANG='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
+const ICON_ORD_ASK='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M5.9 5.8 A2.1 2.1 0 1 1 8 7.9 V9" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M9 13H7V11H9V13Z" fill="white"/></svg>';
 const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.2983 0.710224C13.2058 0.61752 13.0959 0.543973 12.9749 0.493791C12.8539 0.44361 12.7242 0.417779 12.5933 0.417779C12.4623 0.417779 12.3326 0.44361 12.2116 0.493791C12.0907 0.543973 11.9808 0.61752 11.8883 0.710224L6.99827 5.59022L2.10827 0.700223C2.01569 0.607642 1.90578 0.534202 1.78481 0.484097C1.66385 0.433992 1.5342 0.408203 1.40327 0.408203C1.27234 0.408203 1.14269 0.433992 1.02173 0.484097C0.900763 0.534202 0.790852 0.607642 0.69827 0.700223C0.605688 0.792805 0.532248 0.902716 0.482143 1.02368C0.432038 1.14464 0.40625 1.27429 0.40625 1.40522C0.40625 1.53615 0.432038 1.6658 0.482143 1.78677C0.532248 1.90773 0.605688 2.01764 0.69827 2.11022L5.58827 7.00022L0.69827 11.8902C0.605688 11.9828 0.532248 12.0927 0.482143 12.2137C0.432038 12.3346 0.40625 12.4643 0.40625 12.5952C0.40625 12.7262 0.432038 12.8558 0.482143 12.9768C0.532248 13.0977 0.605688 13.2076 0.69827 13.3002C0.790852 13.3928 0.900763 13.4662 1.02173 13.5163C1.14269 13.5665 1.27234 13.5922 1.40327 13.5922C1.5342 13.5922 1.66385 13.5665 1.78481 13.5163C1.90578 13.4662 2.01569 13.3928 2.10827 13.3002L6.99827 8.41022L11.8883 13.3002C11.9809 13.3928 12.0908 13.4662 12.2117 13.5163C12.3327 13.5665 12.4623 13.5922 12.5933 13.5922C12.7242 13.5922 12.8538 13.5665 12.9748 13.5163C13.0958 13.4662 13.2057 13.3928 13.2983 13.3002C13.3909 13.2076 13.4643 13.0977 13.5144 12.9768C13.5645 12.8558 13.5903 12.7262 13.5903 12.5952C13.5903 12.4643 13.5645 12.3346 13.5144 12.2137C13.4643 12.0927 13.3909 11.9828 13.2983 11.8902L8.40827 7.00022L13.2983 2.11022C13.6783 1.73022 13.6783 1.09022 13.2983 0.710224Z" fill="currentColor"/></svg>';
 const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg>';
 /* The value box splits the number from its unit -- value is primaryBodyText16.medium,
@@ -2531,6 +2760,8 @@ function splitUnit(str){
 }
 /* Mobile/assets/icons/minus.svg and plus.svg, verbatim, with the hardcoded
    #34443F swapped for currentColor so the disabled state can grey them. */
+/* Barcode-Symbol: FAB unten rechts und der Knopf im Scan-Ergebnis teilen es. */
+const ICON_SCAN='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg>';
 const ICON_MINUS='<svg width="16" height="5" viewBox="0 0 16 5" fill="none" aria-hidden="true"><path d="M8 0.900391C7.12 0.900391 6.4 0.900558 6.4 0.900558H1.6C0.72 0.900558 0 1.62056 0 2.50056C0 3.38056 0.72 4.10056 1.6 4.10056H6.4H8H9.6H14.4C15.28 4.10056 16 3.38056 16 2.50056C16 1.62056 15.28 0.900558 14.4 0.900558C14.4 0.900558 11.4745 0.900705 9.6 0.900558C8.97516 0.900509 8.88 0.900391 8 0.900391Z" fill="currentColor"/></svg>';
 const ICON_PLUS='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 0C7.12 0 6.4 0.72 6.4 1.6V6.4H1.6C0.72 6.4 0 7.12 0 8C0 8.88 0.72 9.6 1.6 9.6H6.4V14.4C6.4 15.28 7.12 16 8 16C8.88 16 9.6 15.28 9.6 14.4V9.6H14.4C15.28 9.6 16 8.88 16 8C16 7.12 15.28 6.4 14.4 6.4H9.6V1.6C9.6 0.72 8.88 0 8 0Z" fill="currentColor"/></svg>';
 function stepHTML(it,s,ix){
@@ -2592,7 +2823,7 @@ function noteText(raw){
 }
 function bang(note,kind,ix){
   const txt=noteText(note);
-  const icon = kind==='ord' ? ICON_DOT : ICON_WARN;
+  const icon = kind==='ord' ? ICON_ORD_ASK : ICON_INV_BANG;
   if(!txt) return `<span class="statusSlot"></span>`;
   return `<span class="statusSlot"><button type="button" class="whyBtn" data-a="why"`
        + ` data-i="${ix}" data-kind="${kind==='ord'?'ord':'inv'}"`
@@ -2607,7 +2838,7 @@ function openWhy(btn, ix, kind){
   closeWhy();
   const tags=whyTags(ix,kind);
   if(!tags.length) return;
-  const icon = kind==='ord' ? ICON_DOT : ICON_WARN;
+  const icon = kind==='ord' ? ICON_ORD_ASK : ICON_INV_BANG;
   const p=document.createElement('div');
   p.className='whyPop';
   p.innerHTML=tags.map(x=>`<div class="whyRow">${icon}<span>${x}</span></div>`).join('');
@@ -2674,6 +2905,9 @@ function filtMatch(it,s){
    wer beim Filtern drin war, bleibt sichtbar, bis der Filter das naechste Mal frisch
    greift. FILT_KEEP=null heisst "kein Merkmalsfilter aktiv". */
 let FILT_KEEP=null;
+/* Zuletzt gerenderte sichtbare Zeilen. Nur zum Lesen fuer die Scan-Ansicht, damit
+   dort keine zweite Sichtbarkeitsregel entsteht, die von der Liste abweicht. */
+let SHOWN_IDX=[];
 function snapFilt(){
   const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
   FILT_KEEP = filtOn
@@ -2708,42 +2942,11 @@ function eyeIcon(off){
     ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 4.22-5.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
     : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
-function render(){
-  const q=(document.getElementById('q').value||'').toLowerCase().trim();
-  let html='';
-  let idxOrder = ITEMS.map((_,ix)=>ix);
-  if(SORT.col){
-    const key = SORT.col==='inv' ? invVal : orderVal;
-    idxOrder.sort((a,b)=>{
-      const va=key(a), vb=key(b);
-      if(va==null && vb==null) return 0;
-      if(va==null) return 1;
-      if(vb==null) return -1;
-      return (va-vb)*SORT.dir;
-    });
-  }
-  const shownIdx=[];   // sichtbare Zeilen fuer stats(); NICHT 'shown' -- das ist weiter unten die Bestellmenge
-  idxOrder.forEach(ix=>{
-    const it=ITEMS[ix];
-    const s=ST[ix], L=t();
-    const digitsQ = q.replace(/\D/g,'');
-    /* Die vier Merkmalsfilter sind ein ODER: angehakt heisst "zeig mir auch das", nicht
-       "und ausserdem". Als UND schnitten sie sich gegenseitig weg -- Bestand ! und
-       Bestellmenge ! zusammen liessen von 40 und 71 Zeilen 17 uebrig, alle vier zusammen
-       genau eine. Ohne Haken bleibt alles sichtbar. 'Ausgeblendet' gehoert nicht dazu,
-       das ist ein eigener Schalter weiter unten. */
-    const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
-    /* OrderItemTableColumnWidths takes isFiltering and narrows the item column
-       when it is set -- so the flag has to reach the layout, not just the rows. */
-    document.body.classList.toggle('isFiltering', !!filtOn);
-    const catHide = filtOn && !filtMatch(it,s) && !(FILT_KEEP && FILT_KEEP.has(ix));
-    let catFilterHide = false;
-    if(CATFILTER){
-      if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
-    }
-    const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
-    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
-    if(!hide) shownIdx.push(ix);
+/* Eine Zeile der Bestellliste. Aus render() herausgezogen, damit die Scan-Ansicht
+   (der Barcode-FAB unten rechts) dieselbe Zeile zeigen kann -- gleicher Stepper,
+   gleiche Tastenfelder, gleicher Zustand, nur ohne die Filter der Liste. */
+function rowHTML(ix, extraCls){
+  const it=ITEMS[ix], s=ST[ix], L=t();
     /* item_information_row.dart puts the PLU and case size on one line and the
        prices on the next, as bare numbers -- the app labels neither, and it
        shows cost, margin, retail in that order. The prototype had one dotted
@@ -2784,13 +2987,54 @@ function render(){
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';
-    html += `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${hide?' hide':''}">
+    return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${cell}</div><div>${ord}</div></div>`;
+}
+
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  let html='';
+  let idxOrder = ITEMS.map((_,ix)=>ix);
+  if(SORT.col){
+    const key = SORT.col==='inv' ? invVal : orderVal;
+    idxOrder.sort((a,b)=>{
+      const va=key(a), vb=key(b);
+      if(va==null && vb==null) return 0;
+      if(va==null) return 1;
+      if(vb==null) return -1;
+      return (va-vb)*SORT.dir;
+    });
+  }
+  const shownIdx=[];   // sichtbare Zeilen fuer stats(); NICHT 'shown' -- das ist weiter unten die Bestellmenge
+  idxOrder.forEach(ix=>{
+    const it=ITEMS[ix];
+    const s=ST[ix], L=t();
+    const digitsQ = q.replace(/\D/g,'');
+    /* Die vier Merkmalsfilter sind ein ODER: angehakt heisst "zeig mir auch das", nicht
+       "und ausserdem". Als UND schnitten sie sich gegenseitig weg -- Bestand ! und
+       Bestellmenge ! zusammen liessen von 40 und 71 Zeilen 17 uebrig, alle vier zusammen
+       genau eine. Ohne Haken bleibt alles sichtbar. 'Ausgeblendet' gehoert nicht dazu,
+       das ist ein eigener Schalter weiter unten. */
+    const filtOn = CATFILT.invNote || CATFILT.ordNote || CATFILT.bio || CATFILT.promo;
+    /* OrderItemTableColumnWidths takes isFiltering and narrows the item column
+       when it is set -- so the flag has to reach the layout, not just the rows. */
+    document.body.classList.toggle('isFiltering', !!filtOn);
+    const catHide = filtOn && !filtMatch(it,s) && !(FILT_KEEP && FILT_KEEP.has(ix));
+    let catFilterHide = false;
+    if(CATFILTER){
+      if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
+    }
+    const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
+    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
+    if(!hide) shownIdx.push(ix);
+    html += rowHTML(ix, hide?' hide':'');
   });
   closeWhy();          // der Knopf, an dem es haengt, wird gleich neu gebaut
   list.innerHTML=html;
+  SHOWN_IDX=shownIdx;  // die Scan-Ansicht liest hier ab, was die Liste gerade NICHT zeigt
   stats(shownIdx);
+  if(typeof renderScanRes==='function') renderScanRes(true);
 }
 
 /* Die Fussleiste rechnet ueber die Zeilen, die man tatsaechlich vor sich hat: in
@@ -3110,7 +3354,7 @@ function renderCatOverlay(){
       ${CAT_EDIT ? '' : `<div class="catsearch"><div class="box">
         <span style="color:var(--mute);font-size:var(--ff-text-primary-title-17)">⌕</span>
         <input id="catQ" type="search" placeholder="${t().searchItems}" autocomplete="off" value="${CATQUERY.replace(/"/g,'&quot;')}">
-        <span style="color:var(--mute);line-height:1" title="${t().scanTip}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
+        <span id="catScanBtn" style="color:var(--mute);line-height:1;cursor:pointer" title="${t().scanTip}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg></span>
       </div></div>`}
       <div class="catbody">${body}</div>
     </div>
@@ -3118,6 +3362,10 @@ function renderCatOverlay(){
 
   document.getElementById('catCloseBtn').onclick=closeCat;
   document.getElementById('catEditBtn').onclick=()=>{ CAT_EDIT=!CAT_EDIT; CATQUERY=''; renderCatOverlay(); };
+  /* Das Scan-Symbol in der Suchzeile war Deko -- es fuehrt jetzt in denselben
+     Sucher wie der FAB, damit ein Tipp darauf nicht ins Leere geht. */
+  const catScan=document.getElementById('catScanBtn');
+  if(catScan) catScan.onclick=openScanCam;
   const inp=document.getElementById('catQ');
   if(inp){
     /* Kein eigenes Such-Ergebnis mehr hier -- ein Tastendruck schickt direkt
@@ -3522,7 +3770,9 @@ function toast(m){const el=document.getElementById('toast');el.textContent=m;el.
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1900)}
 
 /* ---------- interactions ---------- */
-list.addEventListener('click',e=>{
+/* Zeilen-Interaktionen einmal als benannte Funktion: die Liste und die Scan-Ansicht
+   haengen beide daran, damit eine gescannte Zeile sich genauso bedienen laesst. */
+function rowClick(e){
   const b=e.target.closest('button, [data-a="ordpad"], [data-a="auslage"], [data-a="invpad"]'); if(!b) return;
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
   if(a==='why'){ e.stopPropagation(); openWhy(b, ix, b.dataset.kind); return; }
@@ -3555,7 +3805,8 @@ list.addEventListener('click',e=>{
     if(next!==prev) s.manual=true;
     pushChange(it, `Bestellung ${prev} → ${next} CS`);
     render(); }
-});
+}
+list.addEventListener('click',rowClick);
 document.getElementById('q').addEventListener('input',render);
 
 /* ---------- tolerantes PLU-Matching (auch für getippte Ziffern nutzbar) ---------- */
@@ -3569,6 +3820,151 @@ function pluApproxMatch(plu, qDigits){
   }
   return false;
 }
+
+/* ---------- Scannen (Demo) ----------
+   Der Scan ist bewusst KEINE weitere Ansicht der Liste, sondern ein eigenes
+   Popover: es zeigt den gescannten Artikel aus dem ganzen Ordersatz. Regal,
+   Merkmalsfilter und "Ausgeblendet" gelten hier nicht -- wer einen Artikel in
+   der Hand haelt, will ihn sehen, auch wenn er in der Liste gerade wegfaellt.
+   Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
+   an rowClick(), also am selben Zustand wie die Liste. */
+let SCAN={plu:null, matches:[], timer:null};
+
+/* Der FAB sitzt immer unten rechts, ueber der Fussleiste -- deren Hoehe haengt an
+   Schriftgroesse und Fensterbreite, also einmal messen statt raten. */
+function scanFootOffset(){
+  const win=document.querySelector('.win'), foot=document.querySelector('.foot');
+  if(win) win.style.setProperty('--foot-h', ((foot&&foot.offsetHeight)||74)+'px');
+}
+window.addEventListener('resize', scanFootOffset);
+scanFootOffset();
+
+/* Fuer die Demo wird bevorzugt ein Artikel "gescannt", den die Liste gerade NICHT
+   zeigt -- genau der Fall, um den es geht. Gibt es keinen, irgendeiner. */
+function pickScanTarget(){
+  const vis=new Set(SHOWN_IDX);
+  const all=ITEMS.map((_,ix)=>ix);
+  const off=all.filter(ix=>!vis.has(ix) && ITEMS[ix].plu!=null);
+  const pool=off.length?off:all.filter(ix=>ITEMS[ix].plu!=null);
+  if(!pool.length) return null;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+/* Ein Barcode am Regal traegt die PLU, oft mit Vor-/Nullstellen. Exakte Treffer
+   gewinnen; sonst greift dasselbe tolerante Matching wie in der Suche. */
+function scanMatches(digits){
+  if(!digits) return [];
+  const exact=ITEMS.reduce((a,it,ix)=>(String(it.plu)===digits&&a.push(ix),a),[]);
+  if(exact.length) return exact;
+  return ITEMS.reduce((a,it,ix)=>(pluApproxMatch(it.plu,digits)&&a.push(ix),a),[]);
+}
+
+/* Warum waere diese Zeile in der Liste gerade nicht zu sehen? Die Antwort steht
+   im Popover, damit der Sprung nicht wie ein Fehler wirkt. */
+function scanTags(ix){
+  const it=ITEMS[ix], s=ST[ix], L=t(), tags=[];
+  if(s.hidden) tags.push(L.scanTagHidden);
+  if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
+    tags.push(L.scanTagShelf+' · '+tileLabel(tileOf(it)));
+  const filtOn=CATFILT.invNote||CATFILT.ordNote||CATFILT.bio||CATFILT.promo;
+  if(filtOn && !filtMatch(it,s) && !(FILT_KEEP&&FILT_KEEP.has(ix))) tags.push(L.scanTagFilter);
+  return tags;
+}
+
+function openScanCam(){
+  const cam=document.getElementById('scanCam');
+  const inp=document.getElementById('scanCamPlu');
+  closeScanRes();
+  inp.value='';
+  cam.classList.remove('busy');
+  cam.classList.add('on');
+  document.getElementById('scanCamSub').textContent=t().scanSub;
+  /* Der nachgestellte Kamerablick "erkennt" nach einem Moment von selbst etwas --
+     wer eine bestimmte Nummer zeigen will, tippt sie unten ein und der Timer faellt weg. */
+  clearTimeout(SCAN.timer);
+  const target=pickScanTarget();
+  SCAN.timer=setTimeout(()=>{
+    if(target==null){ closeScanCam(); return; }
+    doScan(String(ITEMS[target].plu));
+  }, 1800);
+}
+function closeScanCam(){
+  clearTimeout(SCAN.timer); SCAN.timer=null;
+  document.getElementById('scanCam').classList.remove('on','busy');
+}
+function doScan(digits){
+  clearTimeout(SCAN.timer); SCAN.timer=null;
+  digits=String(digits||'').replace(/\D/g,'');
+  if(!digits) return;
+  const cam=document.getElementById('scanCam');
+  document.getElementById('scanCamSub').textContent=t().scanSearching;
+  cam.classList.add('busy');
+  setTimeout(()=>{
+    cam.classList.remove('on','busy');
+    SCAN.plu=digits;
+    SCAN.matches=scanMatches(digits);
+    renderScanRes();
+  }, 340);
+}
+function closeScanRes(){
+  document.getElementById('scanRes').classList.remove('on');
+}
+
+/* keepOpen: aus render() heraus -- dann nur neu zeichnen, wenn das Popover offen ist. */
+function renderScanRes(keepOpen){
+  const ov=document.getElementById('scanRes');
+  if(keepOpen && !ov.classList.contains('on')) return;
+  const sheet=document.getElementById('scanResSheet');
+  const L=t();
+  const m=SCAN.matches;
+  const head = m.length===1
+    ? ITEMS[m[0]].name
+    : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit);
+  const tags = m.length===1 ? scanTags(m[0]) : [];
+  sheet.innerHTML = `
+    <div class="scanRes__hdr">
+      <div style="flex:1;min-width:0">
+        <div class="eyebrow">${L.scanResEyebrow}</div>
+        <h3>${head}</h3>
+        <span class="scanRes__plu">PLU ${SCAN.plu||'–'}</span>
+      </div>
+      <button class="x" id="scanResX" type="button" title="${L.close}">✕</button>
+    </div>
+    ${m.length?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
+    ${tags.length?`<div class="scanRes__tags">${tags.map(x=>`<span class="scanRes__tag">${x}</span>`).join('')}</div>`:''}
+    <div class="scanRes__body" id="scanResBody">
+      ${m.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
+      ${m.map(ix=>rowHTML(ix,'')).join('')}`
+      :`<div class="scanRes__empty">${L.scanNoHitSub}</div>`}
+    </div>
+    <div class="scanRes__foot">
+      <span class="sp"></span>
+      <button class="scanRes__scan" id="scanResAgain" type="button" title="${L.scanAgain}" aria-label="${L.scanAgain}">${ICON_SCAN}</button>
+    </div>`;
+  ov.classList.add('on');
+  document.getElementById('scanResX').onclick=closeScanRes;
+  document.getElementById('scanResAgain').onclick=openScanCam;
+  /* dieselbe Bedienung wie in der Liste -- Stepper, Tastenfelder, Ausrufezeichen */
+  const body=document.getElementById('scanResBody');
+  if(body) body.addEventListener('click', rowClick);
+}
+
+document.getElementById('scanFab').addEventListener('click', openScanCam);
+document.getElementById('scanCamX').addEventListener('click', closeScanCam);
+document.getElementById('scanCamGo').addEventListener('click', ()=>doScan(document.getElementById('scanCamPlu').value));
+document.getElementById('scanCamPlu').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); doScan(e.target.value); }
+});
+/* Ein Klick daneben (auf den abgedunkelten Rand) schliesst das Ergebnis, wie bei
+   den Tastenfeldern. Im Sucher wuerde das ins Leere greifen -- dort nur das X. */
+document.getElementById('scanRes').addEventListener('click', e=>{
+  if(e.target.id==='scanRes') closeScanRes();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  if(document.getElementById('scanRes').classList.contains('on')) closeScanRes();
+  else if(document.getElementById('scanCam').classList.contains('on')) closeScanCam();
+});
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   document.getElementById('ovReset').classList.add('on');
@@ -3666,7 +4062,8 @@ function openInvPad(ix){
   /* rLoKO/rHiKO bleiben die rohen Grenzen -- sie entscheiden, OB der getippte Wert noch
      in der Sprosse liegt. rPlo/rPhi sind die Stueckgrenzen und dienen nur der Anzeige. */
   INV={ix, back:'0', floor:'0', act:'floor', unit:'cs', rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,
-       rPlo: r ? r.plo : null, rPhi: r ? r.phi : null};
+       rPlo: r ? r.plo : null, rPhi: r ? r.phi : null,
+       suppressHint: !!(it.invNote && it.invNote.includes('turnusmässige Zählung'))};
   const us=document.getElementById('invUnitSeg');
   [...us.children].forEach(c=>c.classList.toggle('on', c.dataset.u===INV.unit));
   us.style.display = canPcs ? 'inline-flex' : 'none';
@@ -3691,6 +4088,29 @@ function drawInvPad(){
   const v=invPadVals();
   const untouched = INV.back==='0' && INV.floor==='0';
   const inRange = INV.rLoKO!=null && (untouched || (v.cases>=INV.rLoKO && (INV.rHiKO==null || v.cases<INV.rHiKO)));
+  /* Der Hinweis erscheint erst, wenn wirklich etwas eingetippt wurde, und NIE auf
+     Zeilen, deren Grund eine Stichprobenzaehlung ist: dort haben wir die Zaehlung
+     selbst angefordert, und ihm dann zu sagen, sie sei nicht noetig gewesen, waere
+     schlicht falsch. */
+  const hintEl=document.getElementById('invHint');
+  if(hintEl){
+    hintEl.hidden = !(inRange && !untouched && !INV.suppressHint);
+    if(!hintEl.hidden){
+      /* Erst die konkreten Zahlen (was getippt wurde, was angezeigt war), dann die
+         Regel dahinter. Wert und Spanne kommen aus denselben Formatierern wie die
+         Anzeige darueber, damit im Kasten nie eine andere Zahl steht als im Feld. */
+      const valTxt = INV.unit==='pcs' ? (v.pcs+' '+ua(it))
+                                      : (csNum(v.cases)+' '+t().caseUnit);
+      const rngTxt = invRangeText(INV.rPlo,INV.rPhi,INV.unit,cs,it);
+      /* "0 - 2 St." endet selbst auf einem Punkt; ohne das hier steht im Satz "St..". */
+      const facts = t().rangeConfirmedFacts
+        .replace('{v}',valTxt).split('{r}').join(rngTxt)
+        .replace(/\.\./g,'.');
+      hintEl.innerHTML = ICON_INV_BANG
+        + '<span><b class="hintTitle">'+t().rangeConfirmedTitle+'</b>'
+        + facts+'<br>'+t().rangeConfirmedRule+'</span>';
+    }
+  }
   if(inRange){
     totEl.textContent = invRangeText(INV.rPlo,INV.rPhi,INV.unit,cs,it);
     totPcsEl.textContent='';
