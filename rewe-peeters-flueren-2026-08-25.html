@@ -1287,14 +1287,25 @@ body.dash-active .scanFab{display:none}
 .moveAsk__hdr .sub{margin-top:6px;font-size:var(--ff-text-primary-caption-12);
   color:var(--mute);line-height:1.5}
 .moveAsk__body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 0}
-.moveAsk__row{display:flex;align-items:center;gap:12px;padding:12px 20px;
+.moveAsk__row{display:flex;align-items:center;gap:14px;padding:16px 20px;
   border-bottom:1px solid var(--ff-grey-100);cursor:pointer}
-.moveAsk__row input{width:20px;height:20px;accent-color:var(--green);flex:0 0 auto}
+.moveAsk__row input{width:22px;height:22px;accent-color:var(--green);flex:0 0 auto}
 .moveAsk__row .tx{min-width:0}
 .moveAsk__row .nm{font-weight:var(--ff-weight-semibold);
   font-size:var(--ff-text-primary-body-text-16)}
-.moveAsk__row .mv{margin-top:2px;font-size:var(--ff-text-primary-caption-12);color:var(--mute)}
-.moveAsk__row .mv b{color:var(--ink);font-weight:var(--ff-weight-semibold)}
+/* Alt und neu stehen nebeneinander, beide lesbar gross: das alte durchgestrichen
+   und grau, das neue gruen gefuellt. Vorher stand die Veraenderung in 12px Grau --
+   die Zeile las sich wie eine Fussnote, nicht wie die Entscheidung, die sie ist. */
+.moveAsk__row .mv{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.moveAsk__row .lb{font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.7px;
+  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
+.moveAsk__row .from,.moveAsk__row .to{border-radius:9px;padding:5px 11px;
+  font-size:var(--ff-text-primary-body-text-16);white-space:nowrap}
+.moveAsk__row .from{background:var(--ff-grey-100);color:var(--mute);
+  text-decoration:line-through;text-decoration-thickness:2px}
+.moveAsk__row .to{background:var(--ff-primary-20);color:var(--ff-color-dark-green);
+  font-weight:var(--ff-weight-bold)}
+.moveAsk__row .arr{font-size:var(--ff-text-primary-heading-20);color:var(--mute);line-height:1}
 .moveAsk__foot{display:flex;align-items:center;gap:14px;padding:12px 20px;
   border-top:1px solid var(--line)}
 .moveAsk__foot .sp{flex:1}
@@ -2034,6 +2045,8 @@ const T={
     scanTypeOrScan:'Barcode eingeben oder scannen.',
     moveAskEyebrow:'Regal-Zuordnung',
     moveAskTitle:'Artikel diesem Regal zuordnen?',
+    moveFrom:'bisher',
+    moveTo:'neu',
     moveAskSub:'Beim Scannen an diesem Regal gefunden – laut App stehen sie woanders. Abwählen, was hier nicht steht.',
     moveAskConfirm:'Zuordnen',
     moveAskToast:'Artikel zugeordnet',
@@ -2218,6 +2231,8 @@ const T={
     scanTypeOrScan:'Type a barcode or scan one.',
     moveAskEyebrow:'Shelf assignment',
     moveAskTitle:'Move items to this shelf?',
+    moveFrom:'was',
+    moveTo:'new',
     moveAskSub:'Found while scanning at this shelf – the app has them somewhere else. Untick whatever is not here.',
     moveAskConfirm:'Move',
     moveAskToast:'items moved',
@@ -2402,6 +2417,8 @@ const T={
     scanTypeOrScan:'Saisissez un code-barres ou scannez.',
     moveAskEyebrow:'Affectation de rayon',
     moveAskTitle:'Affecter les articles à ce rayon ?',
+    moveFrom:'avant',
+    moveTo:'nouveau',
     moveAskSub:'Trouvés en scannant à ce rayon – l’app les place ailleurs. Décochez ce qui n’est pas ici.',
     moveAskConfirm:'Affecter',
     moveAskToast:'articles affectés',
@@ -3582,8 +3599,39 @@ function showCatUndo(it, prevValue, newTileId){
   clearTimeout(bar._t);
   bar._t=setTimeout(()=>{ bar.classList.remove('on'); CAT_UNDO=null; }, 6000);
 }
+/* Mehrere Artikel auf einmal: dieselbe Leiste, aber sie nimmt den ganzen Stapel
+   zurueck UND stellt die Frage noch einmal. Undo ist hier alles-oder-nichts --
+   wer zwei von drei behalten wollte, braucht die Auswahl zurueck, nicht nur den
+   Widerruf. `shown` ist die Liste, die im Blatt stand, auch die abgewaehlten. */
+function showCatUndoBatch(entries, shown, n){
+  CAT_UNDO={batch:entries, shown};
+  const bar=document.getElementById('catUndoBar');
+  document.getElementById('catUndoMsg').textContent=`${n} ${t().moveAskToast}`;
+  bar.classList.add('on');
+  clearTimeout(bar._t);
+  bar._t=setTimeout(()=>{ bar.classList.remove('on'); CAT_UNDO=null; }, 6000);
+}
 function undoCatChange(){
   if(!CAT_UNDO) return;
+  if(CAT_UNDO.batch){
+    const {batch, shown}=CAT_UNDO;
+    batch.forEach(({it, prev})=>{
+      if(prev===undefined) delete CAT_OVERRIDE[overrideKey(it)];
+      else CAT_OVERRIDE[overrideKey(it)]=prev;
+    });
+    saveCatOverride();
+    const bar=document.getElementById('catUndoBar');
+    clearTimeout(bar._t);
+    bar.classList.remove('on');
+    batch.forEach(({it})=>pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`));
+    CAT_UNDO=null;
+    /* dieselbe Frage noch einmal -- auch die vorher abgewaehlten stehen wieder drin */
+    shown.forEach(e=>SCAN_DECLINED.delete(e.ix));
+    SCAN_PENDING=shown.slice();
+    render();
+    renderMoveAsk();
+    return;
+  }
   const {it, prevValue}=CAT_UNDO;
   if(prevValue===undefined) delete CAT_OVERRIDE[overrideKey(it)];
   else CAT_OVERRIDE[overrideKey(it)]=prevValue;
@@ -3992,6 +4040,7 @@ function closeMoveAsk(){ document.getElementById('moveAsk').classList.remove('on
 function renderMoveAsk(){
   const L=t(), list=pendingMoves();
   const sheet=document.getElementById('moveAskSheet');
+
   sheet.innerHTML = `
     <div class="moveAsk__hdr">
       <div class="tx">
@@ -4006,7 +4055,13 @@ function renderMoveAsk(){
         <input type="checkbox" data-i="${e.ix}" checked>
         <div class="tx">
           <div class="nm">${ITEMS[e.ix].name}</div>
-          <div class="mv">${tileLabel(tileOf(ITEMS[e.ix]))} → <b>${tileLabel(e.to)}</b></div>
+          <div class="mv">
+            <span class="lb">${L.moveFrom}</span>
+            <span class="from">${tileLabel(tileOf(ITEMS[e.ix]))}</span>
+            <span class="arr">→</span>
+            <span class="lb">${L.moveTo}</span>
+            <span class="to">${tileLabel(e.to)}</span>
+          </div>
         </div>
       </label>`).join('')}</div>
     <div class="moveAsk__foot">
@@ -4026,20 +4081,25 @@ function renderMoveAsk(){
     const move=[], keep=[];
     rows.forEach(r=>(r.checked?move:keep).push(+r.dataset.i));
     keep.forEach(ix=>SCAN_DECLINED.add(ix));   // ausdruecklich nicht hier -- nicht neu fragen
+    /* was im Blatt stand, wird gemerkt: ein Undo stellt genau diese Frage neu */
+    const shown=SCAN_PENDING.map(e=>({ix:e.ix, to:e.to}));
+    const undoEntries=[];
     let last=null;
     move.forEach(ix=>{
       const it=ITEMS[ix], e=SCAN_PENDING.find(x=>x.ix===ix);
       if(!e) return;
       last={it, prev:CAT_OVERRIDE[overrideKey(it)], to:e.to};
+      undoEntries.push(last);
       setCatOverride(it, e.to);
       pushChange(it, `Regal → ${tileLabel(e.to)}`);
     });
     SCAN_PENDING=[];
     closeMoveAsk();
-    /* Die Undo-Leiste traegt genau einen Artikel. Bei einem einzigen bleibt sie
-       also die gewohnte Rueckfahrkarte, bei mehreren sagt ein Toast nur die Zahl. */
+    /* Ein Artikel: die gewohnte Rueckfahrkarte, das Undo trifft genau ihn.
+       Mehrere: dieselbe Leiste, aber das Undo bringt auch das Blatt zurueck --
+       sonst waere die Auswahl weg, die man eigentlich korrigieren wollte. */
     if(move.length===1 && last) showCatUndo(last.it, last.prev, last.to);
-    else if(move.length>1) toast(`${move.length} ${t().moveAskToast}`);
+    else if(move.length>1) showCatUndoBatch(undoEntries, shown, move.length);
     render();
   };
 }
