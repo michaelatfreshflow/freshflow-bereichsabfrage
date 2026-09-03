@@ -1325,8 +1325,6 @@ body.dash-active .scanFab{display:none}
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="LangMenu__pop" id="langPop" role="listbox">
-        <button type="button" role="option" data-lang="de"><span>Deutsch</span><i>DE</i></button>
-        <button type="button" role="option" data-lang="en"><span>English</span><i>EN</i></button>
         <button type="button" role="option" data-lang="fr"><span>Français</span><i>FR</i></button>
       </div>
     </div>
@@ -1434,7 +1432,7 @@ body.dash-active .scanFab{display:none}
       <div class="dash-chart-hd">
         <div class="dash-chart-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 21 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          <span class="nm">Abschriften im Verkaufspreis</span>
+          <span class="nm" id="dbShrinkRetail">Abschriften im Verkaufspreis</span>
           <span class="val">1.886 €</span>
           <span class="chg">▼ -28,9 %</span>
         </div>
@@ -1547,7 +1545,7 @@ body.dash-active .scanFab{display:none}
   <div class="scanCam" id="scanCam" role="dialog" aria-modal="true">
     <div class="scanCam__hdr">
       <div class="ttl" id="scanCamTitle">Barcode scannen</div>
-      <button class="x" id="scanCamX" type="button" title="Schließen">✕</button>
+      <button class="x" id="scanCamX" type="button" title="Fermer">✕</button>
     </div>
     <div class="scanCam__view">
       <div class="scanCam__hint scanCam__hint--top" id="scanCamHint">Barcode in den Rahmen halten</div>
@@ -1657,7 +1655,7 @@ body.dash-active .scanFab{display:none}
 <div class="ov" id="ovReset">
   <div class="sheet" style="max-width:420px;border-radius:var(--ff-radius-c15);align-self:center">
     <div class="sh"><h3 id="kpResetTitle">x</h3><button class="x" id="resetX">✕</button></div>
-    <div style="padding:4px 22px 18px;font-size:var(--ff-text-primary-body-text-14);color:#5d6b64;line-height:1.5">Alle Antworten und Mengen für diese Bestellung werden gelöscht. Das kann nicht rückgängig gemacht werden.</div>
+    <div style="padding:4px 22px 18px;font-size:var(--ff-text-primary-body-text-14);color:#5d6b64;line-height:1.5" id="kpResetBody">Alle Antworten und Mengen für diese Bestellung werden gelöscht. Das kann nicht rückgängig gemacht werden.</div>
     <div class="sfoot"><span class="lnk" id="resetAbbrechen">Abbrechen</span><span class="sp"></span>
       <button class="cta danger" id="resetGo" style="padding:11px 26px">Zurücksetzen</button></div>
   </div>
@@ -2090,6 +2088,34 @@ const T={
     rangeConfirmedRule:'Nötig wäre eine Korrektur nur, wenn dein Bestand außerhalb des angezeigten Bereichs liegt.',
     unsure:'App-Bestand widerspricht Plan A',
     atLeast:'mind.',
+    catEditTitle:'Reihenfolge anpassen',
+    catEditSub:'Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen',
+    catNewShelf:'Neues Regal',
+    catNewShelfName:'Name des neuen Regals',
+    catCreate:'Anlegen',
+    catDeleteAsk:'„{label}" wirklich löschen?',
+    catDeleteNote:'{n} Artikel fallen zurück auf ihr automatisches Regal',
+    catDeleteConfirm:'Löschen bestätigen',
+    catSave:'Speichern',
+    catOwn:'eigene',
+    catDelete:'Löschen',
+    catRename:'Umbenennen',
+    catUp:'nach oben',
+    catDown:'nach unten',
+    catDragHint:'Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben.',
+    catClosingNote:'Sobald du das Regal abschließt, wird dieses als erledigt markiert.',
+    catPendingOne:'Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt.',
+    catPendingMany:'Du hast noch {n} offene Artikel, die deine Aufmerksamkeit benötigen.',
+    catAllChecked:'Du hast alle Artikel geprüft.',
+    catNextWith:'Weiter mit {label}',
+    catBackToShelves:'Zurück zur Regal-Übersicht',
+    catShelfDone:'Regal abgeschlossen',
+    catTapSkip:'Tippen zum Überspringen',
+    chgHidden:'aus Bestellung ausgeblendet',
+    chgShown:'wieder eingeblendet',
+    legNoLadderDesc:'Modell rechnet kein Bereich',
+    legBangInvDesc:'Ausrufezeichen an der Bestandsspalte',
+    resetBody:'Alle Antworten und Mengen für diese Bestellung werden gelöscht. Das kann nicht rückgängig gemacht werden.',
     exactly:'genau',
     anyAmount:'egal wie viel',
     prevOrder:'Best.',
@@ -2276,6 +2302,34 @@ const T={
     rangeConfirmedRule:'A correction is only needed if your inventory lies outside the range shown.',
     unsure:'App inventory contradicts Plan A',
     atLeast:'min.',
+    catEditTitle:'Reorder shelves',
+    catEditSub:'Reorder, rename and add your own shelves',
+    catNewShelf:'New shelf',
+    catNewShelfName:'Name of the new shelf',
+    catCreate:'Create',
+    catDeleteAsk:'Really delete “{label}”?',
+    catDeleteNote:'{n} items fall back to their automatic shelf',
+    catDeleteConfirm:'Confirm deletion',
+    catSave:'Save',
+    catOwn:'own',
+    catDelete:'Delete',
+    catRename:'Rename',
+    catUp:'move up',
+    catDown:'move down',
+    catDragHint:'Use ▲ ▼ to move the shelf to the right place on the walk.',
+    catClosingNote:'Once you close the shelf it is marked as done.',
+    catPendingOne:'You still have 1 item that needs your attention.',
+    catPendingMany:'You still have {n} items that need your attention.',
+    catAllChecked:'You have checked every item.',
+    catNextWith:'Next: {label}',
+    catBackToShelves:'Back to the shelf overview',
+    catShelfDone:'Shelf completed',
+    catTapSkip:'Tap to skip',
+    chgHidden:'hidden from the order',
+    chgShown:'shown again',
+    legNoLadderDesc:'the model computes no range',
+    legBangInvDesc:'exclamation mark on the inventory column',
+    resetBody:'Every answer and quantity for this order will be deleted. This cannot be undone.',
     exactly:'exactly',
     anyAmount:'any amount',
     prevOrder:'Ord.',
@@ -2462,6 +2516,34 @@ const T={
     rangeConfirmedRule:'Une correction n\'est nécessaire que si votre stock se situe en dehors de la plage affichée.',
     unsure:'L\'inventaire de l\'app contredit le plan A',
     atLeast:'min.',
+    catEditTitle:'Réorganiser les rayons',
+    catEditSub:'Réorganisez, renommez et créez vos propres rayons',
+    catNewShelf:'Nouveau rayon',
+    catNewShelfName:'Nom du nouveau rayon',
+    catCreate:'Créer',
+    catDeleteAsk:'Supprimer « {label} » ?',
+    catDeleteNote:'{n} articles reviennent à leur rayon automatique',
+    catDeleteConfirm:'Confirmer la suppression',
+    catSave:'Enregistrer',
+    catOwn:'perso',
+    catDelete:'Supprimer',
+    catRename:'Renommer',
+    catUp:'monter',
+    catDown:'descendre',
+    catDragHint:'Utilisez ▲ ▼ pour placer le rayon au bon endroit du parcours.',
+    catClosingNote:'Dès que vous clôturez le rayon, il est marqué comme terminé.',
+    catPendingOne:'Il vous reste 1 article qui demande votre attention.',
+    catPendingMany:'Il vous reste {n} articles qui demandent votre attention.',
+    catAllChecked:'Vous avez vérifié tous les articles.',
+    catNextWith:'Continuer avec {label}',
+    catBackToShelves:'Retour à la vue des rayons',
+    catShelfDone:'Rayon clôturé',
+    catTapSkip:'Appuyez pour passer',
+    chgHidden:'masqué de la commande',
+    chgShown:'réaffiché',
+    legNoLadderDesc:'le modèle ne calcule aucune plage',
+    legBangInvDesc:'point d’exclamation sur la colonne inventaire',
+    resetBody:'Toutes les réponses et quantités de cette commande seront supprimées. Cette action est irréversible.',
     exactly:'exactement',
     anyAmount:'peu importe',
     prevOrder:'Cde',
@@ -2514,12 +2596,12 @@ function applyLang(){
   if(dl && L.deadlineToday) dl.textContent = L.deadlineToday.replace('{t}', DEADLINE);
   /* carries a trailing chevron the .arb string does not have */
   /* sheets: several share a label, so these go by class or by a small list */
-  const tips={dashFab:'openOrderTip', resetBtn:'reset', scanFab:'scanTip'};
+  const tips={dashFab:'openOrderTip', resetBtn:'reset', scanFab:'scanTip', scanCamX:'close'};
   for(const [id,key] of Object.entries(tips)){
     const el=document.getElementById(id);
     if(el && L[key]){ el.setAttribute('title', L[key]); el.setAttribute('aria-label', L[key]); }
   }
-  const byId={s2Title:'completeOrder', nextRegalBtn:'nextShelfArrow',
+  const byId={dbShrinkRetail:'rShrinkRetail', kpResetBody:'resetBody', s2Title:'completeOrder', nextRegalBtn:'nextShelfArrow',
               kpInvTitle:'enterInventory', kpOrdTitle:'enterOrder',
               kpAusTitle:'enterDisplay', kpResetTitle:'resetConfirm',
               invSpeichern:'saveTick', ordSpeichern:'saveTick', ausSpeichern:'saveTick', s2Abbrechen:'back', s2Go:'confirmFinishFull',
@@ -3349,26 +3431,26 @@ function renderCatOverlay(){
     const addRow = ADDING_TILE
       ? `<div class="catrow">
           <span class="dot" style="background:var(--ff-color-accent-green)"></span>
-          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="Name des neuen Regals">
+          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="${t().catNewShelfName}">
           <div class="rebtns">
-            <button class="reordBtn" data-a="cat-add-save" type="button" title="Anlegen">✓</button>
-            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="Abbrechen">✕</button>
+            <button class="reordBtn" data-a="cat-add-save" type="button" title="${t().catCreate}">✓</button>
+            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="${t().cancel}">✕</button>
           </div>
         </div>`
       : `<div class="catrow addrow" data-a="cat-add-open">
           <span class="dot" style="background:transparent"></span>
-          <div class="tx"><div class="nm">+ Neues Regal</div></div>
+          <div class="tx"><div class="nm">+ ${t().catNewShelf}</div></div>
         </div>`;
-    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen</div></div>
+    body = `<div class="catsec"><div class="lb">${t().catEditSub}</div></div>
       <div class="catedit">${addRow}${orderTiles.map((tl,i)=>{
         if(DELETE_TILE_ID===tl.id){
           const n=tileStats(tl.id).list.length;
           return `<div class="catrow">
             <span class="dot" style="background:${tl.accent}"></span>
-            <div class="tx"><div class="nm">„${tl.label}" wirklich löschen?</div><div class="cnt">${n} Artikel fallen zurück auf ihr automatisches Regal</div></div>
+            <div class="tx"><div class="nm">${t().catDeleteAsk.replace('{label}', tl.label)}</div><div class="cnt">${t().catDeleteNote.replace('{n}', n)}</div></div>
             <div class="rebtns">
-              <button class="reordBtn" data-a="cat-delete-confirm" data-id="${tl.id}" type="button" title="Löschen bestätigen">✓</button>
-              <button class="reordBtn" data-a="cat-delete-cancel" type="button" title="Abbrechen">✕</button>
+              <button class="reordBtn" data-a="cat-delete-confirm" data-id="${tl.id}" type="button" title="${t().catDeleteConfirm}">✓</button>
+              <button class="reordBtn" data-a="cat-delete-cancel" type="button" title="${t().cancel}">✕</button>
             </div>
           </div>`;
         }
@@ -3377,19 +3459,19 @@ function renderCatOverlay(){
             <span class="dot" style="background:${tl.accent}"></span>
             <input class="renameInput" id="renameInput" type="text" maxlength="40" value="${tl.label.replace(/"/g,'&quot;')}">
             <div class="rebtns">
-              <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="Speichern">✓</button>
-              <button class="reordBtn" data-a="cat-rename-cancel" type="button" title="Abbrechen">✕</button>
+              <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="${t().catSave}">✓</button>
+              <button class="reordBtn" data-a="cat-rename-cancel" type="button" title="${t().cancel}">✕</button>
             </div>
           </div>`;
         }
         return `<div class="catrow">
           <span class="dot" style="background:${tl.accent}"></span>
-          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel</div></div>
+          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">'+t().catOwn+'</span>':''}</div><div class="cnt">${tl.count} ${t().shelfItems}</div></div>
           <div class="rebtns">
-            ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="Löschen">🗑</button>`:''}
-            <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="Umbenennen">✎</button>
-            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="nach oben"${i===0?' disabled':''}>▲</button>
-            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="nach unten"${i===orderTiles.length-1?' disabled':''}>▼</button>
+            ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="${t().catDelete}">🗑</button>`:''}
+            <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="${t().catRename}">✎</button>
+            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="${t().catUp}"${i===0?' disabled':''}>▲</button>
+            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="${t().catDown}"${i===orderTiles.length-1?' disabled':''}>▼</button>
           </div>
         </div>`;
       }).join('')}</div>`;
@@ -3414,8 +3496,8 @@ function renderCatOverlay(){
       <div class="cathdr">
         <div style="flex:1">
           <div class="eyebrow">${t().shelfEyebrow}</div>
-          <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : t().shelfTitle}</h2>
-          ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben.</div>' : ''}
+          <h2>${CAT_EDIT ? t().catEditTitle : t().shelfTitle}</h2>
+          ${CAT_EDIT ? `<div class="sub">${t().catDragHint}</div>` : ''}
         </div>
         <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? t().shelfDone : '✎ '+t().editShelves}</button>
         <button class="x" id="catCloseBtn" type="button" title="${t().close}">✕</button>
@@ -3637,15 +3719,15 @@ function renderCatConfirm(){
   const st=tileStats(CATCONFIRM.id);
   /* Copy states what is still outstanding rather than what is done -- the
      number the owner needs before committing is the unchecked one. */
-  const closing = 'Sobald du das Regal abschließt, wird dieses als erledigt markiert.';
+  const closing = t().catClosingNote;
   /* Singular needs its own case: "1 offene Artikel, die ... benötigen" is wrong
      in German -- it has to decline to "1 offenen Artikel, der ... benötigt". */
   const pending = st.open===1
-    ? 'Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt.'
-    : `Du hast noch ${st.open} offene Artikel, die deine Aufmerksamkeit benötigen.`;
+    ? t().catPendingOne
+    : t().catPendingMany.replace('{n}', st.open);
   const bodyText = st.open>0
     ? `${pending} ${closing}`
-    : `Du hast alle Artikel geprüft. ${closing}`;
+    : `${t().catAllChecked} ${closing}`;
   root.innerHTML = `<div class="ov on" style="z-index:9999">
     <div class="AppFormDialog">
       <div class="AppFormDialog__header">
@@ -3813,14 +3895,14 @@ function renderCatCelebrate(){
   const reduced = CATCELEBRATE.reduced;
   /* Steht schon auf dem naechsten Regal -- CATFILTER ist zu diesem Zeitpunkt bereits umgesetzt. */
   const weiter = CATCELEBRATE.after==='next' && CATFILTER
-    ? `Weiter mit ${CATFILTER.label}` : 'Zurück zur Regal-Übersicht';
+    ? t().catNextWith.replace('{label}', CATFILTER.label) : t().catBackToShelves;
   root.innerHTML = `<div class="catcelebrate">
     ${reduced ? '' : '<canvas id="catCelebrateCanvas"></canvas>'}
     <div class="card">
-      <div class="eyebrow">Regal abgeschlossen</div>
+      <div class="eyebrow">${t().catShelfDone}</div>
       <h2>${CATCELEBRATE.label}</h2>
       <div class="sub">${weiter}</div>
-      <div class="hint">Tippen zum Überspringen</div>
+      <div class="hint">${t().catTapSkip}</div>
     </div>
   </div>`;
 }
@@ -3862,7 +3944,7 @@ function rowClick(e){
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
-    pushChange(it, `${s.hidden?'aus Bestellung ausgeblendet':'wieder eingeblendet'}`);
+    pushChange(it, `${s.hidden?t().chgHidden:t().chgShown}`);
     render(); }
   else if(a==='ordpad'){ openOrdPad(ix); }
   else if(a==='auslage'){ openAusPad(ix); }
@@ -4424,12 +4506,12 @@ function legend(){
    [t().legNoCount,g.any,t().rOrderDetached],
    [t().legCountLabel,g.count,t().rPeriodicReal],
    [t().legContradict,g.unsure,t().rPlanAMismatch],
-   [t().legNoLadder,g.noladder,'Modell rechnet kein Bereich']];
+   [t().legNoLadder,g.noladder,t().legNoLadderDesc]];
   const pre=ST.filter(x=>x.auto).length;
   const openAsk=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].mode==='ask').length;
   L.unshift([t().legPreset,pre,t().rPreselected]);
   L.push([t().legOpenNone,openAsk,t().rWithdrawn]);
-  L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
+  L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,t().legBangInvDesc]);
   L.push([t().legBangOrder,ITEMS.filter(it=>it.ordNote).length,t().rBangOrder]);
 
   const legendEl=document.getElementById('legend');
