@@ -1216,17 +1216,6 @@ body.dash-active .scanFab{display:none}
 .scanCam__hint--top{top:18px}
 .scanCam__hint--bot{bottom:22px;color:rgba(255,255,255,.78);
   font-weight:var(--ff-weight-regular);font-size:var(--ff-text-primary-body-text-14)}
-.scanCam__foot{display:flex;align-items:center;gap:10px;padding:12px 18px;
-  background:rgba(0,0,0,.55);font-size:var(--ff-text-primary-caption-12);
-  color:rgba(255,255,255,.72)}
-.scanCam__foot input{flex:0 0 150px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
-  color:#fff;border-radius:8px;padding:8px 10px;font:inherit;
-  font-size:var(--ff-text-primary-body-text-14)}
-.scanCam__foot input::placeholder{color:rgba(255,255,255,.5)}
-.scanCam__foot .sp{flex:1}
-.scanCam__foot button{border:0;border-radius:9px;padding:9px 16px;cursor:pointer;
-  background:var(--green);color:#fff;font:inherit;font-weight:var(--ff-weight-bold);
-  font-size:var(--ff-text-primary-body-text-14)}
 .scanCam.busy .scanCam__line{animation:scanFlash .28s linear infinite}
 @keyframes scanFlash{0%,100%{opacity:1;background:#FF2D2D}50%{opacity:.9;background:#8CE99A}}
 
@@ -1243,10 +1232,17 @@ body.dash-active .scanFab{display:none}
   font-weight:var(--ff-weight-bold);letter-spacing:.6px;text-transform:uppercase}
 .scanRes__hdr h3{margin:2px 0 0;font-size:var(--ff-text-primary-title-17)}
 .scanRes__hdr .x{border:0;background:none;font-size:22px;color:var(--ff-grey-500);cursor:pointer}
-.scanRes__plu{display:inline-flex;align-items:center;gap:7px;margin-top:6px;
-  background:var(--ff-grey-100);border-radius:8px;padding:4px 9px;
-  font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-800);
-  font-variant-numeric:tabular-nums}
+/* Der gescannte Code steht in einem echten Suchfeld, nicht als stiller Text:
+   so ist ablesbar WAS gescannt wurde, und ein Tippfehler am Regal laesst sich
+   direkt korrigieren, ohne den Sucher noch einmal zu oeffnen. */
+.scanRes__search{padding:0 20px 14px}
+.scanRes__search .box{display:flex;align-items:center;gap:10px;
+  background:var(--ff-grey-50);border:1px solid var(--line);border-radius:var(--ff-radius-c12);
+  padding:10px 14px}
+.scanRes__search input{flex:1;min-width:0;border:0;background:none;outline:none;font:inherit;
+  font-size:var(--ff-text-primary-body-text-16);color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.scanRes__search input::placeholder{color:var(--mute);letter-spacing:normal}
 .scanRes__note{padding:10px 20px;background:var(--ff-grey-100);color:var(--ff-grey-800);
   border-left:3px solid var(--green);
   font-size:var(--ff-text-primary-caption-12);line-height:1.5}
@@ -1268,6 +1264,41 @@ body.dash-active .scanFab{display:none}
   box-shadow:0 8px 20px rgba(0,0,0,.22)}
 .scanRes__scan:hover{background:var(--green-d)}
 .scanRes__scan:active{transform:translateY(1px)}
+
+/* ---------- Regal-Zuordnung nach dem Scannen ----------
+   Waehrend des Scannens wird nichts gefragt: eine Frage zwischen zwei Artikeln
+   haelt genau den Ablauf auf, der schnell sein soll. Stattdessen werden Artikel,
+   die man an diesem Regal gescannt hat, die laut App aber woanders stehen,
+   gesammelt -- und beim Zurueckkommen ins Regal einmal gemeinsam gefragt. */
+.moveAsk{position:absolute;inset:0;z-index:50;display:none;
+  background:rgba(20,25,22,.5);align-items:flex-end;justify-content:center}
+.moveAsk.on{display:flex}
+.moveAsk__sheet{width:100%;background:var(--ff-color-white);
+  border-radius:var(--ff-radius-c15) var(--ff-radius-c15) 0 0;
+  display:flex;flex-direction:column;max-height:82%;overflow:hidden;
+  box-shadow:0 -18px 50px rgba(0,0,0,.35)}
+.moveAsk__hdr{display:flex;align-items:flex-start;gap:12px;
+  padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+.moveAsk__hdr .tx{flex:1;min-width:0}
+.moveAsk__hdr .x{border:0;background:none;font-size:22px;color:var(--ff-grey-500);cursor:pointer}
+.moveAsk__hdr .eyebrow{font-size:var(--ff-text-primary-caption-12);color:var(--mute);
+  font-weight:var(--ff-weight-bold);letter-spacing:.6px;text-transform:uppercase}
+.moveAsk__hdr h3{margin:2px 0 0;font-size:var(--ff-text-primary-title-17)}
+.moveAsk__hdr .sub{margin-top:6px;font-size:var(--ff-text-primary-caption-12);
+  color:var(--mute);line-height:1.5}
+.moveAsk__body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 0}
+.moveAsk__row{display:flex;align-items:center;gap:12px;padding:12px 20px;
+  border-bottom:1px solid var(--ff-grey-100);cursor:pointer}
+.moveAsk__row input{width:20px;height:20px;accent-color:var(--green);flex:0 0 auto}
+.moveAsk__row .tx{min-width:0}
+.moveAsk__row .nm{font-weight:var(--ff-weight-semibold);
+  font-size:var(--ff-text-primary-body-text-16)}
+.moveAsk__row .mv{margin-top:2px;font-size:var(--ff-text-primary-caption-12);color:var(--mute)}
+.moveAsk__row .mv b{color:var(--ink);font-weight:var(--ff-weight-semibold)}
+.moveAsk__foot{display:flex;align-items:center;gap:14px;padding:12px 20px;
+  border-top:1px solid var(--line)}
+.moveAsk__foot .sp{flex:1}
+.moveAsk__foot .cta{padding:10px 22px}
 </style>
 </head>
 <body>
@@ -1523,14 +1554,9 @@ body.dash-active .scanFab{display:none}
       </div>
       <div class="scanCam__hint scanCam__hint--bot" id="scanCamSub">Auf die rote Linie legen</div>
     </div>
-    <div class="scanCam__foot">
-      <span id="scanCamDemo">Demo-Ansicht – kein Kamerabild</span>
-      <span class="sp"></span>
-      <input id="scanCamPlu" type="text" inputmode="numeric" autocomplete="off" placeholder="PLU">
-      <button id="scanCamGo" type="button">Scan</button>
-    </div>
   </div>
   <div class="scanRes" id="scanRes" role="dialog" aria-modal="true"><div class="scanRes__sheet" id="scanResSheet"></div></div>
+  <div class="moveAsk" id="moveAsk" role="dialog" aria-modal="true"><div class="moveAsk__sheet" id="moveAskSheet"></div></div>
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
   <div id="catCelebrateRoot"></div>
@@ -1994,8 +2020,6 @@ const T={
     scanTitle:'Barcode scannen',
     scanHint:'Barcode in den Rahmen halten',
     scanSub:'Auf die rote Linie legen',
-    scanNoCam:'Demo-Ansicht – kein Kamerabild',
-    scanGo:'Scan',
     scanSearching:'Barcode wird gelesen …',
     scanResEyebrow:'Scan-Ergebnis',
     scanAllNote:'Alle Artikel des Ordersatzes – unabhängig von Regal, Filter und ausgeblendeten Artikeln.',
@@ -2006,6 +2030,13 @@ const T={
     scanTagShelf:'Anderes Regal',
     scanTagFilter:'Vom Filter ausgeschlossen',
     scanNoHitSub:'Nummer prüfen oder noch einmal scannen.',
+    scanCodePh:'Barcode / PLU',
+    scanTypeOrScan:'Barcode eingeben oder scannen.',
+    moveAskEyebrow:'Regal-Zuordnung',
+    moveAskTitle:'Artikel diesem Regal zuordnen?',
+    moveAskSub:'Beim Scannen an diesem Regal gefunden – laut App stehen sie woanders. Abwählen, was hier nicht steht.',
+    moveAskConfirm:'Zuordnen',
+    moveAskToast:'Artikel zugeordnet',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
     legBangOrder:'! Bestellung',
@@ -2173,8 +2204,6 @@ const T={
     scanTitle:'Scan barcode',
     scanHint:'Hold the barcode inside the frame',
     scanSub:'Place it on the red line',
-    scanNoCam:'Demo view – no camera feed',
-    scanGo:'Scan',
     scanSearching:'Reading barcode …',
     scanResEyebrow:'Scan result',
     scanAllNote:'Every item in the order guide – regardless of shelf, filter or hidden items.',
@@ -2185,6 +2214,13 @@ const T={
     scanTagShelf:'Different shelf',
     scanTagFilter:'Excluded by filter',
     scanNoHitSub:'Check the number or scan again.',
+    scanCodePh:'Barcode / PLU',
+    scanTypeOrScan:'Type a barcode or scan one.',
+    moveAskEyebrow:'Shelf assignment',
+    moveAskTitle:'Move items to this shelf?',
+    moveAskSub:'Found while scanning at this shelf – the app has them somewhere else. Untick whatever is not here.',
+    moveAskConfirm:'Move',
+    moveAskToast:'items moved',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
     legBangOrder:'! Order',
@@ -2352,8 +2388,6 @@ const T={
     scanTitle:'Scanner un code-barres',
     scanHint:'Placez le code-barres dans le cadre',
     scanSub:'Posez-le sur la ligne rouge',
-    scanNoCam:'Vue démo – pas d’image caméra',
-    scanGo:'Scanner',
     scanSearching:'Lecture du code-barres …',
     scanResEyebrow:'Résultat du scan',
     scanAllNote:'Tous les articles de l’assortiment – sans filtre, sans rayon, y compris les articles masqués.',
@@ -2364,6 +2398,13 @@ const T={
     scanTagShelf:'Autre rayon',
     scanTagFilter:'Exclu par le filtre',
     scanNoHitSub:'Vérifiez le numéro ou scannez à nouveau.',
+    scanCodePh:'Code-barres / PLU',
+    scanTypeOrScan:'Saisissez un code-barres ou scannez.',
+    moveAskEyebrow:'Affectation de rayon',
+    moveAskTitle:'Affecter les articles à ce rayon ?',
+    moveAskSub:'Trouvés en scannant à ce rayon – l’app les place ailleurs. Décochez ce qui n’est pas ici.',
+    moveAskConfirm:'Affecter',
+    moveAskToast:'articles affectés',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
     legBangOrder:'! Commande',
@@ -2460,8 +2501,7 @@ function applyLang(){
               uPcs:'unitPieces', uCs:'unitCases', kLager:'backStock', kFlaeche:'frontStock',
               invAbbrechen:'cancel', ordAbbrechen:'cancel', ausAbbrechen:'cancel',
               resetAbbrechen:'cancel', resetGo:'reset', catUndoBtn:'undo',
-              scanCamTitle:'scanTitle', scanCamHint:'scanHint', scanCamSub:'scanSub',
-              scanCamDemo:'scanNoCam', scanCamGo:'scanGo'};
+              scanCamTitle:'scanTitle', scanCamHint:'scanHint', scanCamSub:'scanSub'};
   for(const [id,key] of Object.entries(byId)){
     const el=document.getElementById(id);
     if(el && L[key]) el.textContent=L[key];
@@ -2945,7 +2985,7 @@ function eyeIcon(off){
 /* Eine Zeile der Bestellliste. Aus render() herausgezogen, damit die Scan-Ansicht
    (der Barcode-FAB unten rechts) dieselbe Zeile zeigen kann -- gleicher Stepper,
    gleiche Tastenfelder, gleicher Zustand, nur ohne die Filter der Liste. */
-function rowHTML(ix, extraCls){
+function rowHTML(ix, extraCls, forceEye){
   const it=ITEMS[ix], s=ST[ix], L=t();
     /* item_information_row.dart puts the PLU and case size on one line and the
        prices on the next, as bare numbers -- the app labels neither, and it
@@ -2984,7 +3024,11 @@ function rowHTML(ix, extraCls){
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
     </div>${bang(s.manual?null:it.ordNote,'ord',ix)}</div>`;
-    const eyeToggle = (MANAGE_MODE || s.hidden)
+    /* Das Auge steht sonst nur in "Bestellung verwalten" und an ausgeblendeten
+       Zeilen. Im Scan-Ergebnis steht es immer: dort kommt man auch an Artikel, die
+       die Liste gar nicht zeigt, und dann muss ablesbar sein, ob der Artikel in der
+       Bestellung mitlaeuft -- und umschaltbar, ohne den Verwalten-Modus zu suchen. */
+    const eyeToggle = (forceEye || MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}">
@@ -3829,6 +3873,12 @@ function pluApproxMatch(plu, qDigits){
    Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
    an rowClick(), also am selben Zustand wie die Liste. */
 let SCAN={plu:null, matches:[], timer:null};
+/* Beim Scannen gefundene Artikel, die laut App in ein anderes Regal gehoeren.
+   Sie werden hier gesammelt und erst beim Zurueckkommen ins Regal gefragt --
+   waehrend des Scannens wird nichts gefragt. SCAN_DECLINED haelt fest, was der
+   Kaufmann abgelehnt hat, damit dieselbe Frage nicht wiederkommt. */
+let SCAN_PENDING=[];              // {ix, to}
+let SCAN_DECLINED=new Set();      // ix
 
 /* Der FAB sitzt immer unten rechts, ueber der Fussleiste -- deren Hoehe haengt an
    Schriftgroesse und Fensterbreite, also einmal messen statt raten. */
@@ -3873,14 +3923,12 @@ function scanTags(ix){
 
 function openScanCam(){
   const cam=document.getElementById('scanCam');
-  const inp=document.getElementById('scanCamPlu');
-  closeScanRes();
-  inp.value='';
+  closeScanRes(true);
   cam.classList.remove('busy');
   cam.classList.add('on');
   document.getElementById('scanCamSub').textContent=t().scanSub;
-  /* Der nachgestellte Kamerablick "erkennt" nach einem Moment von selbst etwas --
-     wer eine bestimmte Nummer zeigen will, tippt sie unten ein und der Timer faellt weg. */
+  /* Der nachgestellte Kamerablick "erkennt" nach einem Moment von selbst etwas.
+     Eine bestimmte Nummer laesst sich danach im Suchfeld des Ergebnisses setzen. */
   clearTimeout(SCAN.timer);
   const target=pickScanTarget();
   SCAN.timer=setTimeout(()=>{
@@ -3903,46 +3951,152 @@ function doScan(digits){
     cam.classList.remove('on','busy');
     SCAN.plu=digits;
     SCAN.matches=scanMatches(digits);
+    notePendingMove();
     renderScanRes();
   }, 340);
 }
-function closeScanRes(){
+/* silent: aus openScanCam() heraus -- zwischen zwei Scans wird nicht gefragt.
+   Sonst gilt: Ergebnis zu heisst zurueck im Regal, und da darf die Frage kommen. */
+function closeScanRes(silent){
   document.getElementById('scanRes').classList.remove('on');
+  if(!silent) maybeAskShelfMove();
 }
 
-/* keepOpen: aus render() heraus -- dann nur neu zeichnen, wenn das Popover offen ist. */
-function renderScanRes(keepOpen){
+/* Nur echte Scans werden vorgemerkt (nicht das Tippen im Suchfeld) und nur, wenn
+   gerade ein Regal offen ist -- ohne Regal gibt es kein Ziel, nach dem gefragt
+   werden koennte. */
+function notePendingMove(){
+  if(!CATFILTER || CATFILTER.kind!=='tile') return;
+  const to=CATFILTER.id;
+  SCAN.matches.forEach(ix=>{
+    if(tileOf(ITEMS[ix])===to) return;          // steht schon hier
+    if(SCAN_DECLINED.has(ix)) return;           // schon abgelehnt
+    if(SCAN_PENDING.some(e=>e.ix===ix)) return; // schon vorgemerkt
+    SCAN_PENDING.push({ix, to});
+  });
+}
+
+/* Beim Schliessen des Scan-Ergebnisses: zurueck im Regal, jetzt einmal fragen.
+   Was zwischenzeitlich schon im Zielregal steht, faellt still heraus. */
+function pendingMoves(){
+  SCAN_PENDING = SCAN_PENDING.filter(e=>
+    !SCAN_DECLINED.has(e.ix) && tileOf(ITEMS[e.ix])!==e.to);
+  return SCAN_PENDING;
+}
+function maybeAskShelfMove(){
+  if(!pendingMoves().length) return;
+  renderMoveAsk();
+}
+function closeMoveAsk(){ document.getElementById('moveAsk').classList.remove('on'); }
+
+function renderMoveAsk(){
+  const L=t(), list=pendingMoves();
+  const sheet=document.getElementById('moveAskSheet');
+  sheet.innerHTML = `
+    <div class="moveAsk__hdr">
+      <div class="tx">
+        <div class="eyebrow">${L.moveAskEyebrow}</div>
+        <h3>${L.moveAskTitle}</h3>
+        <div class="sub">${L.moveAskSub}</div>
+      </div>
+      <button class="x" id="moveAskX" type="button" title="${L.close}">✕</button>
+    </div>
+    <div class="moveAsk__body">${list.map(e=>`
+      <label class="moveAsk__row">
+        <input type="checkbox" data-i="${e.ix}" checked>
+        <div class="tx">
+          <div class="nm">${ITEMS[e.ix].name}</div>
+          <div class="mv">${tileLabel(tileOf(ITEMS[e.ix]))} → <b>${tileLabel(e.to)}</b></div>
+        </div>
+      </label>`).join('')}</div>
+    <div class="moveAsk__foot">
+      <span class="sp"></span>
+      <button class="cta" id="moveAskGo" type="button">${L.moveAskConfirm}</button>
+    </div>`;
+  document.getElementById('moveAsk').classList.add('on');
+  /* Wegklicken heisst nicht "spaeter nochmal": die Frage kaeme sonst bei jedem
+     Schliessen des Ergebnisses wieder. Die Artikel werden dabei abgelegt. */
+  document.getElementById('moveAskX').onclick=()=>{
+    pendingMoves().forEach(e=>SCAN_DECLINED.add(e.ix));
+    SCAN_PENDING=[];
+    closeMoveAsk();
+  };
+  document.getElementById('moveAskGo').onclick=()=>{
+    const rows=[...document.querySelectorAll('#moveAskSheet input[type=checkbox]')];
+    const move=[], keep=[];
+    rows.forEach(r=>(r.checked?move:keep).push(+r.dataset.i));
+    keep.forEach(ix=>SCAN_DECLINED.add(ix));   // ausdruecklich nicht hier -- nicht neu fragen
+    let last=null;
+    move.forEach(ix=>{
+      const it=ITEMS[ix], e=SCAN_PENDING.find(x=>x.ix===ix);
+      if(!e) return;
+      last={it, prev:CAT_OVERRIDE[overrideKey(it)], to:e.to};
+      setCatOverride(it, e.to);
+      pushChange(it, `Regal → ${tileLabel(e.to)}`);
+    });
+    SCAN_PENDING=[];
+    closeMoveAsk();
+    /* Die Undo-Leiste traegt genau einen Artikel. Bei einem einzigen bleibt sie
+       also die gewohnte Rueckfahrkarte, bei mehreren sagt ein Toast nur die Zahl. */
+    if(move.length===1 && last) showCatUndo(last.it, last.prev, last.to);
+    else if(move.length>1) toast(`${move.length} ${t().moveAskToast}`);
+    render();
+  };
+}
+
+/* keepOpen: aus render() heraus -- dann nur neu zeichnen, wenn das Popover offen ist.
+   keepFocus: aus dem Suchfeld heraus -- dann Fokus und Cursor wieder ins Feld setzen. */
+function renderScanRes(keepOpen, keepFocus){
   const ov=document.getElementById('scanRes');
   if(keepOpen && !ov.classList.contains('on')) return;
   const sheet=document.getElementById('scanResSheet');
   const L=t();
   const m=SCAN.matches;
-  const head = m.length===1
-    ? ITEMS[m[0]].name
-    : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit);
+  /* Leeres Feld heisst "noch nichts gescannt", nicht "nichts gefunden" -- sonst
+     steht die Fehlmeldung da, sobald man den Code loescht, um neu zu tippen. */
+  const noCode = !SCAN.plu;
+  const head = noCode ? L.scanTitle
+    : (m.length===1 ? ITEMS[m[0]].name
+    : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit));
   const tags = m.length===1 ? scanTags(m[0]) : [];
   sheet.innerHTML = `
     <div class="scanRes__hdr">
       <div style="flex:1;min-width:0">
         <div class="eyebrow">${L.scanResEyebrow}</div>
         <h3>${head}</h3>
-        <span class="scanRes__plu">PLU ${SCAN.plu||'–'}</span>
       </div>
       <button class="x" id="scanResX" type="button" title="${L.close}">✕</button>
     </div>
+    <div class="scanRes__search"><div class="box">
+      <span style="color:var(--mute);font-size:var(--ff-text-primary-title-17)">⌕</span>
+      <input id="scanResQ" type="search" inputmode="numeric" autocomplete="off"
+             placeholder="${L.scanCodePh}" value="${(SCAN.plu||'').replace(/"/g,'&quot;')}">
+    </div></div>
     ${m.length?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
     ${tags.length?`<div class="scanRes__tags">${tags.map(x=>`<span class="scanRes__tag">${x}</span>`).join('')}</div>`:''}
     <div class="scanRes__body" id="scanResBody">
       ${m.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
-      ${m.map(ix=>rowHTML(ix,'')).join('')}`
-      :`<div class="scanRes__empty">${L.scanNoHitSub}</div>`}
+      ${m.map(ix=>rowHTML(ix,'',true)).join('')}`
+      :`<div class="scanRes__empty">${noCode?L.scanTypeOrScan:L.scanNoHitSub}</div>`}
     </div>
     <div class="scanRes__foot">
       <span class="sp"></span>
       <button class="scanRes__scan" id="scanResAgain" type="button" title="${L.scanAgain}" aria-label="${L.scanAgain}">${ICON_SCAN}</button>
     </div>`;
   ov.classList.add('on');
-  document.getElementById('scanResX').onclick=closeScanRes;
+  /* Tippen im Suchfeld ist derselbe Weg wie ein Scan: es matcht ueber den ganzen
+     Ordersatz. Weil renderScanRes() das Blatt neu baut, wandert der Fokus mit --
+     sonst verliert man nach der ersten Ziffer die Eingabestelle. */
+  const q=document.getElementById('scanResQ');
+  if(q){
+    if(keepFocus){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+    q.addEventListener('input', e=>{
+      SCAN.plu=e.target.value.replace(/\D/g,'');
+      SCAN.matches=scanMatches(SCAN.plu);
+      renderScanRes(false, true);
+    });
+  }
+  document.getElementById('scanResX').onclick=()=>closeScanRes();
   document.getElementById('scanResAgain').onclick=openScanCam;
   /* dieselbe Bedienung wie in der Liste -- Stepper, Tastenfelder, Ausrufezeichen */
   const body=document.getElementById('scanResBody');
@@ -3951,10 +4105,6 @@ function renderScanRes(keepOpen){
 
 document.getElementById('scanFab').addEventListener('click', openScanCam);
 document.getElementById('scanCamX').addEventListener('click', closeScanCam);
-document.getElementById('scanCamGo').addEventListener('click', ()=>doScan(document.getElementById('scanCamPlu').value));
-document.getElementById('scanCamPlu').addEventListener('keydown', e=>{
-  if(e.key==='Enter'){ e.preventDefault(); doScan(e.target.value); }
-});
 /* Ein Klick daneben (auf den abgedunkelten Rand) schliesst das Ergebnis, wie bei
    den Tastenfeldern. Im Sucher wuerde das ins Leere greifen -- dort nur das X. */
 document.getElementById('scanRes').addEventListener('click', e=>{
@@ -4259,7 +4409,9 @@ function legend(){
   L.push([t().legBangInv,ITEMS.filter(it=>it.invNote).length,'Ausrufezeichen an der Bestandsspalte']);
   L.push([t().legBangOrder,ITEMS.filter(it=>it.ordNote).length,t().rBangOrder]);
 
-  document.getElementById('legend').innerHTML=L.map(x=>
+  const legendEl=document.getElementById('legend');
+  if(!legendEl) return;   // toast() raeumt das Element weg -- kein Grund, render() zu sprengen
+  legendEl.innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
 const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker()};
