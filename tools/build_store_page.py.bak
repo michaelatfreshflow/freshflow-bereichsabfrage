@@ -43,16 +43,6 @@ MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "No
 WD_DE = ["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."]
 MON_DE = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.",
           "Nov.", "Dez."]
-# A French store page must not carry German weekday and month names in its header. The
-# punctuation shape is kept identical to the German form so inject()'s date regex keeps
-# matching on the next run; only the words change.
-WD_FR = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
-MON_FR = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.",
-          "oct.", "nov.", "déc."]
-# Reasons that inform rather than ask the owner to act. --drop-reasons thins them out of
-# the two needs-attention notes; the flags themselves are real production values, so this
-# is a PRESENTATION choice and the page then no longer shows the store's full attention state.
-INFORMATIONAL_REASONS = ["rolling_recount", "in_promotion"]
 
 
 class Refusal(Exception):
@@ -81,21 +71,12 @@ def de(x, n=1):
     return ("%.*f" % (n, x)).replace(".", ",")
 
 
-DROP_REASONS: set = set()
-DROPPED = {"reasons": 0, "notes": 0}
-
-
 def note(js):
     try:
         xs = json.loads(js) if isinstance(js, str) else (js or [])
     except Exception:
         xs = []
-    raw = [str(p).strip() for p in xs if str(p).strip()]
-    kept = [p for p in raw if p not in DROP_REASONS]
-    DROPPED["reasons"] += len(raw) - len(kept)
-    if raw and not kept:
-        DROPPED["notes"] += 1
-    out = [DE_REASON.get(p, p) for p in kept]
+    out = [DE_REASON.get(str(p).strip(), str(p).strip()) for p in xs if str(p).strip()]
     return " · ".join(out) or None
 
 
@@ -278,21 +259,7 @@ def self_check(items):
         raise Refusal("%d Prüfung(en) fehlgeschlagen:\n  " % len(bad) + "\n  ".join(bad[:12]))
 
 
-def deadline_of(store, day):
-    """The store's own cut-off, the one the majority of the guide carries. Hardcoding it in
-    the page's strings put 13:00 on a store that closes at 18:00."""
-    r = bq(f"""
-    SELECT FORMAT_TIMESTAMP('%H:%M', order_deadline_at, 'Europe/Paris') AS hm, COUNT(*) n
-    FROM `{PROJECT}.{store}.prod_orders_output`
-    WHERE DATE(order_deadline_at) = "{day}"
-      AND hidden_state.system.is_hidden = FALSE AND display.system.quantity > 0
-    GROUP BY 1 ORDER BY n DESC LIMIT 1""")
-    if not r:
-        raise Refusal(f"no order deadline for {store} on {day}")
-    return r[0]["hm"]
-
-
-def inject(page, items, day, store_label=None, lang="de", prototype=False, deadline=None):
+def inject(page, items, day, store_label=None):
     s = open(page, encoding="utf-8").read()
     m = re.search(r'const ITEMS = (\[.*?\]);\n', s, re.S)
     if not m:
@@ -301,22 +268,15 @@ def inject(page, items, day, store_label=None, lang="de", prototype=False, deadl
     s = s[:m.start(1)] + json.dumps(items, ensure_ascii=False) + s[m.end(1):]
     y, mo, d = (int(v) for v in day.split("-"))
     wi = date(y, mo, d).weekday()
-    wd_names, mon_names = (WD_FR, MON_FR) if lang == "fr" else (WD_DE, MON_DE)
     # ⛔ Match BOTH labels AND both date spellings. The header was renamed to the app's German
     # ("Ordersatz") once and the date silently stopped updating, so a sheet showed the wrong day in
     # a store. The newer pages then switched the date itself to German and broke it a second time.
     s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{2,4}\., '
                    r'\d+\. [A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{3,5}\.?',
-                   lambda mm: '%s &nbsp;%s, %d. %s' % (mm.group(1), wd_names[wi], d, mon_names[mo - 1]), s)
+                   lambda mm: '%s &nbsp;%s, %d. %s' % (mm.group(1), WD_DE[wi], d, MON_DE[mo - 1]), s)
     if n == 0:
         s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z]{3}, [A-Za-z]{3} \d+',
                        lambda mm: '%s &nbsp;%s, %s %d' % (mm.group(1), WD[wi], MON[mo - 1], d), s)
-    if n == 0:
-        # a French header this script wrote on an earlier run
-        s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z\u00e9\u00fb\u00e0]{3,5}\., '
-                       r'\d+\. [A-Za-z\u00e9\u00fb\u00e0\u00ea]{3,5}\.?',
-                       lambda mm: '%s &nbsp;%s, %d. %s'
-                       % (mm.group(1), wd_names[wi], d, mon_names[mo - 1]), s)
     if n != 1:
         raise Refusal(f"header date rewritten {n} times, expected exactly 1. The page would show "
                       f"the wrong day.")
@@ -328,23 +288,6 @@ def inject(page, items, day, store_label=None, lang="de", prototype=False, deadl
         if n_title != 1:
             raise Refusal(f"<title> rewritten {n_title} times, expected exactly 1. The browser "
                           f"tab would still show the old store's name.")
-    if deadline:
-        s, n_dl = re.subn(r"let DEADLINE='[^']*';", "let DEADLINE='%s';" % deadline, s, count=1)
-        if n_dl != 1:
-            raise Refusal(f"DEADLINE rewritten {n_dl} times, expected exactly 1. The page would "
-                          f"show another store's cut-off.")
-    s, n_lang = re.subn(r"let LANG='(?:de|en|fr)';", "let LANG='%s';" % lang, s, count=1)
-    if n_lang != 1:
-        raise Refusal(f"LANG rewritten {n_lang} times, expected exactly 1. The page would open "
-                      f"in the wrong language.")
-    s = re.sub(r'\n<div id="protoBar".*?</div>\n', '\n', s, flags=re.S)
-    if prototype:
-        bar = ('\n<div id="protoBar" style="position:sticky;top:0;z-index:99999;'
-               'background:#7f1d1d;color:#fff;font:600 12px/1.35 system-ui,sans-serif;'
-               'padding:7px 12px;text-align:center;letter-spacing:.02em">'
-               'PROTOTYPE — hypothetical scenario config, NOT this store&#39;s live app. '
-               'Do not order from this sheet.</div>\n')
-        s = re.sub(r'(<body[^>]*>)', lambda mm: mm.group(1) + bar, s, count=1)
     open(page, "w", encoding="utf-8").write(s)
 
 
@@ -358,19 +301,6 @@ def main():
     ap.add_argument("--label", default=None, help="store name for the header")
     ap.add_argument("--items-json", default=None,
                     help="scenario only: RP_items_*.json produced by RP_theta6.py")
-    ap.add_argument("--lang", default="de", choices=["de", "en", "fr"],
-                    help="language the page opens in, and the header date's language")
-    ap.add_argument("--no-stamp", action="store_true",
-                    help="build without the visible PROTOTYPE banner. The scenario gate stays "
-                         "downgraded, so the page carries no on-sheet sign that its ranges "
-                         "describe a config the store is not running.")
-    ap.add_argument("--prototype", action="store_true",
-                    help="build the page for a store that is NOT flipped to the chosen algorithm. "
-                         "The ranges then describe a config the app is not running, so the page is "
-                         "stamped and must not be ordered from.")
-    ap.add_argument("--drop-reasons", default=None,
-                    help="comma-separated needs-attention reasons to leave out of the notes, or "
-                         "'informational' for " + ",".join(INFORMATIONAL_REASONS))
     a = ap.parse_args()
     day = a.date or date.today().isoformat()     # resolved FRESH, never carried in
     print(f"Laden {a.store} | Algorithmus {a.algo} | Tag {day}")
@@ -380,20 +310,10 @@ def main():
     print(f"  Store-Dokument: ordering_policy={pol or '?'} theta={cfg.get('theta')} "
           f"min_gain={cfg.get('mg')} shelf_life_floor={cfg.get('fl')}")
     if a.algo == "scenario" and pol != "scenario":
-        msg = (f"--algo scenario, but the store document says ordering_policy='{pol}'. "
-               f"The app would run the other rule and every row would be wrong.")
-        if not a.prototype:
-            raise Refusal(msg)
-        print("  WARNUNG, --prototype: " + msg)
-        print("  Die Seite wird als PROTOTYPE gestempelt und darf nicht bestellt werden.")
+        raise Refusal(f"--algo scenario, but the store document says ordering_policy='{pol}'. "
+                      f"The app would run the other rule and every row would be wrong.")
     if a.algo == "classic" and pol == "scenario":
         raise Refusal(f"--algo classic, but the store is flipped to scenario.")
-
-    global DROP_REASONS
-    if a.drop_reasons:
-        DROP_REASONS = set(INFORMATIONAL_REASONS if a.drop_reasons == "informational"
-                           else [x.strip() for x in a.drop_reasons.split(",") if x.strip()])
-        print("  Gründe ausgelassen: " + ", ".join(sorted(DROP_REASONS)))
 
     rows = pull(a.store, day)
     print(f"  aktive Artikel: {len(rows)}")
@@ -411,19 +331,6 @@ def main():
     else:
         if not a.items_json or not os.path.exists(a.items_json):
             raise Refusal("--algo scenario needs --items-json from RP_theta6.py --date " + day)
-        # The ladders MUST be the ones built for this order day. build_items() pins plan A to
-        # the published order and shifts the whole ladder to match, so a file from another day
-        # is absorbed silently and self_check() then passes by construction: the ranges would be
-        # the other day's geometry. Caught on 2026-09-03 with a 2026-09-02 file. The date lives
-        # in the filename RP_items_theta6_<YYYYMMDD>_*.json, so read it back and insist.
-        mday = re.search(r"_(\d{8})_", os.path.basename(a.items_json))
-        if not mday:
-            raise Refusal(f"cannot read an order date out of {os.path.basename(a.items_json)}. "
-                          f"Expected RP_items_theta6_<YYYYMMDD>_*.json.")
-        got = f"{mday.group(1)[:4]}-{mday.group(1)[4:6]}-{mday.group(1)[6:]}"
-        if got != day:
-            raise Refusal(f"--items-json is for order date {got} but this page is being built "
-                          f"for {day}. Re-run RP_theta6.py --date {day}.")
         src = {str(x["iid"]): x for x in json.load(open(a.items_json))}
         for o in rows:
             x = src.get(o["iid"])
@@ -435,17 +342,8 @@ def main():
             ladders[o["iid"]] = (rr, qA)
 
     items, no_lad = build_items(rows, ladders)
-    n_inv = sum(1 for x in items if x.get("invNote"))
-    n_ord = sum(1 for x in items if x.get("ordNote"))
-    print(f"  Hinweise: ! Bestand {n_inv} | ! Bestellvorschlag {n_ord} von {len(items)}")
-    if DROP_REASONS:
-        print(f"  ausgelassen: {DROPPED['reasons']} Grund/Gründe, "
-              f"{DROPPED['notes']} Hinweis(e) dadurch ganz entfallen")
     self_check(items)
-    dl = deadline_of(a.store, day)
-    print(f"  Bestellschluss: {dl}")
-    inject(a.page, items, day, a.label, lang=a.lang,
-           prototype=a.prototype and not a.no_stamp, deadline=dl)
+    inject(a.page, items, day, a.label)
     print(f"  Artikel geschrieben: {len(items)} | ohne Leiter: {len(no_lad)}")
     print(f"  Bestand und Bestellvorschlag == App: {len(items)} von {len(items)}")
     print(f"GESCHRIEBEN {a.page}")
