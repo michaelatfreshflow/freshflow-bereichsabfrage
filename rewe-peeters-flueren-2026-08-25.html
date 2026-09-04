@@ -612,6 +612,18 @@ body.isFiltering{
 .InventoryCounterField--warn .InventoryCounterField__box{
   border-color:var(--ff-color-warning);
 }
+/* Keine Zaehlung notwendig: der Kasten behaelt Groesse und Rahmen, traegt aber
+   Text statt Zahl -- primaryCaption12.light in grey-500, zentriert, und nicht
+   antippbar (der Zeiger soll keine Eingabe versprechen, die es nicht gibt). */
+.InventoryCounterField--nocount .InventoryCounterField__box{
+  cursor:default;background:var(--ff-grey-50,var(--ff-color-white));
+}
+.InventoryCounterField__note{
+  font-size:var(--ff-text-primary-sub-title-10);
+  font-weight:var(--ff-weight-light);
+  color:var(--ff-grey-500);
+  line-height:1.15;text-align:center;
+}
 /* the order cell's "moved away from the model" border */
 .ColumnCounterField--changed .ColumnCounterField__box{
   border-color:var(--ff-color-warning);
@@ -1249,6 +1261,25 @@ body.dash-active .scanFab{display:none}
 .scanRes__tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px 0}
 .scanRes__tag{background:var(--amber-bg);color:#8a4b00;border-radius:7px;padding:4px 9px;
   font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
+/* Gescannt, aber nicht im Ordersatz: der Artikel ist trotzdem bekannt (Name und
+   Nummer stehen im Barcode-Stamm), er steht nur nicht auf dieser Bestellliste.
+   Deshalb keine Fehlmeldung, sondern eine Leiste ueber der Liste -- sie nennt
+   den Artikel beim Namen und leitet direkt zu dem ueber, was es stattdessen
+   gibt. Die Zeilen darunter sind echte Ordersatz-Zeilen, also sofort bedienbar. */
+.scanRes__miss{display:flex;gap:12px;align-items:flex-start;padding:12px 20px;
+  background:var(--amber-bg);border-top:1px solid var(--line);
+  border-left:3px solid var(--amber)}
+.scanRes__miss .ic{flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+  background:var(--amber);color:var(--ff-color-white);display:flex;
+  align-items:center;justify-content:center;font-weight:var(--ff-weight-bold);
+  font-size:var(--ff-text-primary-caption-12);line-height:1}
+.scanRes__miss .tx{min-width:0;flex:1}
+.scanRes__miss .nm{font-weight:var(--ff-weight-bold);color:#8a4b00;
+  font-size:var(--ff-text-primary-body-text-14);line-height:1.35;
+  overflow-wrap:anywhere}
+.scanRes__miss .nm .no{font-weight:var(--ff-weight-semibold);white-space:nowrap}
+.scanRes__miss .sub{margin-top:3px;color:var(--ff-grey-800);
+  font-size:var(--ff-text-primary-caption-12);line-height:1.5}
 .scanRes__body{flex:1 1 auto;min-height:0;overflow-y:auto}
 .scanRes__empty{padding:34px 20px;text-align:center;color:var(--mute);
   font-size:var(--ff-text-primary-body-text-14)}
@@ -1787,12 +1818,18 @@ function setCatOverride(it, tileId){
   CAT_OVERRIDE[overrideKey(it)] = tileId;
   saveCatOverride();
 }
+/* Reine Namenszuordnung, ohne Uebersteuerung: so laesst sich auch ein Artikel
+   einsortieren, der gar nicht im Ordersatz steht (gescannt, aber nicht gelistet)
+   und deshalb keinen Uebersteuerungs-Schluessel hat. */
+function tileByName(name){
+  const n=String(name||'').toLowerCase();
+  const hit=TILES.find(t=>t[3].some(kw=>n.includes(kw)));
+  return hit ? hit[0] : 'sonstiges';
+}
 function tileOf(it){
   const ov=CAT_OVERRIDE[overrideKey(it)];
   if(ov) return ov;
-  const n=it.name.toLowerCase();
-  const hit=TILES.find(t=>t[3].some(kw=>n.includes(kw)));
-  return hit ? hit[0] : 'sonstiges';
+  return tileByName(it.name);
 }
 /* Regal-Namen sind im Bearbeiten-Screen umbenennbar (siehe .catrow), persistiert
    pro Geraet wie TILE_ORDER/CAT_OVERRIDE. Nur der ANGEZEIGTE Name aendert sich --
@@ -1986,7 +2023,7 @@ const T={
     unhideItem:'Wieder einblenden',
     changeShelf:'Regal ändern',
     needRealNumber:'Artikel brauchen noch eine echte Zahl',
-    needRealSub:'Zählungen, widersprüchliche Bestände und fehlende Leiter',
+    needRealSub:'Zählungen und widersprüchliche Bestände',
     openConfirmed:'offene Artikel werden mit <b>✓</b> bestätigt',
     casesInOrder:'Kisten in der Bestellung',
     enterFirst:'Erst Zahlen nachtragen',
@@ -2043,6 +2080,10 @@ const T={
     scanNoHitSub:'Nummer prüfen oder noch einmal scannen.',
     scanCodePh:'Barcode / PLU',
     scanTypeOrScan:'Barcode eingeben oder scannen.',
+    scanNotListed:'Nicht im Ordersatz.',
+    scanNo:'Nr.',
+    scanAltLead:'Diese Artikel aus dem Ordersatz kommen dem am nächsten:',
+    scanAltNone:'Kein ähnlicher Artikel im Ordersatz gefunden.',
     moveAskEyebrow:'Regal-Zuordnung',
     moveAskTitle:'Artikel diesem Regal zuordnen?',
     moveFrom:'bisher',
@@ -2097,6 +2138,7 @@ const T={
     atLeast:'mind.',
     exactly:'genau',
     anyAmount:'egal wie viel',
+    noCountNeeded:'Keine Zählung notwendig',
     prevOrder:'Best.',
     case:'Kiste',
     dlgPendingOne:'Du hast noch 1 dringenden Artikel, der deine Aufmerksamkeit benötigt.',
@@ -2172,7 +2214,7 @@ const T={
     unhideItem:'Show again',
     changeShelf:'Change shelf',
     needRealNumber:'items still need a real number',
-    needRealSub:'counts, contradictory inventories and missing ladders',
+    needRealSub:'counts and contradictory inventories',
     openConfirmed:'open items will be confirmed as <b>✓</b>',
     casesInOrder:'cases in the order',
     enterFirst:'Enter the numbers first',
@@ -2229,6 +2271,10 @@ const T={
     scanNoHitSub:'Check the number or scan again.',
     scanCodePh:'Barcode / PLU',
     scanTypeOrScan:'Type a barcode or scan one.',
+    scanNotListed:'Not in the order guide.',
+    scanNo:'No.',
+    scanAltLead:'These order-guide items come closest:',
+    scanAltNone:'No similar item found in the order guide.',
     moveAskEyebrow:'Shelf assignment',
     moveAskTitle:'Move items to this shelf?',
     moveFrom:'was',
@@ -2283,6 +2329,7 @@ const T={
     atLeast:'min.',
     exactly:'exactly',
     anyAmount:'any amount',
+    noCountNeeded:'No count needed',
     prevOrder:'Ord.',
     case:'Case',
     dlgPendingOne:'You still have 1 open item that needs your attention.',
@@ -2358,7 +2405,7 @@ const T={
     unhideItem:'Réafficher',
     changeShelf:'Changer de rayon',
     needRealNumber:'articles ont encore besoin d’un chiffre réel',
-    needRealSub:'comptages, inventaires contradictoires et échelles manquantes',
+    needRealSub:'comptages et inventaires contradictoires',
     openConfirmed:'articles ouverts seront confirmés par <b>✓</b>',
     casesInOrder:'colis dans la commande',
     enterFirst:'Saisir d’abord les chiffres',
@@ -2415,6 +2462,10 @@ const T={
     scanNoHitSub:'Vérifiez le numéro ou scannez à nouveau.',
     scanCodePh:'Code-barres / PLU',
     scanTypeOrScan:'Saisissez un code-barres ou scannez.',
+    scanNotListed:'Absent de l’assortiment.',
+    scanNo:'N°',
+    scanAltLead:'Ces articles de l’assortiment s’en rapprochent le plus :',
+    scanAltNone:'Aucun article similaire dans l’assortiment.',
     moveAskEyebrow:'Affectation de rayon',
     moveAskTitle:'Affecter les articles à ce rayon ?',
     moveFrom:'avant',
@@ -2469,6 +2520,7 @@ const T={
     atLeast:'min.',
     exactly:'exactement',
     anyAmount:'peu importe',
+    noCountNeeded:'Aucun comptage nécessaire',
     prevOrder:'Cde',
     case:'Colis',
     dlgPendingOne:'Il vous reste 1 article ouvert qui nécessite votre attention.',
@@ -2629,6 +2681,16 @@ function mode(it){
   if(r.kind==='any') return 'any';
   return 'ask';
 }
+/* Zwei der drei 'need'-Modi fragen gar nichts ab. 'any' ("egal wie viel") und
+   'noladder' (kein Forecast, also kein Szenario-Vorschlag und keine Spanne)
+   bestellen 0 Kisten, egal was im Regal liegt: eine getippte Zahl landet in
+   applyKo() zwangslaeufig in derselben einzigen Sprosse und laesst order auf 0.
+   Ein Strich mit lebendem +/- hat dort also eine Eingabe verlangt, die nichts
+   bewegen konnte. Diese Zeilen sind gesperrt und sagen es hin: "Keine Zaehlung
+   notwendig". 'count' (ZAEHLEN) sieht mit demselben Strich genauso aus, hat aber
+   eine echte Leiter darunter -- dort verschiebt die Zahl den Vorschlag, und die
+   Zeile bleibt eingebbar. */
+function noCount(s){ return s.mode==='any' || s.mode==='noladder'; }
 /* Der Bestand ist jetzt ein Stepper statt der Kachel weniger/✓/mehr: "home" ist die
    Ansicht, in die man zurueckkehrt -- 'range' zeigt die Sprosse des Modells (ask/unsure),
    'need' zeigt "– KO" fuer Pflichtzeilen (count/noladder). Jeder Druck (auch ueber das
@@ -2822,6 +2884,16 @@ const ICON_SCAN='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" str
 const ICON_MINUS='<svg width="16" height="5" viewBox="0 0 16 5" fill="none" aria-hidden="true"><path d="M8 0.900391C7.12 0.900391 6.4 0.900558 6.4 0.900558H1.6C0.72 0.900558 0 1.62056 0 2.50056C0 3.38056 0.72 4.10056 1.6 4.10056H6.4H8H9.6H14.4C15.28 4.10056 16 3.38056 16 2.50056C16 1.62056 15.28 0.900558 14.4 0.900558C14.4 0.900558 11.4745 0.900705 9.6 0.900558C8.97516 0.900509 8.88 0.900391 8 0.900391Z" fill="currentColor"/></svg>';
 const ICON_PLUS='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 0C7.12 0 6.4 0.72 6.4 1.6V6.4H1.6C0.72 6.4 0 7.12 0 8C0 8.88 0.72 9.6 1.6 9.6H6.4V14.4C6.4 15.28 7.12 16 8 16C8.88 16 9.6 15.28 9.6 14.4V9.6H14.4C15.28 9.6 16 8.88 16 8C16 7.12 15.28 6.4 14.4 6.4H9.6V1.6C9.6 0.72 8.88 0 8 0Z" fill="currentColor"/></svg>';
 function stepHTML(it,s,ix){
+  /* Gesperrte Zeile: dieselbe Pille, damit die Spalte ueber alle Zeilen ausgerichtet
+     bleibt -- aber ohne data-a (kein Keypad), mit disabled -/+ und ohne den amber
+     Warnrahmen, der eine offene Aufgabe behauptet hat. */
+  if(noCount(s)){
+    return `<div class="InventoryCounterField InventoryCounterField--nocount">
+    <button class="InventoryCounterField__button" type="button" disabled aria-hidden="true">${ICON_MINUS}</button>
+    <div class="InventoryCounterField__box"><span class="InventoryCounterField__note">${t().noCountNeeded}</span></div>
+    <button class="InventoryCounterField__button" type="button" disabled aria-hidden="true">${ICON_PLUS}</button>
+  </div>`;
+  }
   const showUnsure = !s.touched && (s.mode==='unsure'||s.mode==='count'||s.mode==='noladder');
   const cls='InventoryCounterField'+(showUnsure?' InventoryCounterField--warn':'');
   let minusOff,plusOff,big,small;
@@ -2939,7 +3011,11 @@ function whyTags(ix, kind){
    und der orangene Punkt an der Bestellmenge. rowClear() ist ihr UND, die
    Regalkacheln zaehlen sie einzeln -- eine Regel, drei Leser, damit die
    Uebersicht nie etwas anderes behauptet als die Zeile darunter. */
-function bangInv(it,s){ return !s.touched && (s.mode==='unsure' || !!it.invNote); }
+/* Eine gesperrte Zeile kann nie 'touched' werden. Ohne den noCount-Ausschluss haette
+   das rote ! an den Zeilen mit invNote fuer immer gestanden -- neben einem Feld, das
+   ausdruecklich sagt, dass keine Zaehlung noetig ist -- und rowClear() waere dort nie
+   wahr geworden (Regalfortschritt und Uebersicht haetten sie dauerhaft offen gefuehrt). */
+function bangInv(it,s){ return !s.touched && !noCount(s) && (s.mode==='unsure' || !!it.invNote); }
 function bangOrd(it,s){ return !s.manual && !!it.ordNote; }
 /* a row counts as erfasst for category progress once neither bang shows —
    mirrors the two bang() calls in render() exactly, not the answered flag. */
@@ -2950,7 +3026,7 @@ function rowClear(it,s){
 /* Trifft eine Zeile die vier Merkmalsfilter -- die ODER-Regel aus render(), einmal
    an einer Stelle, damit Liste und Chip-Zahl nicht auseinanderlaufen. */
 function filtMatch(it,s){
-  const hasInvBang = !s.touched && (s.mode==='unsure' || it.invNote); /* wie invBang in rowClear() */
+  const hasInvBang = bangInv(it,s); /* dieselbe Regel wie in rowClear(), nicht mehr nachgebaut */
   return (CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
       || (CATFILT.bio && it.bio) || (CATFILT.promo && it.promo);
 }
@@ -3025,7 +3101,7 @@ function rowHTML(ix, extraCls, forceEye){
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
-    const noteTxt = s.touched ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
+    const noteTxt = (s.touched||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt,'inv',ix)}</div>`;
     cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">${t().displaySize} <u>${s.auslage!=null?s.auslage:1}</u> ${t().caseUnit}</div></div>`;
 
@@ -3920,7 +3996,72 @@ function pluApproxMatch(plu, qDigits){
    der Hand haelt, will ihn sehen, auch wenn er in der Liste gerade wegfaellt.
    Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
    an rowClick(), also am selben Zustand wie die Liste. */
-let SCAN={plu:null, matches:[], timer:null};
+let SCAN={plu:null, matches:[], unlisted:null, timer:null};
+
+/* ---------- Gescannt, aber nicht im Ordersatz ----------
+   Am Regal steht mehr, als auf der Bestellliste steht: Artikel aus einer
+   anderen Warengruppe, Streckenware, ausgelistete Nummern. Der Barcode ist
+   trotzdem lesbar und der Artikelstamm kennt Name und Nummer -- nur bestellen
+   laesst er sich hier nicht. Fuer die Demo steht dieser Stamm als kleine Liste
+   hier; im Produkt kaeme er aus dem Artikelstamm der Filiale. */
+const UNLISTED = [
+  {plu:1907512, name:'APFEL ELSTAR 6,5KG REWE BW 1KG LS'},
+  {plu:2734118, name:'TOMATE OCHSENHERZ REWE BW 500G SL'},
+  {plu:1041288, name:'KARTOFFEL DRILLINGE REWE BW 750G SL'},
+  {plu:1057344, name:'ORANGE BLUT MORO UEB REWE BW 1KG LS'},
+  {plu:483722,  name:'GURKE SNACK REWE BW 250G SL'},
+  {plu:8229901, name:'PILZ KRAEUTERSEITLING REWE BW 200G SL'},
+  {plu:305421,  name:'WASSERMELONE KERNARM 1ST LS'},
+  {plu:1043508, name:'SALAT FELDSALAT NRW REWE REG 125G SL'},
+];
+function unlistedOf(digits){
+  if(!digits) return null;
+  return UNLISTED.find(u=>String(u.plu)===digits) || null;
+}
+
+/* Aus welchen Woertern eines Artikelnamens laesst sich Aehnlichkeit ablesen?
+   Nicht aus Herkunft, Marke, Gebindekuerzel oder Gewicht -- die stehen auf
+   fast jedem Namen. Uebrig bleibt, was den Artikel ausmacht: APFEL, ELSTAR. */
+const NAME_NOISE=new Set(['rewe','bio','ogt','nrw','reg','ueb','group','neutral',
+  'neutr','deu','eur','fra','plu','bund','stk','kart','lose','premium','snack']);
+function nameTokens(name){
+  return String(name||'').toLowerCase().split(/[^a-zäöüß]+/)
+    .filter(w=>w.length>2 && !NAME_NOISE.has(w));
+}
+/* Was koennte der Kaufmann stattdessen bestellen? Zuerst dieselbe Sorte
+   (gleiches erstes Wort: APFEL zu APFEL), dann was den Namen teilt, dann was
+   im selben Regal steht. Ausgeblendetes bleibt drin -- wer den Artikel in der
+   Hand haelt, soll die Alternative sehen, auch wenn die Liste sie wegfiltert. */
+function scanAlternatives(u){
+  if(!u) return [];
+  const ut=nameTokens(u.name), first=ut[0]||'', tile=tileByName(u.name);
+  const scored=[];
+  ITEMS.forEach((it,ix)=>{
+    const t2=nameTokens(it.name);
+    let sc=0;
+    if(first && t2[0]===first) sc+=6;
+    sc+=2*t2.filter(w=>ut.includes(w)).length;
+    if(tileOf(it)===tile) sc+=3;
+    if(sc>0) scored.push({ix, sc});
+  });
+  scored.sort((a,b)=>b.sc-a.sc || a.ix-b.ix);
+  /* Gibt es Artikel derselben Sorte, tritt der blosse Regalnachbar zurueck:
+     neben zwei Kartoffelsorten will niemand noch Zwiebeln vorgeschlagen
+     bekommen. Nur wenn nichts Naeheres da ist, fuellt das Regal die Liste. */
+  const strong=scored.filter(x=>x.sc>=5);
+  const list=strong.length
+    ? strong.concat(scored.filter(x=>x.sc<5)).slice(0, Math.max(strong.length, 4))
+    : scored.slice(0,6);
+  return list.map(x=>x.ix);
+}
+
+/* Ein Code kommt aus dem Sucher oder aus dem Suchfeld -- beide Wege setzen
+   denselben Zustand, damit das Ergebnis nicht davon abhaengt, wie er hereinkam. */
+function setScanCode(digits){
+  SCAN.plu=digits||'';
+  SCAN.matches=scanMatches(SCAN.plu);
+  SCAN.unlisted=SCAN.matches.length?null:unlistedOf(SCAN.plu);
+}
 /* Beim Scannen gefundene Artikel, die laut App in ein anderes Regal gehoeren.
    Sie werden hier gesammelt und erst beim Zurueckkommen ins Regal gefragt --
    waehrend des Scannens wird nichts gefragt. SCAN_DECLINED haelt fest, was der
@@ -3938,14 +4079,19 @@ window.addEventListener('resize', scanFootOffset);
 scanFootOffset();
 
 /* Fuer die Demo wird bevorzugt ein Artikel "gescannt", den die Liste gerade NICHT
-   zeigt -- genau der Fall, um den es geht. Gibt es keinen, irgendeiner. */
-function pickScanTarget(){
+   zeigt -- genau der Fall, um den es geht. Gibt es keinen, irgendeiner.
+   Ungefaehr jeder dritte Scan trifft dabei eine Nummer, die ueberhaupt nicht im
+   Ordersatz steht: auch dieser Fall gehoert ans Regal und soll in der Demo von
+   selbst vorkommen, nicht erst wenn man die Nummer von Hand eintippt. */
+function pickScanCode(){
+  if(UNLISTED.length && Math.random()<0.34)
+    return String(UNLISTED[Math.floor(Math.random()*UNLISTED.length)].plu);
   const vis=new Set(SHOWN_IDX);
   const all=ITEMS.map((_,ix)=>ix);
   const off=all.filter(ix=>!vis.has(ix) && ITEMS[ix].plu!=null);
   const pool=off.length?off:all.filter(ix=>ITEMS[ix].plu!=null);
   if(!pool.length) return null;
-  return pool[Math.floor(Math.random()*pool.length)];
+  return String(ITEMS[pool[Math.floor(Math.random()*pool.length)]].plu);
 }
 
 /* Ein Barcode am Regal traegt die PLU, oft mit Vor-/Nullstellen. Exakte Treffer
@@ -3978,10 +4124,10 @@ function openScanCam(){
   /* Der nachgestellte Kamerablick "erkennt" nach einem Moment von selbst etwas.
      Eine bestimmte Nummer laesst sich danach im Suchfeld des Ergebnisses setzen. */
   clearTimeout(SCAN.timer);
-  const target=pickScanTarget();
+  const code=pickScanCode();
   SCAN.timer=setTimeout(()=>{
-    if(target==null){ closeScanCam(); return; }
-    doScan(String(ITEMS[target].plu));
+    if(code==null){ closeScanCam(); return; }
+    doScan(code);
   }, 1800);
 }
 function closeScanCam(){
@@ -3997,8 +4143,7 @@ function doScan(digits){
   cam.classList.add('busy');
   setTimeout(()=>{
     cam.classList.remove('on','busy');
-    SCAN.plu=digits;
-    SCAN.matches=scanMatches(digits);
+    setScanCode(digits);
     notePendingMove();
     renderScanRes();
   }, 340);
@@ -4115,9 +4260,14 @@ function renderScanRes(keepOpen, keepFocus){
   /* Leeres Feld heisst "noch nichts gescannt", nicht "nichts gefunden" -- sonst
      steht die Fehlmeldung da, sobald man den Code loescht, um neu zu tippen. */
   const noCode = !SCAN.plu;
+  /* Nicht im Ordersatz, aber im Artikelstamm: dann steht oben der Name des
+     Artikels, den man in der Hand haelt, und darunter die Alternativen. */
+  const u = noCode ? null : SCAN.unlisted;
+  const alts = u ? scanAlternatives(u) : [];
   const head = noCode ? L.scanTitle
+    : (u ? u.name
     : (m.length===1 ? ITEMS[m[0]].name
-    : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit));
+    : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit)));
   const tags = m.length===1 ? scanTags(m[0]) : [];
   sheet.innerHTML = `
     <div class="scanRes__hdr">
@@ -4132,11 +4282,21 @@ function renderScanRes(keepOpen, keepFocus){
       <input id="scanResQ" type="search" inputmode="numeric" autocomplete="off"
              placeholder="${L.scanCodePh}" value="${(SCAN.plu||'').replace(/"/g,'&quot;')}">
     </div></div>
+    ${u?`<div class="scanRes__miss">
+      <span class="ic" aria-hidden="true">!</span>
+      <div class="tx">
+        <div class="nm">${u.name} <span class="no">· ${L.scanNo} ${u.plu}</span></div>
+        <div class="sub">${L.scanNotListed} ${alts.length?L.scanAltLead:''}</div>
+      </div>
+    </div>`:''}
     ${m.length?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
     ${tags.length?`<div class="scanRes__tags">${tags.map(x=>`<span class="scanRes__tag">${x}</span>`).join('')}</div>`:''}
     <div class="scanRes__body" id="scanResBody">
       ${m.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
       ${m.map(ix=>rowHTML(ix,'',true)).join('')}`
+      :u?(alts.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
+      ${alts.map(ix=>rowHTML(ix,'',true)).join('')}`
+      :`<div class="scanRes__empty">${L.scanAltNone}</div>`)
       :`<div class="scanRes__empty">${noCode?L.scanTypeOrScan:L.scanNoHitSub}</div>`}
     </div>
     <div class="scanRes__foot">
@@ -4151,8 +4311,7 @@ function renderScanRes(keepOpen, keepFocus){
   if(q){
     if(keepFocus){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
     q.addEventListener('input', e=>{
-      SCAN.plu=e.target.value.replace(/\D/g,'');
-      SCAN.matches=scanMatches(SCAN.plu);
+      setScanCode(e.target.value.replace(/\D/g,''));
       renderScanRes(false, true);
     });
   }
@@ -4267,6 +4426,10 @@ function invRangeText(plo,phi,unit,cs,it){
 }
 function openInvPad(ix){
   const it=ITEMS[ix], s=ST[ix];
+  /* Der Kasten dieser Zeilen traegt kein data-a mehr, also kommt hier nichts an --
+     der Riegel bleibt trotzdem, damit ein spaeterer zweiter Aufrufer (Scan-Ansicht,
+     Tastatur) die Sperre nicht versehentlich umgeht. */
+  if(noCount(s)) return;
   const canPcs = it.case!=null;
   const r = (s.step==='range' && it.rungs[s.plan] && it.rungs[s.plan].kind!=='any') ? it.rungs[s.plan] : null;
   /* rLoKO/rHiKO bleiben die rohen Grenzen -- sie entscheiden, OB der getippte Wert noch
@@ -4492,7 +4655,11 @@ const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverla
    Regale, nicht nur ueber das zuletzt besuchte. */
 function openSummary(){
   const implicit=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&ST[ix].mode==='ask');
-  const blocked=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&['count','noladder','unsure'].includes(ST[ix].mode));
+  /* noladder steht hier weiter drin, greift aber nur noch fuer Zeilen, die ueberhaupt
+     eine Eingabe annehmen. Ohne diesen Ausschluss haetten die gesperrten Zeilen
+     "Bestellung abschliessen" dauerhaft blockiert (go.disabled unten): unbeantwortet,
+     ohne jeden Weg, sie zu beantworten. */
+  const blocked=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&!noCount(ST[ix])&&['count','noladder','unsure'].includes(ST[ix].mode));
   const blockedSet=new Set(blocked);
   const unresolved=ITEMS.filter((it,ix)=>
     !ST[ix].hidden && !rowClear(it,ST[ix]) && !blockedSet.has(it));
