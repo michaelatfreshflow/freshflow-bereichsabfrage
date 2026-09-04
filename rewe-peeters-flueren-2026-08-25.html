@@ -1007,6 +1007,26 @@ body.isFiltering{
   cursor:pointer;color:var(--ink)}
 .reordBtn:hover:not(:disabled){background:var(--ff-grey-200)}
 .reordBtn:disabled{opacity:.3;cursor:default}
+/* Im Bearbeiten-Modus steht an der Stelle des Akzentpunkts das echte Icon des
+   Regals -- es ist der Knopf, der das Symbol-Auswahlblatt oeffnet. Gleiche
+   Masse und Tokens wie .reordBtn, damit die Zeile ihren Rhythmus behaelt.
+   Die Uebergangszustaende der Zeile (umbenennen, loeschen-bestaetigen, neu
+   anlegen) behalten den Punkt -- dort ist kein Symbolwechsel vorgesehen. */
+.catrow .rowIcon{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--ff-radius-c8);border:1px solid var(--ff-primary-20);background:var(--ff-grey-100);
+  padding:0;cursor:pointer}
+.catrow .rowIcon:hover{background:var(--ff-grey-200)}
+.catrow .rowIcon img{width:22px;height:22px;object-fit:contain;display:block}
+/* Das Symbol-Auswahlblatt: reine Bildkacheln, kein Text -- der Regalname steht
+   schon in der Kopfzeile. Die aktuelle Wahl ist gruen umrandet, dieselbe
+   Sprache wie .ShelfGridItem--done auf der Uebersicht. */
+.IconGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+.IconGridItem{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  background:var(--ff-color-white);border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-c8);
+  padding:0;cursor:pointer}
+.IconGridItem:hover{border-color:var(--ff-primary-20)}
+.IconGridItem img{width:44px;height:44px;object-fit:contain;display:block}
+.IconGridItem--on{border:2px solid var(--green);background:var(--ff-primary-5)}
 .catrow.addrow{cursor:pointer;border-style:dashed;background:var(--ff-primary-5)}
 .catrow.addrow .nm{color:var(--green)}
 .catrow .owntag{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-bold);color:var(--mute);
@@ -1604,6 +1624,7 @@ body.dash-active .scanFab{display:none}
   <div id="catConfirmRoot"></div>
   <div id="catCelebrateRoot"></div>
   <div id="catItemPickerRoot"></div>
+  <div id="catIconPickerRoot"></div>
 </div>
 </div>
 
@@ -1776,7 +1797,25 @@ const TILE_ICON = {
   'bananen-exoten':      'bananas-exotics',
   'sonstiges':           'other',
 };
-function tileIcon(id){ return `assets/categories/${TILE_ICON[id] || 'other'}.png`; }
+/* Auswahlliste fuer "Symbol aendern" im Bearbeiten-Screen. In
+   assets/categories/ liegen 36 Dateien, aber nur 27 verschiedene Bilder -- beim
+   Zusammenlegen der 23 Kategorien auf 15 Regale wurden mehrere Icons unter
+   einem zweiten Namen kopiert (potatoes = potatoes-onions, citrus =
+   citrus-fruit, salads = salads-cabbage = leaf, root = root-vegetables,
+   peppers = peppers-chili, stone-fruit = stone-fruit-grapes, bananas =
+   bananas-exotics). Hier steht darum jeweils nur EIN Name pro Bild, sonst
+   stuenden im Auswahlblatt sichtbare Doppelgaenger. Reihenfolge wie der
+   Rundgang: Gemuese, dann Obst, dann Sonstiges. */
+const ICON_CHOICES = [
+  'potatoes-onions','onions','root-vegetables','salads-cabbage','cabbage',
+  'leafy-vegetables','salad-bags','tomatoes','peppers-chili','fruiting-vegetables',
+  'legumes','mushrooms','herbs','chilled-vegetables','chilled-fruit',
+  'pome-fruit','stone-fruit-grapes','grapes','berries','citrus-fruit',
+  'bananas-exotics','exotic','nuts','eggs','flowers','promo','other'
+];
+/* Vorrang wie bei tileLabel(): eigene Wahl des Kaufmanns, dann die
+   Werksvorgabe, dann das Sonstiges-Icon. */
+function tileIcon(id){ return `assets/categories/${TILE_ICONS[id] || TILE_ICON[id] || 'other'}.png`; }
 /* Als die 23 Kategorien auf 15 Regale zusammengelegt wurden, aenderten sich
    die Regal-IDs. Auf einem Geraet, das schon einmal benutzt wurde, zeigen
    catOverride/catTileLabels aber noch auf die alten IDs -- ohne Umschluesselung
@@ -1848,6 +1887,28 @@ function loadTileLabels(){
 }
 function saveTileLabels(){ try{ localStorage.setItem('catTileLabels', JSON.stringify(TILE_LABELS)); }catch(e){} }
 let TILE_LABELS = loadTileLabels();
+/* Regal-Symbole sind im Bearbeiten-Screen austauschbar (siehe .rowIcon),
+   persistiert pro Geraet wie TILE_LABELS. Ein eigenes Regal hat keinen
+   TILE_ICON-Eintrag und traegt sonst dauerhaft das Sonstiges-Icon; und ein
+   umbenanntes Regal ("Kernobst" -> "Aepfel & Birnen") behielte sonst das
+   alte Bild. Werte, die nicht in ICON_CHOICES stehen, fliegen beim Laden raus
+   -- ein Altbestand darf kein kaputtes <img> erzeugen. */
+function loadTileIcons(){
+  try{
+    const v=JSON.parse(localStorage.getItem('catTileIcons')||'{}');
+    if(!v || typeof v!=='object') return {};
+    const out={};
+    /* Wie bei loadTileLabels(): beim Zusammenlegen kann ein uebersteuertes
+       Regal in einem anderen aufgehen -- dann gewinnt die erste Wahl. */
+    Object.keys(v).forEach(k=>{
+      const id=aliasTileId(k);
+      if(!(id in out) && ICON_CHOICES.indexOf(v[k])>=0) out[id]=v[k];
+    });
+    return out;
+  }catch(e){ return {}; }
+}
+function saveTileIcons(){ try{ localStorage.setItem('catTileIcons', JSON.stringify(TILE_ICONS)); }catch(e){} }
+let TILE_ICONS = loadTileIcons();
 /* Eigene Regale: zusaetzlich zu den fest verdrahteten TILES kann der
    Kaufmann eigene Kacheln anlegen (z.B. "Deko" oder "Feiertagsartikel").
    Persistiert pro Geraet wie TILE_LABELS/CAT_OVERRIDE. Ein eigenes Regal
@@ -1885,6 +1946,8 @@ function deleteCustomTile(id){
   saveTileOrder();
   delete TILE_LABELS[id];
   saveTileLabels();
+  delete TILE_ICONS[id];
+  saveTileIcons();
   Object.keys(CAT_OVERRIDE).forEach(k=>{ if(CAT_OVERRIDE[k]===id) delete CAT_OVERRIDE[k]; });
   saveCatOverride();
   if(CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===id) CATFILTER=null;
@@ -2738,6 +2801,7 @@ let CAT_EDIT=false;        // Regale overlay is in "adjust order" mode
 let RENAME_TILE_ID=null;   // tile id currently shown with a rename input, or null
 let ADDING_TILE=false;     // "+ Neue Regal" input is open in the Bearbeiten screen
 let DELETE_TILE_ID=null;   // eigenes Regal currently showing its "wirklich löschen?" confirm row
+let ICON_PICK_TILE=null;   // tile id whose Symbol-Auswahlblatt is open, or null
 let CATFILTER=null;        // {kind:'tile'|'promo', id, label} | null
 let CATFINISHED={};        // {[tileId]: true} — cosmetic "✓ Fertig" close-out
 let CATCONFIRM=null;       // {id,label} | null — confirm dialog open for this tile
@@ -3283,7 +3347,7 @@ window.addEventListener('popstate', e=>{
 history.replaceState({page:'dash'}, '', location.href);
 showDash();
 function pickCategory(kind,id,label){ goToList({kind,id,label}); }
-function closeCat(){ CATOPEN=false; render(); }
+function closeCat(){ CATOPEN=false; ICON_PICK_TILE=null; render(); }
 
 /* Regale-Rundgang: dieselbe Reihenfolge wie im Regale-Grid
    (TILE_ORDER, Sonstiges als letztes Regal) -- ‹/› neben dem
@@ -3458,7 +3522,7 @@ function renderCatOverlay(){
           </div>`;
         }
         return `<div class="catrow">
-          <span class="dot" style="background:${tl.accent}"></span>
+          <button class="rowIcon" data-a="cat-icon" data-id="${tl.id}" type="button" title="Symbol ändern"><img src="${tl.icon}" alt="" onerror="this.style.visibility='hidden'"></button>
           <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel</div></div>
           <div class="rebtns">
             ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="Löschen">🗑</button>`:''}
@@ -3490,7 +3554,7 @@ function renderCatOverlay(){
         <div style="flex:1">
           <div class="eyebrow">${t().shelfEyebrow}</div>
           <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : t().shelfTitle}</h2>
-          ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben.</div>' : ''}
+          ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben. Ein Tipp auf das Bild wechselt das Symbol.</div>' : ''}
         </div>
         <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? t().shelfDone : '✎ '+t().editShelves}</button>
         <button class="x" id="catCloseBtn" type="button" title="${t().close}">✕</button>
@@ -3505,7 +3569,7 @@ function renderCatOverlay(){
   </div>`;
 
   document.getElementById('catCloseBtn').onclick=closeCat;
-  document.getElementById('catEditBtn').onclick=()=>{ CAT_EDIT=!CAT_EDIT; CATQUERY=''; renderCatOverlay(); };
+  document.getElementById('catEditBtn').onclick=()=>{ CAT_EDIT=!CAT_EDIT; CATQUERY=''; ICON_PICK_TILE=null; renderIconPicker(); renderCatOverlay(); };
   /* Das Scan-Symbol in der Suchzeile war Deko -- es fuehrt jetzt in denselben
      Sucher wie der FAB, damit ein Tipp darauf nicht ins Leere geht. */
   const catScan=document.getElementById('catScanBtn');
@@ -3544,6 +3608,9 @@ function renderCatOverlay(){
   });
   root.querySelectorAll('[data-a="cat-down"]').forEach(el=>{
     el.addEventListener('click', ()=>moveTileOrder(el.dataset.id,1));
+  });
+  root.querySelectorAll('[data-a="cat-icon"]').forEach(el=>{
+    el.addEventListener('click', ()=>openIconPicker(el.dataset.id));
   });
   root.querySelectorAll('[data-a="cat-rename"]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -3614,6 +3681,54 @@ function saveTileRename(tileId){
   saveTileLabels();
   RENAME_TILE_ID=null;
   renderCatOverlay();
+}
+
+/* ---------- Symbol eines Regals waehlen ----------
+   Nur aus dem Bearbeiten-Screen erreichbar (der .rowIcon-Knopf in der Zeile).
+   Dasselbe .catov-Blatt wie der Regal-Wechsel-Picker weiter unten, aber mit
+   Bildkacheln statt Regalkacheln. Die Wahl liegt in TILE_ICONS/localStorage und
+   wirkt ueberall, wo tileIcon() schon aufgerufen wird -- Uebersicht,
+   Bearbeiten-Zeile, Regal-Wechsel-Picker. */
+function openIconPicker(id){ ICON_PICK_TILE=id; renderIconPicker(); }
+function closeIconPicker(){ ICON_PICK_TILE=null; renderIconPicker(); }
+function renderIconPicker(){
+  const root=document.getElementById('catIconPickerRoot');
+  if(!ICON_PICK_TILE){ root.innerHTML=''; return; }
+  const id=ICON_PICK_TILE;
+  const hdr=document.querySelector('.hdr');
+  const topPx = hdr ? hdr.offsetHeight : 0;
+  /* Aktuell sichtbares Symbol, egal ob eigene Wahl oder Werksvorgabe -- damit
+     die Kachel markiert ist, die der Kaufmann gerade in der Zeile sieht. */
+  const current = TILE_ICONS[id] || TILE_ICON[id] || 'other';
+  root.innerHTML = `<div class="catov" style="top:${topPx}px">
+    <div class="catsheet">
+      <div class="cathdr">
+        <div style="flex:1">
+          <div class="eyebrow">Regal-Symbol</div>
+          <h2>${tileLabel(id)}</h2>
+          <div class="sub">Tippen wählt das Symbol für dieses Regal.</div>
+        </div>
+        <button class="x" id="iconPickClose" type="button" title="${t().close}">✕</button>
+      </div>
+      <div class="catbody">
+        <div class="IconGrid">${ICON_CHOICES.map(f=>`
+          <button class="IconGridItem${f===current?' IconGridItem--on':''}" data-a="icon-pick" data-file="${f}" type="button" title="${f}">
+            <img src="assets/categories/${f}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+          </button>`).join('')}</div>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('iconPickClose').onclick=closeIconPicker;
+  root.querySelectorAll('[data-a="icon-pick"]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      TILE_ICONS[id]=el.dataset.file;
+      saveTileIcons();
+      ICON_PICK_TILE=null;
+      renderIconPicker();
+      renderCatOverlay();
+      render();
+    });
+  });
 }
 
 /* ---------- Regal eines einzelnen Artikels uebersteuern ----------
@@ -4642,7 +4757,7 @@ function legend(){
   legendEl.innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
-const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker()};
+const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker();renderIconPicker()};
 /* ---------- complete order ---------- */
 /* Zwei Stufen von "noch nicht fertig", bewusst verschieden hart:
 
