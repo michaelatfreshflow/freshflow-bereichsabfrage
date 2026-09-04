@@ -418,6 +418,10 @@ body.isFiltering{
 .pill.ord{border-color:#b8caea;background:var(--blue-bg);color:#183f80}
 .pill.catassign{border-color:var(--green);color:var(--green);cursor:pointer;font-family:inherit}
 .pill.catassign:hover{background:var(--ok-bg)}
+/* Der Grund, warum die Zeile in der Liste gerade nicht zu sehen waere, stand als
+   eigenes Band ueber dem Ergebnis. Er gehoert an den Artikel selbst -- neben Werb.
+   und Bio, wo alles andere ueber die Zeile auch steht. */
+.pill.scantag{border-color:#e6c79a;background:var(--amber-bg);color:#8a4b00;font-weight:var(--ff-weight-bold)}
 
 /* ---------- statement cell ---------- */
 .stmt{border:1.5px solid var(--ff-grey-200);border-radius:10px;padding:9px 12px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);background:var(--ff-color-white)}
@@ -1258,9 +1262,6 @@ body.dash-active .scanFab{display:none}
 .scanRes__note{padding:10px 20px;background:var(--ff-grey-100);color:var(--ff-grey-800);
   border-left:3px solid var(--green);
   font-size:var(--ff-text-primary-caption-12);line-height:1.5}
-.scanRes__tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px 0}
-.scanRes__tag{background:var(--amber-bg);color:#8a4b00;border-radius:7px;padding:4px 9px;
-  font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
 /* Gescannt, aber nicht im Ordersatz: der Artikel ist trotzdem bekannt (Name und
    Nummer stehen im Barcode-Stamm), er steht nur nicht auf dieser Bestellliste.
    Deshalb keine Fehlmeldung, sondern eine Leiste ueber der Liste -- sie nennt
@@ -3097,6 +3098,12 @@ function rowHTML(ix, extraCls, forceEye){
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
     if(s.hidden) pills+=`<span class="pill hid">Ausgeblendet</span>`;
+    /* Im Scan-Ergebnis: "Anderes Regal · Pilze" und "Vom Filter ausgeschlossen"
+       als Kennzeichen am Artikel. 'Ausgeblendet' nicht doppelt -- das steht schon
+       als eigenes Kennzeichen oben. */
+    if(forceEye) scanTags(ix).forEach(x=>{
+      if(x!==L.scanTagHidden) pills+=`<span class="pill scantag">${x}</span>`;
+    });
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
@@ -4268,7 +4275,6 @@ function renderScanRes(keepOpen, keepFocus){
     : (u ? u.name
     : (m.length===1 ? ITEMS[m[0]].name
     : (m.length ? `${m.length} ${L.scanHits}` : L.scanNoHit)));
-  const tags = m.length===1 ? scanTags(m[0]) : [];
   sheet.innerHTML = `
     <div class="scanRes__hdr">
       <div style="flex:1;min-width:0">
@@ -4290,7 +4296,6 @@ function renderScanRes(keepOpen, keepFocus){
       </div>
     </div>`:''}
     ${m.length?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
-    ${tags.length?`<div class="scanRes__tags">${tags.map(x=>`<span class="scanRes__tag">${x}</span>`).join('')}</div>`:''}
     <div class="scanRes__body" id="scanResBody">
       ${m.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
       ${m.map(ix=>rowHTML(ix,'',true)).join('')}`
