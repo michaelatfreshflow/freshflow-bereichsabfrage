@@ -1320,96 +1320,52 @@ body.dash-active .scanFab{display:none}
 .scanRes__scan:hover{background:var(--green-d)}
 .scanRes__scan:active{transform:translateY(1px)}
 
-/* ---------- Lager scannen (Bereichsabfrage: back storage) ----------
-   Derselbe nachgestellte Sucher wie beim Artikel-Scan, aber die Sitzung bleibt
-   offen: jeder Scan zaehlt eine ganze Kiste, und die Liste darunter waechst mit,
-   damit der Kaufmann beim Zaehlen sieht, was sich summiert. Der Sucher steht
-   oben und ist bewusst flacher als bei .scanCam -- die Liste braucht den Platz.
-   Die Abweisung (Nummer nicht im Ordersatz, keine Kistengroesse, dieselbe Kiste
-   noch im Bild) ist VISUELL: ein rotes Vollbild-Blinken plus Banner. Kein Ton
-   und keine Haptik -- auf dem Tablet ist der Klingelschalter aus und der Vibra-
-   Motor fehlt, damit waere die Rueckmeldung genau dann weg, wenn sie zaehlt. */
-.bsCam{position:absolute;inset:0;z-index:65;display:none;background:#0b0d0c;
+/* ---------- Lager scannen (back storage) ----------
+   Bewusst dieselbe Ansicht wie der Artikel-Scan: der Sucher traegt die
+   .scanCam__*-Klassen, das Blatt darunter ist ein .scanRes__sheet mit .colh und
+   denselben rowHTML()-Zeilen. Nur zwei Dinge sind anders:
+   1) Die Sitzung bleibt offen -- Sucher UND Blatt sind gleichzeitig zu sehen,
+      denn gezaehlt wird am Stueck und nicht in einem Ergebnis pro Scan.
+   2) Die Bestellspalte fehlt. Gezaehlt wird das Lager; die Bestellung steht in
+      der Bestellliste und wuerde hier nur ablenken.
+   Die Abweisung (nicht im Ordersatz, keine Kistengroesse, dieselbe Kiste noch im
+   Bild) ist VISUELL: rotes Vollbild-Blinken plus Banner. Kein Ton und keine
+   Haptik -- auf dem Tablet ist der Klingelschalter aus und der Vibrationsmotor
+   fehlt, damit waere die Rueckmeldung genau dann weg, wenn sie zaehlt. */
+.bsOv{position:absolute;inset:0;z-index:65;display:none;background:#0b0d0c;
   flex-direction:column;color:var(--ff-color-white)}
-.bsCam.on{display:flex}
-.bsCam__hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;
-  background:rgba(0,0,0,.35);flex:0 0 auto}
-.bsCam__hdr .ttl{flex:1;font-weight:var(--ff-weight-bold);
-  font-size:var(--ff-text-primary-body-text-16)}
-.bsCam__hdr .x{border:0;background:rgba(255,255,255,.14);color:#fff;width:34px;height:34px;
-  border-radius:50%;font-size:17px;line-height:1;cursor:pointer}
-.bsCam__view{position:relative;flex:0 0 40%;min-height:150px;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(120% 90% at 50% 40%, #23302a 0%, #0e1310 70%)}
-.bsCam__win{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:min(74%,300px);aspect-ratio:1.7/1;border-radius:12px;
-  box-shadow:0 0 0 2000px rgba(0,0,0,.42)}
-.bsCam__win i{position:absolute;width:26px;height:26px;border:3px solid var(--ff-color-white);
-  border-radius:4px}
-.bsCam__win i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0}
-.bsCam__win i:nth-child(2){right:-2px;top:-2px;border-left:0;border-bottom:0}
-.bsCam__win i:nth-child(3){left:-2px;bottom:-2px;border-right:0;border-top:0}
-.bsCam__win i:nth-child(4){right:-2px;bottom:-2px;border-left:0;border-top:0}
-.bsCam__line{position:absolute;left:14px;right:14px;top:50%;height:3px;border-radius:3px;
-  background:#FF2D2D;box-shadow:0 0 12px 2px rgba(255,45,45,.75);
-  animation:scanPulse 1.15s ease-in-out infinite}
-.bsCam__ghost{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  display:flex;gap:4px;opacity:.28}
-.bsCam__ghost span{display:block;width:3px;height:44px;background:#fff;border-radius:1px}
-.bsCam__ghost span:nth-child(3n){width:6px}
-.bsCam__ghost span:nth-child(4n){height:32px}
-.bsCam__hint{position:absolute;left:0;right:0;text-align:center;z-index:3;
-  font-size:var(--ff-text-primary-caption-12);padding:0 18px}
-.bsCam__hint--top{top:12px}
-.bsCam__hint--bot{bottom:14px;color:rgba(255,255,255,.78)}
+.bsOv.on{display:flex}
+/* Der Sucher gibt Hoehe ab, damit die mitlaufende Liste ohne Scrollen zu sehen ist. */
+.bsOv__view{flex:0 0 38%;min-height:148px}
+.bsOv__view .scanCam__win{width:min(74%,300px)}
+.bsOv__view .scanCam__ghost span{height:44px}
+.bsOv__view .scanCam__ghost span:nth-child(4n){height:32px}
+.bsOv__sheet{flex:1 1 auto;min-height:0;border-radius:16px 16px 0 0;color:var(--ink)}
 /* Quittung fuer einen gezaehlten Scan: kurzes gruenes Aufleuchten des Suchers.
    Die Abweisung nimmt dieselbe Flaeche in Rot -- gleiche Stelle, gegenteilige
    Farbe, damit sich beide nicht verwechseln lassen. */
-.bsCam__flash{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+.bsFlash{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
   transition:opacity .18s linear}
-.bsCam.ok .bsCam__flash{opacity:1;background:rgba(64,192,87,.45)}
-.bsCam.rej .bsCam__flash{opacity:1;background:rgba(214,25,25,.55)}
-.bsCam.rej .bsCam__win i{border-color:#ffd7d7}
+.bsOv.ok .bsFlash{opacity:1;background:rgba(64,192,87,.45)}
+.bsOv.rej .bsFlash{opacity:1;background:rgba(214,25,25,.55)}
+.bsOv.rej .scanCam__win i{border-color:#ffd7d7}
 .bsRej{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);z-index:6;
   background:var(--ff-color-danger);color:#fff;border-radius:10px;
   padding:12px 14px;text-align:center;font-weight:var(--ff-weight-bold);
   font-size:var(--ff-text-primary-body-text-14);box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .bsRej .sub{display:block;margin-top:3px;font-weight:var(--ff-weight-regular);
   font-size:var(--ff-text-primary-caption-12);opacity:.92}
-/* Die mitlaufende Liste. Neustes oben: die Zeile, die gerade gezaehlt wurde, soll
-   ohne Scrollen sichtbar sein. */
-.bsSheet{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
-  background:var(--ff-color-white);color:var(--ink);
-  border-radius:16px 16px 0 0;overflow:hidden}
-.bsSheet__hdr{display:flex;align-items:baseline;gap:10px;padding:13px 18px 9px;
-  border-bottom:1px solid var(--ff-grey-200);flex:0 0 auto}
-.bsSheet__hdr span{font-size:var(--ff-text-primary-caption-12);color:var(--mute);
-  text-transform:uppercase;letter-spacing:.04em}
-.bsSheet__hdr b{margin-left:auto;font-size:var(--ff-text-primary-body-text-14)}
-.bsSheet__body{flex:1 1 auto;min-height:0;overflow-y:auto}
-.bsSheet__empty{padding:30px 20px;text-align:center;color:var(--mute);
-  font-size:var(--ff-text-primary-body-text-14)}
-.bsRow{display:flex;align-items:center;gap:10px;padding:9px 18px;
-  border-bottom:1px solid var(--ff-grey-100)}
-.bsRow.just{background:#EAF7EE;animation:bsJust 1.1s ease-out}
+/* Zwei Spalten statt drei: Artikel und Lager. Die Lagerspalte nimmt die Breite der
+   Bestandsspalte, damit die Zeile so aussieht wie in der Bestellliste. */
+.colh--back,.row--back{grid-template-columns:minmax(0, 1fr)
+  minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%))}
+/* Die gerade gezaehlte Zeile hebt sich kurz ab -- bei hundert Scans ist das der
+   einzige Hinweis darauf, welche Zeile der letzte Scan getroffen hat. */
+.row--back.just{background:#EAF7EE;animation:bsJust 1.1s ease-out}
 @keyframes bsJust{0%{background:#CDEBD6}100%{background:#EAF7EE}}
-.bsRow__nm{flex:1;min-width:0;font-size:var(--ff-text-primary-body-text-14);
-  font-weight:var(--ff-weight-semibold);line-height:1.25}
-.bsRow__nm i{display:block;font-style:normal;font-weight:var(--ff-weight-regular);
-  color:var(--mute);font-size:var(--ff-text-primary-caption-12)}
-.bsRow__n{flex:0 0 auto;text-align:right;font-size:var(--ff-text-primary-caption-12);
-  color:var(--mute);min-width:62px}
-.bsRow__n b{display:block;font-size:var(--ff-text-primary-body-text-16);
-  color:var(--ink)}
-.bsRow__b{flex:0 0 auto;width:34px;height:34px;border-radius:9px;cursor:pointer;
-  border:1.5px solid var(--ff-grey-300);background:var(--ff-color-white);
-  color:var(--ff-grey-800);display:flex;align-items:center;justify-content:center}
-.bsRow__b:active{transform:translateY(1px)}
-.bsSheet__foot{flex:0 0 auto;display:flex;align-items:center;gap:14px;
-  padding:11px 18px;border-top:1px solid var(--ff-grey-200)}
 /* Bewusst standardmaessig AUS: eine abgebrochene halbe Zaehlung darf keine
    Bestaende auf 0 setzen. */
-.bsFull{flex:1;display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.bsFull{flex:1;display:flex;align-items:flex-start;gap:9px;cursor:pointer;min-width:0}
 .bsFull input{margin:2px 0 0;width:19px;height:19px;flex:0 0 auto;accent-color:var(--green)}
 .bsFull b{display:block;font-size:var(--ff-text-primary-body-text-14);
   font-weight:var(--ff-weight-semibold)}
@@ -1722,33 +1678,26 @@ body.dash-active .scanFab{display:none}
     </div>
   </div>
   <div class="scanRes" id="scanRes" role="dialog" aria-modal="true"><div class="scanRes__sheet" id="scanResSheet"></div></div>
-  <!-- Lager scannen: Dauersitzung. Sucher oben, mitlaufende Liste darunter --
-       der Kaufmann soll beim Zaehlen sehen, was sich summiert, ohne wegzuwechseln. -->
-  <div class="bsCam" id="bsCam" role="dialog" aria-modal="true" aria-labelledby="bsTitle">
-    <div class="bsCam__hdr">
+  <!-- Lager scannen: dieselbe Ansicht wie der Artikel-Scan (.scanCam__* oben,
+       .scanRes__sheet unten), nur bleibt die Sitzung offen und die Bestellspalte
+       fehlt -- gezaehlt wird das Lager. -->
+  <div class="bsOv" id="bsCam" role="dialog" aria-modal="true" aria-labelledby="bsTitle">
+    <div class="scanCam__hdr">
       <div class="ttl" id="bsTitle">Lager scannen</div>
       <button class="x" id="bsX" type="button" title="Schließen">✕</button>
     </div>
-    <div class="bsCam__view">
-      <div class="bsCam__hint bsCam__hint--top" id="bsHint">Kistenetikett in den Rahmen halten</div>
-      <div class="bsCam__win">
+    <div class="scanCam__view bsOv__view">
+      <div class="scanCam__hint scanCam__hint--top" id="bsHint">Kistenetikett in den Rahmen halten</div>
+      <div class="scanCam__win">
         <i></i><i></i><i></i><i></i>
-        <div class="bsCam__ghost" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="bsCam__line"></div>
+        <div class="scanCam__ghost" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="scanCam__line"></div>
       </div>
-      <div class="bsCam__hint bsCam__hint--bot" id="bsSub">Jeder Scan zählt eine ganze Kiste</div>
-      <div class="bsCam__flash" aria-hidden="true"></div>
+      <div class="scanCam__hint scanCam__hint--bot" id="bsSub">Jeder Scan zählt eine ganze Kiste</div>
+      <div class="bsFlash" aria-hidden="true"></div>
       <div class="bsRej" id="bsRej" role="status" aria-live="assertive" hidden></div>
     </div>
-    <div class="bsSheet">
-      <div class="bsSheet__hdr"><span id="bsListTitle">Gescannt</span><b id="bsSum"></b></div>
-      <div class="bsSheet__body" id="bsList"></div>
-      <div class="bsSheet__foot">
-        <label class="bsFull"><input type="checkbox" id="bsFull">
-          <span><b id="bsFullTitle">Lager vollständig gezählt</b><i id="bsFullHint">Setzt den Lagerbestand aller nicht gescannten Artikel auf 0 Kisten.</i></span></label>
-        <button class="cta" id="bsDone" type="button">Fertig</button>
-      </div>
-    </div>
+    <div class="scanRes__sheet bsOv__sheet" id="bsResSheet"></div>
   </div>
   <div class="moveAsk" id="moveAsk" role="dialog" aria-modal="true"><div class="moveAsk__sheet" id="moveAskSheet"></div></div>
   <div id="catOverlayRoot"></div>
@@ -2286,7 +2235,11 @@ const T={
     bsListTitle:'Gescannt',
     bsSummary:'{i} Artikel · {c} Kisten',
     bsEmpty:'Noch keine Kiste gescannt.',
-    bsCrates:'Kisten',
+    bsResEyebrow:'Lager scannen',
+    bsNote:'Jeder Scan zählt eine ganze Kiste. – und + nehmen einen Fehlscan zurück.',
+    bsSearchNote:'{n} Treffer im Ordersatz. + legt eine Kiste dazu.',
+    bsNoHit:'Kein Artikel im Ordersatz gefunden.',
+    bsNoCase:'Keine Kistengröße',
     bsDone:'Fertig',
     bsRejUnknown:'Nr. {n} steht nicht im Ordersatz',
     bsRejNoCase:'{a}: keine Kistengröße hinterlegt',
@@ -2495,7 +2448,11 @@ const T={
     bsListTitle:'Scanned',
     bsSummary:'{i} items · {c} cases',
     bsEmpty:'No crate scanned yet.',
-    bsCrates:'cases',
+    bsResEyebrow:'Back storage',
+    bsNote:'Every scan counts one full case. Use – and + to undo a mis-scan.',
+    bsSearchNote:'{n} matches in the order guide. + adds one case.',
+    bsNoHit:'No item found in the order guide.',
+    bsNoCase:'No case size',
     bsDone:'Done',
     bsRejUnknown:'No. {n} is not in the order guide',
     bsRejNoCase:'{a}: no case size on file',
@@ -2704,7 +2661,11 @@ const T={
     bsListTitle:'Scannés',
     bsSummary:'{i} articles · {c} colis',
     bsEmpty:'Aucun colis scanné pour le moment.',
-    bsCrates:'colis',
+    bsResEyebrow:'Réserve',
+    bsNote:'Chaque scan compte un colis entier. – et + corrigent un mauvais scan.',
+    bsSearchNote:'{n} résultats dans l’assortiment. + ajoute un colis.',
+    bsNoHit:'Aucun article trouvé dans l’assortiment.',
+    bsNoCase:'Taille de colis inconnue',
     bsDone:'Terminé',
     bsRejUnknown:'N° {n} absent de l’assortiment',
     bsRejNoCase:'{a} : aucune taille de colis renseignée',
@@ -3344,7 +3305,10 @@ function eyeIcon(off){
 /* Eine Zeile der Bestellliste. Aus render() herausgezogen, damit die Scan-Ansicht
    (der Barcode-FAB unten rechts) dieselbe Zeile zeigen kann -- gleicher Stepper,
    gleiche Tastenfelder, gleicher Zustand, nur ohne die Filter der Liste. */
-function rowHTML(ix, extraCls, forceEye){
+/* backOnly: die Zeile fuer die Lager-Sitzung. Gleiche Zeile, gleiche Kopfzeile,
+   gleicher Zaehler wie in der Bestellliste -- nur ohne die Bestellspalte, denn dort
+   wird das Lager gezaehlt und nicht bestellt. */
+function rowHTML(ix, extraCls, forceEye, backOnly){
   const it=ITEMS[ix], s=ST[ix], L=t();
     /* item_information_row.dart puts the PLU and case size on one line and the
        prices on the next, as bare numbers -- the app labels neither, and it
@@ -3401,6 +3365,12 @@ function rowHTML(ix, extraCls, forceEye){
     const eyeToggle = (forceEye || MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';
+    if(backOnly){
+      const n=(BS.lines.find(l=>l.ix===ix)||{n:0}).n;
+      return `<div class="row row--back${BS.just===ix?' just':''}${extraCls||''}">
+      <div class="itemcell"><div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
+      <div>${bsCounterHTML(ix,n)}</div></div>`;
+    }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${cell}</div><div>${ord}</div></div>`;
@@ -5071,7 +5041,7 @@ const BS_COOLDOWN_MS = 1000;
    im Bild liegt -- danach ist es die naechste Kiste. Die Regel gehoert bewusst der
    App und nicht dem Kamera-Treiber: dessen Dubletten-Verhalten ist je Plattform
    anders, und wir wollen ueberall dieselbe Zaehlung. */
-let BS = {on:false, seen:new Map(), lines:[], timer:null, just:null, zeroed:0};
+let BS = {on:false, seen:new Map(), lines:[], timer:null, just:null, zeroed:0, full:false, q:''};
 
 function bsCases(){ return BS.lines.reduce((a,l)=>a+l.n, 0); }
 
@@ -5140,7 +5110,16 @@ function bsZeroRest(){
 }
 
 function bsAdjust(ix, d){
-  const line = BS.lines.find(l=>l.ix===ix); if(!line) return;
+  const it=ITEMS[ix];
+  /* Gleiche Sperre wie beim Scan -- siehe bsCounterHTML(). */
+  if(it.case==null || !(it.case>0)) return;
+  let line = BS.lines.find(l=>l.ix===ix);
+  if(!line){
+    /* Aus der Suche: eine Kiste, die sich nicht scannen liess. Kein Cooldown -- ein
+       bewusster Druck ist keine Dublette, sondern eine Aussage. */
+    if(d<=0) return;
+    line={ix, n:0}; BS.lines.push(line);
+  }
   line.n += d;
   if(line.n<=0){
     BS.lines = BS.lines.filter(l=>l.ix!==ix);
@@ -5174,22 +5153,120 @@ function bsReject(res){
   el._t=setTimeout(()=>{ el.hidden=true; }, 1500);
 }
 
+/* Der Kisten-Zaehler ist dasselbe Bauteil wie der Bestands-Stepper in der
+   Bestellliste (InventoryCounterField), damit sich die Zeile hier genauso bedienen
+   laesst wie dort. -/+ nehmen einen Fehlscan zurueck bzw. legen eine Kiste nach:
+   geschrieben wird live, also ist das der Weg, einen Fehlscan zu korrigieren. */
+function bsCounterHTML(ix, n){
+  const it=ITEMS[ix], L=t();
+  /* Ohne Kistengroesse ist "eine ganze Kiste" keine Menge, die wir kennen. Der Scan
+     weist solche Artikel ab -- ueber die Suche darf es dann genauso wenig gehen,
+     sonst waere die Suche der Weg um die Sperre herum. Dieselbe gesperrte Pille wie
+     bei Zeilen ohne Zaehlung, damit die Spalte ausgerichtet bleibt. */
+  if(it.case==null || !(it.case>0)){
+    return `<div class="InventoryCounterField InventoryCounterField--nocount">
+    <button class="InventoryCounterField__button" type="button" disabled aria-hidden="true">${ICON_MINUS}</button>
+    <div class="InventoryCounterField__box"><span class="InventoryCounterField__note">${L.bsNoCase}</span></div>
+    <button class="InventoryCounterField__button" type="button" disabled aria-hidden="true">${ICON_PLUS}</button>
+  </div>`;
+  }
+  const pcs = Math.round(n*it.case);
+  return `<div class="InventoryCounterField">
+    <button class="InventoryCounterField__button" type="button" data-bsa="dec" data-i="${ix}"${n<=0?' disabled':''} aria-label="${L.bsLess}">${ICON_MINUS}</button>
+    <div class="InventoryCounterField__box">
+      <span class="InventoryCounterField__value"><b>${n}</b><i>${L.caseUnit}</i></span>
+      <span class="InventoryCounterField__label">${pcs} ${uw(it)}</span>
+    </div>
+    <button class="InventoryCounterField__button" type="button" data-bsa="inc" data-i="${ix}" aria-label="${L.bsMore}">${ICON_PLUS}</button>
+  </div>`;
+}
+
+/* Dasselbe Blatt wie renderScanRes(): .scanRes__hdr, .scanRes__search, .scanRes__miss,
+   .scanRes__note, .colh und rowHTML()-Zeilen. Unterschiede: die Liste waechst ueber die
+   ganze Sitzung statt ein Ergebnis pro Scan zu zeigen, und die Bestellspalte fehlt.
+
+   Die Suche ist fuer die Kisten, die sich nicht scannen lassen -- Etikett abgerissen,
+   verschmiert, oder lose Ware ohne Etikett. Sie sucht denselben Weg wie die Liste
+   (Name ODER Nummer, pluApproxMatch) und ueber den GANZEN Ordersatz, unabhaengig von
+   Regal, Filter und ausgeblendeten Artikeln -- wer die Ware in der Hand haelt, soll sie
+   finden. Gefundene Zeilen tragen denselben Zaehler wie die gescannten, stehen also bei
+   0 Kisten, bis + gedrueckt wird. */
 function bsRender(){
   const L=t();
-  const sum=document.getElementById('bsSum');
-  if(sum) sum.textContent = L.bsSummary.replace('{i}', BS.lines.length).replace('{c}', bsCases());
-  const body=document.getElementById('bsList'); if(!body) return;
-  if(!BS.lines.length){ body.innerHTML=`<div class="bsSheet__empty">${L.bsEmpty}</div>`; return; }
+  const sheet=document.getElementById('bsResSheet'); if(!sheet) return;
+  /* Das Blatt wird bei JEDEM Scan neu gebaut. Tippt der Kaufmann gerade, darf ihm eine
+     dazwischen gescannte Kiste nicht die Schreibmarke wegnehmen -- also Fokus und
+     Position merken und danach zuruecksetzen. */
+  const act=document.activeElement;
+  const hadFocus=!!(act && act.id==='bsQ');
+  const caret=hadFocus?act.selectionStart:null;
+
+  const raw=BS.q||'';
+  const q=raw.toLowerCase().trim();
+  const digitsQ=q.replace(/\D/g,'');
+  const searching=!!q;
+  /* Dieselbe Regel wie in render(): Name enthaelt die Eingabe ODER die Nummer passt
+     tolerant. Keine zweite Suchlogik, die von der Liste abweichen kann. */
+  const hits=searching
+    ? ITEMS.reduce((a,it,ix)=>((it.name.toLowerCase().includes(q)||pluApproxMatch(it.plu,digitsQ))&&a.push(ix),a),[])
+    : [];
+  /* Nicht im Ordersatz, aber im Artikelstamm: derselbe Hinweis wie im Scan-Ergebnis,
+     damit "nichts gefunden" nicht wie ein Suchfehler aussieht. */
+  const u=searching && !hits.length ? unlistedOf(digitsQ) : null;
   /* Neustes oben: die gerade gezaehlte Zeile soll ohne Scrollen sichtbar sein. */
-  body.innerHTML = BS.lines.slice().reverse().map(l=>{
-    const it=ITEMS[l.ix];
-    return `<div class="bsRow${BS.just===l.ix?' just':''}">
-      <div class="bsRow__nm">${it.name}<i>${it.plu!=null?L.scanNo+' '+it.plu:''}</i></div>
-      <div class="bsRow__n"><b>${l.n}</b>${L.bsCrates}</div>
-      <button class="bsRow__b" type="button" data-bsa="dec" data-i="${l.ix}" aria-label="${L.bsLess}">${ICON_MINUS}</button>
-      <button class="bsRow__b" type="button" data-bsa="inc" data-i="${l.ix}" aria-label="${L.bsMore}">${ICON_PLUS}</button>
+  const lines=BS.lines.slice().reverse();
+  const rows=searching ? hits : lines.map(l=>l.ix);
+
+  sheet.innerHTML = `
+    <div class="scanRes__hdr">
+      <div style="flex:1;min-width:0">
+        <div class="eyebrow">${L.bsResEyebrow}</div>
+        <h3>${BS.lines.length ? L.bsSummary.replace('{i}', BS.lines.length).replace('{c}', bsCases()) : L.bsTitle}</h3>
+      </div>
+    </div>
+    <div class="scanRes__search"><div class="box">
+      <span style="color:var(--mute);font-size:var(--ff-text-primary-title-17)">⌕</span>
+      <input id="bsQ" type="search" autocomplete="off"
+             placeholder="${L.searchItems}" value="${raw.replace(/"/g,'&quot;')}">
+    </div></div>
+    ${u?`<div class="scanRes__miss">
+      <span class="ic" aria-hidden="true">!</span>
+      <div class="tx">
+        <div class="nm">${u.name} <span class="no">· ${L.scanNo} ${u.plu}</span></div>
+        <div class="sub">${L.scanNotListed}</div>
+      </div>
+    </div>`:''}
+    ${searching
+      ? `<div class="scanRes__note">${L.bsSearchNote.replace('{n}', hits.length)}</div>`
+      : (lines.length?`<div class="scanRes__note">${L.bsNote}</div>`:'')}
+    <div class="scanRes__body" id="bsList">
+      ${rows.length?`<div class="colh colh--back"><div>${L.item}</div><div>${L.backStock}</div></div>
+      ${rows.map(ix=>rowHTML(ix,'',false,true)).join('')}`
+      :`<div class="scanRes__empty">${searching?L.bsNoHit:L.bsEmpty}</div>`}
+    </div>
+    <div class="scanRes__foot">
+      <label class="bsFull"><input type="checkbox" id="bsFull"${BS.full?' checked':''}>
+        <span><b>${L.bsFullTitle}</b><i>${L.bsFullHint}</i></span></label>
+      <button class="cta" id="bsDone" type="button">${L.bsDone}</button>
     </div>`;
-  }).join('');
+  /* Das Blatt ist gerade neu entstanden, also haengen die Knoepfe daran und nicht an
+     einmalig gesetzten Listenern. Der Haken lebt in BS.full weiter -- sonst verliert
+     er sich beim naechsten Scan. */
+  const qi=sheet.querySelector('#bsQ');
+  if(qi){
+    qi.addEventListener('input', e=>{ BS.q=e.target.value; bsRender(); });
+    if(hadFocus){ qi.focus(); if(caret!=null) qi.setSelectionRange(caret, caret); }
+  }
+  const full=sheet.querySelector('#bsFull');
+  if(full) full.onchange=e=>{ BS.full=e.target.checked; };
+  const done=sheet.querySelector('#bsDone');
+  if(done) done.onclick=()=>bsClose(true);
+  const body=sheet.querySelector('#bsList');
+  if(body) body.onclick=e=>{
+    const b=e.target.closest('[data-bsa]'); if(!b) return;
+    TAPS++;
+    bsAdjust(+b.dataset.i, b.dataset.bsa==='inc' ? 1 : -1);
+  };
 }
 
 /* Fuer die Demo werden Codes nachgestellt statt gelesen. Die Mischung ist
@@ -5225,12 +5302,11 @@ function bsTick(){
 
 function bsOpen(){
   const L=t();
-  BS.on=true; BS.seen=new Map(); BS.lines=[]; BS.just=null; BS.lastCode=null; BS.zeroed=0;
+  BS.on=true; BS.seen=new Map(); BS.lines=[]; BS.just=null; BS.lastCode=null; BS.zeroed=0; BS.full=false; BS.q='';
   const cam=document.getElementById('bsCam');
   cam.classList.remove('ok','rej');
   cam.classList.add('on');
   document.getElementById('bsRej').hidden=true;
-  const full=document.getElementById('bsFull'); if(full) full.checked=false;
   bsRender();
   clearTimeout(BS.timer);
   BS.timer=setTimeout(bsTick, 1200);
@@ -5242,9 +5318,8 @@ function bsClose(apply){
   clearTimeout(BS.timer); BS.timer=null;
   const cam=document.getElementById('bsCam');
   cam.classList.remove('on','ok','rej');
-  const full=document.getElementById('bsFull');
   let zeroed=0;
-  if(apply && full && full.checked) zeroed=bsZeroRest();
+  if(apply && BS.full) zeroed=bsZeroRest();
   bsAudit(zeroed);
   BS.zeroed=zeroed;
   if(zeroed) toast(t().bsZeroed.replace('{n}', zeroed));
@@ -5267,12 +5342,6 @@ function bsAudit(zeroed){
 }
 
 document.getElementById('bsX').addEventListener('click', ()=>bsClose(false));
-document.getElementById('bsDone').addEventListener('click', ()=>bsClose(true));
-document.getElementById('bsList').addEventListener('click', e=>{
-  const b=e.target.closest('[data-bsa]'); if(!b) return;
-  TAPS++;
-  bsAdjust(+b.dataset.i, b.dataset.bsa==='inc' ? 1 : -1);
-});
 
 /* ================= Selbsttest (?selftest=1) =================
    Der Prototyp ist eine einzelne Datei ohne Testlauf, deshalb hier: die Tests
@@ -5280,6 +5349,7 @@ document.getElementById('bsList').addEventListener('click', e=>{
    danach wieder her, damit die Seite benutzbar bleibt. */
 function bsSelfTest(){
   const out=[]; const ok=(n,c,d)=>out.push({n, pass:!!c, d:d||''});
+  let ixNo=-1;
   const snapST=JSON.stringify(ST), snapBS={lines:BS.lines, seen:BS.seen, on:BS.on};
   const reset=()=>{ BS.on=false; BS.lines=[]; BS.seen=new Map(); ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)}); };
 
@@ -5314,7 +5384,7 @@ function bsSelfTest(){
      bad!=null && !r4.ok && r4.reason==='unknown', bad?JSON.stringify(r4):'keine unbekannte Nummer gefunden');
   ok('abweisung: unbekannte Nummer steht nicht in der Liste', BS.lines.length===0);
   // Ohne Kistengroesse: ebenfalls abgewiesen, kein Bestand geschrieben.
-  const ixNo=ITEMS.findIndex(it=>it.plu!=null && (it.case==null || !(it.case>0)));
+  ixNo=ITEMS.findIndex(it=>it.plu!=null && (it.case==null || !(it.case>0)));
   if(ixNo>=0){
     const r5=bsFeed(String(ITEMS[ixNo].plu), 0);
     ok('abweisung: fehlende Kistengroesse wird abgewiesen', !r5.ok && r5.reason==='nocase', JSON.stringify(r5));
@@ -5343,6 +5413,30 @@ function bsSelfTest(){
      Modells (s.auto) gibt ihm nach. */
   const s2=ST[ixA]; s2.answered=true; s2.auto=false; s2.order=42;
   ok('nur-lager: eine bestaetigte Aussage schlaegt den Scan', orderVal(ixA)===42, String(orderVal(ixA)));
+
+  // 4b) Suche: von Hand gefunden zaehlt wie gescannt, ueber denselben Schreibweg.
+  reset();
+  const beforeB=JSON.parse(JSON.stringify(ST[ixA]));
+  bsAdjust(ixA, 1);
+  ok('suche: + auf einem Treffer legt die Zeile an',
+     BS.lines.length===1 && BS.lines[0].ix===ixA && BS.lines[0].n===1, JSON.stringify(BS.lines));
+  ok('suche: von Hand gelegte Kiste steht im Lagerbestand', ST[ixA].back===1, 'back='+ST[ixA].back);
+  ok('suche: von Hand aendert die Zeile so wenig wie ein Scan',
+     ST[ixA].touched===beforeB.touched && ST[ixA].answered===beforeB.answered
+     && ST[ixA].step===beforeB.step && ST[ixA].ko===beforeB.ko);
+  bsAdjust(ixA, -1);
+  ok('suche: zurueckgenommen gilt der Artikel wieder als nie gescannt',
+     BS.lines.length===0 && ST[ixA].back===null, 'back='+ST[ixA].back);
+  ok('suche: - auf einem ungescannten Treffer tut nichts (keine negative Kiste)',
+     (bsAdjust(ixA,-1), BS.lines.length===0 && ST[ixA].back===null));
+  // Ohne Kistengroesse ist auch der Handweg gesperrt -- sonst waere die Suche die Umgehung.
+  if(ixNo>=0){
+    bsAdjust(ixNo, 1);
+    ok('suche: fehlende Kistengroesse laesst sich auch von Hand nicht zaehlen',
+       !BS.lines.some(l=>l.ix===ixNo) && ST[ixNo].back==null);
+  } else {
+    ok('suche: fehlende Kistengroesse von Hand (kein solcher Artikel in diesen Daten)', true, 'uebersprungen');
+  }
 
   // 5) "Lager vollstaendig gezaehlt": nur die nicht gescannten auf 0.
   reset();
