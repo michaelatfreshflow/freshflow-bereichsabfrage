@@ -435,8 +435,7 @@ body.isFiltering{
   text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
 .movecta .from,.movecta .to{border-radius:8px;padding:2px 8px;
   font-size:var(--ff-text-primary-body-text-14);white-space:nowrap}
-.movecta .from{background:var(--ff-color-white);color:var(--mute);
-  text-decoration:line-through;text-decoration-thickness:2px}
+.movecta .from{background:var(--ff-color-white);color:var(--mute)}
 .movecta .to{background:var(--ff-primary-20);color:var(--ff-color-dark-green);
   font-weight:var(--ff-weight-bold)}
 .movecta .arr{font-size:var(--ff-text-primary-title-17);color:var(--mute);line-height:1}
@@ -446,10 +445,16 @@ body.isFiltering{
    Zuordnung an derselben Stelle wieder aufheben laesst. Darum braucht es die
    Toast-Leiste hier nicht: sie sagte dasselbe, nur fluechtig und woanders. */
 .movecta.is-done{background:var(--ok-bg);border-color:var(--ff-primary-30)}
-.movecta.is-done .from{background:var(--ff-color-white)}
-.movecta__undo{flex:0 0 auto;display:flex;align-items:center;justify-content:center;
-  width:38px;height:34px;border:1px solid var(--ff-primary-30);border-radius:var(--ff-radius-pill);
-  background:var(--ff-color-white);color:var(--green);cursor:pointer}
+/* Der Durchstrich steht erst hier: vorher waere er falsch -- der Artikel steht ja
+   noch in diesem Regal. Nach dem Zuordnen ist er die Zustandsanzeige ("das ist jetzt
+   Vergangenheit"), und "BISHER" plus Pfeil plus Farbe sagen das Uebrige. */
+.movecta.is-done .from{background:var(--ff-color-white);
+  text-decoration:line-through;text-decoration-thickness:2px}
+.movecta__undo{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
+  padding:7px 15px;border:1px solid var(--ff-primary-30);border-radius:var(--ff-radius-pill);
+  background:var(--ff-color-white);color:var(--green);cursor:pointer;font-family:inherit;
+  font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold)}
+.movecta__undo svg{flex:0 0 auto}
 .movecta__undo:hover{background:var(--ff-primary-20)}
 
 /* ---------- statement cell ---------- */
@@ -2263,7 +2268,8 @@ const T={
     moveFrom:'bisher',
     moveTo:'neu',
     moveDoneTip:'Zuordnung zurücknehmen',
-    moveRowBtn:'Zuordnen',
+    moveRowBtn:'Hierher zuordnen',
+    moveUndoBtn:'Rückgängig',
     moveRowTip:'Artikel dem offenen Regal zuordnen',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
@@ -2478,7 +2484,8 @@ const T={
     moveFrom:'previously',
     moveTo:'new',
     moveDoneTip:'Undo the assignment',
-    moveRowBtn:'Move',
+    moveRowBtn:'Assign here',
+    moveUndoBtn:'Undo',
     moveRowTip:'Assign the item to the open shelf',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
@@ -2693,7 +2700,8 @@ const T={
     moveFrom:'avant',
     moveTo:'nouveau',
     moveDoneTip:'Annuler l’affectation',
-    moveRowBtn:'Affecter',
+    moveRowBtn:'Affecter ici',
+    moveUndoBtn:'Annuler',
     moveRowTip:'Affecter l’article au rayon ouvert',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
@@ -3374,7 +3382,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`, '')
       : moveBack
       ? mvBlock(moveBack.from, moveBack.to,
-          `<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}" aria-label="${L.moveDoneTip}">${ICON_UNDO}</button>`, ' is-done')
+          `<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
       : '';
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
