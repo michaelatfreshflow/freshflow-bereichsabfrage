@@ -422,6 +422,35 @@ body.isFiltering{
    eigenes Band ueber dem Ergebnis. Er gehoert an den Artikel selbst -- neben Werb.
    und Bio, wo alles andere ueber die Zeile auch steht. */
 .pill.scantag{border-color:#e6c79a;background:var(--amber-bg);color:#8a4b00;font-weight:var(--ff-weight-bold)}
+/* Der Regalwechsel ist die Entscheidung, nicht eine Randnotiz. Als Pillchen in der
+   Merkmalszeile war er zu leicht zu uebersehen und zu klein zum Treffen -- jetzt steht
+   er unter der Zeile ueber die ganze Breite: alt und neu beide lesbar gross, das alte
+   durchgestrichen, und rechts der Knopf, der es ausfuehrt. Das amber Kennzeichen
+   "Anderes Regal · X" faellt dann weg, sonst stuende dasselbe Regal zweimal da. */
+.movecta{grid-column:1/-1;margin-top:7px;display:flex;align-items:center;gap:10px;
+  flex-wrap:wrap;padding:6px 8px 6px 10px;border-radius:var(--ff-radius-c15);
+  background:var(--ff-grey-100);border:1px solid var(--ff-grey-200)}
+.movecta__mv{display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:1;min-width:0}
+.movecta .lb{font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.6px;
+  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
+.movecta .from,.movecta .to{border-radius:8px;padding:2px 8px;
+  font-size:var(--ff-text-primary-body-text-14);white-space:nowrap}
+.movecta .from{background:var(--ff-color-white);color:var(--mute);
+  text-decoration:line-through;text-decoration-thickness:2px}
+.movecta .to{background:var(--ff-primary-20);color:var(--ff-color-dark-green);
+  font-weight:var(--ff-weight-bold)}
+.movecta .arr{font-size:var(--ff-text-primary-title-17);color:var(--mute);line-height:1}
+.movecta .movecta__go{padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
+/* Zugeordnet: der Block bleibt genau da stehen, wo er stand -- er ist jetzt die
+   Bestaetigung selbst. Statt des Knopfes das Rueckgaengig-Zeichen, damit sich die
+   Zuordnung an derselben Stelle wieder aufheben laesst. Darum braucht es die
+   Toast-Leiste hier nicht: sie sagte dasselbe, nur fluechtig und woanders. */
+.movecta.is-done{background:var(--ok-bg);border-color:var(--ff-primary-30)}
+.movecta.is-done .from{background:var(--ff-color-white)}
+.movecta__undo{flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  width:38px;height:34px;border:1px solid var(--ff-primary-30);border-radius:var(--ff-radius-pill);
+  background:var(--ff-color-white);color:var(--green);cursor:pointer}
+.movecta__undo:hover{background:var(--ff-primary-20)}
 
 /* ---------- statement cell ---------- */
 .stmt{border:1.5px solid var(--ff-grey-200);border-radius:10px;padding:9px 12px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);background:var(--ff-color-white)}
@@ -754,6 +783,20 @@ body.isFiltering{
 .cta:hover{background:var(--green-d)}
 .cta.danger{background:var(--red)}
 .cta.danger:hover{background:#96280c}
+/* Die leise Schwester der .cta -- grauer Text, kein Rahmen, keine Fuellung.
+   "↺ Wieder öffnen" steht direkt neben "Nächstes Regal ›", aber bewusst NICHT
+   als zweite Pille: genau zwei gleich aussehende Pillen nebeneinander waren es,
+   die bei "Bestellung abschließen" staendig verwechselt wurden (siehe
+   renderCatChip). Eine Fussleiste, eine gruene Taste -- alles andere ist Text.
+   Die Rueckfrage davor (renderCatReopen) faengt den Fehlgriff zusaetzlich ab. */
+.footTextBtn{background:transparent;border:0;color:var(--mute);border-radius:var(--ff-radius-pill);
+  /* min-height 44, damit die Trefferflaeche auch ohne Rahmen und Fuellung so
+     gross bleibt, wie ein Finger auf dem iPad sie braucht. */
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+  padding:13px 14px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);
+  cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+/* Kein :hover-only Feedback -- auf dem iPad im Markt gibt es keinen Zeiger. */
+.footTextBtn:active{background:var(--ff-color-light-grey);color:var(--ink)}
 .tools .resetBtn{border:0;background:none;color:#c2c2c2;cursor:pointer;padding:6px 7px;border-radius:var(--ff-radius-c8);display:inline-flex;align-items:center;justify-content:center}
 .tools .resetBtn:hover{background:var(--red-bg);color:var(--red)}
 
@@ -1376,51 +1419,6 @@ body.dash-active .scanFab{display:none}
 .bsInv{margin-top:3px;font-size:var(--ff-text-primary-caption-12);color:#8a4b00}
 .bsInv u{text-decoration:none;font-weight:var(--ff-weight-bold)}
 
-/* ---------- Regal-Zuordnung nach dem Scannen ----------
-   Waehrend des Scannens wird nichts gefragt: eine Frage zwischen zwei Artikeln
-   haelt genau den Ablauf auf, der schnell sein soll. Stattdessen werden Artikel,
-   die man an diesem Regal gescannt hat, die laut App aber woanders stehen,
-   gesammelt -- und beim Zurueckkommen ins Regal einmal gemeinsam gefragt. */
-.moveAsk{position:absolute;inset:0;z-index:50;display:none;
-  background:rgba(20,25,22,.5);align-items:flex-end;justify-content:center}
-.moveAsk.on{display:flex}
-.moveAsk__sheet{width:100%;background:var(--ff-color-white);
-  border-radius:var(--ff-radius-c15) var(--ff-radius-c15) 0 0;
-  display:flex;flex-direction:column;max-height:82%;overflow:hidden;
-  box-shadow:0 -18px 50px rgba(0,0,0,.35)}
-.moveAsk__hdr{display:flex;align-items:flex-start;gap:12px;
-  padding:16px 20px 12px;border-bottom:1px solid var(--line)}
-.moveAsk__hdr .tx{flex:1;min-width:0}
-.moveAsk__hdr .x{border:0;background:none;font-size:22px;color:var(--ff-grey-500);cursor:pointer}
-.moveAsk__hdr .eyebrow{font-size:var(--ff-text-primary-caption-12);color:var(--mute);
-  font-weight:var(--ff-weight-bold);letter-spacing:.6px;text-transform:uppercase}
-.moveAsk__hdr h3{margin:2px 0 0;font-size:var(--ff-text-primary-title-17)}
-.moveAsk__hdr .sub{margin-top:6px;font-size:var(--ff-text-primary-caption-12);
-  color:var(--mute);line-height:1.5}
-.moveAsk__body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 0}
-.moveAsk__row{display:flex;align-items:center;gap:14px;padding:16px 20px;
-  border-bottom:1px solid var(--ff-grey-100);cursor:pointer}
-.moveAsk__row input{width:22px;height:22px;accent-color:var(--green);flex:0 0 auto}
-.moveAsk__row .tx{min-width:0}
-.moveAsk__row .nm{font-weight:var(--ff-weight-semibold);
-  font-size:var(--ff-text-primary-body-text-16)}
-/* Alt und neu stehen nebeneinander, beide lesbar gross: das alte durchgestrichen
-   und grau, das neue gruen gefuellt. Vorher stand die Veraenderung in 12px Grau --
-   die Zeile las sich wie eine Fussnote, nicht wie die Entscheidung, die sie ist. */
-.moveAsk__row .mv{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
-.moveAsk__row .lb{font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.7px;
-  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
-.moveAsk__row .from,.moveAsk__row .to{border-radius:9px;padding:5px 11px;
-  font-size:var(--ff-text-primary-body-text-16);white-space:nowrap}
-.moveAsk__row .from{background:var(--ff-grey-100);color:var(--mute);
-  text-decoration:line-through;text-decoration-thickness:2px}
-.moveAsk__row .to{background:var(--ff-primary-20);color:var(--ff-color-dark-green);
-  font-weight:var(--ff-weight-bold)}
-.moveAsk__row .arr{font-size:var(--ff-text-primary-heading-20);color:var(--mute);line-height:1}
-.moveAsk__foot{display:flex;align-items:center;gap:14px;padding:12px 20px;
-  border-top:1px solid var(--line)}
-.moveAsk__foot .sp{flex:1}
-.moveAsk__foot .cta{padding:10px 22px}
 </style>
 </head>
 <body>
@@ -1653,6 +1651,10 @@ body.dash-active .scanFab{display:none}
     <div class="m"><span id="lblMargin">Spanne</span><b id="fmar">0,00 %</b></div>
     <div class="m"><span id="lblAcceptance">Übernahmequote</span><b id="fans">0 %</b></div>
     <div class="sp"></div>
+    <!-- Steht direkt neben "Nächstes Regal ›" -- nah genug, um als Paar gelesen
+         zu werden, aber als grauer Text und nicht als zweite Pille, damit die
+         Fussleiste weiterhin genau eine gruene Taste hat. -->
+    <button class="footTextBtn" id="reopenRegalBtn" type="button">x</button>
     <button class="cta" id="nextRegalBtn" type="button" style="background:var(--ff-color-white);color:var(--green);border:1.5px solid var(--green)">x</button>
     <button class="cta" id="cta">Bestellung abschließen ›</button>
   </div>
@@ -1699,9 +1701,9 @@ body.dash-active .scanFab{display:none}
     </div>
     <div class="scanRes__sheet bsOv__sheet" id="bsResSheet"></div>
   </div>
-  <div class="moveAsk" id="moveAsk" role="dialog" aria-modal="true"><div class="moveAsk__sheet" id="moveAskSheet"></div></div>
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
+  <div id="catReopenRoot"></div>
   <div id="catCelebrateRoot"></div>
   <div id="catItemPickerRoot"></div>
   <div id="catIconPickerRoot"></div>
@@ -1934,6 +1936,10 @@ function saveCatOverride(){
 }
 let CAT_OVERRIDE = loadCatOverride();
 function overrideKey(it){ return it.plu!=null ? ('plu:'+it.plu) : ('id:'+it.id); }
+/* Aus dem Scan-Ergebnis heraus zugeordnet: {from, to, prev} je Artikel. Der Block
+   bleibt danach stehen und zeigt das Rueckgaengig-Zeichen -- deshalb muss der Weg
+   zurueck gemerkt werden (prev kann 'keine Uebersteuerung' bedeuten). */
+const SCAN_MOVED={};
 function setCatOverride(it, tileId){
   CAT_OVERRIDE[overrideKey(it)] = tileId;
   saveCatOverride();
@@ -2160,6 +2166,10 @@ const T={
     dlgAnyway:'Trotzdem weiter',
     dlgTitleVerb:'abschließen?',
     nextShelfArrow:'Nächstes Regal ›',
+    reopenShelf:'↺ Wieder öffnen',
+    reopenTitle:'Regal wieder öffnen?',
+    reopenBody:'Dieses Regal wurde abgeschlossen und als „Fertig“ markiert. Möchtest du es wieder öffnen?',
+    reopenYes:'Ja, wieder öffnen',
     resetConfirm:'Wirklich zurücksetzen?',
     shelfChangeTip:'Regal wechseln oder Filter aufheben',
     openOrderTip:'Aktuelle Bestellung öffnen',
@@ -2250,13 +2260,11 @@ const T={
     bsTag:'Lager gescannt',
     bsLess:'Eine Kiste weniger',
     bsMore:'Eine Kiste mehr',
-    moveAskEyebrow:'Regal-Zuordnung',
-    moveAskTitle:'Artikel diesem Regal zuordnen?',
     moveFrom:'bisher',
     moveTo:'neu',
-    moveAskSub:'Beim Scannen an diesem Regal gefunden – laut App stehen sie woanders. Abwählen, was hier nicht steht.',
-    moveAskConfirm:'Zuordnen',
-    moveAskToast:'Artikel zugeordnet',
+    moveDoneTip:'Zuordnung zurücknehmen',
+    moveRowBtn:'Zuordnen',
+    moveRowTip:'Artikel dem offenen Regal zuordnen',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
     legBangOrder:'! Bestellung',
@@ -2373,6 +2381,10 @@ const T={
     dlgAnyway:'Continue anyway',
     dlgTitleVerb:'— complete?',
     nextShelfArrow:'Next shelf ›',
+    reopenShelf:'↺ Reopen shelf',
+    reopenTitle:'Reopen shelf?',
+    reopenBody:'This shelf was completed and marked as “Done”. Do you want to reopen it?',
+    reopenYes:'Yes, reopen',
     resetConfirm:'Really reset?',
     shelfChangeTip:'Change shelf or clear the filter',
     openOrderTip:'Open the current order',
@@ -2463,13 +2475,11 @@ const T={
     bsTag:'back storage scanned',
     bsLess:'One case less',
     bsMore:'One case more',
-    moveAskEyebrow:'Shelf assignment',
-    moveAskTitle:'Move items to this shelf?',
-    moveFrom:'was',
+    moveFrom:'previously',
     moveTo:'new',
-    moveAskSub:'Found while scanning at this shelf – the app has them somewhere else. Untick whatever is not here.',
-    moveAskConfirm:'Move',
-    moveAskToast:'items moved',
+    moveDoneTip:'Undo the assignment',
+    moveRowBtn:'Move',
+    moveRowTip:'Assign the item to the open shelf',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
     legBangOrder:'! Order',
@@ -2586,6 +2596,10 @@ const T={
     dlgAnyway:'Continuer quand même',
     dlgTitleVerb:'— clôturer ?',
     nextShelfArrow:'Rayon suivant ›',
+    reopenShelf:'↺ Rouvrir le rayon',
+    reopenTitle:'Rouvrir le rayon ?',
+    reopenBody:'Ce rayon a été clôturé et marqué « Terminé ». Voulez-vous le rouvrir ?',
+    reopenYes:'Oui, rouvrir',
     resetConfirm:'Vraiment réinitialiser ?',
     shelfChangeTip:'Changer de rayon ou effacer le filtre',
     openOrderTip:'Ouvrir la commande en cours',
@@ -2676,13 +2690,11 @@ const T={
     bsTag:'réserve scannée',
     bsLess:'Un colis en moins',
     bsMore:'Un colis en plus',
-    moveAskEyebrow:'Affectation de rayon',
-    moveAskTitle:'Affecter les articles à ce rayon ?',
     moveFrom:'avant',
     moveTo:'nouveau',
-    moveAskSub:'Trouvés en scannant à ce rayon – l’app les place ailleurs. Décochez ce qui n’est pas ici.',
-    moveAskConfirm:'Affecter',
-    moveAskToast:'articles affectés',
+    moveDoneTip:'Annuler l’affectation',
+    moveRowBtn:'Affecter',
+    moveRowTip:'Affecter l’article au rayon ouvert',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
     legBangOrder:'! Commande',
@@ -2775,6 +2787,7 @@ function applyLang(){
     if(el && L[key]){ el.setAttribute('title', L[key]); el.setAttribute('aria-label', L[key]); }
   }
   const byId={s2Title:'completeOrder', nextRegalBtn:'nextShelfArrow',
+              reopenRegalBtn:'reopenShelf',
               bsTitle:'bsTitle', bsHint:'bsHint', bsSub:'bsSub',
               bsListTitle:'bsListTitle', bsDone:'bsDone',
               bsFullTitle:'bsFullTitle', bsFullHint:'bsFullHint',
@@ -3099,6 +3112,7 @@ function splitUnit(str){
 /* Mobile/assets/icons/minus.svg and plus.svg, verbatim, with the hardcoded
    #34443F swapped for currentColor so the disabled state can grey them. */
 /* Barcode-Symbol: FAB unten rechts und der Knopf im Scan-Ergebnis teilen es. */
+const ICON_UNDO='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h10.5a5 5 0 0 1 0 10H8"></path><path d="M7.5 3.5 3.5 8l4 4.5"></path></svg>';
 const ICON_SCAN='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M8 8v8"></path><path d="M12 8v8"></path><path d="M16 8v8"></path></svg>';
 const ICON_MINUS='<svg width="16" height="5" viewBox="0 0 16 5" fill="none" aria-hidden="true"><path d="M8 0.900391C7.12 0.900391 6.4 0.900558 6.4 0.900558H1.6C0.72 0.900558 0 1.62056 0 2.50056C0 3.38056 0.72 4.10056 1.6 4.10056H6.4H8H9.6H14.4C15.28 4.10056 16 3.38056 16 2.50056C16 1.62056 15.28 0.900558 14.4 0.900558C14.4 0.900558 11.4745 0.900705 9.6 0.900558C8.97516 0.900509 8.88 0.900391 8 0.900391Z" fill="currentColor"/></svg>';
 const ICON_PLUS='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 0C7.12 0 6.4 0.72 6.4 1.6V6.4H1.6C0.72 6.4 0 7.12 0 8C0 8.88 0.72 9.6 1.6 9.6H6.4V14.4C6.4 15.28 7.12 16 8 16C8.88 16 9.6 15.28 9.6 14.4V9.6H14.4C15.28 9.6 16 8.88 16 8C16 7.12 15.28 6.4 14.4 6.4H9.6V1.6C9.6 0.72 8.88 0 8 0Z" fill="currentColor"/></svg>';
@@ -3330,9 +3344,38 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     /* Im Scan-Ergebnis: "Anderes Regal · Pilze" und "Vom Filter ausgeschlossen"
        als Kennzeichen am Artikel. 'Ausgeblendet' nicht doppelt -- das steht schon
        als eigenes Kennzeichen oben. */
+    /* Ziel der Zuordnung: das offene Regal -- nur wenn es eines gibt und der Artikel
+       nicht schon darin steht. Ohne Regal kein Ziel, also kein Knopf. */
+    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
+      ? CATFILTER.id : null;
     if(forceEye) scanTags(ix).forEach(x=>{
-      if(x!==L.scanTagHidden) pills+=`<span class="pill scantag">${x}</span>`;
+      if(x===L.scanTagHidden) return;                          // steht schon als eigenes Kennzeichen
+      if(moveTo && x.startsWith(L.scanTagShelf)) return;       // sagt der Block unten deutlicher
+      pills+=`<span class="pill scantag">${x}</span>`;
     });
+    /* Der Grund steht an der Zeile -- und gleich daneben die Zuordnung selbst.
+       Ein Tipp, im Moment mit der Ware in der Hand. Darum braucht es kein
+       Sammelblatt beim Schliessen mehr, und bei mehreren Treffern hat jede
+       Zeile ihren eigenen Knopf statt einer Ankreuzliste. Das Ziel steht im
+       Knopf: was er tut, muss ohne den Kopf im Regalfilter lesbar sein. */
+    /* Schon zugeordnet, und zwar hierher: derselbe Block, nur mit Rueckgaengig. */
+    const mvDone = SCAN_MOVED[overrideKey(it)];
+    const moveBack = (forceEye && CATFILTER && CATFILTER.kind==='tile' && mvDone
+      && mvDone.to===CATFILTER.id && tileOf(it)===CATFILTER.id) ? mvDone : null;
+    const mvBlock = (from, to, tail, cls) => `<div class="movecta${cls}">
+      <div class="movecta__mv">
+        <span class="lb">${L.moveFrom}</span><span class="from">${tileLabel(from)}</span>
+        <span class="arr">→</span>
+        <span class="lb">${L.moveTo}</span><span class="to">${tileLabel(to)}</span>
+      </div>${tail}
+    </div>`;
+    const moveCta = moveTo
+      ? mvBlock(tileOf(it), moveTo,
+          `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`, '')
+      : moveBack
+      ? mvBlock(moveBack.from, moveBack.to,
+          `<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}" aria-label="${L.moveDoneTip}">${ICON_UNDO}</button>`, ' is-done')
+      : '';
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
@@ -3373,7 +3416,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div></div>`;
+      <div>${cell}</div><div>${ord}</div>${moveCta}</div>`;
 }
 
 function render(){
@@ -3567,7 +3610,14 @@ function renderCatChip(){
   const wrap=document.getElementById('catChipWrap');
   const nextBtn=document.getElementById('nextRegalBtn');
   const ctaBtn=document.getElementById('cta');
+  const reopenBtn=document.getElementById('reopenRegalBtn');
   if(ctaBtn) ctaBtn.style.display = (CATFILTER && CATFILTER.kind==='tile') ? 'none' : '';
+  /* "↺ Wieder öffnen" haengt an genau einer Bedingung: der Kaufmann steht IN einem
+     Regal, das schon abgehakt ist. Weil die Funktion darunter mehrfach vorzeitig
+     zurueckkehrt, wird die Sichtbarkeit hier oben EINMAL gesetzt -- sonst bliebe die
+     Taste auf der Uebersicht stehen, wenn ein Zweig sie nicht mehr anfasst. */
+  const inFinishedTile = !!(CATFILTER && CATFILTER.kind==='tile' && CATFINISHED[CATFILTER.id]);
+  if(reopenBtn) reopenBtn.style.display = inFinishedTile ? '' : 'none';
   if(!CATFILTER){
     /* The urgency quick-filter leaves CATFILTER null -- it filters across every
        shelf -- so the chip has to read CATFILT too, or it claims "all items"
@@ -3588,7 +3638,10 @@ function renderCatChip(){
   /* Der Chip sagt nur noch, WELCHER Filter laeuft. Die Artikelzahl stand ohnehin
      schon in der Liste darunter, und "· 20 Artikel (3 dringend)" las sich neben
      "Dringende Artikel" wie eine zweite, konkurrierende Aussage. */
-  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label}</button>`;
+  /* Der Haken am Chip ist die einzige Stelle, an der IM Regal steht, dass es schon
+     abgeschlossen ist -- und er ist die Rueckmeldung auf "↺ Wieder öffnen": oben
+     faellt der Haken weg, waehrend unten die Taste verschwindet. */
+  wrap.innerHTML = `<button class="catchip" id="catChipBtn" type="button" title="${t().shelfChangeTip}">${CATFILTER.label}${inFinishedTile?' ✓':''}</button>`;
   document.getElementById('catChipBtn').onclick=goToCategories;
 }
 
@@ -3977,39 +4030,8 @@ function showCatUndo(it, prevValue, newTileId){
   clearTimeout(bar._t);
   bar._t=setTimeout(()=>{ bar.classList.remove('on'); CAT_UNDO=null; }, 6000);
 }
-/* Mehrere Artikel auf einmal: dieselbe Leiste, aber sie nimmt den ganzen Stapel
-   zurueck UND stellt die Frage noch einmal. Undo ist hier alles-oder-nichts --
-   wer zwei von drei behalten wollte, braucht die Auswahl zurueck, nicht nur den
-   Widerruf. `shown` ist die Liste, die im Blatt stand, auch die abgewaehlten. */
-function showCatUndoBatch(entries, shown, n){
-  CAT_UNDO={batch:entries, shown};
-  const bar=document.getElementById('catUndoBar');
-  document.getElementById('catUndoMsg').textContent=`${n} ${t().moveAskToast}`;
-  bar.classList.add('on');
-  clearTimeout(bar._t);
-  bar._t=setTimeout(()=>{ bar.classList.remove('on'); CAT_UNDO=null; }, 6000);
-}
 function undoCatChange(){
   if(!CAT_UNDO) return;
-  if(CAT_UNDO.batch){
-    const {batch, shown}=CAT_UNDO;
-    batch.forEach(({it, prev})=>{
-      if(prev===undefined) delete CAT_OVERRIDE[overrideKey(it)];
-      else CAT_OVERRIDE[overrideKey(it)]=prev;
-    });
-    saveCatOverride();
-    const bar=document.getElementById('catUndoBar');
-    clearTimeout(bar._t);
-    bar.classList.remove('on');
-    batch.forEach(({it})=>pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`));
-    CAT_UNDO=null;
-    /* dieselbe Frage noch einmal -- auch die vorher abgewaehlten stehen wieder drin */
-    shown.forEach(e=>SCAN_DECLINED.delete(e.ix));
-    SCAN_PENDING=shown.slice();
-    render();
-    renderMoveAsk();
-    return;
-  }
   const {it, prevValue}=CAT_UNDO;
   if(prevValue===undefined) delete CAT_OVERRIDE[overrideKey(it)];
   else CAT_OVERRIDE[overrideKey(it)]=prevValue;
@@ -4070,6 +4092,41 @@ function renderCatConfirm(){
   document.getElementById('catConfirmContinue').onclick=()=>{
     const target=CATCONFIRM; CATCONFIRM=null;
     if(target.after==='next') catStep(1); else goToCategories();
+  };
+}
+
+/* Gegenstueck zu renderCatConfirm: dieselbe Dialogform, andere Richtung.
+   Sachlich waere die Rueckfrage nicht noetig -- das Zuruecknehmen loescht nur
+   den Haken und keine einzige Antwort -- aber die Taste steht direkt neben
+   "Nächstes Regal ›", und ein Fehlgriff dort soll nicht stillschweigend das
+   abgeschlossene Regal wieder aufreissen. Kein "Trotzdem weiter": es gibt hier
+   nur die eine Handlung. */
+let CATREOPEN=null;     // {id,label} | null -- Rueckfrage vor dem Wiederoeffnen
+function renderCatReopen(){
+  const root=document.getElementById('catReopenRoot');
+  if(!CATREOPEN){ root.innerHTML=''; return; }
+  root.innerHTML = `<div class="ov on" style="z-index:9999">
+    <div class="AppFormDialog">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">${t().reopenTitle}</div>
+        <button type="button" class="AppFormDialog__close" id="catReopenClose" aria-label="${t().close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">${t().reopenBody}</div>
+      <div class="AppFormDialog__actions">
+        <div class="AppFormDialog__actionsEnd">
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="catReopenNo">${t().cancel}</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="catReopenYes">${t().reopenYes}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const dismiss=()=>{ CATREOPEN=null; render(); };
+  document.getElementById('catReopenNo').onclick=dismiss;
+  document.getElementById('catReopenClose').onclick=dismiss;
+  document.getElementById('catReopenYes').onclick=()=>{
+    const target=CATREOPEN; CATREOPEN=null;
+    delete CATFINISHED[target.id];
+    render();
   };
 }
 
@@ -4268,6 +4325,27 @@ function rowClick(e){
   else if(a==='ordpad'){ openOrdPad(ix); }
   else if(a==='auslage'){ openAusPad(ix); }
   else if(a==='editcat'){ openCatItemPicker(ix); }
+  /* Zuordnen aus dem Scan-Ergebnis: dieselbe Wirkung wie der Regal-Picker, nur
+     ohne Umweg -- Ziel ist das offene Regal. render() zeichnet das Blatt mit,
+     der Knopf verschwindet also mit der Zuordnung. */
+  else if(a==='scanmove'){
+    const to = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+    if(!to) return;
+    const key=overrideKey(it);
+    SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key]};
+    setCatOverride(it, to);
+    pushChange(it, `Regal → ${tileLabel(to)}`);
+    render(); }
+  /* Zurueck an derselben Stelle: prev===undefined heisst "hatte gar keine
+     Uebersteuerung", der Eintrag muss dann weg statt auf undefined gesetzt zu werden. */
+  else if(a==='scanunmove'){
+    const key=overrideKey(it), e=SCAN_MOVED[key];
+    if(!e) return;
+    if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
+    saveCatOverride();
+    delete SCAN_MOVED[key];
+    pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
+    render(); }
   else if(a==='inc'||a==='dec'){ TAPS++;
     const prev=s.answered?s.order:(it.rungs[s.plan].order??0);
     const next=Math.max(0,prev+(a==='inc'?1:-1));
@@ -4364,12 +4442,6 @@ function setScanCode(digits){
   SCAN.matches=scanMatches(SCAN.plu);
   SCAN.unlisted=SCAN.matches.length?null:unlistedOf(SCAN.plu);
 }
-/* Beim Scannen gefundene Artikel, die laut App in ein anderes Regal gehoeren.
-   Sie werden hier gesammelt und erst beim Zurueckkommen ins Regal gefragt --
-   waehrend des Scannens wird nichts gefragt. SCAN_DECLINED haelt fest, was der
-   Kaufmann abgelehnt hat, damit dieselbe Frage nicht wiederkommt. */
-let SCAN_PENDING=[];              // {ix, to}
-let SCAN_DECLINED=new Set();      // ix
 
 /* Der FAB sitzt immer unten rechts, ueber der Fussleiste -- deren Hoehe haengt an
    Schriftgroesse und Fensterbreite, also einmal messen statt raten. */
@@ -4419,7 +4491,7 @@ function scanTags(ix){
 
 function openScanCam(){
   const cam=document.getElementById('scanCam');
-  closeScanRes(true);
+  closeScanRes();
   cam.classList.remove('busy');
   cam.classList.add('on');
   document.getElementById('scanCamSub').textContent=t().scanSub;
@@ -4446,109 +4518,13 @@ function doScan(digits){
   setTimeout(()=>{
     cam.classList.remove('on','busy');
     setScanCode(digits);
-    notePendingMove();
     renderScanRes();
   }, 340);
 }
-/* silent: aus openScanCam() heraus -- zwischen zwei Scans wird nicht gefragt.
-   Sonst gilt: Ergebnis zu heisst zurueck im Regal, und da darf die Frage kommen. */
-function closeScanRes(silent){
+/* Der Grund und die Zuordnung stehen an der Zeile selbst -- beim Schliessen wird
+   nichts mehr nachgefragt. */
+function closeScanRes(){
   document.getElementById('scanRes').classList.remove('on');
-  if(!silent) maybeAskShelfMove();
-}
-
-/* Nur echte Scans werden vorgemerkt (nicht das Tippen im Suchfeld) und nur, wenn
-   gerade ein Regal offen ist -- ohne Regal gibt es kein Ziel, nach dem gefragt
-   werden koennte. */
-function notePendingMove(){
-  if(!CATFILTER || CATFILTER.kind!=='tile') return;
-  const to=CATFILTER.id;
-  SCAN.matches.forEach(ix=>{
-    if(tileOf(ITEMS[ix])===to) return;          // steht schon hier
-    if(SCAN_DECLINED.has(ix)) return;           // schon abgelehnt
-    if(SCAN_PENDING.some(e=>e.ix===ix)) return; // schon vorgemerkt
-    SCAN_PENDING.push({ix, to});
-  });
-}
-
-/* Beim Schliessen des Scan-Ergebnisses: zurueck im Regal, jetzt einmal fragen.
-   Was zwischenzeitlich schon im Zielregal steht, faellt still heraus. */
-function pendingMoves(){
-  SCAN_PENDING = SCAN_PENDING.filter(e=>
-    !SCAN_DECLINED.has(e.ix) && tileOf(ITEMS[e.ix])!==e.to);
-  return SCAN_PENDING;
-}
-function maybeAskShelfMove(){
-  if(!pendingMoves().length) return;
-  renderMoveAsk();
-}
-function closeMoveAsk(){ document.getElementById('moveAsk').classList.remove('on'); }
-
-function renderMoveAsk(){
-  const L=t(), list=pendingMoves();
-  const sheet=document.getElementById('moveAskSheet');
-
-  sheet.innerHTML = `
-    <div class="moveAsk__hdr">
-      <div class="tx">
-        <div class="eyebrow">${L.moveAskEyebrow}</div>
-        <h3>${L.moveAskTitle}</h3>
-        <div class="sub">${L.moveAskSub}</div>
-      </div>
-      <button class="x" id="moveAskX" type="button" title="${L.close}">✕</button>
-    </div>
-    <div class="moveAsk__body">${list.map(e=>`
-      <label class="moveAsk__row">
-        <input type="checkbox" data-i="${e.ix}" checked>
-        <div class="tx">
-          <div class="nm">${ITEMS[e.ix].name}</div>
-          <div class="mv">
-            <span class="lb">${L.moveFrom}</span>
-            <span class="from">${tileLabel(tileOf(ITEMS[e.ix]))}</span>
-            <span class="arr">→</span>
-            <span class="lb">${L.moveTo}</span>
-            <span class="to">${tileLabel(e.to)}</span>
-          </div>
-        </div>
-      </label>`).join('')}</div>
-    <div class="moveAsk__foot">
-      <span class="sp"></span>
-      <button class="cta" id="moveAskGo" type="button">${L.moveAskConfirm}</button>
-    </div>`;
-  document.getElementById('moveAsk').classList.add('on');
-  /* Wegklicken heisst nicht "spaeter nochmal": die Frage kaeme sonst bei jedem
-     Schliessen des Ergebnisses wieder. Die Artikel werden dabei abgelegt. */
-  document.getElementById('moveAskX').onclick=()=>{
-    pendingMoves().forEach(e=>SCAN_DECLINED.add(e.ix));
-    SCAN_PENDING=[];
-    closeMoveAsk();
-  };
-  document.getElementById('moveAskGo').onclick=()=>{
-    const rows=[...document.querySelectorAll('#moveAskSheet input[type=checkbox]')];
-    const move=[], keep=[];
-    rows.forEach(r=>(r.checked?move:keep).push(+r.dataset.i));
-    keep.forEach(ix=>SCAN_DECLINED.add(ix));   // ausdruecklich nicht hier -- nicht neu fragen
-    /* was im Blatt stand, wird gemerkt: ein Undo stellt genau diese Frage neu */
-    const shown=SCAN_PENDING.map(e=>({ix:e.ix, to:e.to}));
-    const undoEntries=[];
-    let last=null;
-    move.forEach(ix=>{
-      const it=ITEMS[ix], e=SCAN_PENDING.find(x=>x.ix===ix);
-      if(!e) return;
-      last={it, prev:CAT_OVERRIDE[overrideKey(it)], to:e.to};
-      undoEntries.push(last);
-      setCatOverride(it, e.to);
-      pushChange(it, `Regal → ${tileLabel(e.to)}`);
-    });
-    SCAN_PENDING=[];
-    closeMoveAsk();
-    /* Ein Artikel: die gewohnte Rueckfahrkarte, das Undo trifft genau ihn.
-       Mehrere: dieselbe Leiste, aber das Undo bringt auch das Blatt zurueck --
-       sonst waere die Auswahl weg, die man eigentlich korrigieren wollte. */
-    if(move.length===1 && last) showCatUndo(last.it, last.prev, last.to);
-    else if(move.length>1) showCatUndoBatch(undoEntries, shown, move.length);
-    render();
-  };
 }
 
 /* keepOpen: aus render() heraus -- dann nur neu zeichnen, wenn das Popover offen ist.
@@ -4643,7 +4619,7 @@ document.getElementById('resetX').addEventListener('click', closeResetDlg);
 document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
-  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; endCatCelebration();
+  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATREOPEN=null; endCatCelebration();
   render();
   closeResetDlg();
 });
@@ -4937,7 +4913,7 @@ function legend(){
   legendEl.innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
-const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatCelebrate();renderCatItemPicker();renderIconPicker()};
+const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatReopen();renderCatCelebrate();renderCatItemPicker();renderIconPicker()};
 /* ---------- complete order ---------- */
 /* Zwei Stufen von "noch nicht fertig", bewusst verschieden hart:
 
@@ -4991,6 +4967,16 @@ function openSummary(){
   document.getElementById('ov2').classList.add('on');
 }
 document.getElementById('cta').onclick=openSummary;
+/* Abhaken ist rein kosmetisch -- CATFINISHED traegt keine Antwort und keine Menge
+   (siehe tileStats). Das Zuruecknehmen ist deshalb ein Loeschen und sonst nichts:
+   kein pushNote (das Abschliessen meldet auch nichts), keine Navigation. Der
+   Kaufmann bleibt in der Liste, in der er gerade steht -- nur die Rueckfrage
+   liegt davor, siehe renderCatReopen(). */
+document.getElementById('reopenRegalBtn').onclick=()=>{
+  if(!(CATFILTER && CATFILTER.kind==='tile')) return;
+  CATREOPEN={id:CATFILTER.id, label:CATFILTER.label};
+  render();
+};
 document.getElementById('nextRegalBtn').onclick=()=>{
   if(CATFILTER && CATFILTER.kind==='tile'){
     CATCONFIRM={id:CATFILTER.id, label:CATFILTER.label, after:'next'};
