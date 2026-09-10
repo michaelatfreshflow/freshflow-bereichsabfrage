@@ -391,7 +391,12 @@ body.isFiltering{
    doubled the contrast and the table read as banded. */
 .row.done{}
 .row.hide{display:none}
-.row.ishidden{opacity:.55;background:var(--ff-grey-50)}
+.row.ishidden{background:var(--ff-grey-50)}
+/* Gedaempft werden die Zellen der Zeile, nicht die Zeile selbst: opacity auf der
+   Zeile faerbt den ganzen Baum ein, ein Kind kann sich daraus nicht zurueckholen.
+   Und gerade der Knopf, der den Artikel wieder einblendet, muss voll lesbar sein --
+   sonst ist die Aufforderung so blass wie das Problem, das sie loest. */
+.row.ishidden > *:not(.movecta){opacity:.55}
 .itemcell{display:flex;align-items:flex-start;gap:8px}
 .eyeBtn{border:0;background:none;padding:2px;margin-top:2px;color:#b7b7b7;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex:0 0 auto}
 .eyeBtn:hover{background:var(--ff-grey-100);color:var(--green)}
@@ -439,6 +444,11 @@ body.isFiltering{
 .movecta .to{background:var(--ff-primary-20);color:var(--ff-color-dark-green);
   font-weight:var(--ff-weight-bold)}
 .movecta .arr{font-size:var(--ff-text-primary-title-17);color:var(--mute);line-height:1}
+/* Zweite Stoerung, gleiche Bauform: ausgeblendeter Artikel. Hier gibt es kein
+   "von → nach" -- es gibt genau einen Wert, der sich aendert. Statt zweier Pillen
+   also die Folge im Klartext: was das Ausblenden fuer die Bestellung bedeutet. */
+.movecta__note{font-size:var(--ff-text-primary-body-text-14);color:var(--mute)}
+.movecta + .movecta{margin-top:6px}
 .movecta .movecta__go{padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
 /* Zugeordnet: der Block bleibt genau da stehen, wo er stand -- er ist jetzt die
    Bestaetigung selbst. Statt des Knopfes das Rueckgaengig-Zeichen, damit sich die
@@ -1945,6 +1955,11 @@ function overrideKey(it){ return it.plu!=null ? ('plu:'+it.plu) : ('id:'+it.id);
    bleibt danach stehen und zeigt das Rueckgaengig-Zeichen -- deshalb muss der Weg
    zurueck gemerkt werden (prev kann 'keine Uebersteuerung' bedeuten). */
 const SCAN_MOVED={};
+/* Aus dem Scan-Ergebnis heraus wieder eingeblendet. Kein Zielwert nötig -- der Weg
+   zurueck ist immer "wieder ausblenden" -- aber es muss unterscheidbar bleiben, ob
+   das Auge oder dieser Block den Artikel eingeblendet hat: nur dann steht hier
+   danach die Rueckgaengig-Zeile. */
+const SCAN_SHOWN={};
 function setCatOverride(it, tileId){
   CAT_OVERRIDE[overrideKey(it)] = tileId;
   saveCatOverride();
@@ -2270,6 +2285,13 @@ const T={
     moveDoneTip:'Zuordnung zurücknehmen',
     moveRowBtn:'Hierher zuordnen',
     moveUndoBtn:'Rückgängig',
+    hideLabel:'Ausgeblendet',
+    hideNote:'läuft im Ordersatz nicht mit',
+    hideBtn:'Wieder einblenden',
+    hideBtnTip:'Artikel wieder in den Ordersatz aufnehmen',
+    shownLabel:'Eingeblendet',
+    shownNote:'läuft im Ordersatz mit',
+    shownTip:'Wieder ausblenden',
     moveRowTip:'Artikel dem offenen Regal zuordnen',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
@@ -2486,6 +2508,13 @@ const T={
     moveDoneTip:'Undo the assignment',
     moveRowBtn:'Assign here',
     moveUndoBtn:'Undo',
+    hideLabel:'Hidden',
+    hideNote:'not part of the order guide',
+    hideBtn:'Show again',
+    hideBtnTip:'Put the item back into the order guide',
+    shownLabel:'Shown',
+    shownNote:'part of the order guide',
+    shownTip:'Hide again',
     moveRowTip:'Assign the item to the open shelf',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
@@ -2702,6 +2731,13 @@ const T={
     moveDoneTip:'Annuler l’affectation',
     moveRowBtn:'Affecter ici',
     moveUndoBtn:'Annuler',
+    hideLabel:'Masqué',
+    hideNote:'ne fait pas partie de l’assortiment',
+    hideBtn:'Réafficher',
+    hideBtnTip:'Remettre l’article dans l’assortiment',
+    shownLabel:'Affiché',
+    shownNote:'fait partie de l’assortiment',
+    shownTip:'Masquer à nouveau',
     moveRowTip:'Affecter l’article au rayon ouvert',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
@@ -3348,7 +3384,8 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
-    if(s.hidden) pills+=`<span class="pill hid">Ausgeblendet</span>`;
+    /* Im Scan-Ergebnis sagt der Block unten dasselbe, nur deutlicher -- dann hier nicht. */
+    if(s.hidden && !forceEye) pills+=`<span class="pill hid">Ausgeblendet</span>`;
     /* Im Scan-Ergebnis: "Anderes Regal · Pilze" und "Vom Filter ausgeschlossen"
        als Kennzeichen am Artikel. 'Ausgeblendet' nicht doppelt -- das steht schon
        als eigenes Kennzeichen oben. */
@@ -3383,6 +3420,23 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       : moveBack
       ? mvBlock(moveBack.from, moveBack.to,
           `<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
+      : '';
+    /* Ausgeblendet heisst: laeuft in der Bestellung gar nicht mit. Das ist die
+       schwerere der zwei Stoerungen -- deshalb steht dieser Block ueber dem
+       Regal-Block, wenn beide zutreffen. Anders als dort haengt er an keinem
+       Regal: ein ausgeblendeter Artikel ist ueberall ausgeblendet. */
+    const hideBlock = (label, note, tail, cls) => `<div class="movecta${cls}">
+      <div class="movecta__mv">
+        <span class="lb">${label}</span><span class="movecta__note">${note}</span>
+      </div>${tail}
+    </div>`;
+    const hideCta = !forceEye ? ''
+      : s.hidden
+      ? hideBlock(L.hideLabel, L.hideNote,
+          `<button class="cta movecta__go" type="button" data-a="scanshow" data-i="${ix}" title="${L.hideBtnTip}">${L.hideBtn}</button>`, '')
+      : SCAN_SHOWN[overrideKey(it)]
+      ? hideBlock(L.shownLabel, L.shownNote,
+          `<button class="movecta__undo" type="button" data-a="scanunshow" data-i="${ix}" title="${L.shownTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
       : '';
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
@@ -3424,7 +3478,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${moveCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${hideCta}${moveCta}</div>`;
 }
 
 function render(){
@@ -4346,6 +4400,19 @@ function rowClick(e){
     render(); }
   /* Zurueck an derselben Stelle: prev===undefined heisst "hatte gar keine
      Uebersteuerung", der Eintrag muss dann weg statt auf undefined gesetzt zu werden. */
+  /* Wieder einblenden aus dem Scan-Ergebnis: dieselbe Wirkung wie das Auge, nur
+     als Klartext-Angebot -- und es wird vermerkt, damit der Block danach die
+     Rueckgaengig-Zeile zeigt statt zu verschwinden. */
+  else if(a==='scanshow'){
+    s.hidden=false;
+    SCAN_SHOWN[overrideKey(it)]=true;
+    pushChange(it, 'wieder eingeblendet');
+    render(); }
+  else if(a==='scanunshow'){
+    s.hidden=true;
+    delete SCAN_SHOWN[overrideKey(it)];
+    pushChange(it, 'aus Bestellung ausgeblendet');
+    render(); }
   else if(a==='scanunmove'){
     const key=overrideKey(it), e=SCAN_MOVED[key];
     if(!e) return;
