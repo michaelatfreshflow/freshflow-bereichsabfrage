@@ -279,6 +279,30 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .filtpop .fopt input{margin:0;accent-color:var(--green)}
 .filtpop .fopt span{flex:1}
 .filtpop .fopt b{font-weight:var(--ff-weight-bold);color:#5d6b64;font-size:var(--ff-text-primary-caption-12)}
+/* Scanner-Gruppe: gescannt / nicht gescannt ist keine weitere Merkmals-Pille,
+   sondern eine Aufteilung -- die vier Haken oben sind ein ODER ("zeig mir auch
+   das"), hier gilt genau eine Wahl. Deshalb eigene Zeile mit Titel, Pillen statt
+   Haken, wie die Anzeigegroessen-Gruppe in der App. */
+.fgrp{margin-top:6px;padding-top:8px;border-top:1px solid var(--ff-grey-100)}
+.fgrp__hdr{padding:0 8px 6px;font-size:var(--ff-text-primary-caption-12);
+  font-weight:var(--ff-weight-bold);color:var(--mute)}
+.fgrp__row{display:flex;flex-wrap:wrap;gap:6px;padding:0 8px 2px}
+.fpill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ff-grey-200);
+  background:var(--ff-color-white);color:#5d6b64;border-radius:var(--ff-radius-pill);
+  padding:5px 12px;font-family:inherit;font-size:var(--ff-text-primary-body-text-14);cursor:pointer}
+.fpill:hover{background:var(--ff-primary-5)}
+.fpill b{font-weight:var(--ff-weight-bold);font-size:var(--ff-text-primary-caption-12)}
+.fpill.on{background:var(--ff-orange-100);border-color:var(--ff-orange-100);
+  color:var(--ff-color-white);font-weight:var(--ff-weight-bold)}
+.fpill.on b{color:var(--ff-color-white)}
+/* Zeilen-Kennzeichen: nur das Scanner-Zeichen, kein Text. Die Zeile traegt schon
+   genug Woerter, und "gescannt" muss man nicht lesen, sondern nur sehen. Die
+   Erklaerung steht im title -- "Lager gescannt" (die Kiste im Lager) ist etwas
+   anderes und steht weiterhin als Text in der Bestandsspalte. */
+.scanbadge{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  width:17px;height:17px;border-radius:var(--ff-radius-pill);
+  background:var(--green);color:var(--ff-color-white)}
+.scanbadge svg{width:11px;height:11px}
 
 /* ---------- progress ---------- */
 
@@ -1649,6 +1673,14 @@ body.dash-active .scanFab{display:none}
         <label class="fopt"><input type="checkbox" id="fBio" data-k="bio"><span id="fltBio">Bio</span><b id="cBio">0</b></label>
         <label class="fopt"><input type="checkbox" id="fPromo" data-k="promo"><span id="fltSale">Werb.</span><b id="cPromo">0</b></label>
         <label class="fopt"><input type="checkbox" id="fHidden" data-k="hidden"><span id="fltHidden">Ausgeblendet</span><b id="cHidden">0</b></label>
+        <div class="fgrp">
+          <div class="fgrp__hdr" id="sfTitle">Scanner</div>
+          <div class="fgrp__row">
+            <button class="fpill on" type="button" data-sf="all" id="sfAll">Alle</button>
+            <button class="fpill" type="button" data-sf="yes" id="sfYes">Gescannt <b id="cSfYes">0</b></button>
+            <button class="fpill" type="button" data-sf="no" id="sfNo">Nicht gescannt <b id="cSfNo">0</b></button>
+          </div>
+        </div>
       </div>
     </div>
     <button class="resetBtn" id="resetBtn" type="button" title="Zurücksetzen" aria-label="Zurücksetzen">
@@ -1960,6 +1992,12 @@ const SCAN_MOVED={};
    das Auge oder dieser Block den Artikel eingeblendet hat: nur dann steht hier
    danach die Rueckgaengig-Zeile. */
 const SCAN_SHOWN={};
+/* Am Regal gescannt: {key:true}. Nur ECHTE Scans zaehlen -- eine getippte Nummer
+   im Suchfeld beweist nicht, dass die Ware da ist, und genau das ist die Aussage
+   dieses Kennzeichens. Gilt fuer die laufende Bestellung; ein Scan von gestern
+   sagt ueber das heutige Regal nichts. */
+const SCAN_SEEN={};
+let SCAN_FILT='all';        // 'all' | 'yes' | 'no'
 function setCatOverride(it, tileId){
   CAT_OVERRIDE[overrideKey(it)] = tileId;
   saveCatOverride();
@@ -2286,6 +2324,11 @@ const T={
     moveRowBtn:'Hierher zuordnen',
     moveUndoBtn:'Rückgängig',
     hideLabel:'Ausgeblendet',
+    scanSeenTag:'Am Regal gescannt',
+    sfTitle:'Scanner',
+    sfAll:'Alle',
+    sfYes:'Gescannt',
+    sfNo:'Nicht gescannt',
     hideNote:'läuft im Ordersatz nicht mit',
     hideBtn:'Wieder einblenden',
     hideBtnTip:'Artikel wieder in den Ordersatz aufnehmen',
@@ -2509,6 +2552,11 @@ const T={
     moveRowBtn:'Assign here',
     moveUndoBtn:'Undo',
     hideLabel:'Hidden',
+    scanSeenTag:'Scanned at the shelf',
+    sfTitle:'Scanner',
+    sfAll:'All',
+    sfYes:'Scanned',
+    sfNo:'Not scanned',
     hideNote:'not part of the order guide',
     hideBtn:'Show again',
     hideBtnTip:'Put the item back into the order guide',
@@ -2732,6 +2780,11 @@ const T={
     moveRowBtn:'Affecter ici',
     moveUndoBtn:'Annuler',
     hideLabel:'Masqué',
+    scanSeenTag:'Scanné au rayon',
+    sfTitle:'Scanner',
+    sfAll:'Tous',
+    sfYes:'Scannés',
+    sfNo:'Non scannés',
     hideNote:'ne fait pas partie de l’assortiment',
     hideBtn:'Réafficher',
     hideBtnTip:'Remettre l’article dans l’assortiment',
@@ -3379,11 +3432,16 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       + `<span class="metarow">${it.ek!=null?eur(it.ek):'?'}`
       + `${marginPct!=null?' '+marginPct.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %':''}`
       + ` ${it.vk!=null?eur(it.vk):'?'}</span>`;
-    let pills=`<span class="pill">${t().prevOrder} ${it.prevOrder!=null?it.prevOrder:0} ${t().caseUnit}</span>`;
+    /* Das Zeichen steht vor den Merkmalen, immer an derselben Stelle -- so findet
+       das Auge beim Durchgehen der Liste sofort, was schon in der Hand war. */
+    let pills = SCAN_SEEN[overrideKey(it)]
+      ? `<span class="scanbadge" title="${L.scanSeenTag}" aria-label="${L.scanSeenTag}">${ICON_SCAN}</span>` : '';
+    pills+=`<span class="pill">${t().prevOrder} ${it.prevOrder!=null?it.prevOrder:0} ${t().caseUnit}</span>`;
     const pl = promoLabel(it.promo);
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
+
     /* Im Scan-Ergebnis sagt der Block unten dasselbe, nur deutlicher -- dann hier nicht. */
     if(s.hidden && !forceEye) pills+=`<span class="pill hid">Ausgeblendet</span>`;
     /* Im Scan-Ergebnis: "Anderes Regal · Pilze" und "Vom Filter ausgeschlossen"
@@ -3510,15 +3568,19 @@ function render(){
        when it is set -- so the flag has to reach the layout, not just the rows. */
     document.body.classList.toggle('isFiltering', !!filtOn);
     const catHide = filtOn && !filtMatch(it,s) && !(FILT_KEEP && FILT_KEEP.has(ix));
+    /* Aufteilung, kein ODER: sie schneidet die Liste, unabhaengig von den Haken. */
+    const seen = !!SCAN_SEEN[overrideKey(it)];
+    const scanHide = SCAN_FILT==='yes' ? !seen : SCAN_FILT==='no' ? seen : false;
     let catFilterHide = false;
     if(CATFILTER){
       if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
-    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide;
+    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide || scanHide;
     if(!hide) shownIdx.push(ix);
     html += rowHTML(ix, hide?' hide':'');
   });
+  renderScanFilt();
   closeWhy();          // der Knopf, an dem es haengt, wird gleich neu gebaut
   list.innerHTML=html;
   SHOWN_IDX=shownIdx;  // die Scan-Ansicht liest hier ab, was die Liste gerade NICHT zeigt
@@ -4593,6 +4655,7 @@ function doScan(digits){
   setTimeout(()=>{
     cam.classList.remove('on','busy');
     setScanCode(digits);
+    SCAN.matches.forEach(i=>{ SCAN_SEEN[overrideKey(ITEMS[i])]=true; });
     renderScanRes();
   }, 340);
 }
@@ -4704,6 +4767,24 @@ document.getElementById('cInv').textContent   = ITEMS.filter((it,ix)=>ST[ix].mod
 document.getElementById('cOrd').textContent   = ITEMS.filter(it=>it.ordNote).length;
 document.getElementById('cBio').textContent   = ITEMS.filter(it=>it.bio).length;
 document.getElementById('cPromo').textContent = ITEMS.filter(it=>it.promo).length;
+
+/* Zaehler und aktive Pille der Scanner-Gruppe. Gezaehlt wird im offenen Regal,
+   nicht im ganzen Ordersatz -- die Frage lautet "was fehlt mir HIER noch". */
+function renderScanFilt(){
+  const inShelf = ITEMS.map((it,ix)=>ix).filter(ix=>
+    !(CATFILTER && CATFILTER.kind==='tile' && tileOf(ITEMS[ix])!==CATFILTER.id));
+  const yes = inShelf.filter(ix=>SCAN_SEEN[overrideKey(ITEMS[ix])]).length;
+  const L=t();
+  document.getElementById('sfTitle').textContent = L.sfTitle;
+  document.getElementById('sfAll').textContent   = L.sfAll;
+  document.getElementById('sfYes').innerHTML = `${L.sfYes} <b>${yes}</b>`;
+  document.getElementById('sfNo').innerHTML  = `${L.sfNo} <b>${inShelf.length - yes}</b>`;
+  ['all','yes','no'].forEach(k=>document.querySelector(`[data-sf="${k}"]`)
+    .classList.toggle('on', SCAN_FILT===k));
+}
+document.querySelectorAll('[data-sf]').forEach(b=>b.addEventListener('click', ()=>{
+  SCAN_FILT=b.dataset.sf; render();
+}));
 
 const filtBtn = document.getElementById('filtBtn');
 const filtPop = document.getElementById('filtPop');
