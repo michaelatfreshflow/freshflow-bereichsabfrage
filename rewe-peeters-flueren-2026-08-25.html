@@ -1166,11 +1166,12 @@ body.isFiltering{
   16%,62%{opacity:1;transform:translate(-50%,-50%) scale(1)}
   100%{opacity:0;transform:translate(-50%,-72%) scale(.97)}}
 .catcelebrate{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none;
-  animation:celebTint 1700ms ease forwards}
+  --celebMs:1700ms;
+  animation:celebTint var(--celebMs) ease forwards}
 .catcelebrate canvas{position:absolute;inset:0;width:100%;height:100%}
 .catcelebrate .card{position:absolute;left:50%;top:42%;text-align:center;
   background:var(--green);color:var(--ff-color-white);border-radius:var(--ff-radius-c15);padding:20px 32px;box-shadow:0 4px 12px rgba(0,0,0,.35);
-  animation:celebCard 1700ms cubic-bezier(.2,.7,.2,1) forwards}
+  animation:celebCard var(--celebMs) cubic-bezier(.2,.7,.2,1) forwards}
 .catcelebrate .eyebrow{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);color:var(--ff-color-accent-lime)}
 .catcelebrate h2{margin:6px 0 0;font-size:30px;font-weight:var(--ff-weight-bold);white-space:nowrap}
 .catcelebrate .sub{font-size:var(--ff-text-primary-body-text-14);color:rgba(255,255,255,.75);margin-top:4px}
@@ -1183,7 +1184,9 @@ body.isFiltering{
 }
 /* Ueber dem Rueckblick (z-index 9000) statt in der Regal-Buehne, die beim Dashboard
    gar nicht sichtbar ist. Sonst identisch -- es ist dieselbe Feier. */
-#bsCelebrateRoot .catcelebrate{position:fixed;z-index:9200}
+/* Laenger stehen als beim Regal: dort wartet schon das naechste Regal darunter und
+   die Karte ist im Weg. Hier ist der Durchgang zu Ende -- die Zahl darf man lesen. */
+#bsCelebrateRoot .catcelebrate{position:fixed;z-index:9200;--celebMs:3000ms}
 #bsCelebrateRoot .catcelebrate h2{white-space:normal}
 /* Die Bilanz des Rueckblicks: links was gezaehlt wurde, rechts was mit dem Rest
    geschah. Der rechte Block endet buendig mit der Kistenspalte darueber. */
@@ -1818,7 +1821,7 @@ body.dash-active .scanFab{display:none}
     <!-- Inventur: Zaehlen hat hier ein Zuhause, unabhaengig von einer offenen
          Bestellung. Bisher ging Zaehlen nur IN der Bestellung. -->
     <div class="dash-panel" id="panelInv" hidden>
-      <div class="dash-sec-lb" id="invTitle">Inventur</div>
+      <div class="dash-sec-lb" id="invTitle">Lagerbestand</div>
       <!-- Kein Einstiegs-Kaertchen: der schwebende Knopf ist der einzige Einstieg. -->
       <button class="invFab" id="invFab" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 8v8"/><path d="M12 8v8"/><path d="M16 8v8"/></svg></button>
       <div id="invHist"></div>
@@ -1842,7 +1845,7 @@ body.dash-active .scanFab{display:none}
          gleichrangig neben Bestellung und Inventur, ohne das je einzuloesen. -->
     <div class="dash-navitem">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-      <span id="dbNav3">Inventur</span>
+      <span id="dbNav3">Bestand</span>
     </div>
     <div class="dash-navitem">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/></svg>
@@ -2478,8 +2481,8 @@ const T={
     navOrders:'Bestellungen',  // [arb] navOrders
     // navSettings bleibt: 'Einstellungen' ist jetzt ein Abschnitt in "Mein Markt", kein Reiter mehr.
     navSettings:'Einstellungen',  // [arb] navSettings
-    navInventur:'Inventur',
-    invPanelTitle:'Lagerinventur',
+    navInventur:'Bestand',
+    invPanelTitle:'Lagerbestand',
     navInfos:'Infos',
     invResumeTitle:'Zählung fortsetzen',
     bsLeaveTitle:'Zählung als Entwurf speichern?',
@@ -2587,16 +2590,16 @@ const T={
     scanNo:'Nr.',
     scanAltLead:'Diese Artikel aus dem Ordersatz kommen dem am nächsten:',
     scanAltNone:'Kein ähnlicher Artikel im Ordersatz gefunden.',
-    bsBtn:'Lager scannen',
-    bsTitle:'Lager scannen',
+    bsBtn:'Lagerbestand scannen',
+    bsTitle:'Lagerbestand scannen',
     bsHint:'Kistenetikett in den Rahmen halten',
     bsSub:'Jeder Scan zählt eine ganze Kiste',
     bsSummary:'{i} Artikel · {c} Kisten',
-    bsCelebEyebrow:'Lagerinventur abgeschlossen',
+    bsCelebEyebrow:'Bestandsaufnahme abgeschlossen',
     bsCelebSkip:'Tippen zum Überspringen',
     bsTile:'Lager',
     bsTileNever:'Noch nicht gezählt',
-    bsTileNeed:'Lagerinventur nötig',
+    bsTileNeed:'Bestandsaufnahme nötig',
     bsTileNone:'Kein Artikel gezählt',
     bsAgoNow:'gerade eben',
     bsAgoMin:'vor {n} Min',
@@ -2617,12 +2620,12 @@ const T={
     bsResumeNo:'Neu beginnen',
     bsScanOff:'Scannen beenden',
     bsEmpty:'Noch keine Kiste gescannt.',
-    bsResEyebrow:'Lager scannen',
+    bsResEyebrow:'Lagerbestand scannen',
     bsNote:'Jeder Scan zählt eine ganze Kiste. – und + nehmen einen Fehlscan zurück.',
     bsSearchNote:'{n} Treffer im Ordersatz. + legt eine Kiste dazu.',
     bsNoHit:'Kein Artikel im Ordersatz gefunden.',
     bsNoCase:'Keine Kistengröße',
-    bsDone:'Lagerinventur abschließen',
+    bsDone:'Bestandsaufnahme abschließen',
     bsFullTitle:'Lager vollständig gezählt?',
     bsFullYes:'Ja, alles erfasst',
     bsFullNo:'Nein, nur teilweise',
@@ -4856,7 +4859,7 @@ function startCatCelebration(){
      schritts zu verlassen -- der Idempotenz-Riegel macht ein zweites Bauen zum No-op. */
   renderCatCelebrate();
   if(reduced){ CELEB_TIMER=setTimeout(endCatCelebration, 900); return; }
-  CATFX={t0:null, init:false, fruits:[], shards:[], rings:[]};
+  CATFX={t0:null, init:false, fruits:[], shards:[], rings:[], until:2900};
   requestAnimationFrame(catCelebrateLoop);
 }
 /* Einziger Abbau-Weg -- vom Timer, vom Ende der Canvas-Schleife und vom Abbruch-Tipp.
@@ -4958,7 +4961,7 @@ function catCelebrateLoop(now){
     ctx.restore(); ctx.globalAlpha=1;
   });
 
-  if(el<2900){ requestAnimationFrame(catCelebrateLoop); return; }
+  if(el < (fx.until||2900)){ requestAnimationFrame(catCelebrateLoop); return; }
   endCatCelebration();
 }
 
@@ -6391,8 +6394,8 @@ function bsCelebrate(e){
       <div class="sub">${sub}</div>
       <div class="hint">${L.bsCelebSkip}</div>`};
   renderCatCelebrate();
-  if(reduced){ CELEB_TIMER=setTimeout(endCatCelebration, 900); return; }
-  CATFX={t0:null, init:false, fruits:[], shards:[], rings:[]};
+  if(reduced){ CELEB_TIMER=setTimeout(endCatCelebration, 1600); return; }
+  CATFX={t0:null, init:false, fruits:[], shards:[], rings:[], until:4400};
   requestAnimationFrame(catCelebrateLoop);
 }
 /* Abgeschlossen heisst nachlesen koennen: der frische Durchgang geht gleich als
@@ -6918,8 +6921,9 @@ function bsSelfTest(){
   bsRender();
   const mets=[...document.querySelectorAll('#bsResSheet .scanRes__foot .m b')].map(e=>e.textContent);
   ok('fuss: unten stehen Artikel und Kisten', mets.length===2 && mets[0]==='1' && mets[1]==='2 '+t().caseUnit, JSON.stringify(mets));
-  ok('fuss: der Abschluss-Knopf heisst nach der Inventur',
-     document.getElementById('bsDone').textContent===t().bsDone && /Lagerinventur|stocktake|inventaire/i.test(t().bsDone), t().bsDone);
+  ok('fuss: der Abschluss-Knopf nennt die Bestandsaufnahme',
+     document.getElementById('bsDone').textContent===t().bsDone
+     && /Bestandsaufnahme|stocktake|inventaire/i.test(t().bsDone), t().bsDone);
   ok('fuss: der Scan-Knopf sitzt nicht mehr in der Fussleiste',
      !document.querySelector('#bsResSheet .scanRes__scan') && !!document.getElementById('bsFab'));
   ok('fuss: er schwebt ueber dem Blatt', getComputedStyle(document.getElementById('bsFab')).position==='fixed'
