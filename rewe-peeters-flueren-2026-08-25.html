@@ -474,6 +474,13 @@ body.isFiltering{
 .movecta__note{font-size:var(--ff-text-primary-body-text-14);color:var(--mute)}
 .movecta + .movecta{margin-top:6px}
 .movecta .movecta__go{padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
+/* "automatisch" steht am Block, nicht am Knopf: der Knopf tut dasselbe wie sonst,
+   nur die Ursache war eine andere. */
+.movecta__auto{flex:0 0 auto;font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.6px;
+  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
+.autofix{display:flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ink)}
+.autofix input{width:19px;height:19px;margin:0;accent-color:var(--green);flex:0 0 auto}
 /* Zugeordnet: der Block bleibt genau da stehen, wo er stand -- er ist jetzt die
    Bestaetigung selbst. Statt des Knopfes das Rueckgaengig-Zeichen, damit sich die
    Zuordnung an derselben Stelle wieder aufheben laesst. Darum braucht es die
@@ -1997,6 +2004,11 @@ const SCAN_SHOWN={};
    dieses Kennzeichens. Gilt fuer die laufende Bestellung; ein Scan von gestern
    sagt ueber das heutige Regal nichts. */
 const SCAN_SEEN={};
+/* Automatik: was beim Scannen ohnehin bestaetigt worden waere, passiert sofort --
+   zuordnen und einblenden. Die Bloecke bleiben stehen, aber gleich im Zustand
+   "erledigt", und sagen dazu, dass nicht der Kaufmann getippt hat. Rueckgaengig
+   bleibt an derselben Stelle. */
+let AUTO_FIX=false;
 let SCAN_FILT='all';        // 'all' | 'yes' | 'no'
 function setCatOverride(it, tileId){
   CAT_OVERRIDE[overrideKey(it)] = tileId;
@@ -2329,6 +2341,9 @@ const T={
     sfAll:'Alle',
     sfYes:'Gescannt',
     sfNo:'Nicht gescannt',
+    autoFixShelf:'Gescannte Artikel automatisch einblenden und diesem Regal zuordnen',
+    autoFixAll:'Gescannte Artikel automatisch einblenden',
+    autoTag:'automatisch',
     hideNote:'läuft im Ordersatz nicht mit',
     hideBtn:'Wieder einblenden',
     hideBtnTip:'Artikel wieder in den Ordersatz aufnehmen',
@@ -2557,6 +2572,9 @@ const T={
     sfAll:'All',
     sfYes:'Scanned',
     sfNo:'Not scanned',
+    autoFixShelf:'Show scanned items automatically and assign them to the current shelf',
+    autoFixAll:'Show scanned items automatically',
+    autoTag:'automatic',
     hideNote:'not part of the order guide',
     hideBtn:'Show again',
     hideBtnTip:'Put the item back into the order guide',
@@ -2785,6 +2803,9 @@ const T={
     sfAll:'Tous',
     sfYes:'Scannés',
     sfNo:'Non scannés',
+    autoFixShelf:'Afficher automatiquement les articles scannés et les affecter au rayon actuel',
+    autoFixAll:'Afficher automatiquement les articles scannés',
+    autoTag:'automatique',
     hideNote:'ne fait pas partie de l’assortiment',
     hideBtn:'Réafficher',
     hideBtnTip:'Remettre l’article dans l’assortiment',
@@ -3465,6 +3486,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const mvDone = SCAN_MOVED[overrideKey(it)];
     const moveBack = (forceEye && CATFILTER && CATFILTER.kind==='tile' && mvDone
       && mvDone.to===CATFILTER.id && tileOf(it)===CATFILTER.id) ? mvDone : null;
+    const autoTag = `<span class="movecta__auto">${L.autoTag}</span>`;
     const mvBlock = (from, to, tail, cls) => `<div class="movecta${cls}">
       <div class="movecta__mv">
         <span class="lb">${L.moveFrom}</span><span class="from">${tileLabel(from)}</span>
@@ -3477,7 +3499,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`, '')
       : moveBack
       ? mvBlock(moveBack.from, moveBack.to,
-          `<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
+          `${moveBack.auto?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
       : '';
     /* Ausgeblendet heisst: laeuft in der Bestellung gar nicht mit. Das ist die
        schwerere der zwei Stoerungen -- deshalb steht dieser Block ueber dem
@@ -3494,7 +3516,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           `<button class="cta movecta__go" type="button" data-a="scanshow" data-i="${ix}" title="${L.hideBtnTip}">${L.hideBtn}</button>`, '')
       : SCAN_SHOWN[overrideKey(it)]
       ? hideBlock(L.shownLabel, L.shownNote,
-          `<button class="movecta__undo" type="button" data-a="scanunshow" data-i="${ix}" title="${L.shownTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
+          `${SCAN_SHOWN[overrideKey(it)]==='auto'?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunshow" data-i="${ix}" title="${L.shownTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
       : '';
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
@@ -3662,6 +3684,10 @@ document.getElementById('dashFab').addEventListener('click', enterApp);
    das Regale-Pill selbst) wieder exakt auf der Regale-Uebersicht landet,
    nicht auf irgendeiner vergessenen Filteransicht. */
 function goToList(filter){
+  /* Die Automatik gehoert zum Regal-Gang: von Regal zu Regal bleibt sie stehen,
+     auch ueber die Regale-Uebersicht hinweg. Zurueck auf die ganze Liste heisst
+     aber, den Gang zu verlassen -- dort waere "aktuelles Regal" ohnehin leer. */
+  if(!filter) AUTO_FIX=false;
   CATFILTER=filter; CATOPEN=false; CATQUERY=''; snapFilt();
   history.pushState({page:'list', filter}, '', location.href);
   render();
@@ -4656,11 +4682,32 @@ function doScan(digits){
     cam.classList.remove('on','busy');
     setScanCode(digits);
     SCAN.matches.forEach(i=>{ SCAN_SEEN[overrideKey(ITEMS[i])]=true; });
+    if(AUTO_FIX) autoFix(SCAN.matches);
+    render();
     renderScanRes();
   }, 340);
 }
 /* Der Grund und die Zuordnung stehen an der Zeile selbst -- beim Schliessen wird
    nichts mehr nachgefragt. */
+/* Genau die zwei Handgriffe, die die Bloecke anbieten -- nicht mehr. Was schon
+   erledigt ist, wird nicht noch einmal angefasst, und ohne offenes Regal gibt es
+   kein Ziel, also wird auch nichts zugeordnet. */
+function autoFix(list){
+  (list||[]).forEach(ix=>{
+    const it=ITEMS[ix], st=ST[ix], key=overrideKey(it);
+    if(st.hidden){
+      st.hidden=false;
+      SCAN_SHOWN[key]='auto';
+      pushChange(it, 'wieder eingeblendet (automatisch)');
+    }
+    if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id){
+      SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key], auto:true};
+      setCatOverride(it, CATFILTER.id);
+      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} (automatisch)`);
+    }
+  });
+}
+
 function closeScanRes(){
   document.getElementById('scanRes').classList.remove('on');
 }
@@ -4714,6 +4761,8 @@ function renderScanRes(keepOpen, keepFocus){
       :`<div class="scanRes__empty">${noCode?L.scanTypeOrScan:L.scanNoHitSub}</div>`}
     </div>
     <div class="scanRes__foot">
+      <label class="autofix"><input type="checkbox" id="autoFixCb"${AUTO_FIX?' checked':''}>
+        <span>${(CATFILTER && CATFILTER.kind==='tile') ? L.autoFixShelf : L.autoFixAll}</span></label>
       <span class="sp"></span>
       <button class="scanRes__scan" id="scanResAgain" type="button" title="${L.scanAgain}" aria-label="${L.scanAgain}">${ICON_SCAN}</button>
     </div>`;
@@ -4730,6 +4779,15 @@ function renderScanRes(keepOpen, keepFocus){
     });
   }
   document.getElementById('scanResX').onclick=()=>closeScanRes();
+  /* Einschalten wirkt sofort auf das, was gerade auf dem Blatt steht -- sonst
+     muesste man den Artikel in der Hand noch einmal scannen, damit die Automatik
+     ihn erwischt. */
+  const afc=document.getElementById('autoFixCb');
+  if(afc) afc.onchange=()=>{
+    AUTO_FIX=afc.checked;
+    if(AUTO_FIX) autoFix(SCAN.matches);
+    render(); renderScanRes(true);
+  };
   document.getElementById('scanResAgain').onclick=openScanCam;
   /* dieselbe Bedienung wie in der Liste -- Stepper, Tastenfelder, Ausrufezeichen */
   const body=document.getElementById('scanResBody');
@@ -4757,7 +4815,7 @@ document.getElementById('resetX').addEventListener('click', closeResetDlg);
 document.getElementById('resetAbbrechen').addEventListener('click', closeResetDlg);
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
-  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATREOPEN=null; endCatCelebration();
+  CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATREOPEN=null; AUTO_FIX=false; endCatCelebration();
   render();
   closeResetDlg();
 });
