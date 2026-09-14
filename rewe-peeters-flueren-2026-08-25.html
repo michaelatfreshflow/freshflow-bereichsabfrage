@@ -478,9 +478,21 @@ body.isFiltering{
    nur die Ursache war eine andere. */
 .movecta__auto{flex:0 0 auto;font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.6px;
   text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
-.autofix{display:flex;align-items:center;gap:8px;cursor:pointer;
+.autofix{display:flex;align-items:center;gap:10px;cursor:pointer;
   font-size:var(--ff-text-primary-body-text-14);color:var(--ink)}
-.autofix input{width:19px;height:19px;margin:0;accent-color:var(--green);flex:0 0 auto}
+/* Schalter statt Haken: die Automatik ist ein Zustand, der ueber viele Scans
+   bestehen bleibt -- kein Haken, den man einmal setzt und quittiert. Die echte
+   Checkbox bleibt darunter liegen (Tastatur, Screenreader), sichtbar ist der
+   Schalter. */
+.autofix__cb{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.autofix__sw{position:relative;flex:0 0 auto;width:42px;height:24px;border-radius:var(--ff-radius-pill);
+  background:var(--ff-grey-200);transition:background .15s}
+.autofix__sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:var(--ff-color-white);box-shadow:0 1px 3px rgba(0,0,0,.25);
+  transition:transform .15s}
+.autofix__cb:checked + .autofix__sw{background:var(--green)}
+.autofix__cb:checked + .autofix__sw::after{transform:translateX(18px)}
+.autofix__cb:focus-visible + .autofix__sw{outline:2px solid var(--green);outline-offset:2px}
 /* Zugeordnet: der Block bleibt genau da stehen, wo er stand -- er ist jetzt die
    Bestaetigung selbst. Statt des Knopfes das Rueckgaengig-Zeichen, damit sich die
    Zuordnung an derselben Stelle wieder aufheben laesst. Darum braucht es die
@@ -2647,8 +2659,7 @@ const T={
     sfAll:'Alle',
     sfYes:'Gescannt',
     sfNo:'Nicht gescannt',
-    autoFixShelf:'Gescannte Artikel automatisch einblenden und diesem Regal zuordnen',
-    autoFixAll:'Gescannte Artikel automatisch einblenden',
+    autoFix:'Gescannte Artikel automatisch einblenden und mit Auslage von 1 KO diesem Regal zuordnen',
     autoTag:'automatisch',
     hideNote:'läuft im Ordersatz nicht mit',
     hideBtn:'Wieder einblenden',
@@ -2924,8 +2935,7 @@ const T={
     sfAll:'All',
     sfYes:'Scanned',
     sfNo:'Not scanned',
-    autoFixShelf:'Show scanned items automatically and assign them to this shelf',
-    autoFixAll:'Show scanned items automatically',
+    autoFix:'Show scanned items automatically and assign them to this shelf with a display size of 1 CS',
     autoTag:'automatic',
     hideNote:'not part of the order guide',
     hideBtn:'Show again',
@@ -3201,8 +3211,7 @@ const T={
     sfAll:'Tous',
     sfYes:'Scannés',
     sfNo:'Non scannés',
-    autoFixShelf:'Afficher automatiquement les articles scannés et les affecter à ce rayon',
-    autoFixAll:'Afficher automatiquement les articles scannés',
+    autoFix:'Afficher automatiquement les articles scannés et les affecter à ce rayon avec un linéaire de 1 CS',
     autoTag:'automatique',
     hideNote:'ne fait pas partie de l’assortiment',
     hideBtn:'Réafficher',
@@ -5073,6 +5082,7 @@ function rowClick(e){
     const key=overrideKey(it), e=SCAN_MOVED[key];
     if(!e) return;
     if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
+    if(e.prevAuslage!=null) s.auslage=e.prevAuslage;   // Auslage gehoert zur Zuordnung
     saveCatOverride();
     delete SCAN_MOVED[key];
     pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
@@ -5269,9 +5279,14 @@ function autoFix(list){
       pushChange(it, 'wieder eingeblendet (automatisch)');
     }
     if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id){
-      SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key], auto:true};
+      SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
+                       prevAuslage:st.auslage, auto:true};
       setCatOverride(it, CATFILTER.id);
-      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} (automatisch)`);
+      /* Der Text verspricht "mit Auslage von 1 KO" -- dann muss es auch passieren.
+         Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
+         Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
+      st.auslage=1;
+      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} · Auslage 1 ${t().caseUnit} (automatisch)`);
     }
   });
 }
@@ -5329,8 +5344,10 @@ function renderScanRes(keepOpen, keepFocus){
       :`<div class="scanRes__empty">${noCode?L.scanTypeOrScan:L.scanNoHitSub}</div>`}
     </div>
     <div class="scanRes__foot">
-      <label class="autofix"><input type="checkbox" id="autoFixCb"${AUTO_FIX?' checked':''}>
-        <span>${(CATFILTER && CATFILTER.kind==='tile') ? L.autoFixShelf : L.autoFixAll}</span></label>
+      ${(CATFILTER && CATFILTER.kind==='tile') ? `<label class="autofix">
+        <input type="checkbox" id="autoFixCb" class="autofix__cb"${AUTO_FIX?' checked':''}>
+        <span class="autofix__sw" aria-hidden="true"></span>
+        <span>${L.autoFix}</span></label>` : ''}
       <span class="sp"></span>
       <button class="scanRes__scan" id="scanResAgain" type="button" title="${L.scanAgain}" aria-label="${L.scanAgain}">${ICON_SCAN}</button>
     </div>`;
