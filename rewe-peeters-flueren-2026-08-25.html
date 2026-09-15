@@ -1351,6 +1351,17 @@ body.isFiltering{
 .kfield .box{border:1.5px solid var(--ff-grey-200);border-radius:var(--ff-radius-c8);padding:8px 14px;min-width:92px;text-align:right;font-weight:var(--ff-weight-bold);cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:var(--ff-weight-extra-bold)}
+/* Auslage je Platz: die Art des Regals traegt die Zeile, der Regalname steht
+   daneben. Die 60px-Spalte des Lager-Tastenfelds reicht fuer "Stammplatz" und
+   "Zweitplatzierung" nicht -- diese Zeilen bekommen darum eine eigene Breite,
+   das Lager-Blatt bleibt unberuehrt. */
+.ausRow{cursor:pointer}
+.ausRow label,.kfield .kTotal{width:auto;min-width:118px;flex:0 0 auto}
+.ausKind--ak{color:var(--ff-color-tag-promotion-foreground)}
+/* Der Regalname darf schrumpfen, die Zahl nie: sie ist der Grund fuer das Blatt. */
+.ausShelf{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--mute);font-size:var(--ff-text-primary-caption-12)}
+.ausRow .box{flex:0 0 auto}
 /* Nur-Lager: dasselbe Tastenfeld wie sonst, nur ohne Fläche, ohne Gesamt und ohne
    den Umschalter. In der Lager-Sitzung wird ausschliesslich das Lager gezaehlt --
    eine Flaechenzahl daneben waere eine Aussage, die dort niemand gemacht hat. */
@@ -2174,7 +2185,7 @@ body.dash-active .scanFab{display:none}
         <div class="meta" id="ausMeta"></div>
       </div>
       <div>
-        <div class="kfield"><label id="ausFieldLb">Auslage</label><div class="box act" id="ausVal">1</div></div>
+        <div id="ausSpots"></div>
       </div>
       <div class="pad" id="ausPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -2808,6 +2819,7 @@ const T={
     piece:'Stück',  // [arb] orderItemUnitPiece
     displaySize:'Auslage',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'gesamt',                          // dsTotal
+    dsTotalLb:'Gesamt',                        // dsTotalLb
     dsEditTip:'Auslage für diesen Platz anpassen',
     dsAt:'Auslage auf',                        // dsAt
     dsOther:'Andere Plätze',                   // dsOther
@@ -3121,6 +3133,7 @@ const T={
     piece:'Piece',  // [arb] orderItemUnitPiece
     displaySize:'Display size',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
+    dsTotalLb:'Total',
     dsEditTip:'Change the display size for this spot',
     dsAt:'Display size on',
     dsOther:'Other spots',
@@ -3433,6 +3446,7 @@ const T={
     piece:'Pièce',  // [arb] orderItemUnitPiece
     displaySize:'Linéaire',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
+    dsTotalLb:'Total',
     dsEditTip:'Modifier le linéaire pour cet emplacement',
     dsAt:'Linéaire sur',
     dsOther:'Autres emplacements',
@@ -5542,6 +5556,14 @@ function renderCatItemPicker(){
     draft.promo.filter(x=>!wasPromo.includes(x)).forEach(x=>pushChange(it, `${L.placeAdded} → ${tileLabel(x)}`));
     wasPromo.filter(x=>!draft.promo.includes(x)).forEach(x=>pushChange(it, `${L.placeRemoved} → ${tileLabel(x)}`));
     if(draft.promo.length) PROMO.place[key]=draft.promo; else delete PROMO.place[key];
+    /* Die Auslage gehoert zum Platz. Wird der Platz hier weggenommen, muss sie
+       mit -- sonst stuende sie beim naechsten Zuordnen wieder da, als haette
+       jemand sie gemessen. togglePromoPlace() macht das schon; dieser Weg
+       schreibt PROMO.place direkt und muss es darum selbst tun. */
+    if(PROMO.ds[key]){
+      wasPromo.filter(x=>!draft.promo.includes(x)).forEach(x=>delete PROMO.ds[key][x]);
+      if(!Object.keys(PROMO.ds[key]).length) delete PROMO.ds[key];
+    }
     savePromo();
     closeCatItemPicker();
     render();
@@ -6604,61 +6626,83 @@ document.getElementById('ordSpeichern').onclick=()=>{
 };
 
 /* ---------- Auslage keypad ----------
-   Bearbeitet EINEN Platz, nie "die Auslage des Artikels": welcher gemeint ist,
-   steht im Feldnamen und in der Kopfzeile. Liegt der Artikel woanders auch,
-   stehen die anderen Plaetze darunter -- wer hier 0,5 eintraegt, soll sehen,
-   dass das nicht der ganze Bestand ist. */
-let AUS={ix:null,shelf:null,val:'1',orig:1};
+   Zeigt JEDEN Platz des Artikels, nicht nur den angetippten: eine Zeile je
+   Regal mit seiner Art davor, darunter die Summe -- dieselbe Aufteilung wie das
+   Lager-Tastenfeld (Lager / Flaeche / Gesamt), damit beide Blaetter dieselbe
+   Sprache sprechen.
+   Getippt wird immer in die aktive Zeile; ein Tipp auf eine andere Zeile macht
+   die zur aktiven. Geschrieben wird nichts davon sofort -- das Blatt haelt
+   einen Entwurf ueber alle Plaetze, und erst Speichern legt ihn ab. So kann
+   der Kaufmann Regal und Aktionsflaeche in einem Zug richtigstellen, statt das
+   Blatt zweimal zu oeffnen. */
+let AUS={ix:null,shelf:null,vals:{},orig:{}};
 function openAusPad(ix, shelf){
   const it=ITEMS[ix];
   const tile = shelf || tileOf(it);
-  const current = dsOf(it, tile);
-  AUS={ix, shelf:tile, val:koNum(current), orig:current};
+  AUS={ix, shelf:tile, vals:{}, orig:{}};
+  placesOf(it).forEach(id=>{ const v=dsOf(it,id); AUS.orig[id]=v; AUS.vals[id]=koNum(v); });
   document.getElementById('ausName').textContent=it.name;
-  const others=placesOf(it).filter(id=>id!==tile);
-  const meta=`${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
-  document.getElementById('ausMeta').innerHTML = others.length
-    ? `${meta}<br><span class="ausOther">${t().dsOther}: ${others.map(id=>`${tileLabel(id)} ${koNum(dsOf(it,id))} ${t().caseUnit}`).join(' · ')}</span>`
-    : meta;
-  /* Der Feldname traegt das Regal -- das Tastenfeld deckt die Liste zu, die
-     Frage "welcher Platz?" muss also hier beantwortet sein. */
-  document.getElementById('ausFieldLb').textContent =
-    others.length ? `${t().dsAt} ${tileLabel(tile)}` : t().displaySize;
+  document.getElementById('ausMeta').textContent=
+    `${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
   drawAusPad();
   document.getElementById('ovAus').classList.add('on');
 }
+function ausNum(v){ return Math.max(0, parseFloat(String(v||'0').replace(',','.'))||0); }
 function drawAusPad(){
-  document.getElementById('ausVal').textContent=AUS.val;
+  const it=ITEMS[AUS.ix], L=t();
+  const spots=placesOf(it);
+  const total=spots.reduce((a,id)=>a+ausNum(AUS.vals[id]), 0);
+  /* Bei nur einem Platz bleibt die Zeile, wie sie immer war: ein Feld, kein
+     Regalname, keine Summe -- es gibt nichts zu unterscheiden. */
+  const rows = spots.length<2
+    ? `<div class="kfield"><label>${L.displaySize}</label><div class="box act">${AUS.vals[spots[0]]}</div></div>`
+    : spots.map(id=>{
+        const ak=isPromoTile(id);
+        return `<div class="kfield ausRow" data-a="aus-spot" data-shelf="${id}">
+          <label class="ausKind${ak?' ausKind--ak':''}">${ak?L.pickPromoSec:L.pickHomeSec}</label>
+          <span class="ausShelf">${tileLabel(id)}</span>
+          <div class="box${id===AUS.shelf?' act':''}">${AUS.vals[id]}</div>
+        </div>`;
+      }).join('')
+      + `<div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
+           <span class="ausShelf"></span><div class="tot">${koNum(total)} ${L.caseUnit}</div></div>`;
+  const root=document.getElementById('ausSpots');
+  root.innerHTML=rows;
+  root.querySelectorAll('[data-a="aus-spot"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ AUS.shelf=el.dataset.shelf; drawAusPad(); });
+  });
 }
 document.getElementById('ausPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
-  let v=AUS.val;
-  if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS.val=v; }
+  let v=AUS.vals[AUS.shelf]||'0';
+  if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS.vals[AUS.shelf]=v; }
   else if(k===','){
     /* Ein Komma, und nie als erstes Zeichen: ",5" waere zwar zu lesen, aber
        "0,5" ist das, was danach im Regal steht. */
-    if(!v.includes(',')) AUS.val = (v===''?'0':v) + ',';
+    if(!v.includes(',')) AUS.vals[AUS.shelf] = (v===''?'0':v) + ',';
   }
   /* Eine fuehrende 0 wird ersetzt, "0," aber nicht -- sonst fraesse die naechste
      Ziffer das Komma wieder weg. */
-  else { AUS.val=(v==='0')?k:v+k; }
+  else { AUS.vals[AUS.shelf]=(v==='0')?k:v+k; }
   drawAusPad();
 });
 function closeAusPad(){document.getElementById('ovAus').classList.remove('on')}
 document.getElementById('ausX').onclick=closeAusPad;
 document.getElementById('ausAbbrechen').onclick=closeAusPad;
 document.getElementById('ausSpeichern').onclick=()=>{
-  const ix=AUS.ix, it=ITEMS[ix]; TAPS++;
-  /* Halbe Kisten sind der Normalfall auf einer Zweitplatzierung -- parseInt
+  const it=ITEMS[AUS.ix], L=t(); TAPS++;
+  const multi = placesOf(it).length>1;
+  /* Alle Plaetze auf einmal -- der Entwurf kann mehrere geaendert haben.
+     Halbe Kisten sind auf einer Zweitplatzierung der Normalfall; parseInt
      haette "0,5" zu 0 gemacht und damit still Bestand geloescht. */
-  const next=Math.max(0, parseFloat(String(AUS.val||'0').replace(',','.'))||0);
-  setDsAt(it, AUS.shelf, next);
-  if(next!==AUS.orig){
+  Object.keys(AUS.vals).forEach(id=>{
+    const next=ausNum(AUS.vals[id]), was=AUS.orig[id];
+    if(next===was) return;
+    setDsAt(it, id, next);
     /* Im Protokoll steht, WELCHER Platz sich geaendert hat -- ohne das liest
        sich ein zweiter Eintrag wie ein Widerspruch zum ersten. */
-    const where = placesOf(it).length>1 ? ` (${tileLabel(AUS.shelf)})` : '';
-    pushChange(it, `${t().displaySize}${where} ${koNum(AUS.orig)} → ${koNum(next)} ${t().caseUnit}`);
-  }
+    pushChange(it, `${L.displaySize}${multi?` (${tileLabel(id)})`:''} ${koNum(was)} → ${koNum(next)} ${L.caseUnit}`);
+  });
   closeAusPad(); render();
 };
 
