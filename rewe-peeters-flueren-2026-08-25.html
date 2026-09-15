@@ -478,7 +478,7 @@ body.isFiltering{
 .pill{border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);padding:1px 8px;font-size:var(--ff-text-primary-sub-title-10);color:#5d6b64;background:var(--ff-color-white)}
 .pill.b{border-color:var(--ff-primary-30);background:var(--ff-grey-100);color:var(--green)}
 .pill.promo{border-color:var(--ff-color-missing-input-error-border);background:var(--red-bg);color:#8d2b0c;font-weight:var(--ff-weight-bold)}
-/* "Auch · Promo 2-3" bzw. "Stammplatz · Kernobst". Traegt die Farbe der
+/* "Auch · Promo 2-3" bzw. "Erstplatzierung · Kernobst". Traegt die Farbe der
    Zweitplatzierung, aber ungefuellt: es ist ein Hinweis auf einen anderen Ort,
    keine Eigenschaft der Ware wie Bio oder die Aktionsbezeichnung. */
 .pill.place{border-color:var(--ff-color-tag-promotion-foreground);color:var(--ff-color-tag-promotion-foreground);
@@ -1241,7 +1241,7 @@ body.isFiltering{
 .ShelfGridItem--pick .ShelfGridItem__title{color:var(--green)}
 .ShelfGridItem--pick .ShelfGridItem__count{color:var(--green);font-weight:var(--ff-weight-bold)}
 /* Eine gewaehlte Zweitplatzierung traegt dieselbe Lautstaerke in ihrer eigenen
-   Farbe -- sonst saehen Stammplatz und Zweitplatzierung gleich aus, und genau
+   Farbe -- sonst saehen Erstplatzierung und Zweitplatzierung gleich aus, und genau
    die beiden darf man hier nicht verwechseln. */
 .ShelfGridItem--ak.ShelfGridItem--pick{
   border-color:var(--ff-color-tag-promotion-foreground);
@@ -1251,7 +1251,7 @@ body.isFiltering{
 .ShelfGridItem--ak.ShelfGridItem--pick .ShelfGridItem__title,
 .ShelfGridItem--ak.ShelfGridItem--pick .ShelfGridItem__count{color:var(--ff-color-tag-promotion-foreground)}
 /* Im Rundgang ("Wo bist du gerade?") muss eine Zweitplatzierung auf den ersten
-   Blick von einem Stammregal zu unterscheiden sein: der Kaufmann geht danach
+   Blick von einem Erstplatzierung zu unterscheiden sein: der Kaufmann geht danach
    los und zaehlt dort anders -- was hier liegt, gehoert einem anderen Regal.
    Das Aktions-Symbol allein reicht nicht, das kann sich jedes eigene Regal
    aussuchen. Darum das Kennzeichen in der Zeile unter dem Namen, dieselbe
@@ -1295,7 +1295,7 @@ body.isFiltering{
   padding:5px 12px;cursor:pointer}
 .kindchip:hover{background:var(--ff-grey-100)}
 /* Die gewaehlte Art traegt die Farbe, die sie spaeter auch in der Liste traegt:
-   gruen fuer den Stammplatz, das Aktionsrot fuer die Zweitplatzierung. */
+   gruen fuer den Erstplatzierung, das Aktionsrot fuer die Zweitplatzierung. */
 .kindchip--on{color:var(--green);border-color:var(--green);background:var(--ff-primary-5)}
 .kindchip--on.kindchip--ak{color:var(--ff-color-tag-promotion-foreground);
   border-color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-tag-promotion-background)}
@@ -1352,7 +1352,7 @@ body.isFiltering{
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:var(--ff-weight-extra-bold)}
 /* Auslage je Platz: die Art des Regals traegt die Zeile, der Regalname steht
-   daneben. Die 60px-Spalte des Lager-Tastenfelds reicht fuer "Stammplatz" und
+   daneben. Die 60px-Spalte des Lager-Tastenfelds reicht fuer "Erstplatzierung" und
    "Zweitplatzierung" nicht -- diese Zeilen bekommen darum eine eigene Breite,
    das Lager-Blatt bleibt unberuehrt. */
 .ausRow{cursor:pointer}
@@ -2476,13 +2476,13 @@ function setCatOverride(it, tileId){
 }
 
 /* ---------- Zweitplatzierungen ----------
-   Aktionsware liegt auf ihrem Stammplatz UND auf einer Zweitplatzierung. Der
-   Stammplatz bleibt CAT_OVERRIDE/tileOf() -- genau einer, wie bisher; hier
+   Aktionsware liegt auf ihrem Erstplatzierung UND auf einer Zweitplatzierung. Der
+   Erstplatzierung bleibt CAT_OVERRIDE/tileOf() -- genau einer, wie bisher; hier
    stehen nur die zusaetzlichen Plaetze, je Artikel eine Liste von
    Zweitplatzierungen-IDs. Zwei getrennte Speicher statt einer Liste, in der der
    erste Eintrag "der echte" waere: so muss keine Aufrufstelle raten, welches
-   Regal der Stammplatz ist, und ein geloeschtes Aktionsregal kann den
-   Stammplatz nicht mitreissen.
+   Regal der Erstplatzierung ist, und ein geloeschtes Aktionsregal kann den
+   Erstplatzierung nicht mitreissen.
    Gezaehlt wird trotzdem nur EINMAL: eine Zeile, die irgendwo beantwortet
    wurde, ist ueberall beantwortet (rowClear/needsAttn haengen am Artikel,
    nicht am Regal). Die Zweitplatzierung zeigt sie danach nur noch als Hinweis. */
@@ -2496,10 +2496,10 @@ function promoTilesOf(it){
 function hasPromoPlace(it, tileId){ return promoTilesOf(it).includes(tileId); }
 
 /* ---------- Auslage je Platz ----------
-   Ein Artikel kann auf dem Stammplatz eine ganze Kiste stehen haben und auf der
+   Ein Artikel kann auf dem Erstplatzierung eine ganze Kiste stehen haben und auf der
    Zweitplatzierung eine halbe. Die Auslage ist damit KEINE Zahl am Artikel mehr,
    sondern eine je Platz.
-   Der Stammplatz behaelt s.auslage -- die Zahl kommt aus dem Warenwirtschafts-
+   Der Erstplatzierung behaelt s.auslage -- die Zahl kommt aus dem Warenwirtschafts-
    system (display.system.quantity) und gilt weiter, auch wenn die Aktion vorbei
    ist. Die Zweitplatzierung hat keine solche Quelle: was dort liegt, weiss nur
    der Kaufmann, und mit dem naechsten Ordersatz ist es ohnehin weg. Sie steht
@@ -2524,7 +2524,7 @@ function setDsAt(it, tileId, val){
   PROMO.ds[k][tileId]=val;
   savePromo();
 }
-/* Alle Plaetze des Artikels in der Reihenfolge des Rundgangs -- der Stammplatz
+/* Alle Plaetze des Artikels in der Reihenfolge des Rundgangs -- der Erstplatzierung
    gehoert dazu, er ist der erste. */
 function placesOf(it){
   const home=tileOf(it);
@@ -2534,7 +2534,7 @@ function dsTotal(it){
   return placesOf(it).reduce((a,id)=>a+dsOf(it,id), 0);
 }
 /* Die eine Frage, die die Liste stellt: liegt dieser Artikel in diesem Regal?
-   Stammplatz oder Zweitplatzierung -- fuer die Liste macht das keinen
+   Erstplatzierung oder Zweitplatzierung -- fuer die Liste macht das keinen
    Unterschied, der Kaufmann steht in beiden Faellen davor. */
 function isOnShelf(it, tileId){
   return tileOf(it)===tileId || hasPromoPlace(it, tileId);
@@ -2555,7 +2555,7 @@ function togglePromoPlace(it, tileId){
   }
   savePromo();
   /* Ein zweiter Platz ist auch ein Platz: der Artikel stellt sich am
-     Aktionsregal hinten an, genau wie am Stammplatz. */
+     Aktionsregal hinten an, genau wie am Erstplatzierung. */
   if(!on) seqPlaceLast(it, tileId, null); else seqDrop(it, tileId);
   return on ? 'removed' : 'added';
 }
@@ -2626,11 +2626,11 @@ function isCustomTile(id){ return CUSTOM_TILES.some(c=>c.id===id); }
 
 /* ---------- Zweitplatzierungen ----------
    Welche Regale gerade eine Zweitplatzierung sind -- eine Flaeche, auf der
-   Aktionsware zusaetzlich zu ihrem Stammplatz liegt.
+   Aktionsware zusaetzlich zu ihrem Erstplatzierung liegt.
 
    NUR BEIM ANLEGEN. Ob ein Regal eine Zweitplatzierung ist, entscheidet der
    Kaufmann beim Anlegen und danach nicht mehr: eine Zweitplatzierung, die sich
-   nachtraeglich in einen Stammplatz verwandeln laesst, wuerde ihre
+   nachtraeglich in einen Erstplatzierung verwandeln laesst, wuerde ihre
    Zweitplatzierungen mit einem Tipp ins Leere zeigen lassen. Damit kann nur
    ein selbst angelegtes Regal eine sein -- die 15 fest verdrahteten legt
    niemand an. Der Speicher steht trotzdem fuer sich und nicht als Feld an
@@ -2716,7 +2716,7 @@ function deleteCustomTile(id){
   Object.keys(CAT_OVERRIDE).forEach(k=>{ if(CAT_OVERRIDE[k]===id) delete CAT_OVERRIDE[k]; });
   saveCatOverride();
   /* Eine geloeschte Zweitplatzierung nimmt ihre Markierung und ihre
-     Zweitplatzierungen mit -- die Artikel behalten ihren Stammplatz und
+     Zweitplatzierungen mit -- die Artikel behalten ihren Erstplatzierung und
      bleiben in der Liste. */
   PROMO.shelves = PROMO.shelves.filter(x=>x!==id);
   Object.keys(PROMO.place).forEach(k=>{
@@ -3057,17 +3057,17 @@ const T={
     shelfCurrent:'aktuell',
     shelfChoose:'wählen',
     shelfPlaced:'zugeordnet',                 // shelfPlaced
-    pickHomeSec:'Stammplatz',                 // pickHomeSec
+    pickHomeSec:'Erstplatzierung',                 // pickHomeSec
     pickHomeNote:'Der feste Platz. Genau einer.',
     pickPromoSec:'Zweitplatzierung',          // pickPromoSec
     pickPromoSecPl:'Zweitplatzierungen',      // pickPromoSecPl
-    pickPromoNote:'Zusätzlich zum Stammplatz, nur für diesen Ordersatz. Mehrere möglich.',
+    pickPromoNote:'Zusätzlich zum Erstplatzierung, nur für diesen Ordersatz. Mehrere möglich.',
     pickSubtitle:'Auswählen, dann speichern.',
     pickSave:'Speichern',
     placeAdded:'Zweitplatzierung hinzugefügt',
     placeRemoved:'Zweitplatzierung entfernt',
     promoAt:'Zweitplatzierung:',              // promoAt
-    homeShelf:'Stammplatz:',                  // homeShelf
+    homeShelf:'Erstplatzierung:',                  // homeShelf
     shelfSelect:'Regal wählen',
     shelfNext:'Nächstes Regal',
     shelfClose:'Regal abschließen',
@@ -4023,7 +4023,7 @@ function saveItemOrder(){
 }
 let ITEM_ORDER = loadItemOrder();
 /* Das Regal, in dem diese Zeile GERADE steht: im offenen Regal ist das dieses
-   Regal (auch bei einer Zweitplatzierung), sonst der Stammplatz. Dieselbe Regel
+   Regal (auch bei einer Zweitplatzierung), sonst der Erstplatzierung. Dieselbe Regel
    wie bei der Auslage in rowHTML() -- "hier" heisst ueberall dasselbe. */
 function seqShelf(it){
   if(CATFILTER && CATFILTER.kind==='tile' && isOnShelf(it, CATFILTER.id)) return CATFILTER.id;
@@ -4548,7 +4548,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        stehen, dass noch woanders Ware desselben Artikels liegt, sonst tippt
        der Kaufmann nur ein, was vor ihm steht. Welcher Satz gilt, haengt
        davon ab, wo er gerade steht: auf der Zweitplatzierung interessiert ihn
-       der Stammplatz, ueberall sonst die Zweitplatzierung. */
+       der Erstplatzierung, ueberall sonst die Zweitplatzierung. */
     const placedOn = promoTilesOf(it);
     if(placedOn.length){
       const onPromoShelf = CATFILTER && CATFILTER.kind==='tile' && isPromoTile(CATFILTER.id);
@@ -4582,7 +4582,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       && mvDone.to===CATFILTER.id && isOnShelf(it, CATFILTER.id)) ? mvDone : null;
     const autoTag = `<span class="movecta__auto">${L.autoTag}</span>`;
     /* Auf einer Zweitplatzierung wird nichts verschoben, sondern dazugelegt --
-       und dann waere der durchgestrichene Pfeil eine Luege: der Stammplatz
+       und dann waere der durchgestrichene Pfeil eine Luege: der Erstplatzierung
        bleibt, wo er ist. Der Block sagt darum beides ("bleibt auf X,
        zusaetzlich hier") statt eines Weges von A nach B. */
     const mvBlock = (from, to, tail, cls) => isPromoTile(to)
@@ -4637,7 +4637,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        Was bleibt, ist die Summe: sie steht nur da, wenn es ueberhaupt mehr als
        einen Platz gibt, und sagt dann das eine, was die Zahl davor nicht sagen
        kann -- dass draussen mehr liegt als hier. Mit ihr rechnet die
-       Bestellung. Ohne Regalfilter ist "hier" der Stammplatz. */
+       Bestellung. Ohne Regalfilter ist "hier" der Erstplatzierung. */
     const dsPlaces = placesOf(it);
     const dsHere = (CATFILTER && CATFILTER.kind==='tile' && dsPlaces.includes(CATFILTER.id))
       ? CATFILTER.id : dsPlaces[0];
@@ -5156,7 +5156,7 @@ function renderCatOverlay(){
             </div>
           </div>
           <div class="kindrow">
-            <button class="kindchip${ak?'':' kindchip--on'}" data-a="cat-add-kind" data-kind="normal" type="button">Stammplatz</button>
+            <button class="kindchip${ak?'':' kindchip--on'}" data-a="cat-add-kind" data-kind="normal" type="button">Erstplatzierung</button>
             <button class="kindchip kindchip--ak${ak?' kindchip--on':''}" data-a="cat-add-kind" data-kind="promo" type="button">Zweitplatzierung</button>
           </div>
         </div>`
@@ -5170,9 +5170,9 @@ function renderCatOverlay(){
           const n=tileStats(tl.id).list.length;
           /* Eine Zweitplatzierung ist nie der einzige Platz eines Artikels --
              die Ware verliert nur ihren zweiten Ort und bleibt auf dem
-             Stammplatz. "Fallen zurueck" waere hier schlicht falsch. */
+             Erstplatzierung. "Fallen zurueck" waere hier schlicht falsch. */
           const what = isPromoTile(tl.id)
-            ? `${n} Artikel verlieren diese Zweitplatzierung und bleiben auf ihrem Stammplatz`
+            ? `${n} Artikel verlieren diese Zweitplatzierung und bleiben auf ihrem Erstplatzierung`
             : `${n} Artikel fallen zurück auf ihr automatisches Regal`;
           return `<div class="catrow">
             <span class="dot" style="background:${tl.accent}"></span>
@@ -5185,7 +5185,7 @@ function renderCatOverlay(){
         }
         if(RENAME_TILE_ID===tl.id){
           /* Nur der Name. Die Art steht beim Anlegen fest und bleibt: eine
-             Zweitplatzierung, die sich nachtraeglich in einen Stammplatz
+             Zweitplatzierung, die sich nachtraeglich in einen Erstplatzierung
              verwandeln kann, laesst Zweitplatzierungen ins Leere zeigen und
              macht aus einem Versehen einen stillen Datenverlust. Wer sich
              vertan hat, loescht das Regal und legt es neu an -- und mit dem
@@ -5492,7 +5492,7 @@ function renderCatItemPicker(){
   /* Welche Frage die Kachel beantwortet, entscheidet der ABSCHNITT, in dem
      sie steht -- nicht die Art des Regals. Das ist derselbe Unterschied nur
      fast immer: steht ein Artikel auf einem Regal, das gerade selbst zur
-     Zweitplatzierung erklaert wurde, dann ist dieses Regal oben sein Stammplatz
+     Zweitplatzierung erklaert wurde, dann ist dieses Regal oben sein Erstplatzierung
      und taucht unten gar nicht auf.
      Angezeigt wird der ENTWURF, nicht der gespeicherte Zustand -- sonst
      bewegte sich beim Tippen nichts. */
@@ -5506,11 +5506,11 @@ function renderCatItemPicker(){
       ${on?`<span class="ShelfGridItem__tick" aria-hidden="true">✓</span>`:''}
     </div>`;
   };
-  /* Der Stammplatz des Artikels steht immer oben -- auch wenn genau dieses
+  /* Der Erstplatzierung des Artikels steht immer oben -- auch wenn genau dieses
      Regal gerade die Zweitplatzierung ist. Sonst waere er nirgends zu sehen und
      nicht mehr waehlbar. Unten faellt es dafuer weg: sein eigener zweiter
      Platz kann ein Artikel nicht sein. Geteilt wird nach dem GESPEICHERTEN
-     Stammplatz, nicht nach dem Entwurf -- sonst sprangen die Kacheln beim
+     Erstplatzierung, nicht nach dem Entwurf -- sonst sprangen die Kacheln beim
      Tippen zwischen den Abschnitten hin und her. */
   const homeIds  = TILE_ORDER.filter(id=>!isPromoTile(id) || id===current);
   const promoIds = TILE_ORDER.filter(id=>isPromoTile(id) && id!==current);
@@ -5521,7 +5521,7 @@ function renderCatItemPicker(){
       <div class="pickSec__note">${note}</div></div>
     <div class="ShelfGrid">${ids.map(id=>cell(id, asHome)).join('')}</div>`;
   /* Die Fusszeile sagt, was gespeichert wuerde -- der Knopf allein zeigt das
-     nicht, und der Stammplatz kann beim Scrollen laengst aus dem Bild sein. */
+     nicht, und der Erstplatzierung kann beim Scrollen laengst aus dem Bild sein. */
   const sum = `${L.pickHomeSec}: ${tileLabel(d.home)}`
     + (d.promo.length ? ` · ${d.promo.length} ${d.promo.length===1?L.pickPromoSec:L.pickPromoSecPl}` : '');
   const dirty = pickDirty(it);
@@ -5944,7 +5944,7 @@ function rowClick(e){
     const to = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
     if(!to) return;
     const key=overrideKey(it);
-    /* Eine Zweitplatzierung ist ein zweiter Platz, kein neuer: der Stammplatz
+    /* Eine Zweitplatzierung ist ein zweiter Platz, kein neuer: der Erstplatzierung
        bleibt unangetastet, und die Auslage auch -- die ist eine Zahl fuer
        beide Plaetze zusammen und waere hier nur geraten. */
     if(isPromoTile(to)){
@@ -6187,7 +6187,7 @@ function autoFix(list){
     }
     if(CATFILTER && CATFILTER.kind==='tile' && !isOnShelf(it, CATFILTER.id)){
       /* Auf einer Zweitplatzierung legt die Automatik dazu, sie raeumt nicht um.
-         Der Stammplatz bleibt -- sonst waere der Artikel nach dem naechsten
+         Der Erstplatzierung bleibt -- sonst waere der Artikel nach dem naechsten
          Ordersatz dauerhaft auf einer Flaeche zuhause, die es als Aktion gar
          nicht mehr gibt. Die Auslage bleibt ebenfalls: sie zaehlt beide
          Plaetze zusammen, und was auf der Zweitplatzierung liegt, hat hier
