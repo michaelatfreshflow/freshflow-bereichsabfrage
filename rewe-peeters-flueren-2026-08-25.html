@@ -3067,7 +3067,7 @@ const T={
     placeAdded:'Zweitplatzierung hinzugefügt',
     placeRemoved:'Zweitplatzierung entfernt',
     promoAt:'Zweitplatzierung:',              // promoAt
-    homeShelf:'Erstplatzierung:',                  // homeShelf
+    promoAtShort:'Zweitpl.:',                 // promoAtShort
     shelfSelect:'Regal wählen',
     shelfNext:'Nächstes Regal',
     shelfClose:'Regal abschließen',
@@ -3380,7 +3380,7 @@ const T={
     placeAdded:'Secondary Placement added',
     placeRemoved:'Secondary Placement removed',
     promoAt:'Secondary Placement:',
-    homeShelf:'Primary Placement:',
+    promoAtShort:'Secondary:',
     shelfSelect:'Choose shelf',
     shelfNext:'Next shelf',
     shelfClose:'Complete shelf',
@@ -3693,7 +3693,7 @@ const T={
     placeAdded:'Emplacement secondaire ajouté',
     placeRemoved:'Emplacement secondaire retiré',
     promoAt:'Emplacement secondaire:',
-    homeShelf:'Rayon permanent:',
+    promoAtShort:'Secondaire:',
     shelfSelect:'Choisir un rayon',
     shelfNext:'Rayon suivant',
     shelfClose:'Clôturer le rayon',
@@ -4554,19 +4554,27 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        das Kennzeichen unten meldet ("Anderes Regal"). Genau dort wird aber
        gefragt, wo der Artikel eigentlich hingehoert -- an einer
        Zweitplatzierung steht der Kaufmann mit der Ware in der Hand und sieht
-       ihr die Erstplatzierung nicht an. Ohne diese Zeile fuehrt der einzige Weg
+       ihr das eigene Regal nicht an. Ohne diese Zeile fuehrt der einzige Weg
        dorthin ueber Suche und "Artikel verwalten", also aus dem Scannen heraus.
        Ruhiges Kennzeichen, nicht bernstein: es meldet keine Stoerung, es
        beantwortet eine Frage. Die Liste selbst bleibt unberuehrt. */
+    /* Der blosse Regalname sagt schon, was er ist: da ist der Artikel zuhause.
+       Ein Wort davor beschriftete nur, was ohnehin dasteht, und machte die
+       Zeile laenger statt klarer. */
     const noShelfOpen = !(CATFILTER && CATFILTER.kind==='tile');
-    if(forceEye && noShelfOpen)
-      pills += `<span class="pill place">${L.homeShelf} ${tileLabel(tileOf(it))}</span>`;
+    const homeTag = forceEye && noShelfOpen;
+    if(homeTag)
+      pills += `<span class="pill place">${tileLabel(tileOf(it))}</span>`;
     const placedOn = promoTilesOf(it);
     if(placedOn.length){
       const onPromoShelf = CATFILTER && CATFILTER.kind==='tile' && isPromoTile(CATFILTER.id);
+      /* Steht der Regalname schon daneben, unterscheiden sich die zwei
+         Kennzeichen von selbst -- dann reicht das kurze Wort. Steht die
+         Zweitplatzierung allein, muss sie sich selbst erklaeren, und dann
+         steht sie ausgeschrieben da. */
       pills += onPromoShelf
-        ? `<span class="pill place">${L.homeShelf} ${tileLabel(tileOf(it))}</span>`
-        : `<span class="pill place">${L.promoAt} ${placedOn.map(tileLabel).join(', ')}</span>`;
+        ? `<span class="pill place">${tileLabel(tileOf(it))}</span>`
+        : `<span class="pill place">${homeTag?L.promoAtShort:L.promoAt} ${placedOn.map(tileLabel).join(', ')}</span>`;
     }
 
     /* Im Scan-Ergebnis sagt der Block unten dasselbe, nur deutlicher -- dann hier nicht. */
