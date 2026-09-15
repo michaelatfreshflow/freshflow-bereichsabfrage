@@ -299,27 +299,39 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .sortopt.on{color:var(--green);font-weight:var(--ff-weight-semibold)}
 /* Die Pfeile stehen in der Zeile, wo sonst das Auge steht -- Masse und Tokens
    wie .reordBtn in der Regale-Uebersicht, damit beide Stellen gleich aussehen. */
-/* Auge und Pfeile stehen uebereinander in EINER schmalen Spalte links der Zeile:
-   was den Artikel als Ganzes betrifft, liegt beieinander, und die Zeile wird
-   nicht ein zweites Mal schmaler. Masse und Tokens wie .reordBtn in der
-   Regale-Uebersicht, damit beide Stellen gleich aussehen. */
-.itemgut{display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;margin-top:2px}
-.itemgut .eyeBtn{margin-top:0}
-.seqCol{display:flex;flex-direction:column;gap:2px}
-.seqBtn{width:26px;height:20px;border-radius:6px;border:1px solid var(--ff-primary-20);background:var(--ff-grey-100);
-  font-size:var(--ff-text-primary-caption-12);line-height:1;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
-.seqBtn:hover:not(:disabled){background:var(--ff-grey-200)}
-.seqBtn:disabled{opacity:.3;cursor:default}
-/* Der Tausch wird gezeigt, nicht nur ausgefuehrt: beide Zeilen fahren an ihren
-   neuen Platz (FLIP, siehe seqFlip()), und die geschobene traegt waehrenddessen
-   kurz einen gruenen Grund -- sonst weiss man nach zwei Schritten nicht mehr,
-   welche der zwei gleich aussehenden Zeilen die eigene war. */
-.row.seqFlip{position:relative;z-index:1}
-.row.seqJust{position:relative;z-index:2;animation:seqJust .7s ease-out}
-@keyframes seqJust{ from{background:#EAF7EE} to{background:transparent} }
-@media (prefers-reduced-motion: reduce){
-  .row.seqJust{animation:none}
-}
+/* Der Griff sitzt am rechten Rand der Zeile, als eigene, schmale Spalte --
+   nicht links beim Auge: was man anfasst, um die Zeile zu bewegen, gehoert ans
+   Ende der Zeile, und links stehen die Angaben zum Artikel. Das Doppel-Chevron
+   ist dasselbe Zeichen, das iOS fuer genau diese Geste benutzt; es ist als
+   Anfasser gelernt und braucht keine Beschriftung.
+   Kein Rueckgaengig: man sieht waehrend des Ziehens, wo die Zeile landet. */
+body.seqEdit #list > .row,
+body.seqEdit #colh{
+  grid-template-columns:minmax(0, 1fr)
+    minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%))
+    minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%))
+    52px}
+.seqGrip{display:none;align-items:center;justify-content:center;align-self:center;
+  width:44px;height:44px;margin:0 auto;border:0;background:none;padding:0;
+  color:var(--ff-grey-400);cursor:grab;touch-action:none;border-radius:50%;
+  transition:background .12s, color .12s, transform .12s}
+body.seqEdit .seqGrip{display:inline-flex}
+.seqGrip:hover{color:var(--ff-grey-800)}
+/* Gedrueckt-Zustand: der Griff nimmt Grund an und wird dunkler, damit der
+   Finger sieht, dass er die Zeile jetzt hat -- auch bevor sie sich bewegt. */
+.seqGrip:active,.seqGrip.on{background:var(--ff-grey-100);color:var(--ink);transform:scale(1.08);cursor:grabbing}
+.seqGrip svg{display:block;pointer-events:none}
+/* Die angehobene Zeile: ueber allen anderen, mit Schatten, und sie folgt dem
+   Finger ohne Uebergang. Die uebrigen machen ihr mit einem Uebergang Platz. */
+#list > .row.seqLift{position:relative;z-index:30;background:var(--ff-color-white);
+  box-shadow:0 8px 22px rgba(0,0,0,.16);border-radius:10px;transition:none}
+#list > .row.seqShift{transition:transform .16s ease}
+body.seqDragging{user-select:none;-webkit-user-select:none}
+body.seqDragging #list{cursor:grabbing}
+/* Tastatur-Weg (kein sichtbares Bedienelement): der fokussierte Griff nimmt
+   Pfeil hoch/runter. Die Zeile fährt dann per seqFlip an ihren Platz. */
+#list > .row.seqFlip{position:relative;z-index:1}
+.seqGrip:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .fgrp{margin-top:6px;padding-top:8px;border-top:1px solid var(--ff-grey-100)}
 .fgrp__hdr{padding:0 8px 6px;font-size:var(--ff-text-primary-caption-12);
   font-weight:var(--ff-weight-bold);color:var(--mute)}
@@ -2065,7 +2077,7 @@ body.dash-active .scanFab{display:none}
     </button>
   </div>
 
-  <div class="colh" id="colh"><div id="hdrItem">Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv"><span id="hdrInv">Bestand</span><span class="sortarrow" id="arrow-inv"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div><div><span class="sortlabel" data-a="sort" data-col="ord"><span id="hdrOrd">Bestellung</span><span class="sortarrow" id="arrow-ord"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div></div>
+  <div class="colh" id="colh"><div id="hdrItem">Artikel</div><div><span class="sortlabel" data-a="sort" data-col="inv"><span id="hdrInv">Bestand</span><span class="sortarrow" id="arrow-inv"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div><div><span class="sortlabel" data-a="sort" data-col="ord"><span id="hdrOrd">Bestellung</span><span class="sortarrow" id="arrow-ord"></span></span> <span class="i"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg></span></div><div></div></div>
   <div class="list" id="list"></div>
 
   <div class="foot">
@@ -2790,6 +2802,124 @@ function moveTileOrder(id,dir){
   renderCatOverlay();
 }
 
+/* ---------- Umsortieren durch Ziehen ----------
+   Angefasst wird der Griff am rechten Zeilenende, nicht die Zeile: die Liste
+   scrollt senkrecht, und ein Zug auf der Zeile waere derselbe Wisch. Ein
+   eigener Anfasser braucht deshalb KEIN langes Druecken -- man sieht, wo man
+   hinfassen muss, und die Zeile folgt sofort.
+
+   Gezogen wird nur innerhalb des Regals. In der Gesamtliste stehen die Regale
+   hintereinander; die Nachbarn eines Artikels aus einem anderen Regal sind
+   deshalb aus SEQDRAG.items ausgeschlossen, und der Zug stoppt an der
+   Regalgrenze. Ein Artikel wechselt sein Regal ueber die Regal-Zuordnung, nicht
+   durch Ziehen -- sonst waere jeder zu weite Zug eine stille Umlagerung.
+
+   Kein Rueckgaengig: waehrend des Ziehens ist die Luecke zu sehen, in die die
+   Zeile faellt. Wer falsch liegt, zieht weiter, bevor er loslaesst. */
+let SEQDRAG=null;
+function seqDragStart(e, ix, grip){
+  if(!seqEditable() || e.button>0) return;
+  const box=document.getElementById('list');
+  const row=e.target.closest('.row'); if(!row||!box) return;
+  const sh=seqShelf(ITEMS[ix]);
+  /* Nur sichtbare Zeilen DIESES Regals. offsetTop statt getBoundingClientRect:
+     es zaehlt relativ zum Listeninhalt und ueberlebt damit das Autoscrollen. */
+  const items=[...box.querySelectorAll('.row[data-ix]')]
+    .filter(r=>r.offsetParent!==null && seqShelf(ITEMS[+r.dataset.ix])===sh)
+    .map(r=>({el:r, ix:+r.dataset.ix, top:r.offsetTop, h:r.offsetHeight}));
+  const from=items.findIndex(o=>o.el===row);
+  if(from<0 || items.length<2) return;
+  SEQDRAG={box, items, from, to:from, sh, ix,
+           startY:e.clientY, startScroll:box.scrollTop, grip};
+  row.classList.add('seqLift');
+  items.forEach((o,i)=>{ if(i!==from) o.el.classList.add('seqShift'); });
+  SEQDRAG.grip.classList.add('on');
+  document.body.classList.add('seqDragging');
+  try{ SEQDRAG.grip.setPointerCapture(e.pointerId); }catch(err){}
+  e.preventDefault();
+}
+function seqDragMove(e){
+  const d=SEQDRAG; if(!d) return;
+  e.preventDefault();
+  seqAutoScroll(e.clientY);
+  const dy=(e.clientY-d.startY)+(d.box.scrollTop-d.startScroll);
+  const me=d.items[d.from];
+  me.el.style.transform=`translateY(${dy}px)`;
+  /* Ziel = so weit, wie die Mitte der gezogenen Zeile ueber die Mitten der
+     Nachbarn hinweg ist. Zeilen sind unterschiedlich hoch, deshalb je Nachbar
+     die echte Mitte und kein gerechnetes Vielfaches einer Zeilenhoehe. */
+  const mid=me.top+me.h/2+dy;
+  let to=d.from;
+  if(dy<0){ for(let i=d.from-1;i>=0;i--){ if(mid < d.items[i].top+d.items[i].h/2) to=i; else break; } }
+  else    { for(let i=d.from+1;i<d.items.length;i++){ if(mid > d.items[i].top+d.items[i].h/2) to=i; else break; } }
+  if(to!==d.to){ d.to=to; seqDragGap(); }
+}
+/* Die Luecke: alle Zeilen zwischen Start und Ziel ruecken um die Hoehe der
+   gezogenen Zeile auf. Das ist die einzige Rueckmeldung, die es braucht --
+   man sieht vor dem Loslassen, wo die Zeile landet. */
+function seqDragGap(){
+  const d=SEQDRAG, h=d.items[d.from].h;
+  d.items.forEach((o,i)=>{
+    if(i===d.from) return;
+    let shift=0;
+    if(d.to>d.from && i>d.from && i<=d.to) shift=-h;
+    if(d.to<d.from && i>=d.to && i<d.from) shift=h;
+    o.el.style.transform = shift ? `translateY(${shift}px)` : '';
+  });
+}
+/* Autoscroll am oberen und unteren Rand der Liste: ohne das kaeme man auf einem
+   Regal mit 24 Artikeln nie weiter als eine Bildschirmhoehe. */
+function seqAutoScroll(clientY){
+  const d=SEQDRAG; if(!d) return;
+  const r=d.box.getBoundingClientRect(), zone=56;
+  let v=0;
+  if(clientY < r.top+zone)        v=-Math.ceil((r.top+zone-clientY)/4);
+  else if(clientY > r.bottom-zone) v= Math.ceil((clientY-(r.bottom-zone))/4);
+  if(v) d.box.scrollTop += Math.max(-24, Math.min(24, v));
+}
+function seqDragEnd(e){
+  const d=SEQDRAG; if(!d) return;
+  SEQDRAG=null;
+  document.body.classList.remove('seqDragging');
+  d.grip.classList.remove('on');
+  try{ d.grip.releasePointerCapture(e.pointerId); }catch(err){}
+  d.items.forEach(o=>{ o.el.style.transform=''; o.el.classList.remove('seqLift','seqShift'); });
+  if(d.to===d.from) return;
+  /* Geschrieben wird in die GESPEICHERTE Reihenfolge des Regals, die auch die
+     gerade weggefilterten Artikel enthaelt: der gezogene Artikel legt sich
+     neben den sichtbaren Nachbarn, auf den er fallen gelassen wurde. */
+  const moving=d.items[d.from].ix, target=d.items[d.to].ix;
+  const seq=shelfSeq(d.sh).filter(x=>x!==moving);
+  const b=seq.indexOf(target);
+  if(b<0) return;
+  seq.splice(d.to>d.from ? b+1 : b, 0, moving);
+  ITEM_ORDER[d.sh]=seq.map(i=>overrideKey(ITEMS[i]));
+  saveItemOrder();
+  pushChange(ITEMS[moving], `${t().seqMoved} \u00b7 ${tileLabel(d.sh)}`);
+  render();
+}
+document.addEventListener('pointerdown', e=>{
+  const g=e.target.closest && e.target.closest('.seqGrip');
+  if(g) seqDragStart(e, +g.dataset.i, g);
+});
+document.addEventListener('pointermove', seqDragMove, {passive:false});
+document.addEventListener('pointerup', seqDragEnd);
+document.addEventListener('pointercancel', seqDragEnd);
+/* Tastatur: der Griff ist ein Knopf und damit fokussierbar. Pfeil hoch/runter
+   bewegt die Zeile einen Schritt -- dieselbe Wirkung, ohne Zeigegeraet, und
+   ohne dass dafuer ein sichtbares Bedienelement in der Zeile stehen muss. */
+document.addEventListener('keydown', e=>{
+  if(e.key!=='ArrowUp' && e.key!=='ArrowDown') return;
+  const g=document.activeElement; if(!g||!g.classList.contains('seqGrip')) return;
+  if(!seqEditable()) return;
+  const ix=+g.dataset.i;
+  if(!moveItemSeq(ix, e.key==='ArrowUp' ? -1 : 1)) return;
+  e.preventDefault();
+  pushChange(ITEMS[ix], `${t().seqMoved} \u00b7 ${tileLabel(seqShelf(ITEMS[ix]))}`);
+  seqFlip(ix, render);
+  const again=document.querySelector(`.seqGrip[data-i="${ix}"]`); if(again) again.focus();
+});
+
 const FC = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 
 /* ---------- language ---------- */
@@ -2855,6 +2985,7 @@ const T={
     sortBackStock:'Lagerbestand',
     seqUpTip:'nach oben',
     seqDownTip:'nach unten',
+    seqGripTip:'Zum Umsortieren ziehen',
     seqMoved:'Regalreihenfolge geändert',
     clearFilters:'Filter zurücksetzen',  // [arb] filterClearCaption
     bio:'Bio',  // [arb] orderItemLabelBio
@@ -3169,6 +3300,7 @@ const T={
     sortBackStock:'Back stock',
     seqUpTip:'move up',
     seqDownTip:'move down',
+    seqGripTip:'Drag to reorder',
     seqMoved:'shelf order changed',
     clearFilters:'Clear filters',  // [arb] filterClearCaption
     bio:'Bio',  // [arb] orderItemLabelBio
@@ -3482,6 +3614,7 @@ const T={
     sortBackStock:'Stock en réserve',
     seqUpTip:'vers le haut',
     seqDownTip:'vers le bas',
+    seqGripTip:'Glisser pour réordonner',
     seqMoved:'ordre du rayon modifié',
     clearFilters:'Effacer les filtres',  // [arb] filterClearCaption
     bio:'Bio',  // [arb] orderItemLabelBio
@@ -4498,6 +4631,12 @@ function promoLabel(promo){
   return t().sale;
 }
 
+/* Doppel-Chevron -- dasselbe Zeichen, das iOS am Zeilenende fuer "anfassen und
+   umsortieren" benutzt, also bereits gelernt und ohne Beschriftung lesbar.
+   Bewusst kein Hamburger-Griff: der steht in dieser App schon in der
+   Werkzeugleiste fuer Sortieren und Filtern. */
+const ICON_SEQGRIP = `<svg width="18" height="24" viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10l4-4 4 4"/><path d="M5 14l4 4 4-4"/></svg>`;
+
 /* ---------- render ---------- */
 const list=document.getElementById('list');
 function invVal(ix){ const it=ITEMS[ix], s=ST[ix]; return s.step==='ko' ? s.ko : it.app; }
@@ -4690,21 +4829,14 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const eyeToggle = (forceEye || MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
       : '';
-    /* ▲ ▼ nur in der Regalreihenfolge -- in jeder anderen Sortierung sagt die
-       Position nichts ueber das Regal aus, und ein Schieben waere ohne Wirkung
-       auf das, was man gerade sieht. Dort stehen sie deshalb gar nicht erst da;
-       ein Hinweistext, der das erklaert, steht bewusst NICHT in der App.
-       Gesperrt sind die Enden des REGALS, nicht die der gefilterten Ansicht --
-       geschoben wird im Regal. */
-    let seqHandles='';
-    if(seqEditable() && !backOnly){
-      const e=shelfSeqCached(seqShelf(it)), seq=e.list, sp=e.pos.has(ix)?e.pos.get(ix):-1;
-      seqHandles = `<div class="seqCol">
-        <button class="seqBtn" data-a="seq-up" data-i="${ix}" type="button" title="${t().seqUpTip}"${sp<=0?' disabled':''}>▲</button>
-        <button class="seqBtn" data-a="seq-dn" data-i="${ix}" type="button" title="${t().seqDownTip}"${(sp<0||sp>=seq.length-1)?' disabled':''}>▼</button>
-      </div>`;
-    }
-    const gutter = (eyeToggle||seqHandles) ? `<div class="itemgut">${eyeToggle}${seqHandles}</div>` : '';
+    /* Der Griff steht nur in der Regalreihenfolge -- in jeder anderen Sortierung
+       ergibt sich die Position aus einer Zahl, da gibt es nichts zu ziehen. Dort
+       ist er gar nicht erst da; ein Hinweistext, der das erklaert, steht bewusst
+       NICHT in der App. Gezogen wird immer nur INNERHALB des Regals, auch wenn
+       die Liste gerade alle Regale zeigt -- siehe seqDragStart(). */
+    const seqGrip = (seqEditable() && !backOnly)
+      ? `<button class="seqGrip" data-a="seqgrip" data-i="${ix}" type="button" aria-label="${t().seqGripTip}" title="${t().seqGripTip}">${ICON_SEQGRIP}</button>`
+      : '';
     if(backOnly){
       const n=(BS.lines.find(l=>l.ix===ix)||{n:0}).n;
       /* Bei einer zweiten Kiste steht unter dem Zaehler, was VORHER dort stand. Nicht
@@ -4716,8 +4848,8 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       <div>${bsCounterHTML(ix,n)}</div></div>`;
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
-      <div class="itemcell">${gutter}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${hideCta}${moveCta}</div>`;
+      <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${hideCta}${moveCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -4783,6 +4915,9 @@ function render(){
     if(!hide) shownIdx.push(ix);
     html += rowHTML(ix, hide?' hide':'');
   });
+  /* Die vierte Spalte (Griff) gibt es nur in der Regalreihenfolge -- Kopfzeile
+     und Zeilen muessen dasselbe Raster tragen, sonst laufen sie auseinander. */
+  document.body.classList.toggle('seqEdit', seqEditable());
   renderScanFilt();
   closeWhy();          // der Knopf, an dem es haengt, wird gleich neu gebaut
   list.innerHTML=html;
@@ -6009,6 +6144,7 @@ function rowClick(e){
     render(); }
   /* Ein Schritt im Regal. Die Liste wird danach neu gebaut, die Zeile wandert
      also unter dem Finger -- genau das ist die Rueckmeldung. */
+  else if(a==='seqgrip'){ /* Ziehen laeuft ueber pointerdown, siehe seqDragStart */ }
   else if(a==='seq-up'||a==='seq-dn'){
     if(!seqEditable()) return;
     if(!moveItemSeq(ix, a==='seq-up' ? -1 : 1)) return;
