@@ -4049,11 +4049,33 @@ function shelfSeq(tileId){
 /* Rang einer Zeile in der Regalreihenfolge: erst das Regal im Rundgang
    (TILE_ORDER), dann der Platz im Regal. Ein Regal ausserhalb von TILE_ORDER
    landet hinten statt auf -1 ganz vorne. */
+/* shelfSeq() laeuft ueber ALLE Artikel und baut zwei Maps -- und seqRank()
+   ruft es je Zeile auf, beim Sortieren sogar je Vergleich. Das ist quadratisch:
+   bei ~210 Artikeln kamen so knapp 290.000 isOnShelf()-Aufrufe je render()
+   zusammen, und die Liste brauchte 570 ms statt 16 ms.
+   Der Zwischenspeicher haelt das Ergebnis je Regal fuer die Dauer EINES
+   Renders. Das ist sicher, weil jede Aenderung an Zuordnung, Reihenfolge oder
+   Zweitplatzierung ohnehin durch render() geht und ihn damit verwirft -- und
+   weil innerhalb eines Renders per Definition nichts davon umspringt.
+   Die Position kommt aus einer Map statt aus indexOf(), das war die zweite
+   lineare Suche in derselben Schleife. */
+let SEQ_CACHE=null;
+function seqCacheClear(){ SEQ_CACHE=null; }
+function shelfSeqCached(tileId){
+  if(!SEQ_CACHE) SEQ_CACHE=new Map();
+  let e=SEQ_CACHE.get(tileId);
+  if(!e){
+    const list=shelfSeq(tileId);
+    e={list, pos:new Map(list.map((ix,i)=>[ix,i]))};
+    SEQ_CACHE.set(tileId, e);
+  }
+  return e;
+}
 function seqRank(ix){
   const sh=seqShelf(ITEMS[ix]);
   let ti=TILE_ORDER.indexOf(sh); if(ti<0) ti=TILE_ORDER.length;
-  const pos=shelfSeq(sh).indexOf(ix);
-  return ti*10000 + (pos<0 ? 9999 : pos);
+  const pos=shelfSeqCached(sh).pos.get(ix);
+  return ti*10000 + (pos==null ? 9999 : pos);
 }
 /* Ein Schritt nach oben/unten INNERHALB des Regals. Getauscht wird in der
    gespeicherten Liste, nicht in der gerade sichtbaren -- ein Filter darf die
@@ -4656,7 +4678,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        geschoben wird im Regal. */
     let seqHandles='';
     if(seqEditable() && !backOnly){
-      const seq=shelfSeq(seqShelf(it)), sp=seq.indexOf(ix);
+      const e=shelfSeqCached(seqShelf(it)), seq=e.list, sp=e.pos.has(ix)?e.pos.get(ix):-1;
       seqHandles = `<div class="seqCol">
         <button class="seqBtn" data-a="seq-up" data-i="${ix}" type="button" title="${t().seqUpTip}"${sp<=0?' disabled':''}>▲</button>
         <button class="seqBtn" data-a="seq-dn" data-i="${ix}" type="button" title="${t().seqDownTip}"${(sp<0||sp>=seq.length-1)?' disabled':''}>▼</button>
@@ -6731,7 +6753,7 @@ function legend(){
   legendEl.innerHTML=L.map(x=>
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
-const _r=render; render=function(){_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatReopen();renderCatCelebrate();renderCatItemPicker();renderIconPicker()};
+const _r=render; render=function(){seqCacheClear();_r();legend();renderCatChip();renderCatOverlay();renderCatConfirm();renderCatReopen();renderCatCelebrate();renderCatItemPicker();renderIconPicker()};
 /* ---------- complete order ---------- */
 /* Zwei Stufen von "noch nicht fertig", bewusst verschieden hart:
 
