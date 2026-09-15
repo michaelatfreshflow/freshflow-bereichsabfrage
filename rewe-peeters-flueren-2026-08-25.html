@@ -4549,6 +4549,18 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        der Kaufmann nur ein, was vor ihm steht. Welcher Satz gilt, haengt
        davon ab, wo er gerade steht: auf der Zweitplatzierung interessiert ihn
        der Erstplatzierung, ueberall sonst die Zweitplatzierung. */
+    /* Im Scan-Ergebnis aus "Alle Artikel" gibt es kein "hier": kein Regal ist
+       offen, also kann das Regal des Artikels auch nicht die Ausnahme sein, die
+       das Kennzeichen unten meldet ("Anderes Regal"). Genau dort wird aber
+       gefragt, wo der Artikel eigentlich hingehoert -- an einer
+       Zweitplatzierung steht der Kaufmann mit der Ware in der Hand und sieht
+       ihr den Stammplatz nicht an. Ohne diese Zeile fuehrt der einzige Weg
+       dorthin ueber Suche und "Artikel verwalten", also aus dem Scannen heraus.
+       Ruhiges Kennzeichen, nicht bernstein: es meldet keine Stoerung, es
+       beantwortet eine Frage. Die Liste selbst bleibt unberuehrt. */
+    const noShelfOpen = !(CATFILTER && CATFILTER.kind==='tile');
+    if(forceEye && noShelfOpen)
+      pills += `<span class="pill place">${L.homeShelf} ${tileLabel(tileOf(it))}</span>`;
     const placedOn = promoTilesOf(it);
     if(placedOn.length){
       const onPromoShelf = CATFILTER && CATFILTER.kind==='tile' && isPromoTile(CATFILTER.id);
