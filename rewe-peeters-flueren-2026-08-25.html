@@ -806,9 +806,21 @@ body.isFiltering{
 /* Die anderen Plaetze im Tastenfeld: leise, aber da -- wer 0,5 eintippt, soll
    sehen, dass anderswo noch etwas liegt. */
 .ausOther{color:var(--mute)}
-/* Die Summe haengt hinter der Auslage, leiser als sie: die Zahl davor ist die,
+/* Die Summe haengt hinter dem Regalhöchstbestand, leiser als er: die Zahl davor ist die,
    die der Kaufmann gerade aendern kann, die Summe nur die Einordnung. */
 .dstot{color:var(--mute);margin-left:6px}
+/* Die Zweitplatzierung steht in der Aktionsfarbe neben der Auslage -- sie ist
+   die Ausnahme, das Regal ist der Normalfall. */
+.dssec{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold);margin-left:6px}
+/* Anlegen und Entfernen liegen in der Zeile selbst. Entfernen ist der
+   haeufigere Handgriff -- nach der Aktionswoche muss es ohne Suchen gehen. */
+.ausAdd{font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);
+  color:var(--green);background:var(--ff-primary-5);border:1px dashed var(--green);
+  border-radius:var(--ff-radius-c8);padding:8px 14px;cursor:pointer}
+.ausAdd:hover{background:var(--ff-grey-100)}
+.ausClear{font:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);
+  color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-tag-promotion-background);
+  border:none;border-radius:var(--ff-radius-pill);padding:5px 12px;margin-left:10px;cursor:pointer}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
 /* The badge centres against the stepper. The app top-aligns it
@@ -1177,6 +1189,32 @@ body.isFiltering{
   color:var(--ff-grey-500);
 }
 
+/* Der Auffang-Eimer ist eine Kachel wie jede andere -- gleiche Groesse, gleicher
+   Name, gleicher Platz im Raster, nur eben als erste. Auffaellig ist allein seine
+   Zahl: die Artikel darin haben noch kein Regal, und das ist eine Aufgabe, keine
+   Groessenangabe. Sie traegt darum dasselbe Amber wie die Warndreiecke in der
+   Liste, als Plakette statt als graue Bildunterschrift. Ist der Eimer leer, gibt
+   es nichts zu warnen und die Zahl sieht aus wie ueberall sonst. */
+.ShelfGridItem__count--warn{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--amber-bg);
+  border:1px solid var(--amber);
+  border-radius:var(--ff-radius-pill);
+  padding:1px 7px 1px 3px;
+  color:#8a4b00;
+  font-weight:var(--ff-weight-extra-bold);
+}
+/* Dasselbe "!" wie im Scan-Ergebnis fuer einen Artikel ohne Listenplatz: gefuellter
+   Amber-Kreis, weisses Ausrufezeichen. Es sagt in der Kachel, was der graue Zaehler
+   daneben nicht sagen kann -- hier ist etwas offen. */
+.ShelfGridItem__bang{
+  flex:0 0 auto;width:15px;height:15px;border-radius:50%;
+  background:var(--amber);color:var(--ff-color-white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:var(--ff-text-primary-sub-title-10);
+  font-weight:var(--ff-weight-extra-bold);line-height:1;
+}
+
 .ShelfGridItem__badge{
   /* Tag(text: 'Fertig', type: TagType.filled,
          bgColor: AppColors.primary.shade500, textColor: AppColors.white,
@@ -1238,68 +1276,6 @@ body.isFiltering{
    32px-Knoepfe -- dort haette sie dem Namensfeld auf schmalen Geraeten die
    halbe Breite genommen. Aussen sieht es weiter aus wie eine Zeile der Liste.
    Abstand wie .catedit, damit der Rhythmus der Liste stehen bleibt. */
-/* Die gewaehlte Kachel im Regal-Wechsel-Blatt. Deutlich lauter als
-   .ShelfGridItem--done auf der Uebersicht: dort erzaehlt der Rahmen eine
-   Nebensache ("schon erledigt"), hier ist er die Antwort auf die Frage, die
-   das Blatt stellt -- und er muss aus einem Meter Abstand, mit dem iPad in
-   einer Hand, ohne Suchen zu finden sein.
-   Der zweite Rahmen liegt als inset-Schatten INNEN: ein 2px-Rand wuerde die
-   Kachel um einen Pixel verschieben, und das Raster zuckte bei jedem Tipp. */
-.ShelfGridItem--pick{
-  border-color:var(--green);
-  background:var(--ff-primary-5);
-  box-shadow:inset 0 0 0 1px var(--green), 0 0 0 3px rgba(48,106,87,.14);
-}
-.ShelfGridItem--pick .ShelfGridItem__title{color:var(--green)}
-.ShelfGridItem--pick .ShelfGridItem__count{color:var(--green);font-weight:var(--ff-weight-bold)}
-/* Eine gewaehlte Zweitplatzierung traegt dieselbe Lautstaerke in ihrer eigenen
-   Farbe -- sonst saehen Erstplatzierung und Zweitplatzierung gleich aus, und genau
-   die beiden darf man hier nicht verwechseln. */
-.ShelfGridItem--ak.ShelfGridItem--pick{
-  border-color:var(--ff-color-tag-promotion-foreground);
-  background:var(--ff-color-tag-promotion-background);
-  box-shadow:inset 0 0 0 1px var(--ff-color-tag-promotion-foreground), 0 0 0 3px rgba(161,22,10,.14);
-}
-.ShelfGridItem--ak.ShelfGridItem--pick .ShelfGridItem__title,
-.ShelfGridItem--ak.ShelfGridItem--pick .ShelfGridItem__count{color:var(--ff-color-tag-promotion-foreground)}
-/* Im Rundgang ("Wo bist du gerade?") muss eine Zweitplatzierung auf den ersten
-   Blick von einem Erstplatzierung zu unterscheiden sein: der Kaufmann geht danach
-   los und zaehlt dort anders -- was hier liegt, gehoert einem anderen Regal.
-   Das Aktions-Symbol allein reicht nicht, das kann sich jedes eigene Regal
-   aussuchen. Darum das Kennzeichen in der Zeile unter dem Namen, dieselbe
-   Nur das Kennzeichen, kein gefaerbter Rahmen: im Raster heisst ein farbiger
-   Rahmen "ausgewaehlt" oder "fertig". Eine Zweitplatzierung ist weder das eine
-   noch das andere, sondern eine Eigenschaft des Regals -- sie darf sich nicht
-   lauter melden als ein Zustand. Ausgeschrieben steht sie hier auch: in der
-   Kachel ist Platz, den die Artikelzeile nicht hat. */
-.ShelfGridItem__ak{flex:none;white-space:nowrap;
-  background:var(--ff-color-tag-promotion-background);
-  color:var(--ff-color-tag-promotion-foreground);
-  border-radius:var(--ff-radius-pill);padding:1px 7px;
-  font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-bold)}
-
-/* Der Haken sitzt am rechten Rand der Kachel, wo sonst das Fertig-Kennzeichen
-   der Uebersicht sitzt -- dieselbe Stelle fuer dieselbe Aussage. */
-.ShelfGridItem__tick{flex:none;font-weight:var(--ff-weight-bold);color:var(--green);
-  font-size:var(--ff-text-primary-body-text-14);line-height:1}
-.ShelfGridItem--ak .ShelfGridItem__tick{color:var(--ff-color-tag-promotion-foreground)}
-
-/* Fusszeile des Blattes: links was gespeichert wuerde, rechts der Knopf.
-   Sie liegt ausserhalb von .catbody und scrollt darum nicht mit -- der Knopf
-   ist auch dann noch da, wenn der Kaufmann unten im Raster steht. */
-.pickfoot{flex:0 0 auto;display:flex;align-items:center;gap:14px;
-  padding:12px 24px;background:var(--ff-color-white);border-top:1px solid var(--ff-grey-200)}
-.pickfoot__sum{flex:1;min-width:0;font-size:var(--ff-text-primary-caption-12);color:var(--mute)}
-.pickfoot .cta{flex:0 0 auto}
-.pickfoot .cta:disabled{opacity:.4;cursor:default}
-
-/* Ueberschrift eines Abschnitts im Regal-Wechsel-Blatt. Ton wie .catsec
-   darueber in der Regale-Uebersicht, damit die beiden Blaetter nicht wie zwei
-   verschiedene Programme aussehen. */
-.pickSec{padding:2px 2px 9px}
-.pickSec + .ShelfGrid{margin-bottom:18px}
-.pickSec__lb{font-weight:var(--ff-weight-bold);font-size:var(--ff-text-primary-body-text-14)}
-.pickSec__note{font-size:var(--ff-text-primary-caption-12);color:var(--mute);margin-top:2px}
 .catadd{display:flex;flex-direction:column;gap:7px}
 .kindrow{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:0 2px}
 .kindchip{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);color:var(--mute);
@@ -1363,12 +1339,13 @@ body.isFiltering{
 .kfield .box{border:1.5px solid var(--ff-grey-200);border-radius:var(--ff-radius-c8);padding:8px 14px;min-width:92px;text-align:right;font-weight:var(--ff-weight-bold);cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:var(--ff-weight-extra-bold)}
-/* Auslage je Platz: die Art des Regals traegt die Zeile, der Regalname steht
-   daneben. Die 60px-Spalte des Lager-Tastenfelds reicht fuer "Erstplatzierung" und
-   "Zweitplatzierung" nicht -- diese Zeilen bekommen darum eine eigene Breite,
-   das Lager-Blatt bleibt unberuehrt. */
+/* Regalhöchstbestand je Platz: die Art des Regals traegt die Zeile, der Regalname steht
+   daneben. Die 60px-Spalte des Lager-Tastenfelds reicht weder fuer "Erstplatzierung"
+   und "Zweitplatzierung" noch fuer das ausgeschriebene "Regalhöchstbestand" -- die
+   Zeilen dieses Blattes bekommen darum eine eigene Breite, das Lager-Blatt bleibt
+   unberuehrt. */
 .ausRow{cursor:pointer}
-.ausRow label,.kfield .kTotal{width:auto;min-width:118px;flex:0 0 auto}
+#ausSpots .kfield label,.kfield .kTotal{width:auto;min-width:118px;flex:0 0 auto}
 .ausKind--ak{color:var(--ff-color-tag-promotion-foreground)}
 /* Der Regalname darf schrumpfen, die Zahl nie: sie ist der Grund fuer das Blatt. */
 .ausShelf{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -2342,7 +2319,7 @@ const TILES = [
   ['steinobst-trauben','Steinobst & Trauben','Obst',['pfirsich','nektarine','pflaume','plattpfir','trauben','traube','zwetschge','mirabelle']],
   ['zitrusfruechte','Zitrusfrüchte','Obst',['zitrone','limette','orange','grapefruit','mandarin']],
   ['bananen-exoten','Bananen & Exoten','Obst',['banane','avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi','papaya','datteln','passionsfrucht','feige','dattel']],
-  ['sonstiges','Sonstiges','Sonstiges',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet','eier ','steingartenpflanzen','moosrosen','gladiolen']]
+  ['sonstiges','Kein Regal zugeordnet','Sonstiges',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet','eier ','steingartenpflanzen','moosrosen','gladiolen']]
 ];
 /* Regal-ID -> Dateiname des Regal-Icons in assets/categories/. Die Bilddateien
    heissen englisch, die Regal-IDs bleiben deutsch (sie stecken in
@@ -2388,7 +2365,7 @@ const ICON_CHOICES = [
    Aktions-Symbol, damit sie im Raster schon am Bild als solche zu erkennen
    ist. Der Kaufmann kann es wie bei jedem Regal ueberschreiben. */
 function tileIcon(id){
-  return `assets/categories/${TILE_ICONS[id] || TILE_ICON[id] || (isPromoTile(id) ? 'promo' : 'other')}.png`;
+  return `assets/categories/${TILE_ICONS[id] || TILE_ICON[id] || 'other'}.png`;
 }
 /* Als die 23 Kategorien auf 15 Regale zusammengelegt wurden, aenderten sich
    die Regal-IDs. Auf einem Geraet, das schon einmal benutzt wurde, zeigen
@@ -2429,7 +2406,7 @@ function saveCatOverride(){
 }
 let CAT_OVERRIDE = loadCatOverride();
 /* Der Schluessel, unter dem alles Dauerhafte am Artikel haengt: Regal-
-   Uebersteuerung, Zweitplatzierungen, deren Auslage.
+   Uebersteuerung, Zweitplatzierungen, deren Regalhöchstbestand.
    PLU UND NAME. Die PLU allein waere der naheliegende Schluessel -- sie ueber-
    lebt einen Datenneuzug, anders als der Array-Index. Sie ist in diesem
    Ordersatz aber NICHT eindeutig: 7 PLUs tragen je zwei verschiedene Artikel
@@ -2487,90 +2464,37 @@ function setCatOverride(it, tileId){
   if(tileId!==from) seqPlaceLast(it, tileId, from);
 }
 
-/* ---------- Zweitplatzierungen ----------
-   Aktionsware liegt auf ihrem Erstplatzierung UND auf einer Zweitplatzierung. Der
-   Erstplatzierung bleibt CAT_OVERRIDE/tileOf() -- genau einer, wie bisher; hier
-   stehen nur die zusaetzlichen Plaetze, je Artikel eine Liste von
-   Zweitplatzierungen-IDs. Zwei getrennte Speicher statt einer Liste, in der der
-   erste Eintrag "der echte" waere: so muss keine Aufrufstelle raten, welches
-   Regal der Erstplatzierung ist, und ein geloeschtes Aktionsregal kann den
-   Erstplatzierung nicht mitreissen.
-   Gezaehlt wird trotzdem nur EINMAL: eine Zeile, die irgendwo beantwortet
-   wurde, ist ueberall beantwortet (rowClear/needsAttn haengen am Artikel,
-   nicht am Regal). Die Zweitplatzierung zeigt sie danach nur noch als Hinweis. */
-/* Nur Regale, die noch Zweitplatzierung sind: die Art eines Regals kann sich
-   aendern, und ein geloeschtes Regal darf keinen Artikel in ein Nirgendwo
-   zeigen lassen. Gefiltert wird beim Lesen, damit kein Aufraeumlauf noetig
-   ist -- und damit ein Zurueckschalten die Plaetze wiederfindet. */
-function promoTilesOf(it){
-  return (PROMO.place[overrideKey(it)]||[]).filter(isPromoTile);
-}
-function hasPromoPlace(it, tileId){ return promoTilesOf(it).includes(tileId); }
-
-/* ---------- Auslage je Platz ----------
-   Ein Artikel kann auf dem Erstplatzierung eine ganze Kiste stehen haben und auf der
-   Zweitplatzierung eine halbe. Die Auslage ist damit KEINE Zahl am Artikel mehr,
-   sondern eine je Platz.
-   Der Erstplatzierung behaelt s.auslage -- die Zahl kommt aus dem Warenwirtschafts-
-   system (display.system.quantity) und gilt weiter, auch wenn die Aktion vorbei
-   ist. Die Zweitplatzierung hat keine solche Quelle: was dort liegt, weiss nur
-   der Kaufmann, und mit dem naechsten Ordersatz ist es ohnehin weg. Sie steht
-   darum im gestempelten PROMO-Eintrag und verfaellt mit ihm.
+/* ---------- Zweitplatzierung (leichte Fassung) ----------
+   KEIN zweites Regal. Der Artikel liegt weiter in genau einem Regal und taucht
+   im Rundgang genau einmal auf -- er bekommt nur eine ZWEITE Zahl neben seiner
+   Auslage: was zusaetzlich auf einer Aktionsflaeche liegt.
+   Warum ueberhaupt getrennt und nicht einfach die Auslage erhoehen: die Auslage
+   beschreibt das Regal und nur das Regal. Wird die Aktionsware hineingerechnet,
+   ist die Zahl nach der Aktionswoche falsch und niemand weiss mehr, was vorher
+   dastand.
    GERECHNET WIRD MIT DER SUMME. bsWrite() schlaegt aus "Lagerkisten + Auslage"
-   die Bestellmenge auf; liegt Ware an zwei Plaetzen, ist der Bestand die Summe
-   beider. Eine einzelne Zahl waere dort schlicht zu wenig. */
+   die Bestellmenge auf; liegt Ware an zwei Plaetzen, ist der Bestand beides. */
 const DS_DEFAULT=1;
-function dsOf(it, tileId){
-  if(tileId===tileOf(it)){
-    const s=ST[it.id];
-    return (s && s.auslage!=null) ? s.auslage : DS_DEFAULT;
-  }
-  const m=PROMO.ds[overrideKey(it)];
-  const v=m ? m[tileId] : undefined;
-  return v!=null ? v : DS_DEFAULT;
+function dsHome(it){
+  const s=ST[it.id];
+  return (s && s.auslage!=null) ? s.auslage : DS_DEFAULT;
 }
-function setDsAt(it, tileId, val){
-  if(tileId===tileOf(it)){ ST[it.id].auslage=val; return; }
-  const k=overrideKey(it);
-  if(!PROMO.ds[k]) PROMO.ds[k]={};
-  PROMO.ds[k][tileId]=val;
-  savePromo();
+/* null heisst "hat keine" -- 0 waere eine Aussage ueber eine leere Flaeche und
+   damit etwas anderes. */
+function secondOf(it){
+  const v=SECOND.ds[overrideKey(it)];
+  return v!=null ? v : null;
 }
-/* Alle Plaetze des Artikels in der Reihenfolge des Rundgangs -- der Erstplatzierung
-   gehoert dazu, er ist der erste. */
-function placesOf(it){
-  const home=tileOf(it);
-  return [home].concat(promoTilesOf(it).filter(x=>x!==home));
+function hasSecond(it){ return secondOf(it)!=null; }
+function setSecond(it, val){
+  SECOND.ds[overrideKey(it)]=val;
+  saveSecond();
 }
-function dsTotal(it){
-  return placesOf(it).reduce((a,id)=>a+dsOf(it,id), 0);
+function clearSecond(it){
+  delete SECOND.ds[overrideKey(it)];
+  saveSecond();
 }
-/* Die eine Frage, die die Liste stellt: liegt dieser Artikel in diesem Regal?
-   Erstplatzierung oder Zweitplatzierung -- fuer die Liste macht das keinen
-   Unterschied, der Kaufmann steht in beiden Faellen davor. */
-function isOnShelf(it, tileId){
-  return tileOf(it)===tileId || hasPromoPlace(it, tileId);
-}
-/* Ein Tipp auf eine Zweitplatzierung legt sie dazu oder nimmt sie weg -- beides
-   sofort gespeichert. Gibt zurueck, was es getan hat, damit die Leiste
-   darunter den richtigen Satz zeigen kann. */
-function togglePromoPlace(it, tileId){
-  const k=overrideKey(it);
-  const cur=(PROMO.place[k]||[]).filter(isPromoTile);
-  const on=cur.includes(tileId);
-  const next = on ? cur.filter(x=>x!==tileId) : cur.concat([tileId]);
-  if(next.length) PROMO.place[k]=next; else delete PROMO.place[k];
-  /* Die Auslage gehoert zum Platz: faellt der Platz weg, faellt sie mit. */
-  if(on && PROMO.ds[k]){
-    delete PROMO.ds[k][tileId];
-    if(!Object.keys(PROMO.ds[k]).length) delete PROMO.ds[k];
-  }
-  savePromo();
-  /* Ein zweiter Platz ist auch ein Platz: der Artikel stellt sich am
-     Aktionsregal hinten an, genau wie am Erstplatzierung. */
-  if(!on) seqPlaceLast(it, tileId, null); else seqDrop(it, tileId);
-  return on ? 'removed' : 'added';
-}
+function dsTotal(it){ return dsHome(it) + (secondOf(it)||0); }
 /* Reine Namenszuordnung, ohne Uebersteuerung: so laesst sich auch ein Artikel
    einsortieren, der gar nicht im Ordersatz steht (gescannt, aber nicht gelistet)
    und deshalb keinen Uebersteuerungs-Schluessel hat. */
@@ -2636,69 +2560,30 @@ function saveCustomTiles(){ try{ localStorage.setItem('catCustomTiles', JSON.str
 let CUSTOM_TILES = loadCustomTiles();
 function isCustomTile(id){ return CUSTOM_TILES.some(c=>c.id===id); }
 
-/* ---------- Zweitplatzierungen ----------
-   Welche Regale gerade eine Zweitplatzierung sind -- eine Flaeche, auf der
-   Aktionsware zusaetzlich zu ihrem Erstplatzierung liegt.
-
-   NUR BEIM ANLEGEN. Ob ein Regal eine Zweitplatzierung ist, entscheidet der
-   Kaufmann beim Anlegen und danach nicht mehr: eine Zweitplatzierung, die sich
-   nachtraeglich in einen Erstplatzierung verwandeln laesst, wuerde ihre
-   Zweitplatzierungen mit einem Tipp ins Leere zeigen lassen. Damit kann nur
-   ein selbst angelegtes Regal eine sein -- die 15 fest verdrahteten legt
-   niemand an. Der Speicher steht trotzdem fuer sich und nicht als Feld an
-   CUSTOM_TILES, weil er einen eigenen Lebenslauf hat: er verfaellt mit dem
-   Ordersatz, der Regalname nicht.
-
-   GESTEMPELT MIT DEM ORDERSATZ. Eine Aktion gilt fuer diesen Ordersatz, nicht
-   fuer immer: kommt der naechste, faellt die Markierung weg und mit ihr die
-   Zweitplatzierungen. Sonst schleppt der Markt die Zweitplatzierung der letzten
-   Woche mit sich herum und zaehlt Ware an einem Platz, an dem laengst nichts
-   mehr liegt. Beides steht darum in EINEM Eintrag unter EINEM Stempel: sie
-   entstehen zusammen und sie verfallen zusammen. */
+/* ---------- Speicher der Zweitplatzierungen ----------
+   Je Artikel eine Zahl, gestempelt mit dem Ordersatz. Eine Aktion gilt fuer
+   diesen Ordersatz und nicht fuer immer: kommt der naechste, faellt sie weg.
+   Sonst schleppt der Markt die Aktionsflaeche der letzten Woche mit sich herum
+   und bestellt gegen Ware, die dort laengst nicht mehr liegt. */
 const GUIDE_ID = 'rewe-peeters-flueren-2026-08-25';   // vom Generator je Datei gesetzt
-function loadPromo(){
-  const empty={shelves:[], place:{}, ds:{}};
+function loadSecond(){
+  const empty={ds:{}};
   try{
-    const v=JSON.parse(localStorage.getItem('catPromo')||'null');
+    const v=JSON.parse(localStorage.getItem('catSecondDs')||'null');
     /* Fremder Ordersatz: alles faellt weg. Nicht loeschen -- der naechste
-       Schreibvorgang ueberschreibt den Eintrag ohnehin, und ein Loeschlauf
-       beim Laden verschluckt sonst den Fall "zwei Dateien offen". */
-    if(v && v.guide===GUIDE_ID){
-      /* Nur selbst angelegte Regale: ein fest verdrahtetes koennte hier nur
-         aus einem alten Eintrag stehen, und es gaebe keinen Weg, es wieder
-         loszuwerden -- die Art ist nach dem Anlegen nicht mehr aenderbar. */
-      return {shelves:(Array.isArray(v.shelves)?v.shelves.map(aliasTileId):[]).filter(isCustomTile),
-              place:migrateItemKeys(v.place),
-              ds:migrateItemKeys(v.ds)};
-    }
-    if(v) return empty;
-    /* Uebergang vom ersten Wurf, der die Art noch am eigenen Regal und die
-       Plaetze in einem eigenen Schluessel speicherte. Wird auf diesen
-       Ordersatz gestempelt -- alles andere waere geraten. */
-    const old=JSON.parse(localStorage.getItem('catPromoPlace')||'{}');
-    const tiles=JSON.parse(localStorage.getItem('catCustomTiles')||'[]');
-    const shelves=(Array.isArray(tiles)?tiles:[]).filter(c=>c.kind==='promo').map(c=>c.id).filter(isCustomTile);
-    const place=migrateItemKeys(old);
-    return (shelves.length||Object.keys(place).length) ? {shelves, place, ds:{}} : empty;
+       Schreibvorgang ueberschreibt den Eintrag ohnehin. */
+    if(v && v.guide===GUIDE_ID) return {ds:migrateItemKeys(v.ds||{})};
+    return empty;
   }catch(e){ return empty; }
 }
-function savePromo(){
-  try{ localStorage.setItem('catPromo', JSON.stringify({guide:GUIDE_ID, shelves:PROMO.shelves, place:PROMO.place, ds:PROMO.ds})); }catch(e){}
+function saveSecond(){
+  try{ localStorage.setItem('catSecondDs', JSON.stringify({guide:GUIDE_ID, ds:SECOND.ds})); }catch(e){}
 }
-let PROMO = loadPromo();
-function isPromoTile(id){ return PROMO.shelves.includes(id); }
-/* Nur aus addCustomTile() und deleteCustomTile() heraus -- die Art wird beim
-   Anlegen gesetzt und beim Loeschen weggeraeumt, dazwischen nicht. */
-function setPromoTile(id, on){
-  const has=isPromoTile(id);
-  if(on===has) return;
-  PROMO.shelves = on ? PROMO.shelves.concat([id]) : PROMO.shelves.filter(x=>x!==id);
-  savePromo();
-}
+let SECOND = loadSecond();
 function slugifyTileName(s){
   return s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'kategorie';
 }
-function addCustomTile(name, kind){
+function addCustomTile(name){
   const label=name.trim();
   if(!label) return null;
   const base='custom-'+slugifyTileName(label);
@@ -2707,7 +2592,6 @@ function addCustomTile(name, kind){
   while(used.has(id)){ id=base+'-'+n; n++; }
   CUSTOM_TILES.push({id, label});
   saveCustomTiles();
-  if(kind==='promo') setPromoTile(id, true);
   TILE_ORDER.push(id);
   saveTileOrder();
   return id;
@@ -2730,16 +2614,6 @@ function deleteCustomTile(id){
   /* Eine geloeschte Zweitplatzierung nimmt ihre Markierung und ihre
      Zweitplatzierungen mit -- die Artikel behalten ihren Erstplatzierung und
      bleiben in der Liste. */
-  PROMO.shelves = PROMO.shelves.filter(x=>x!==id);
-  Object.keys(PROMO.place).forEach(k=>{
-    const l=PROMO.place[k].filter(x=>x!==id);
-    if(l.length) PROMO.place[k]=l; else delete PROMO.place[k];
-  });
-  Object.keys(PROMO.ds).forEach(k=>{
-    delete PROMO.ds[k][id];
-    if(!Object.keys(PROMO.ds[k]).length) delete PROMO.ds[k];
-  });
-  savePromo();
   if(CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===id) CATFILTER=null;
 }
 function tileType(id){
@@ -2765,7 +2639,10 @@ const SHELF_NAMES = {
   'steinobst-trauben':   {de:'Steinobst & Trauben',        en:'Stone fruit & grapes',    fr:'Fruits à noyau & raisins'},
   'zitrusfruechte':      {de:'Zitrusfrüchte',              en:'Citrus',                  fr:'Agrumes'},
   'bananen-exoten':      {de:'Bananen & Exoten',           en:'Bananas & exotics',       fr:'Bananes & exotiques'},
-  'sonstiges':           {de:'Sonstiges',                  en:'Other',                   fr:'Divers'},
+  /* Kein Regalname, sondern ein Zustand: was hier liegt, wartet auf ein Regal.
+     "Sonstiges" las sich wie ein Regal am Ende des Gangs und wurde entsprechend
+     behandelt -- naemlich gar nicht. */
+  'sonstiges':           {de:'Kein Regal zugeordnet',      en:'No shelf assigned',       fr:'Aucun rayon attribué'},
 };
 function tileLabel(id){
   /* A rename the owner typed wins in every language -- it is their word, not a
@@ -2794,10 +2671,40 @@ function saveTileOrder(){
   try{ localStorage.setItem('catTileOrder', JSON.stringify(TILE_ORDER)); }catch(e){}
 }
 let TILE_ORDER = loadTileOrder();
+/* 'sonstiges' ist kein Ort im Markt, sondern der Auffang-Eimer: tileOf() wirft jeden
+   Artikel ohne Stichworttreffer dorthin, und was dort liegt, hat noch kein Regal. Das
+   ist eine Aufgabe und kein Rundgang-Stopp -- deshalb steht es ueberall GANZ VORN
+   statt als End-Cap hinten: in der Regale-Uebersicht, im </>-Rundgang und in der
+   Sortierung von "Alle Artikel". So sieht der Kaufmann zuerst, was noch zuzuordnen
+   ist, statt es am Ende zu finden. TILE_ORDER selbst bleibt unangetastet: die
+   gespeicherte Reihenfolge des Kaufmanns soll davon nichts mitbekommen, und im
+   Bearbeiten-Modus laesst sich der Eimer darum auch nicht wegschieben. */
+const UNSHELVED_TILE='sonstiges';
+function shelfWalkOrder(){
+  if(!TILE_ORDER.includes(UNSHELVED_TILE)) return TILE_ORDER.slice();
+  return [UNSHELVED_TILE].concat(TILE_ORDER.filter(id=>id!==UNSHELVED_TILE));
+}
+/* Derselbe Rang wie shelfWalkOrder().indexOf(id), nur ohne je Vergleich ein neues
+   Array zu bauen -- seqRank() laeuft beim Sortieren ueber jede Zeile. */
+function walkRank(id){
+  if(id===UNSHELVED_TILE) return 0;
+  const i=TILE_ORDER.indexOf(id);
+  if(i<0) return TILE_ORDER.length;
+  const u=TILE_ORDER.indexOf(UNSHELVED_TILE);
+  return (u>=0 && i<u) ? i+1 : i;
+}
+/* Getauscht wird in der ANGEZEIGTEN Reihenfolge, nicht in TILE_ORDER: der Eimer
+   steht in der Anzeige vorn, in TILE_ORDER aber noch an seinem alten Platz, und ein
+   Tausch mit ihm waere ein Knopfdruck ohne sichtbare Wirkung. Das Ergebnis wird als
+   neue TILE_ORDER gespeichert -- der Eimer rutscht damit auch dort nach vorn, was
+   nichts aendert, weil shelfWalkOrder() ihn ohnehin vorn haelt. */
 function moveTileOrder(id,dir){
-  const i=TILE_ORDER.indexOf(id), j=i+dir;
-  if(i<0 || j<0 || j>=TILE_ORDER.length) return;
-  [TILE_ORDER[i],TILE_ORDER[j]]=[TILE_ORDER[j],TILE_ORDER[i]];
+  if(id===UNSHELVED_TILE) return;
+  const walk=shelfWalkOrder();
+  const i=walk.indexOf(id), j=i+dir;
+  if(i<0 || j<0 || j>=walk.length || walk[j]===UNSHELVED_TILE) return;
+  [walk[i],walk[j]]=[walk[j],walk[i]];
+  TILE_ORDER=walk;
   saveTileOrder();
   renderCatOverlay();
 }
@@ -2947,11 +2854,15 @@ const T={
     caseCount:'Anzahl Kollis',  // [arb] commonCaseCount
     caseUnit:'KO',  // [arb] commonCaseUnitLabel
     piece:'Stück',  // [arb] orderItemUnitPiece
-    displaySize:'Auslage',  // [arb] needsAttentionGroupDisplaySizeCaption
+    displaySize:'Regalhöchstbestand',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'gesamt',                          // dsTotal
     dsTotalLb:'Gesamt',                        // dsTotalLb
-    dsEditTip:'Auslage für diesen Platz anpassen',
-    dsAt:'Auslage auf',                        // dsAt
+    secondTag:'Zweitplatzierung',              // secondTag
+    secondAdd:'Zweitplatzierung',              // secondAdd
+    secondClear:'Entfernen',                   // secondClear
+    secondClearTip:'Zweitplatzierung entfernen',
+    dsEditTip:'Regalhöchstbestand für diesen Platz anpassen',
+    dsAt:'Regalhöchstbestand auf',             // dsAt
     dsOther:'Andere Plätze',                   // dsOther
     backStock:'Lager',  // [arb] orderItemFieldBackInventoryLabel
     frontStock:'Fläche',  // [arb] orderItemFieldFrontInventoryLabel
@@ -3164,7 +3075,7 @@ const T={
     sfAll:'Alle',
     sfYes:'Gescannt',
     sfNo:'Nicht gescannt',
-    autoFix:'Gescannte Artikel automatisch einblenden und mit Auslage von 1 KO diesem Regal zuordnen',
+    autoFix:'Gescannte Artikel automatisch einblenden und mit Regalhöchstbestand von 1 KO diesem Regal zuordnen',
     autoFixAk:'Gescannte Artikel automatisch einblenden und zusätzlich auf diese Zweitplatzierung legen',
     autoTag:'automatisch',
     hideNote:'läuft im Ordersatz nicht mit',
@@ -3183,6 +3094,7 @@ const T={
     shelfTitle:'Wo bist du gerade?',
     shelfCount:'Regale',
     shelfItems:'Artikel',
+    shelfUnassignedHint:'Diese Artikel haben noch kein Regal — bitte den richtigen Regalen zuordnen',
     shelfAkTag:'Zweitplatzierung',            // shelfAkTag
     shelfDone:'✓ Fertig',
     shelfCurrent:'aktuell',
@@ -3217,11 +3129,11 @@ const T={
     searchItems:'Artikel suchen',
     scanDemo:'Barcode scannen (Demo)',
     editShelves:'Bearbeiten',
-    adjustDisplay:'Auslage anpassen',
+    adjustDisplay:'Regalhöchstbestand anpassen',
     adjustOrder:'Bestellung anpassen',
     switchToBack:'Zu Lager wechseln',
     enterInventory:'Bitte geben Sie den Bestand für den folgenden Artikel ein.',
-    enterDisplay:'Bitte geben Sie die Auslage für den folgenden Artikel ein.',
+    enterDisplay:'Bitte geben Sie den Regalhöchstbestand für den folgenden Artikel ein.',
     enterOrder:'Bitte geben Sie die Bestellung für den folgenden Artikel ein.',
     count:'Zählen: Bestand eingeben',
     noladder:'Bestand eingeben',
@@ -3265,6 +3177,10 @@ const T={
     displaySize:'Display size',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
     dsTotalLb:'Total',
+    secondTag:'Secondary Placement',
+    secondAdd:'Secondary Placement',
+    secondClear:'Remove',
+    secondClearTip:'Remove the secondary placement',
     dsEditTip:'Change the display size for this spot',
     dsAt:'Display size on',
     dsOther:'Other spots',
@@ -3497,6 +3413,7 @@ const T={
     shelfTitle:'Where are you right now?',
     shelfCount:'shelves',
     shelfItems:'items',
+    shelfUnassignedHint:'These items have no shelf yet — please assign them to the right shelves',
     shelfAkTag:'Secondary Placement',
     shelfDone:'✓ Done',
     shelfCurrent:'current',
@@ -3579,6 +3496,10 @@ const T={
     displaySize:'Linéaire',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
     dsTotalLb:'Total',
+    secondTag:'Emplacement secondaire',
+    secondAdd:'Emplacement secondaire',
+    secondClear:'Retirer',
+    secondClearTip:'Retirer l’emplacement secondaire',
     dsEditTip:'Modifier le linéaire pour cet emplacement',
     dsAt:'Linéaire sur',
     dsOther:'Autres emplacements',
@@ -3811,6 +3732,7 @@ const T={
     shelfTitle:'Où êtes-vous en ce moment ?',
     shelfCount:'rayons',
     shelfItems:'articles',
+    shelfUnassignedHint:'Ces articles n’ont pas encore de rayon — à attribuer aux bons rayons',
     shelfAkTag:'Emplacement secondaire',
     shelfDone:'✓ Terminé',
     shelfCurrent:'actuel',
@@ -4157,21 +4079,21 @@ function saveItemOrder(){
 let ITEM_ORDER = loadItemOrder();
 /* Das Regal, in dem diese Zeile GERADE steht: im offenen Regal ist das dieses
    Regal (auch bei einer Zweitplatzierung), sonst der Erstplatzierung. Dieselbe Regel
-   wie bei der Auslage in rowHTML() -- "hier" heisst ueberall dasselbe. */
+   wie beim Regalhöchstbestand in rowHTML() -- "hier" heisst ueberall dasselbe. */
 function seqShelf(it){
-  if(CATFILTER && CATFILTER.kind==='tile' && isOnShelf(it, CATFILTER.id)) return CATFILTER.id;
+  if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)===CATFILTER.id) return CATFILTER.id;
   return tileOf(it);
 }
 /* Die Artikel-Indizes eines Regals in Regalreihenfolge. Gespeichertes zuerst
    (soweit es noch in diesem Regal liegt), alles Neue danach.
-   Wer dazugehoert, entscheidet isOnShelf() und NICHT seqShelf(): sonst haenge
+   Wer dazugehoert, entscheidet das Regal des Artikels und nicht seqShelf():
    die gespeicherte Reihenfolge eines Regals davon ab, welches Regal gerade
    geoeffnet ist -- ein Artikel mit Zweitplatzierung faellt dann je nach Filter
    mal hier, mal dort heraus, und ein seqPlaceLast() wuerde die Liste des
    anderen Regals stillschweigend kuerzen. seqShelf() entscheidet weiter, in
    WELCHER dieser Listen eine Zeile gerade gelesen wird (siehe seqRank). */
 function shelfSeq(tileId){
-  const here=ITEMS.reduce((a,it,ix)=>(isOnShelf(it,tileId)&&a.push(ix),a), []);
+  const here=ITEMS.reduce((a,it,ix)=>(tileOf(it)===tileId&&a.push(ix),a), []);
   const saved=Array.isArray(ITEM_ORDER[tileId]) ? ITEM_ORDER[tileId] : [];
   const byKey=new Map(here.map(ix=>[overrideKey(ITEMS[ix]), ix]));
   const out=[];
@@ -4184,7 +4106,7 @@ function shelfSeq(tileId){
    landet hinten statt auf -1 ganz vorne. */
 /* shelfSeq() laeuft ueber ALLE Artikel und baut zwei Maps -- und seqRank()
    ruft es je Zeile auf, beim Sortieren sogar je Vergleich. Das ist quadratisch:
-   bei ~210 Artikeln kamen so knapp 290.000 isOnShelf()-Aufrufe je render()
+   bei ~210 Artikeln kamen so knapp 290.000 Regal-Abfragen je render()
    zusammen, und die Liste brauchte 570 ms statt 16 ms.
    Der Zwischenspeicher haelt das Ergebnis je Regal fuer die Dauer EINES
    Renders. Das ist sicher, weil jede Aenderung an Zuordnung, Reihenfolge oder
@@ -4206,7 +4128,7 @@ function shelfSeqCached(tileId){
 }
 function seqRank(ix){
   const sh=seqShelf(ITEMS[ix]);
-  let ti=TILE_ORDER.indexOf(sh); if(ti<0) ti=TILE_ORDER.length;
+  const ti=walkRank(sh);
   const pos=shelfSeqCached(sh).pos.get(ix);
   return ti*10000 + (pos==null ? 9999 : pos);
 }
@@ -4298,7 +4220,7 @@ let ADDING_TILE=false;     // "+ Neue Regal" input is open in the Bearbeiten scr
    im Eingabefeld, damit die Wahl ein Neuzeichnen der Zeile ueberlebt (die
    Chips zeichnen die Zeile bei jedem Tipp neu). Faellt beim Schliessen des
    Feldes wieder auf 'normal' zurueck -- der haeufigere Fall. */
-let ADDING_TILE_PROMO=false;
+
 let DELETE_TILE_ID=null;   // eigenes Regal currently showing its "wirklich löschen?" confirm row
 let ICON_PICK_TILE=null;   // tile id whose Symbol-Auswahlblatt is open, or null
 let CATFILTER=null;        // {kind:'tile'|'promo', id, label} | null
@@ -4704,17 +4626,11 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const homeTag = forceEye && noShelfOpen;
     if(homeTag)
       pills += `<span class="pill place">${tileLabel(tileOf(it))}</span>`;
-    const placedOn = promoTilesOf(it);
-    if(placedOn.length){
-      const onPromoShelf = CATFILTER && CATFILTER.kind==='tile' && isPromoTile(CATFILTER.id);
-      /* Steht der Regalname schon daneben, unterscheiden sich die zwei
-         Kennzeichen von selbst -- dann reicht das kurze Wort. Steht die
-         Zweitplatzierung allein, muss sie sich selbst erklaeren, und dann
-         steht sie ausgeschrieben da. */
-      pills += onPromoShelf
-        ? `<span class="pill place">${tileLabel(tileOf(it))}</span>`
-        : `<span class="pill place">${homeTag?L.promoAtShort:L.promoAt} ${placedOn.map(tileLabel).join(', ')}</span>`;
-    }
+    /* Der Artikel hat eine Zweitplatzierung: das muss in der Liste zu sehen
+       sein, ohne die Zeile zu oeffnen -- sonst wird die zusaetzliche Ware beim
+       Zaehlen uebersehen und nach der Aktionswoche vergisst sie niemand
+       abzuraeumen. Die Menge steht an der Auslage-Zeile, hier nur die Tatsache. */
+    if(hasSecond(it)) pills += `<span class="pill place">${L.secondTag}</span>`;
 
     /* Im Scan-Ergebnis sagt der Block unten dasselbe, nur deutlicher -- dann hier nicht. */
     if(s.hidden && !forceEye) pills+=`<span class="pill hid">Ausgeblendet</span>`;
@@ -4723,7 +4639,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        als eigenes Kennzeichen oben. */
     /* Ziel der Zuordnung: das offene Regal -- nur wenn es eines gibt und der Artikel
        nicht schon darin steht. Ohne Regal kein Ziel, also kein Knopf. */
-    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && !isOnShelf(it, CATFILTER.id))
+    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id)
       ? CATFILTER.id : null;
     if(forceEye) scanTags(ix).forEach(x=>{
       if(x===L.scanTagHidden) return;                          // steht schon als eigenes Kennzeichen
@@ -4738,30 +4654,19 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     /* Schon zugeordnet, und zwar hierher: derselbe Block, nur mit Rueckgaengig. */
     const mvDone = SCAN_MOVED[overrideKey(it)];
     const moveBack = (forceEye && CATFILTER && CATFILTER.kind==='tile' && mvDone
-      && mvDone.to===CATFILTER.id && isOnShelf(it, CATFILTER.id)) ? mvDone : null;
+      && mvDone.to===CATFILTER.id && tileOf(it)===CATFILTER.id) ? mvDone : null;
     const autoTag = `<span class="movecta__auto">${L.autoTag}</span>`;
-    /* Auf einer Zweitplatzierung wird nichts verschoben, sondern dazugelegt --
-       und dann waere der durchgestrichene Pfeil eine Luege: der Erstplatzierung
-       bleibt, wo er ist. Der Block sagt darum beides ("bleibt auf X,
-       zusaetzlich hier") statt eines Weges von A nach B. */
-    const mvBlock = (from, to, tail, cls) => isPromoTile(to)
-      ? `<div class="movecta${cls}">
-          <div class="movecta__mv">
-            <span class="lb">${L.addHereLead}</span><span class="to">${tileLabel(from)}</span>
-            <span class="lb">${L.addHereTo}</span><span class="to">${tileLabel(to)}</span>
-          </div>${tail}
-        </div>`
-      : `<div class="movecta${cls}">
+    const mvBlock = (from, to, tail, cls) =>
+      `<div class="movecta${cls}">
           <div class="movecta__mv">
             <span class="lb">${L.moveFrom}</span><span class="from">${tileLabel(from)}</span>
             <span class="arr">→</span>
             <span class="lb">${L.moveTo}</span><span class="to">${tileLabel(to)}</span>
           </div>${tail}
         </div>`;
-    const toAk = moveTo && isPromoTile(moveTo);
     const moveCta = moveTo
       ? mvBlock(tileOf(it), moveTo,
-          `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${toAk?L.addHereTip:L.moveRowTip}">${toAk?L.addHereBtn:L.moveRowBtn}</button>`, '')
+          `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`, '')
       : moveBack
       ? mvBlock(moveBack.from, moveBack.to,
           `${moveBack.auto?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
@@ -4789,7 +4694,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const box = stepHTML(it,s,ix);
     const noteTxt = (s.touched||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt,'inv',ix)}</div>`;
-    /* Die Auslage des Platzes, an dem der Kaufmann GERADE STEHT -- eine Zahl,
+    /* Der Regalhöchstbestand des Platzes, an dem der Kaufmann GERADE STEHT -- eine Zahl,
        wie eh und je. Welches Regal das ist, sagt schon das Kennzeichen an der
        Zeile ("Stammpl.: ..." bzw. "Zweitpl.: ..."); es hier zu wiederholen
        machte aus zwei Angaben vier und aus der Zeile eine Suchaufgabe.
@@ -4797,12 +4702,11 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        einen Platz gibt, und sagt dann das eine, was die Zahl davor nicht sagen
        kann -- dass draussen mehr liegt als hier. Mit ihr rechnet die
        Bestellung. Ohne Regalfilter ist "hier" der Erstplatzierung. */
-    const dsPlaces = placesOf(it);
-    const dsHere = (CATFILTER && CATFILTER.kind==='tile' && dsPlaces.includes(CATFILTER.id))
-      ? CATFILTER.id : dsPlaces[0];
-    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" data-shelf="${dsHere}" title="${L.dsEditTip}">`
-      + `${L.displaySize} <u>${koNum(dsOf(it,dsHere))}</u> ${L.caseUnit}`
-      + (dsPlaces.length>1 ? `<span class="dstot">${L.dsTotal} ${koNum(dsTotal(it))} ${L.caseUnit}</span>` : '')
+    const sec = secondOf(it);
+    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">`
+      + `${L.displaySize} <u>${koNum(dsHome(it))}</u> ${L.caseUnit}`
+      + (sec!=null ? `<span class="dssec">+ ${L.secondTag} ${koNum(sec)}</span>`
+                   + `<span class="dstot">${L.dsTotal} ${koNum(dsTotal(it))} ${L.caseUnit}</span>` : '')
       + `</div>`;
     /* Gezaehltes Lager als eigene, leise Zeile. Der Stepper darueber bleibt unberuehrt --
        gezaehlt wurde das Lager, nicht die Fl\u00e4che. */
@@ -4908,7 +4812,7 @@ function render(){
     const scanHide = SCAN_FILT==='yes' ? !seen : SCAN_FILT==='no' ? seen : false;
     let catFilterHide = false;
     if(CATFILTER){
-      if(CATFILTER.kind==='tile') catFilterHide = !isOnShelf(it, CATFILTER.id);
+      if(CATFILTER.kind==='tile') catFilterHide = !tileOf(it)===CATFILTER.id;
     }
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide || scanHide;
@@ -4961,7 +4865,7 @@ function stats(shown){
    search/CATFILT filtering above. */
 function itemsForFilter(f){
   if(!f) return ITEMS;
-  return ITEMS.filter(i=>isOnShelf(i, f.id));
+  return ITEMS.filter(i=>tileOf(i)===f.id);
 }
 /* `fin` (Regal abgehakt) und `open` (Zeilen, die noch ein ! tragen) sind zwei
    verschiedene Dinge und duerfen sich nicht gegenseitig ueberschreiben. Frueher
@@ -5138,7 +5042,7 @@ function closeCat(){ CATOPEN=false; ICON_PICK_TILE=null; render(); }
    replaceState statt push, damit Zurueck immer in einem Schritt auf
    der Regale-Seite landet, egal wie oft man mit ‹/› weitergeklickt hat. */
 function catWalkList(){
-  return TILE_ORDER.map(id=>
+  return shelfWalkOrder().map(id=>
     ({kind:'tile', id, label: tileLabel(id)}));
 }
 function catWalkIndex(walk, f){
@@ -5286,7 +5190,7 @@ function renderCatOverlay(){
   const foot=document.querySelector('.foot');
   const botPx = foot ? foot.offsetHeight : 0;
 
-  const tileDefs = TILE_ORDER.map(id=>({id, label:tileLabel(id), type:tileType(id)}));
+  const tileDefs = shelfWalkOrder().map(id=>({id, label:tileLabel(id), type:tileType(id)}));
   const tiles = tileDefs.map(t=>{
     const st=tileStats(t.id);
     const accent = shelfAccent(t);
@@ -5296,23 +5200,16 @@ function renderCatOverlay(){
   let body;
   if(CAT_EDIT){
     const orderTiles = tiles;
-    /* Die Art wird beim Anlegen gewaehlt, nicht danach: wo ein Regal steht und
-       wozu es da ist, weiss der Kaufmann in dem Moment, in dem er es anlegt --
-       und die Wahl aendert schon das Symbol und das Kennzeichen der Zeile. */
-    const ak = ADDING_TILE_PROMO;
+    /* Der Auffang-Eimer steht fest auf Platz 1 -- das erste verschiebbare Regal ist
+       damit die Zeile darunter, und sein eigenes Paar Pfeile bleibt aus. */
+    const firstMovable = (orderTiles[0]||{}).id===UNSHELVED_TILE ? 1 : 0;
     const addRow = ADDING_TILE
-      ? `<div class="catadd">
-          <div class="catrow">
-            <span class="dot" style="background:${ak?'var(--ff-color-tag-promotion-foreground)':'var(--ff-color-accent-green)'}"></span>
-            <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="${ak?'Name der neuen Zweitplatzierung':'Name des neuen Regals'}">
-            <div class="rebtns">
-              <button class="reordBtn" data-a="cat-add-save" type="button" title="Anlegen">✓</button>
-              <button class="reordBtn" data-a="cat-add-cancel" type="button" title="Abbrechen">✕</button>
-            </div>
-          </div>
-          <div class="kindrow">
-            <button class="kindchip${ak?'':' kindchip--on'}" data-a="cat-add-kind" data-kind="normal" type="button">Erstplatzierung</button>
-            <button class="kindchip kindchip--ak${ak?' kindchip--on':''}" data-a="cat-add-kind" data-kind="promo" type="button">Zweitplatzierung</button>
+      ? `<div class="catrow">
+          <span class="dot" style="background:var(--ff-color-accent-green)"></span>
+          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="Name des neuen Regals">
+          <div class="rebtns">
+            <button class="reordBtn" data-a="cat-add-save" type="button" title="Anlegen">✓</button>
+            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="Abbrechen">✕</button>
           </div>
         </div>`
       : `<div class="catrow addrow" data-a="cat-add-open">
@@ -5326,9 +5223,7 @@ function renderCatOverlay(){
           /* Eine Zweitplatzierung ist nie der einzige Platz eines Artikels --
              die Ware verliert nur ihren zweiten Ort und bleibt auf dem
              Erstplatzierung. "Fallen zurueck" waere hier schlicht falsch. */
-          const what = isPromoTile(tl.id)
-            ? `${n} Artikel verlieren diese Zweitplatzierung und bleiben auf ihrem Erstplatzierung`
-            : `${n} Artikel fallen zurück auf ihr automatisches Regal`;
+          const what = `${n} Artikel fallen zurück auf ihr automatisches Regal`;
           return `<div class="catrow">
             <span class="dot" style="background:${tl.accent}"></span>
             <div class="tx"><div class="nm">„${tl.label}" wirklich löschen?</div><div class="cnt">${what}</div></div>
@@ -5346,7 +5241,7 @@ function renderCatOverlay(){
              vertan hat, loescht das Regal und legt es neu an -- und mit dem
              naechsten Ordersatz faellt die Zweitplatzierung ohnehin weg. */
           return `<div class="catrow">
-            <span class="dot" style="background:${isPromoTile(tl.id)?'var(--ff-color-tag-promotion-foreground)':tl.accent}"></span>
+            <span class="dot" style="background:${tl.accent}"></span>
             <input class="renameInput" id="renameInput" type="text" maxlength="40" value="${tl.label.replace(/"/g,'&quot;')}">
             <div class="rebtns">
               <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="Speichern">✓</button>
@@ -5356,12 +5251,12 @@ function renderCatOverlay(){
         }
         return `<div class="catrow">
           <button class="rowIcon" data-a="cat-icon" data-id="${tl.id}" type="button" title="Symbol ändern"><img src="${tl.icon}" alt="" onerror="this.style.visibility='hidden'"></button>
-          <div class="tx"><div class="nm">${tl.label}${isPromoTile(tl.id)?' <span class="owntag owntag--ak">Zweitplatzierung</span>':isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel${isPromoTile(tl.id)?' · nur für diesen Ordersatz':''}</div></div>
+          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel${tl.id===UNSHELVED_TILE?' · ohne Regal, steht immer oben':''}</div></div>
           <div class="rebtns">
             ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="Löschen">🗑</button>`:''}
             <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="Umbenennen">✎</button>
-            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="nach oben"${i===0?' disabled':''}>▲</button>
-            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="nach unten"${i===orderTiles.length-1?' disabled':''}>▼</button>
+            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?'Steht immer oben':'nach oben'}"${(tl.id===UNSHELVED_TILE||i<=firstMovable)?' disabled':''}>▲</button>
+            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?'Steht immer oben':'nach unten'}"${(tl.id===UNSHELVED_TILE||i===orderTiles.length-1)?' disabled':''}>▼</button>
           </div>
         </div>`;
       }).join('')}</div>`;
@@ -5372,13 +5267,20 @@ function renderCatOverlay(){
             <button class="catchip" type="button" data-a="catpick-all">${t().all}</button>
             ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">${t().openItems}</button>` : ''}
           </div></div>
-        <div class="ShelfGrid">${tiles.map(tl=>`
+        <div class="ShelfGrid">${tiles.map(tl=>{
+          /* Jede Kachel traegt weiter ihre Artikelzahl -- nur die des Auffang-Eimers
+             ist keine Groessenangabe, sondern eine offene Aufgabe: diese Artikel haben
+             noch kein Regal. Sie steht darum in Amber, fett, mit Plakette und einer
+             Zeile, die sagt, was zu tun ist. Ist der Eimer leer, gibt es nichts zu
+             warnen und die Kachel sieht aus wie jede andere. */
+          const todo = tl.id===UNSHELVED_TILE && tl.count>0;
+          return `
           <div class="ShelfGridItem${tl.fin?' ShelfGridItem--done':''}" data-key="shelf:${tl.id}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
             <div class="ShelfGridItem__leading"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
             <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tl.label}</div>
-              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${tl.count} ${t().shelfItems}</span>${isPromoTile(tl.id)?`<span class="ShelfGridItem__ak">${t().shelfAkTag}</span>`:''}</div></div>
+              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count${todo?' ShelfGridItem__count--warn':''}"${todo?` title="${t().shelfUnassignedHint}"`:''}>${todo?'<span class="ShelfGridItem__bang" aria-hidden="true">!</span>':''}${tl.count} ${t().shelfItems}</span></div></div>
             ${tl.fin ? `<span class="ShelfGridItem__badge">${t().shelfDone}</span>` : ''}
-          </div>`).join('')}</div>`;
+          </div>`;}).join('')}</div>`;
   }
 
   root.innerHTML = `<div class="catov" style="top:${topPx}px;bottom:${botPx}px">
@@ -5474,29 +5376,17 @@ function renderCatOverlay(){
     });
   }
   const addOpenEl=root.querySelector('[data-a="cat-add-open"]');
-  if(addOpenEl) addOpenEl.addEventListener('click', ()=>{ ADDING_TILE=true; ADDING_TILE_PROMO=false; renderCatOverlay(); });
-  /* Die Art umschalten darf den schon getippten Namen nicht verschlucken --
-     die Zeile wird neu gezeichnet, also vorher aus dem Feld zurueckschreiben. */
-  root.querySelectorAll('[data-a="cat-add-kind"]').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const inp=document.getElementById('addTileInput');
-      const keep=inp ? inp.value : '';
-      ADDING_TILE_PROMO = el.dataset.kind==='promo';
-      renderCatOverlay();
-      const back=document.getElementById('addTileInput');
-      if(back){ back.value=keep; back.focus(); }
-    });
-  });
+  if(addOpenEl) addOpenEl.addEventListener('click', ()=>{ ADDING_TILE=true; renderCatOverlay(); });
   const addSaveEl=root.querySelector('[data-a="cat-add-save"]');
   if(addSaveEl) addSaveEl.addEventListener('click', saveNewTile);
   const addCancelEl=root.querySelector('[data-a="cat-add-cancel"]');
-  if(addCancelEl) addCancelEl.addEventListener('click', ()=>{ ADDING_TILE=false; ADDING_TILE_PROMO=false; renderCatOverlay(); });
+  if(addCancelEl) addCancelEl.addEventListener('click', ()=>{ ADDING_TILE=false; renderCatOverlay(); });
   const addTileInput=document.getElementById('addTileInput');
   if(addTileInput){
     addTileInput.focus();
     addTileInput.addEventListener('keydown', e=>{
       if(e.key==='Enter') saveNewTile();
-      else if(e.key==='Escape'){ ADDING_TILE=false; ADDING_TILE_PROMO=false; renderCatOverlay(); }
+      else if(e.key==='Escape'){ ADDING_TILE=false; renderCatOverlay(); }
     });
   }
   root.querySelectorAll('[data-a="cat-delete"]').forEach(el=>{
@@ -5519,10 +5409,9 @@ function renderCatOverlay(){
 function saveNewTile(){
   const inp=document.getElementById('addTileInput');
   const val=inp ? inp.value : '';
-  const kind = ADDING_TILE_PROMO ? 'promo' : 'normal';
   ADDING_TILE=false;
-  ADDING_TILE_PROMO=false;
-  if(val && val.trim()) addCustomTile(val, kind);
+ 
+  if(val && val.trim()) addCustomTile(val);
   renderCatOverlay();
 }
 /* Leerer/auf den Vorgabewert zurueckgesetzter Name loescht die Uebersteuerung
@@ -5614,89 +5503,33 @@ function renderIconPicker(){
    Der Knopf bleibt stumm, solange der Entwurf dem gespeicherten Zustand
    entspricht: nichts zu speichern, also nichts zu druecken. */
 let CAT_ITEM_PICK=null;   // item index currently being recategorised, or null
-/* Der Entwurf: was der Kaufmann angetippt hat, noch nicht was gilt.
-   {home, promo:[]} -- beim Oeffnen aus dem Artikel gefuellt, beim Speichern
-   zurueckgeschrieben, beim Schliessen weggeworfen. */
-let PICK_DRAFT=null;
-function openCatItemPicker(ix){
-  CAT_ITEM_PICK=ix;
-  const it=ITEMS[ix];
-  PICK_DRAFT={home:tileOf(it), promo:promoTilesOf(it).slice()};
-  renderCatItemPicker();
-}
-function closeCatItemPicker(){ CAT_ITEM_PICK=null; PICK_DRAFT=null; renderCatItemPicker(); }
-/* Gibt es ueberhaupt etwas zu speichern? Reihenfolge egal -- es ist eine
-   Menge, keine Liste. */
-function pickDirty(it){
-  if(!PICK_DRAFT) return false;
-  if(PICK_DRAFT.home!==tileOf(it)) return true;
-  const a=PICK_DRAFT.promo.slice().sort(), b=promoTilesOf(it).slice().sort();
-  return a.length!==b.length || a.some((x,i)=>x!==b[i]);
-}
+function openCatItemPicker(ix){ CAT_ITEM_PICK=ix; renderCatItemPicker(); }
+function closeCatItemPicker(){ CAT_ITEM_PICK=null; renderCatItemPicker(); }
 function renderCatItemPicker(){
   const root=document.getElementById('catItemPickerRoot');
   if(CAT_ITEM_PICK==null){ root.innerHTML=''; return; }
   const it=ITEMS[CAT_ITEM_PICK];
+  const L=t();
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
-  const L=t();
   const current=tileOf(it);
-  const d=PICK_DRAFT;
-  /* Die Reihenfolge innerhalb eines Abschnitts bleibt der Rundgang -- geteilt
-     wird nur nach Art des Regals, nicht neu sortiert. */
-  /* Welche Frage die Kachel beantwortet, entscheidet der ABSCHNITT, in dem
-     sie steht -- nicht die Art des Regals. Das ist derselbe Unterschied nur
-     fast immer: steht ein Artikel auf einem Regal, das gerade selbst zur
-     Zweitplatzierung erklaert wurde, dann ist dieses Regal oben sein Erstplatzierung
-     und taucht unten gar nicht auf.
-     Angezeigt wird der ENTWURF, nicht der gespeicherte Zustand -- sonst
-     bewegte sich beim Tippen nichts. */
-  const cell = (id, asHome) => {
-    const on = asHome ? d.home===id : d.promo.includes(id);
-    const meta = on ? (asHome ? L.shelfCurrent : L.shelfPlaced) : L.shelfChoose;
-    return `<div class="ShelfGridItem${asHome?'':' ShelfGridItem--ak'}${on?' ShelfGridItem--pick':''}" data-key="shelf:${id}" data-a="catassign-pick" data-id="${id}" data-home="${asHome?1:0}">
-      <div class="ShelfGridItem__leading"><img src="${tileIcon(id)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
-      <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tileLabel(id)}</div>
-        <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${meta}</span></div></div>
-      ${on?`<span class="ShelfGridItem__tick" aria-hidden="true">✓</span>`:''}
-    </div>`;
-  };
-  /* Der Erstplatzierung des Artikels steht immer oben -- auch wenn genau dieses
-     Regal gerade die Zweitplatzierung ist. Sonst waere er nirgends zu sehen und
-     nicht mehr waehlbar. Unten faellt es dafuer weg: sein eigener zweiter
-     Platz kann ein Artikel nicht sein. Geteilt wird nach dem GESPEICHERTEN
-     Erstplatzierung, nicht nach dem Entwurf -- sonst sprangen die Kacheln beim
-     Tippen zwischen den Abschnitten hin und her. */
-  const homeIds  = TILE_ORDER.filter(id=>!isPromoTile(id) || id===current);
-  const promoIds = TILE_ORDER.filter(id=>isPromoTile(id) && id!==current);
-  /* Der Abschnitt "Zweitplatzierung" steht nur da, wenn es ueberhaupt eine
-     Zweitplatzierung gibt -- sonst ist es eine leere Ueberschrift ueber nichts,
-     und fuer den Kaufmann ohne Zweitplatzierung sieht das Blatt aus wie immer. */
-  const sec = (label, note, ids, asHome) => `<div class="pickSec"><div class="pickSec__lb">${label}</div>
-      <div class="pickSec__note">${note}</div></div>
-    <div class="ShelfGrid">${ids.map(id=>cell(id, asHome)).join('')}</div>`;
-  /* Die Fusszeile sagt, was gespeichert wuerde -- der Knopf allein zeigt das
-     nicht, und der Erstplatzierung kann beim Scrollen laengst aus dem Bild sein. */
-  const sum = `${L.pickHomeSec}: ${tileLabel(d.home)}`
-    + (d.promo.length ? ` · ${d.promo.length} ${d.promo.length===1?L.pickPromoSec:L.pickPromoSecPl}` : '');
-  const dirty = pickDirty(it);
   root.innerHTML = `<div class="catov" style="top:${topPx}px">
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
-          <div class="eyebrow">Regal ändern</div>
+          <div class="eyebrow">${L.changeShelf}</div>
           <h2>${it.name}</h2>
-          <div class="sub">${L.pickSubtitle}</div>
+          <div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>
         </div>
         <button class="x" id="catItemPickClose" type="button" title="${L.close}">✕</button>
       </div>
       <div class="catbody">
-        ${sec(L.pickHomeSec, L.pickHomeNote, homeIds, true)}
-        ${promoIds.length ? sec(L.pickPromoSec, L.pickPromoNote, promoIds, false) : ''}
-      </div>
-      <div class="pickfoot">
-        <div class="pickfoot__sum">${sum}</div>
-        <button class="cta" id="catPickSave" type="button"${dirty?'':' disabled'}>${L.pickSave}</button>
+        <div class="ShelfGrid">${TILE_ORDER.map(id=>`
+          <div class="ShelfGridItem${id===current?' ShelfGridItem--done':''}" data-key="shelf:${id}" data-a="catassign-pick" data-id="${id}">
+            <div class="ShelfGridItem__leading"><img src="${tileIcon(id)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
+            <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tileLabel(id)}</div>
+              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count">${id===current?L.shelfCurrent:L.shelfChoose}</span></div></div>
+          </div>`).join('')}</div>
       </div>
     </div>
   </div>`;
@@ -5704,97 +5537,50 @@ function renderCatItemPicker(){
   root.querySelectorAll('[data-a="catassign-pick"]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const tileId=el.dataset.id;
-      /* Oben eine Wahl, unten ein Schalter -- welche der beiden, sagt der
-         Abschnitt, nicht die Art des Regals. Geschrieben wird nur der
-         Entwurf; erst der Knopf unten macht daraus einen Zustand. */
-      if(el.dataset.home==='1'){
-        PICK_DRAFT.home=tileId;
-      } else {
-        PICK_DRAFT.promo = PICK_DRAFT.promo.includes(tileId)
-          ? PICK_DRAFT.promo.filter(x=>x!==tileId)
-          : PICK_DRAFT.promo.concat([tileId]);
-      }
-      renderCatItemPicker();
+      const prevValue=CAT_OVERRIDE[overrideKey(it)];
+      const fromTileId=tileOf(it);
+      setCatOverride(it, tileId);
+      pushChange(it, `Regal → ${tileLabel(tileId)}`);
+      closeCatItemPicker();
+      render();
+      showCatUndo(it, prevValue, tileId, fromTileId);
     });
   });
-  /* Speichern: beide Aenderungen in einem Zug, damit auch das Rueckgaengig
-     eines ist. Was vorher galt, wird vorher weggeschrieben -- danach steht es
-     nirgends mehr. */
-  const saveBtn=document.getElementById('catPickSave');
-  if(saveBtn) saveBtn.onclick=()=>{
-    const key=overrideKey(it);
-    const before={ov:CAT_OVERRIDE[key], promo:(PROMO.place[key]||[]).slice(), home:tileOf(it)};
-    const draft={home:PICK_DRAFT.home, promo:PICK_DRAFT.promo.slice()};
-    if(draft.home!==before.home){
-      setCatOverride(it, draft.home);
-      pushChange(it, `Regal → ${tileLabel(draft.home)}`);
-    }
-    const wasPromo=promoTilesOf(it);
-    draft.promo.filter(x=>!wasPromo.includes(x)).forEach(x=>pushChange(it, `${L.placeAdded} → ${tileLabel(x)}`));
-    wasPromo.filter(x=>!draft.promo.includes(x)).forEach(x=>pushChange(it, `${L.placeRemoved} → ${tileLabel(x)}`));
-    if(draft.promo.length) PROMO.place[key]=draft.promo; else delete PROMO.place[key];
-    /* Die Auslage gehoert zum Platz. Wird der Platz hier weggenommen, muss sie
-       mit -- sonst stuende sie beim naechsten Zuordnen wieder da, als haette
-       jemand sie gemessen. togglePromoPlace() macht das schon; dieser Weg
-       schreibt PROMO.place direkt und muss es darum selbst tun. */
-    if(PROMO.ds[key]){
-      wasPromo.filter(x=>!draft.promo.includes(x)).forEach(x=>delete PROMO.ds[key][x]);
-      if(!Object.keys(PROMO.ds[key]).length) delete PROMO.ds[key];
-    }
-    savePromo();
-    closeCatItemPicker();
-    render();
-    showPickUndo(it, before, draft);
-  };
 }
-/* Eine Zuordnung kann den Artikel sofort aus der gefilterten Ansicht
-   verschwinden lassen (Regal-Filter, Regale-Overlay-Filter) -- deshalb eine
-   explizite, klickbare Rueckgaengig-Leiste statt nur eines Toasts, die
-   unabhaengig von der gefilterten Liste stehen bleibt.
-   EINE Leiste fuer beides: gespeichert wurde ein Zug, also muss auch der Weg
-   zurueck einer sein. Sie traegt darum den Zustand VOR dem Speichern, nicht
-   die einzelnen Schritte dorthin. */
-let PICK_UNDO=null;
-function showPickUndo(it, before, draft){
-  PICK_UNDO={it, before};
+/* Ein Regalwechsel kann den Artikel sofort aus der gefilterten Ansicht
+   verschwinden lassen -- deshalb eine klickbare Rueckgaengig-Leiste statt
+   eines Toasts, die unabhaengig von der Liste stehen bleibt. */
+let CAT_UNDO=null;
+function showCatUndo(it, prevValue, newTileId, fromTileId){
+  CAT_UNDO={it, prevValue};
   const L=t();
   const bar=document.getElementById('catUndoBar');
-  const rows=[];
-  if(before.home!==draft.home){
-    rows.push(`<span class="lb">${L.pickHomeSec}</span><span class="from">${tileLabel(before.home)}</span>`
-      + `<span class="arr">&rarr;</span><span class="to">${tileLabel(draft.home)}</span>`);
-  }
-  /* Bei den Zweitplatzierungen steht das Ergebnis da, nicht die Differenz:
-     "jetzt auf A und B" ist am Regal leichter zu pruefen als "B dazu". */
-  if(draft.promo.length || before.promo.length){
-    rows.push(`<span class="lb">${L.pickPromoSec}</span>`
-      + (draft.promo.length ? `<span class="to">${draft.promo.map(tileLabel).join(', ')}</span>`
-                            : `<span class="from">${before.promo.map(tileLabel).join(', ')}</span>`));
-  }
   bar.innerHTML = `
     <div class="undobar__tx">
       <div class="undobar__nm">${it.name}</div>
-      ${rows.map(r=>`<div class="movecta__mv">${r}</div>`).join('')}
+      <div class="movecta__mv">
+        <span class="lb">${L.moveFrom}</span><span class="from">${tileLabel(fromTileId)}</span>
+        <span class="arr">&rarr;</span>
+        <span class="lb">${L.moveToNew}</span><span class="to">${tileLabel(newTileId)}</span>
+      </div>
     </div>
-    <button class="movecta__undo" type="button" id="pickUndoBtn" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`;
-  document.getElementById('pickUndoBtn').onclick=undoPickChange;
+    <button class="movecta__undo" type="button" id="catUndoBtn" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`;
+  document.getElementById('catUndoBtn').onclick=undoCatChange;
   bar.classList.add('on');
   clearTimeout(bar._t);
-  bar._t=setTimeout(()=>{ bar.classList.remove('on'); PICK_UNDO=null; }, 6000);
+  bar._t=setTimeout(()=>{ bar.classList.remove('on'); CAT_UNDO=null; }, 6000);
 }
-function undoPickChange(){
-  if(!PICK_UNDO) return;
-  const {it, before}=PICK_UNDO;
+function undoCatChange(){
+  if(!CAT_UNDO) return;
+  const {it, prevValue}=CAT_UNDO;
   const key=overrideKey(it);
-  if(before.ov===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=before.ov;
+  if(prevValue===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=prevValue;
   saveCatOverride();
-  if(before.promo.length) PROMO.place[key]=before.promo.slice(); else delete PROMO.place[key];
-  savePromo();
   const bar=document.getElementById('catUndoBar');
   clearTimeout(bar._t);
   bar.classList.remove('on');
   pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
-  PICK_UNDO=null;
+  CAT_UNDO=null;
   render();
 }
 
@@ -6099,15 +5885,6 @@ function rowClick(e){
     const to = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
     if(!to) return;
     const key=overrideKey(it);
-    /* Eine Zweitplatzierung ist ein zweiter Platz, kein neuer: der Erstplatzierung
-       bleibt unangetastet, und die Auslage auch -- die ist eine Zahl fuer
-       beide Plaetze zusammen und waere hier nur geraten. */
-    if(isPromoTile(to)){
-      SCAN_MOVED[key]={from:tileOf(it), to, place:true};
-      togglePromoPlace(it, to);
-      pushChange(it, `${t().placeAdded} → ${tileLabel(to)}`);
-      render(); return;
-    }
     SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key]};
     setCatOverride(it, to);
     pushChange(it, `Regal → ${tileLabel(to)}`);
@@ -6130,14 +5907,8 @@ function rowClick(e){
   else if(a==='scanunmove'){
     const key=overrideKey(it), e=SCAN_MOVED[key];
     if(!e) return;
-    if(e.place){
-      togglePromoPlace(it, e.to);
-      delete SCAN_MOVED[key];
-      pushChange(it, `${t().placeRemoved} → ${tileLabel(e.to)} (rückgängig gemacht)`);
-      render(); return;
-    }
     if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
-    if(e.prevAuslage!=null) s.auslage=e.prevAuslage;   // Auslage gehoert zur Zuordnung
+    if(e.prevAuslage!=null) s.auslage=e.prevAuslage;   // Regalhöchstbestand gehoert zur Zuordnung
     saveCatOverride();
     delete SCAN_MOVED[key];
     pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
@@ -6225,7 +5996,7 @@ function scanAlternatives(u){
     let sc=0;
     if(first && t2[0]===first) sc+=6;
     sc+=2*t2.filter(w=>ut.includes(w)).length;
-    if(isOnShelf(it, tile)) sc+=3;
+    if(tileOf(it)===tile) sc+=3;
     if(sc>0) scored.push({ix, sc});
   });
   scored.sort((a,b)=>b.sc-a.sc || a.ix-b.ix);
@@ -6286,7 +6057,7 @@ function scanMatches(digits){
 function scanTags(ix){
   const it=ITEMS[ix], s=ST[ix], L=t(), tags=[];
   if(s.hidden) tags.push(L.scanTagHidden);
-  if(CATFILTER && CATFILTER.kind==='tile' && !isOnShelf(it, CATFILTER.id))
+  if(CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id)
     tags.push(L.scanTagShelf+' · '+tileLabel(tileOf(it)));
   const filtOn=CATFILT.invNote||CATFILT.ordNote||CATFILT.bio||CATFILT.promo;
   if(filtOn && !filtMatch(it,s) && !(FILT_KEEP&&FILT_KEEP.has(ix))) tags.push(L.scanTagFilter);
@@ -6341,27 +6112,15 @@ function autoFix(list){
       SCAN_SHOWN[key]='auto';
       pushChange(it, 'wieder eingeblendet (automatisch)');
     }
-    if(CATFILTER && CATFILTER.kind==='tile' && !isOnShelf(it, CATFILTER.id)){
-      /* Auf einer Zweitplatzierung legt die Automatik dazu, sie raeumt nicht um.
-         Der Erstplatzierung bleibt -- sonst waere der Artikel nach dem naechsten
-         Ordersatz dauerhaft auf einer Flaeche zuhause, die es als Aktion gar
-         nicht mehr gibt. Die Auslage bleibt ebenfalls: sie zaehlt beide
-         Plaetze zusammen, und was auf der Zweitplatzierung liegt, hat hier
-         niemand gemessen. */
-      if(isPromoTile(CATFILTER.id)){
-        SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, place:true, auto:true};
-        togglePromoPlace(it, CATFILTER.id);
-        pushChange(it, `${t().placeAdded} → ${tileLabel(CATFILTER.id)} (automatisch)`);
-        return;
-      }
+    if(CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id){
       SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
                        prevAuslage:st.auslage, auto:true};
       setCatOverride(it, CATFILTER.id);
-      /* Der Text verspricht "mit Auslage von 1 KO" -- dann muss es auch passieren.
+      /* Der Text verspricht "mit Regalhöchstbestand von 1 KO" -- dann muss es auch passieren.
          Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
          Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
       st.auslage=1;
-      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} · Auslage 1 ${t().caseUnit} (automatisch)`);
+      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} · Regalhöchstbestand 1 ${t().caseUnit} (automatisch)`);
     }
   });
 }
@@ -6422,7 +6181,7 @@ function renderScanRes(keepOpen, keepFocus){
       ${(CATFILTER && CATFILTER.kind==='tile') ? `<label class="autofix">
         <input type="checkbox" id="autoFixCb" class="autofix__cb"${AUTO_FIX?' checked':''}>
         <span class="autofix__sw" aria-hidden="true"></span>
-        <span>${CATFILTER && CATFILTER.kind==='tile' && isPromoTile(CATFILTER.id) ? L.autoFixAk : L.autoFix}</span></label>` : ''}
+        <span>${L.autoFix}</span></label>` : ''}
       <span class="sp"></span>
       <button class="scanRes__scan" id="scanResAgain" type="button" title="${L.scanAgain}" aria-label="${L.scanAgain}">${ICON_SCAN}</button>
     </div>`;
@@ -6490,7 +6249,7 @@ document.getElementById('cPromo').textContent = ITEMS.filter(it=>it.promo).lengt
    nicht im ganzen Ordersatz -- die Frage lautet "was fehlt mir HIER noch". */
 function renderScanFilt(){
   const inShelf = ITEMS.map((it,ix)=>ix).filter(ix=>
-    !(CATFILTER && CATFILTER.kind==='tile' && !isOnShelf(ITEMS[ix], CATFILTER.id)));
+    !(CATFILTER && CATFILTER.kind==='tile' && !tileOf(ITEMS[ix])===CATFILTER.id));
   const yes = inShelf.filter(ix=>SCAN_SEEN[overrideKey(ITEMS[ix])]).length;
   const L=t();
   document.getElementById('sfTitle').textContent = L.sfTitle;
@@ -6803,22 +6562,22 @@ document.getElementById('ordSpeichern').onclick=()=>{
   closeOrdPad(); render();
 };
 
-/* ---------- Auslage keypad ----------
-   Zeigt JEDEN Platz des Artikels, nicht nur den angetippten: eine Zeile je
-   Regal mit seiner Art davor, darunter die Summe -- dieselbe Aufteilung wie das
-   Lager-Tastenfeld (Lager / Flaeche / Gesamt), damit beide Blaetter dieselbe
-   Sprache sprechen.
-   Getippt wird immer in die aktive Zeile; ein Tipp auf eine andere Zeile macht
-   die zur aktiven. Geschrieben wird nichts davon sofort -- das Blatt haelt
-   einen Entwurf ueber alle Plaetze, und erst Speichern legt ihn ab. So kann
-   der Kaufmann Regal und Aktionsflaeche in einem Zug richtigstellen, statt das
-   Blatt zweimal zu oeffnen. */
-let AUS={ix:null,shelf:null,vals:{},orig:{}};
-function openAusPad(ix, shelf){
+/* ---------- Auslage-Tastenfeld ----------
+   Zwei Zeilen: die Auslage des Regals und, wenn es eine gibt, die
+   Zweitplatzierung -- darunter die Summe. Aufteilung wie das Lager-Tastenfeld
+   (Lager / Flaeche / Gesamt), damit beide Blaetter dieselbe Sprache sprechen.
+   Getippt wird in die aktive Zeile, ein Tipp auf die andere macht die aktiv.
+   Geschrieben wird erst beim Speichern -- so lassen sich beide Zahlen in einem
+   Zug richtigstellen.
+   HINZUFUEGEN UND WEGNEHMEN stehen in derselben Zeile, nicht in einem Menue
+   darueber: eine Zweitplatzierung wird haeufiger abgeraeumt als angelegt, und
+   was nach der Aktionswoche umstaendlich ist, bleibt stehen. */
+let AUS={ix:null,row:'home',home:'0',second:null,origHome:0,origSecond:null};
+function openAusPad(ix){
   const it=ITEMS[ix];
-  const tile = shelf || tileOf(it);
-  AUS={ix, shelf:tile, vals:{}, orig:{}};
-  placesOf(it).forEach(id=>{ const v=dsOf(it,id); AUS.orig[id]=v; AUS.vals[id]=koNum(v); });
+  const sec=secondOf(it);
+  AUS={ix, row:'home', home:koNum(dsHome(it)), second: sec!=null?koNum(sec):null,
+       origHome:dsHome(it), origSecond:sec};
   document.getElementById('ausName').textContent=it.name;
   document.getElementById('ausMeta').textContent=
     `${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
@@ -6827,41 +6586,49 @@ function openAusPad(ix, shelf){
 }
 function ausNum(v){ return Math.max(0, parseFloat(String(v||'0').replace(',','.'))||0); }
 function drawAusPad(){
-  const it=ITEMS[AUS.ix], L=t();
-  const spots=placesOf(it);
-  const total=spots.reduce((a,id)=>a+ausNum(AUS.vals[id]), 0);
-  /* Bei nur einem Platz bleibt die Zeile, wie sie immer war: ein Feld, kein
-     Regalname, keine Summe -- es gibt nichts zu unterscheiden. */
-  const rows = spots.length<2
-    ? `<div class="kfield"><label>${L.displaySize}</label><div class="box act">${AUS.vals[spots[0]]}</div></div>`
-    : spots.map(id=>{
-        const ak=isPromoTile(id);
-        return `<div class="kfield ausRow" data-a="aus-spot" data-shelf="${id}">
-          <label class="ausKind${ak?' ausKind--ak':''}">${ak?L.pickPromoSec:L.pickHomeSec}</label>
-          <span class="ausShelf">${tileLabel(id)}</span>
-          <div class="box${id===AUS.shelf?' act':''}">${AUS.vals[id]}</div>
-        </div>`;
-      }).join('')
-      + `<div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
-           <span class="ausShelf"></span><div class="tot">${koNum(total)} ${L.caseUnit}</div></div>`;
+  const L=t();
+  const has=AUS.second!=null;
+  let html=`<div class="kfield ausRow" data-a="aus-row" data-row="home">
+      <label>${L.displaySize}</label>
+      <div class="box${AUS.row==='home'?' act':''}">${AUS.home}</div>
+    </div>`;
+  html += has
+    ? `<div class="kfield ausRow" data-a="aus-row" data-row="second">
+         <label class="ausKind--ak">${L.secondTag}</label>
+         <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
+         <button class="ausClear" type="button" data-a="aus-clear" title="${L.secondClearTip}">${L.secondClear}</button>
+       </div>
+       <div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
+         <div class="tot">${koNum(ausNum(AUS.home)+ausNum(AUS.second))} ${L.caseUnit}</div>
+       </div>`
+    : `<div class="kfield"><button class="ausAdd" type="button" data-a="aus-add">+ ${L.secondAdd}</button></div>`;
   const root=document.getElementById('ausSpots');
-  root.innerHTML=rows;
-  root.querySelectorAll('[data-a="aus-spot"]').forEach(el=>{
-    el.addEventListener('click', ()=>{ AUS.shelf=el.dataset.shelf; drawAusPad(); });
+  root.innerHTML=html;
+  root.querySelectorAll('[data-a="aus-row"]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      if(e.target.closest('[data-a="aus-clear"]')) return;
+      AUS.row=el.dataset.row; drawAusPad();
+    });
   });
+  const add=root.querySelector('[data-a="aus-add"]');
+  if(add) add.addEventListener('click', ()=>{ AUS.second=koNum(DS_DEFAULT); AUS.row='second'; drawAusPad(); });
+  const clr=root.querySelector('[data-a="aus-clear"]');
+  if(clr) clr.addEventListener('click', ()=>{ AUS.second=null; AUS.row='home'; drawAusPad(); });
 }
 document.getElementById('ausPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
-  let v=AUS.vals[AUS.shelf]||'0';
-  if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS.vals[AUS.shelf]=v; }
+  const key = AUS.row==='second' ? 'second' : 'home';
+  if(key==='second' && AUS.second==null) return;
+  let v=AUS[key]||'0';
+  if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS[key]=v; }
   else if(k===','){
     /* Ein Komma, und nie als erstes Zeichen: ",5" waere zwar zu lesen, aber
        "0,5" ist das, was danach im Regal steht. */
-    if(!v.includes(',')) AUS.vals[AUS.shelf] = (v===''?'0':v) + ',';
+    if(!v.includes(',')) AUS[key] = (v===''?'0':v) + ',';
   }
   /* Eine fuehrende 0 wird ersetzt, "0," aber nicht -- sonst fraesse die naechste
      Ziffer das Komma wieder weg. */
-  else { AUS.vals[AUS.shelf]=(v==='0')?k:v+k; }
+  else { AUS[key]=(v==='0')?k:v+k; }
   drawAusPad();
 });
 function closeAusPad(){document.getElementById('ovAus').classList.remove('on')}
@@ -6869,18 +6636,25 @@ document.getElementById('ausX').onclick=closeAusPad;
 document.getElementById('ausAbbrechen').onclick=closeAusPad;
 document.getElementById('ausSpeichern').onclick=()=>{
   const it=ITEMS[AUS.ix], L=t(); TAPS++;
-  const multi = placesOf(it).length>1;
-  /* Alle Plaetze auf einmal -- der Entwurf kann mehrere geaendert haben.
-     Halbe Kisten sind auf einer Zweitplatzierung der Normalfall; parseInt
+  /* Halbe Kisten sind auf einer Zweitplatzierung der Normalfall; parseInt
      haette "0,5" zu 0 gemacht und damit still Bestand geloescht. */
-  Object.keys(AUS.vals).forEach(id=>{
-    const next=ausNum(AUS.vals[id]), was=AUS.orig[id];
-    if(next===was) return;
-    setDsAt(it, id, next);
-    /* Im Protokoll steht, WELCHER Platz sich geaendert hat -- ohne das liest
-       sich ein zweiter Eintrag wie ein Widerspruch zum ersten. */
-    pushChange(it, `${L.displaySize}${multi?` (${tileLabel(id)})`:''} ${koNum(was)} → ${koNum(next)} ${L.caseUnit}`);
-  });
+  const nextHome=ausNum(AUS.home);
+  if(nextHome!==AUS.origHome){
+    ST[AUS.ix].auslage=nextHome;
+    pushChange(it, `${L.displaySize} ${koNum(AUS.origHome)} → ${koNum(nextHome)} ${L.caseUnit}`);
+  }
+  const nextSec = AUS.second!=null ? ausNum(AUS.second) : null;
+  if(nextSec!==AUS.origSecond){
+    if(nextSec==null){
+      clearSecond(it);
+      pushChange(it, `${L.secondTag} entfernt`);
+    } else {
+      setSecond(it, nextSec);
+      pushChange(it, AUS.origSecond==null
+        ? `${L.secondTag} ${koNum(nextSec)} ${L.caseUnit}`
+        : `${L.secondTag} ${koNum(AUS.origSecond)} → ${koNum(nextSec)} ${L.caseUnit}`);
+    }
+  }
   closeAusPad(); render();
 };
 
@@ -7014,9 +6788,10 @@ document.getElementById('s2Go').onclick=()=>{
    - Nur gescannte Artikel werden angefasst. Wer nie gescannt wurde, behaelt, was er
      hatte -- bis auf die ausdrueckliche Aktion "Lager vollstaendig gezaehlt".
 
-   total = Lager + ca. Auslage: der Prototyp kennt keine Aufteilung des Bestands in
-   Fläche und Lager (it.app ist ein Gesamtwert), also nimmt die Neuberechnung die
-   Auslage als Naeherung fuer die Fläche. Das ist bewusst grob -- die saubere
+   total = Lager + ca. Regalhöchstbestand: der Prototyp kennt keine Aufteilung des
+   Bestands in
+   Fläche und Lager (it.app ist ein Gesamtwert), also nimmt die Neuberechnung
+   den Regalhöchstbestand als Naeherung fuer die Fläche. Das ist bewusst grob -- die saubere
    Zerlegung kommt vom DS-Team. */
 const BS_COOLDOWN_MS = 1000;
 /* Dieselbe Nummer noch einmal innerhalb einer Sekunde ist dieselbe Kiste, die noch
@@ -7851,7 +7626,7 @@ function bsSelfTest(){
   ok('nur-lager: s.step unveraendert (Stepper zeigt weiter die Spanne)', s.step===before.step, s.step);
   ok('nur-lager: s.ko unveraendert', s.ko===before.ko, String(s.ko));
   ok('nur-lager: s.chosen unveraendert', s.chosen===before.chosen, String(s.chosen));
-  ok('nur-lager: Bestellung aus Lager + ca. Auslage neu berechnet',
+  ok('nur-lager: Bestellung aus Lager + ca. Regalhöchstbestand neu berechnet',
      s.backOrder===(it.rungs[rungOfKo(it, 1+(s.auslage!=null?s.auslage:1), s.plan)].order??0),
      'backOrder='+s.backOrder);
   ok('nur-lager: die Zeile zeigt die neu berechnete Bestellung', orderVal(ixA)===s.backOrder,
