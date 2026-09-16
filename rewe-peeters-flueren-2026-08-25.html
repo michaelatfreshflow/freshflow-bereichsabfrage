@@ -809,15 +809,11 @@ body.isFiltering{
 /* Die Summe haengt hinter dem Regalhöchstbestand, leiser als er: die Zahl davor ist die,
    die der Kaufmann gerade aendern kann, die Summe nur die Einordnung. */
 .dstot{color:var(--mute);margin-left:6px}
-/* Zwei Werte stehen untereinander, jeder mit seinem Namen davor. Die Namen
-   bilden eine Spalte, damit die Zahlen dahinter eine bilden -- so liest sich
-   die Zweitplatzierung als eigene Angabe und nicht als zweite Haelfte der
-   ersten. */
-.dsz--two{display:flex;flex-direction:column;gap:1px}
-.dsz__r{display:flex;gap:6px;align-items:baseline}
-.dsz__lb{flex:0 0 auto;min-width:96px;color:var(--mute);font-weight:var(--ff-weight-medium)}
-.dsz__r--ak,.dsz__r--ak .dsz__lb{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold)}
-.dsz__r--tot{color:var(--mute)}
+/* Die Aufteilung unter der Summe: leiser als sie, in einer Zeile, mit Abstand
+   zwischen den beiden Angaben statt eines Trennzeichens -- ein Punkt dazwischen
+   liest sich in einer Zahlenzeile schnell als Komma. */
+.dsz__split{margin-top:1px;color:var(--mute);font-weight:var(--ff-weight-medium)}
+.dsz__ak{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold);margin-left:10px}
 /* "(optional)" haengt am Namen, nicht daneben: es beschreibt das Feld, es ist
    keine zweite Angabe. */
 .ausOpt{font-weight:var(--ff-weight-medium);color:var(--mute)}
@@ -828,9 +824,7 @@ body.isFiltering{
   border:1px dashed var(--ff-color-tag-promotion-foreground);
   border-radius:var(--ff-radius-c8);padding:8px 14px;cursor:pointer;text-align:left}
 .ausAdd:hover{background:var(--ff-color-tag-promotion-background)}
-/* Wie man sie wieder los wird, steht neben dem Feld -- sonst sucht man einen
-   Knopf, den es absichtlich nicht gibt. */
-.ausHint{margin-left:10px;color:var(--mute);font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-medium)}
+
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
 /* The badge centres against the stepper. The app top-aligns it
@@ -2868,9 +2862,10 @@ const T={
     dsTotal:'gesamt',                          // dsTotal
     dsTotalLb:'Gesamt',                        // dsTotalLb
     firstTag:'Erstplatzierung',                // firstTag
+    firstShort:'Erstpl.:',                     // firstShort
+    secondShort:'Zweitpl.:',                   // secondShort
     secondTag:'Zweitplatzierung',              // secondTag
     secondOptional:' (optional)',              // secondOptional
-    secondZeroHint:'0 = keine',                // secondZeroHint
     dsEditTip:'Regalhöchstbestand für diesen Platz anpassen',
     dsAt:'Regalhöchstbestand auf',             // dsAt
     dsOther:'Andere Plätze',                   // dsOther
@@ -3188,9 +3183,10 @@ const T={
     dsTotal:'total',
     dsTotalLb:'Total',
     firstTag:'Primary Placement',
+    firstShort:'Primary:',
+    secondShort:'Secondary:',
     secondTag:'Secondary Placement',
     secondOptional:' (optional)',
-    secondZeroHint:'0 = none',
     dsEditTip:'Change the display size for this spot',
     dsAt:'Display size on',
     dsOther:'Other spots',
@@ -3507,9 +3503,10 @@ const T={
     dsTotal:'total',
     dsTotalLb:'Total',
     firstTag:'Rayon permanent',
+    firstShort:'Perm. :',
+    secondShort:'2e empl. :',
     secondTag:'Emplacement secondaire',
     secondOptional:' (facultatif)',
-    secondZeroHint:'0 = aucun',
     dsEditTip:'Modifier le linéaire pour cet emplacement',
     dsAt:'Linéaire sur',
     dsOther:'Autres emplacements',
@@ -4716,17 +4713,19 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        einen Platz gibt, und sagt dann das eine, was die Zahl davor nicht sagen
        kann -- dass draussen mehr liegt als hier. Mit ihr rechnet die
        Bestellung. Ohne Regalfilter ist "hier" der Erstplatzierung. */
-    /* Ohne Zweitplatzierung bleibt die Zeile, wie sie immer war: eine Zahl.
-       Mit Zweitplatzierung stehen die beiden UNTEREINANDER und nicht
-       hintereinander -- nebeneinander liest sich "0,5 1,5" wie eine Spanne,
-       und genau die Verwechslung darf hier nicht passieren. */
+    /* Oben steht immer dieselbe Zahl an derselben Stelle: was insgesamt
+       draussen liegt. Mit ihr rechnet die Bestellung, und wer die Liste
+       ueberfliegt, vergleicht damit Zeile fuer Zeile dasselbe -- ohne erst zu
+       pruefen, ob dieser Artikel nun einen oder zwei Plaetze hat.
+       Die Aufteilung steht darunter und nur dann, wenn es etwas aufzuteilen
+       gibt: leiser, kuerzer, und in einer Zeile, weil sie die Zahl darueber
+       erklaert und nicht mit ihr konkurriert. */
     const sec = secondOf(it);
     cell += sec==null
       ? `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">${L.displaySize} <u>${koNum(dsHome(it))}</u> ${L.caseUnit}</div>`
-      : `<div class="dsz dsz--two" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">
-          <div class="dsz__r"><span class="dsz__lb">${L.firstTag}</span><u>${koNum(dsHome(it))}</u> ${L.caseUnit}</div>
-          <div class="dsz__r dsz__r--ak"><span class="dsz__lb">${L.secondTag}</span><u>${koNum(sec)}</u> ${L.caseUnit}</div>
-          <div class="dsz__r dsz__r--tot"><span class="dsz__lb">${L.dsTotalLb}</span>${koNum(dsTotal(it))} ${L.caseUnit}</div>
+      : `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">
+          <div>${L.displaySize} <u>${koNum(dsTotal(it))}</u> ${L.caseUnit}</div>
+          <div class="dsz__split">${L.firstShort} ${koNum(dsHome(it))} <span class="dsz__ak">${L.secondShort} ${koNum(sec)}</span></div>
         </div>`;
     /* Gezaehltes Lager als eigene, leise Zeile. Der Stepper darueber bleibt unberuehrt --
        gezaehlt wurde das Lager, nicht die Fl\u00e4che. */
@@ -6622,7 +6621,6 @@ function drawAusPad(){
       ? `<div class="kfield ausRow" data-a="aus-row" data-row="second">
            <label class="ausKind--ak">${L.secondTag}</label>
            <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
-           <span class="ausHint">${L.secondZeroHint}</span>
          </div>`
       : `<div class="kfield"><button class="ausAdd" type="button" data-a="aus-add">+ ${L.secondTag}<span class="ausOpt">${L.secondOptional}</span></button></div>`}
     ${secNum>0 ? `<div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
