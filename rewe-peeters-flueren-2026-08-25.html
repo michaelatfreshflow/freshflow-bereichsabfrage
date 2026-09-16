@@ -2484,6 +2484,13 @@ function setCatOverride(it, tileId){
    dastand.
    GERECHNET WIRD MIT DER SUMME. bsWrite() schlaegt aus "Lagerkisten + Auslage"
    die Bestellmenge auf; liegt Ware an zwei Plaetzen, ist der Bestand beides. */
+/* Die 0 bedeutet an den beiden Plaetzen NICHT dasselbe, und das ist Absicht:
+   auf der Erstplatzierung ist sie eine gueltige Angabe -- ein Artikel, der
+   heute gar nicht im Regal steht -- und wird so gespeichert. Auf der
+   Zweitplatzierung heisst sie "gibt es nicht", denn eine Aktionsflaeche mit
+   null Kisten ist keine.
+   DS_DEFAULT greift nur, wenn die Warenwirtschaft ueberhaupt keinen Wert
+   liefert. Eine 0 ist nie Vorgabe -- sie muss jemand eintragen. */
 const DS_DEFAULT=1;
 function dsHome(it){
   const s=ST[it.id];
