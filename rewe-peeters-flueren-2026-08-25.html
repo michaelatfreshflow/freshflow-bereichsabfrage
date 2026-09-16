@@ -818,18 +818,17 @@ body.isFiltering{
 .dsz__chip{border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);
   padding:1px 8px;background:var(--ff-color-white);color:#5d6b64;
   font-weight:var(--ff-weight-bold);white-space:nowrap}
-.dsz__chip--ak{border-color:var(--ff-color-tag-promotion-foreground);
-  color:var(--ff-color-tag-promotion-foreground)}
+.dsz__chip--ak{border-color:var(--ff-grey-300)}
 /* "(optional)" haengt am Namen, nicht daneben: es beschreibt das Feld, es ist
    keine zweite Angabe. */
 .ausOpt{font-weight:var(--ff-weight-medium);color:var(--mute)}
 /* Der Knopf steht dort, wo sonst das Feld steht -- gestrichelt, weil da noch
-   nichts ist. */
+   nichts ist, und leise, weil er ein Angebot ist und keine Aufforderung. */
 .ausAdd{font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);
-  color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-white);
-  border:1px dashed var(--ff-color-tag-promotion-foreground);
+  color:#5d6b64;background:var(--ff-color-white);
+  border:1px dashed var(--ff-grey-300);
   border-radius:var(--ff-radius-c8);padding:8px 14px;cursor:pointer;text-align:left}
-.ausAdd:hover{background:var(--ff-color-tag-promotion-background)}
+.ausAdd:hover{background:var(--ff-grey-100)}
 
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
@@ -1277,26 +1276,6 @@ body.isFiltering{
 .catrow.addrow .nm{color:var(--green)}
 .catrow .owntag{font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-bold);color:var(--mute);
   background:var(--ff-grey-100);border-radius:var(--ff-radius-pill);padding:2px 7px;margin-left:6px;vertical-align:middle}
-/* Eine Zweitplatzierung traegt statt "eigene" ihr eigenes Kennzeichen -- sie ist
-   zwar auch selbst angelegt, aber DAS ist nicht das Bemerkenswerte an ihr. */
-.catrow .owntag.owntag--ak{color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-tag-promotion-background)}
-
-/* Anlegen ist seit der Zweitplatzierung zweizeilig: oben der Name, darunter die
-   Art des Regals. Die Art gehoert unter den Namen und nicht neben die beiden
-   32px-Knoepfe -- dort haette sie dem Namensfeld auf schmalen Geraeten die
-   halbe Breite genommen. Aussen sieht es weiter aus wie eine Zeile der Liste.
-   Abstand wie .catedit, damit der Rhythmus der Liste stehen bleibt. */
-.catadd{display:flex;flex-direction:column;gap:7px}
-.kindrow{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:0 2px}
-.kindchip{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);color:var(--mute);
-  background:var(--ff-color-white);border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);
-  padding:5px 12px;cursor:pointer}
-.kindchip:hover{background:var(--ff-grey-100)}
-/* Die gewaehlte Art traegt die Farbe, die sie spaeter auch in der Liste traegt:
-   gruen fuer den Erstplatzierung, das Aktionsrot fuer die Zweitplatzierung. */
-.kindchip--on{color:var(--green);border-color:var(--green);background:var(--ff-primary-5)}
-.kindchip--on.kindchip--ak{color:var(--ff-color-tag-promotion-foreground);
-  border-color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-tag-promotion-background)}
 
 
 /* Die Feier laeuft ueber dem naechsten Regal, nicht davor: startCatCelebration() blendet
@@ -1356,7 +1335,7 @@ body.isFiltering{
    unberuehrt. */
 .ausRow{cursor:pointer}
 #ausSpots .kfield label,.kfield .kTotal{width:auto;min-width:118px;flex:0 0 auto}
-.ausKind--ak{color:var(--ff-color-tag-promotion-foreground)}
+
 /* Der Regalname darf schrumpfen, die Zahl nie: sie ist der Grund fuer das Blatt. */
 .ausShelf{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--mute);font-size:var(--ff-text-primary-caption-12)}
@@ -6631,7 +6610,7 @@ function drawAusPad(){
     </div>
     ${has
       ? `<div class="kfield ausRow" data-a="aus-row" data-row="second">
-           <label class="ausKind--ak">${L.secondTag}</label>
+           <label>${L.secondTag}</label>
            <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
          </div>`
       : `<div class="kfield"><button class="ausAdd" type="button" data-a="aus-add">+ ${L.secondTag}<span class="ausOpt">${L.secondOptional}</span></button></div>`}
