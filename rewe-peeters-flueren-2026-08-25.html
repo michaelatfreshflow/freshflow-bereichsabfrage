@@ -821,6 +821,16 @@ body.isFiltering{
 /* "(optional)" haengt am Namen, nicht daneben: es beschreibt das Feld, es ist
    keine zweite Angabe. */
 .ausOpt{font-weight:var(--ff-weight-medium);color:var(--mute)}
+/* Der Knopf steht dort, wo sonst das Feld steht -- gestrichelt, weil da noch
+   nichts ist. */
+.ausAdd{font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);
+  color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-white);
+  border:1px dashed var(--ff-color-tag-promotion-foreground);
+  border-radius:var(--ff-radius-c8);padding:8px 14px;cursor:pointer;text-align:left}
+.ausAdd:hover{background:var(--ff-color-tag-promotion-background)}
+/* Wie man sie wieder los wird, steht neben dem Feld -- sonst sucht man einen
+   Knopf, den es absichtlich nicht gibt. */
+.ausHint{margin-left:10px;color:var(--mute);font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-medium)}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
 /* The badge centres against the stepper. The app top-aligns it
@@ -2860,6 +2870,7 @@ const T={
     firstTag:'Erstplatzierung',                // firstTag
     secondTag:'Zweitplatzierung',              // secondTag
     secondOptional:' (optional)',              // secondOptional
+    secondZeroHint:'0 = keine',                // secondZeroHint
     dsEditTip:'Regalhöchstbestand für diesen Platz anpassen',
     dsAt:'Regalhöchstbestand auf',             // dsAt
     dsOther:'Andere Plätze',                   // dsOther
@@ -3179,6 +3190,7 @@ const T={
     firstTag:'Primary Placement',
     secondTag:'Secondary Placement',
     secondOptional:' (optional)',
+    secondZeroHint:'0 = none',
     dsEditTip:'Change the display size for this spot',
     dsAt:'Display size on',
     dsOther:'Other spots',
@@ -3497,6 +3509,7 @@ const T={
     firstTag:'Rayon permanent',
     secondTag:'Emplacement secondaire',
     secondOptional:' (facultatif)',
+    secondZeroHint:'0 = aucun',
     dsEditTip:'Modifier le linéaire pour cet emplacement',
     dsAt:'Linéaire sur',
     dsOther:'Autres emplacements',
@@ -6576,16 +6589,18 @@ document.getElementById('ordSpeichern').onclick=()=>{
    Getippt wird in die aktive Zeile, ein Tipp auf die andere macht die aktiv.
    Geschrieben wird erst beim Speichern -- so lassen sich beide Zahlen in einem
    Zug richtigstellen.
-   BEIDE FELDER STEHEN IMMER DA, die Zweitplatzierung mit 0 vorbelegt. Es gibt
-   darum nichts anzulegen und nichts wegzunehmen: wer sie braucht, tippt eine
-   Zahl hinein, wer sie los sein will, setzt sie auf 0 -- danach ist sie aus
-   der Liste verschwunden. Ein eigener Entfernen-Knopf waere ein zweiter Weg
-   fuer dieselbe Sache. */
+   DIE ZWEITPLATZIERUNG IST OPTIONAL und sieht auch so aus: ohne sie steht dort
+   ein Knopf, kein leeres Feld. Ein Tipp macht daraus ein Feld mit einer Kiste
+   darin. Weg ist sie wieder, indem man 0 eintraegt -- ein eigener
+   Entfernen-Knopf waere ein zweiter Weg fuer dieselbe Sache.
+   Das Feld verschwindet beim SPEICHERN und nicht schon beim Tippen der 0:
+   jeder Weg zu einem Wert unter eins fuehrt ueber die 0 ("0", dann ",", dann
+   "5"), und ein Feld, das dabei verschwindet, laesst 0,5 nicht mehr eintippen. */
 let AUS={ix:null,row:'home',home:'0',second:null,origHome:0,origSecond:null};
 function openAusPad(ix){
   const it=ITEMS[ix];
   const sec=secondOf(it);
-  AUS={ix, row:'home', home:koNum(dsHome(it)), second: sec!=null?koNum(sec):'0',
+  AUS={ix, row:'home', home:koNum(dsHome(it)), second: sec!=null?koNum(sec):null,
        origHome:dsHome(it), origSecond:sec};
   document.getElementById('ausName').textContent=it.name;
   document.getElementById('ausMeta').textContent=
@@ -6596,25 +6611,32 @@ function openAusPad(ix){
 function ausNum(v){ return Math.max(0, parseFloat(String(v||'0').replace(',','.'))||0); }
 function drawAusPad(){
   const L=t();
-  const secNum=ausNum(AUS.second);
+  const has=AUS.second!=null;
+  const secNum=has?ausNum(AUS.second):0;
   const root=document.getElementById('ausSpots');
   root.innerHTML=`<div class="kfield ausRow" data-a="aus-row" data-row="home">
       <label>${L.firstTag}</label>
       <div class="box${AUS.row==='home'?' act':''}">${AUS.home}</div>
     </div>
-    <div class="kfield ausRow" data-a="aus-row" data-row="second">
-      <label class="ausKind--ak">${L.secondTag}<span class="ausOpt">${L.secondOptional}</span></label>
-      <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
-    </div>
+    ${has
+      ? `<div class="kfield ausRow" data-a="aus-row" data-row="second">
+           <label class="ausKind--ak">${L.secondTag}</label>
+           <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
+           <span class="ausHint">${L.secondZeroHint}</span>
+         </div>`
+      : `<div class="kfield"><button class="ausAdd" type="button" data-a="aus-add">+ ${L.secondTag}<span class="ausOpt">${L.secondOptional}</span></button></div>`}
     ${secNum>0 ? `<div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
       <div class="tot">${koNum(ausNum(AUS.home)+secNum)} ${L.caseUnit}</div></div>` : ''}`;
   root.querySelectorAll('[data-a="aus-row"]').forEach(el=>{
     el.addEventListener('click', ()=>{ AUS.row=el.dataset.row; drawAusPad(); });
   });
+  const add=root.querySelector('[data-a="aus-add"]');
+  if(add) add.addEventListener('click', ()=>{ AUS.second=koNum(DS_DEFAULT); AUS.row='second'; drawAusPad(); });
 }
 document.getElementById('ausPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
   const key = AUS.row==='second' ? 'second' : 'home';
+  if(key==='second' && AUS.second==null) return;
   let v=AUS[key]||'0';
   if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS[key]=v; }
   else if(k===','){
@@ -6642,7 +6664,7 @@ document.getElementById('ausSpeichern').onclick=()=>{
   /* 0 heisst "keine": der Eintrag faellt weg und das Kennzeichen verschwindet
      aus der Liste. Eine gespeicherte 0 waere eine Aussage ueber eine leere
      Flaeche -- und damit etwas anderes als "da steht nichts". */
-  const nextSec = ausNum(AUS.second)>0 ? ausNum(AUS.second) : null;
+  const nextSec = (AUS.second!=null && ausNum(AUS.second)>0) ? ausNum(AUS.second) : null;
   if(nextSec!==AUS.origSecond){
     if(nextSec==null){
       clearSecond(it);
