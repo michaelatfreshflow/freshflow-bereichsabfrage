@@ -289,6 +289,9 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .sbody{display:grid;grid-template-columns:1fr 1fr 280px;gap:24px;padding:18px 22px}
 .kfield{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .kfield label{width:60px;font-weight:700;font-size:14.5px}
+/* Das ausgeschriebene "Regalhöchstbestand" passt nicht in die 60px-Spalte des
+   Bestands-Tastenfelds -- nur dieses Blatt bekommt darum eine eigene Breite. */
+#ovAus .kfield label{width:auto;min-width:60px;flex:0 0 auto}
 .kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700;cursor:pointer}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:800}
@@ -405,7 +408,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
         <div class="nm" id="shName"></div>
         <div class="meta" id="shMeta"></div>
         <div class="pills" id="shPills"></div>
-        <div class="dsz" style="margin-top:22px">Auslage <b id="kAuslage">1</b> KO</div>
+        <div class="dsz" style="margin-top:22px">Regalhöchstbestand <b id="kAuslage">1</b> Ki</div>
         <div class="appv" id="shWhy" style="margin-top:14px;max-width:270px;line-height:1.5"></div>
       </div>
       <div>
@@ -450,7 +453,7 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
       </div>
       <div>
         <div class="kfield"><label>Bestellung</label><div class="box act" id="ordVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
+        <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div><div class="tot" id="ordUnit">0 Ki</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="ordPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -466,14 +469,14 @@ body{margin:0;display:flex;align-items:center;justify-content:center;background:
 
 <div class="ov" id="ovAus">
   <div class="sheet">
-    <div class="sh"><h3>Bitte geben Sie die Auslage für den folgenden Artikel ein.</h3><button class="x" id="ausX">✕</button></div>
+    <div class="sh"><h3>Bitte geben Sie den Regalhöchstbestand für den folgenden Artikel ein.</h3><button class="x" id="ausX">✕</button></div>
     <div class="sbody">
       <div>
         <div class="nm" id="ausName"></div>
         <div class="meta" id="ausMeta"></div>
       </div>
       <div>
-        <div class="kfield"><label>Auslage</label><div class="box act" id="ausVal">1</div></div>
+        <div class="kfield"><label>Regalhöchstbestand</label><div class="box act" id="ausVal">1</div></div>
       </div>
       <div class="pad" id="ausPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -703,9 +706,9 @@ let CATFX=null;            // celebration canvas animation state
 const csNum=v=>v.toLocaleString('de-DE',{maximumFractionDigits:2});
 function csPart(it,i){
   const r=it.rungs[i];
-  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} KO)` : '';
-  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} KO)` : '';
-  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} KO)` : '';
+  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} Ki)` : '';
+  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} Ki)` : '';
+  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} Ki)` : '';
   return '';
 }
 function labelFor(it,i){
@@ -717,18 +720,18 @@ function labelFor(it,i){
 }
 const dirLabel=seg=>seg==='less'?t().wless:seg==='more'?t().wmore:'✓';
 const CHECK_SVG='<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
-/* Kachel weniger/✓/mehr. Kopf- und KO-Zeile kommen aus denselben ungerundeten
+/* Kachel weniger/✓/mehr. Kopf- und Ki-Zeile kommen aus denselben ungerundeten
    r.lo/r.hi/r.plo/r.phi wie csPart(), nur ohne Klammer-Zusatz, weil sie hier eine eigene
    Zeile bekommen. 'out' (welcher Seitenknopf der Sprosse widerspricht) kommt ausschliesslich
    aus bandOf()/outSet(), nie aus dem Klickstatus. */
 function tileHTML(it,i,s,ix){
   const r=it.rungs[i], out=outSet(bandOf(it,i));
   let head='', csline='';
-  if(r.kind==='atleast'){ head=r.plo; csline=r.lo!=null?`${csNum(r.lo)} KO`:''; }
-  else if(r.kind==='lessthan'){ head=r.phi===0?1:r.phi; csline=r.hi!=null?`unter ${csNum(r.hi)} KO`:''; }
+  if(r.kind==='atleast'){ head=r.plo; csline=r.lo!=null?`${csNum(r.lo)} Ki`:''; }
+  else if(r.kind==='lessthan'){ head=r.phi===0?1:r.phi; csline=r.hi!=null?`unter ${csNum(r.hi)} Ki`:''; }
   else {
     head=(r.plo===r.phi)?String(r.plo):`${r.plo}–${r.phi}`;
-    csline=(r.lo!=null&&r.hi!=null)?`${csNum(r.lo)} bis ${csNum(r.hi)} KO`:'';
+    csline=(r.lo!=null&&r.hi!=null)?`${csNum(r.lo)} bis ${csNum(r.hi)} Ki`:'';
   }
   const onCls=seg=>s.seg===seg?' on':'';
   const sideBtn=seg=>`<button class="sg ${seg}${out.includes(seg)?' out':''}${onCls(seg)}" `
@@ -748,7 +751,7 @@ function chipFor(it,i){
 function csFmt(v){
   const t=(Math.round(v*100)/100).toFixed(2).split('.');
   const dec=t[1].replace(/0$/,'');
-  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">KO</span>`;
+  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">Ki</span>`;
 }
 function bang(note){ return note ? `<span class="bang" title="${note}">!</span>` : ''; }
 /* a row counts as erfasst for category progress once neither bang shows —
@@ -809,7 +812,7 @@ function render(){
     const hiddenSuppressed = s.hidden && !CATFILT.hidden && !MANAGE_MODE;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || (FILT==='open' && s.answered) || catHide || catFilterHide;
     const meta = `${it.plu!=null?it.plu:'–'} · Kiste ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
-    let pills=`<span class="pill">Best. ${it.prevOrder!=null?it.prevOrder:0} KO</span>`;
+    let pills=`<span class="pill">Best. ${it.prevOrder!=null?it.prevOrder:0} Ki</span>`;
     const pl = promoLabel(it.promo);
     if(pl) pills+=`<span class="pill promo">${pl}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
@@ -838,14 +841,14 @@ function render(){
     }
     const noteTxt = s.typed!=null ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     let cell = `<div class="withbang">${box}${bang(noteTxt)}</div>${acts}${extra}`;
-    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Auslage anpassen">Auslage <u>${s.auslage!=null?s.auslage:1}</u> KO</div>`;
+    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="Regalhöchstbestand anpassen">Regalhöchstbestand <u>${s.auslage!=null?s.auslage:1}</u> Ki</div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
     const shown = orderVal(ix);
     const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown} KO${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
+      <div class="v${changed?' chg':''}" data-a="ordpad" data-i="${ix}" title="Bestellung anpassen">${shown} Ki${shownPcs!=null?`<span class="sub">${shownPcs} ${uw(it)}</span>`:''}</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(s.manual?null:it.ordNote)}</div>`;
     const eyeToggle = (MANAGE_MODE || s.hidden)
       ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
@@ -1197,7 +1200,7 @@ list.addEventListener('click',e=>{
       pushChange(it, `Bestand → ${dirLabel(seg)} (Widerspruch, Zahl folgt)`);
       render(); openPad(ix); }
     else { s.seg=seg; s.chosen=s.plan; s.order=it.rungs[s.plan].order??0; s.answered=true; s.auto=false; s.manual=false; s.declined=null; s.dir=null;
-      pushChange(it, `Bestand → ${dirLabel(seg)} (bestätigt) · Bestellung ${s.order} KO`); touchRecent(ix);
+      pushChange(it, `Bestand → ${dirLabel(seg)} (bestätigt) · Bestellung ${s.order} Ki`); touchRecent(ix);
       render(); } }
   else if(a==='undo'){ TAPS++; NEINS=Math.max(0,NEINS-1); s.declined=null; s.dir=null; s.manual=false;
     s.seg=s.pre.seg; s.answered=s.pre.answered; s.chosen=s.pre.chosen; s.order=s.pre.order; s.auto=s.pre.auto;
@@ -1344,7 +1347,7 @@ function openPad(ix){
   document.getElementById('shPills').innerHTML='';
   document.getElementById('kAuslage').textContent = s.auslage!=null ? s.auslage : 1;
   const bestand = invVal(ix);
-  document.getElementById('shWhy').textContent = bestand!=null ? `Bestand ${csNum(bestand)} KO` : '';
+  document.getElementById('shWhy').textContent = bestand!=null ? `Bestand ${csNum(bestand)} Ki` : '';
   drawPad(); document.getElementById('ov').classList.add('on');
 }
 function padVals(){
@@ -1356,7 +1359,7 @@ function padVals(){
 }
 function drawPad(){
   const itEarly=ITEMS[PAD.ix];
-  const u = PAD.unit==='pcs' ? ' '+ua(itEarly) : ' KO';
+  const u = PAD.unit==='pcs' ? ' '+ua(itEarly) : ' Ki';
   document.getElementById('kBack').textContent=PAD.back+u;
   document.getElementById('kFloor').textContent=PAD.floor+u;
   document.getElementById('kBack').classList.toggle('act',PAD.act==='back');
@@ -1365,9 +1368,9 @@ function drawPad(){
     (PAD.act==='back' ? 'Zu Fläche wechseln' : 'Zu Lager wechseln') + ' ⟳';
   const v=padVals(), it=ITEMS[PAD.ix], st=ST[PAD.ix];
   document.getElementById('kTotal').textContent=
-    (PAD.unit==='pcs'? v.pcs+' '+ua(it) : v.cases.toLocaleString('de-DE')+' KO');
+    (PAD.unit==='pcs'? v.pcs+' '+ua(it) : v.cases.toLocaleString('de-DE')+' Ki');
   document.getElementById('kPcs').textContent =
-    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
+    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' Ki'
                      : '= '+v.pcs+' '+uw(it));
   /* fraction keys only make sense in Kisten mode */
   ['0.25','0.5','0.75'].forEach(k=>{
@@ -1443,7 +1446,7 @@ function openOrdPad(ix){
 function drawOrdPad(){
   const it=ITEMS[ORD.ix];
   document.getElementById('ordVal').textContent=ORD.val;
-  document.getElementById('ordUnit').textContent=ORD.val+' KO';
+  document.getElementById('ordUnit').textContent=ORD.val+' Ki';
   const n=parseInt(ORD.val||'0',10)||0;
   document.getElementById('ordUnitPcs').textContent = it.case!=null ? `= ${Math.round(n*it.case)} ${uw(it)}` : '';
 }
@@ -1468,7 +1471,7 @@ document.getElementById('ordSpeichern').onclick=()=>{
   closeOrdPad(); render();
 };
 
-/* ---------- Auslage keypad ---------- */
+/* ---------- Regalhöchstbestand keypad ---------- */
 let AUS={ix:null,val:'1',orig:1};
 function openAusPad(ix){
   const it=ITEMS[ix], s=ST[ix];
@@ -1496,7 +1499,7 @@ document.getElementById('ausSpeichern').onclick=()=>{
   const ix=AUS.ix, s=ST[ix]; TAPS++;
   const next=Math.max(0,parseInt(AUS.val||'0',10)||0);
   s.auslage=next;
-  if(next!==AUS.orig) pushChange(ITEMS[ix], `Auslage ${AUS.orig} → ${next} KO`);
+  if(next!==AUS.orig) pushChange(ITEMS[ix], `Regalhöchstbestand ${AUS.orig} → ${next} Ki`);
   closeAusPad(); render();
 };
 
@@ -1557,7 +1560,7 @@ document.getElementById('s2Go').onclick=()=>{
     if(s.hidden) return;
     if(!s.answered&&s.declined==null&&s.mode==='ask'){s.seg='mid';s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
-  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} KO gesamt`);
+  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} Ki gesamt`);
   document.getElementById('ov2').classList.remove('on');
   toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
   render();

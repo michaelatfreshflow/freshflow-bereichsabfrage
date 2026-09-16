@@ -2678,32 +2678,6 @@ document.addEventListener('keydown', e=>{
 const uw=it=>it&&it.unit==='kg' ? 'kg' : ({de:'Stück',en:'pieces',fr:'pièces'})[LANG];   // long form, for prose
 const ua=it=>it&&it.unit==='kg' ? 'kg' : ({de:'St.',en:'pcs',fr:'pcs'})[LANG];       // short form, for chips/meta
 
-/* ---------- live Telegram push: one message per row change ----------
-   Routed through an Apps Script Web App so the bot token stays server-side
-   (Script Properties) instead of sitting in this public page's source. */
-const PUSH_URL='https://script.google.com/macros/s/AKfycbwR75xk2Mm7KG9vrfsmNKXuPtkO-PTSVJ8uu9Tn8lvwfMHvN3VuRGR0t7n3duK2fXcf/exec';
-const PUSH_SECRET='594060febfe2b4cbb9cb555d6ca87955';
-/* The item id exactly as the app prints it under the name, so whoever types the change
-   into the real app can find the row without guessing from the name. */
-function itemLabel(it){ return it && it.plu != null ? `${it.name} (${it.plu})` : (it ? it.name : '?'); }
-function pushChange(it, text){
-  if(!PUSH_URL) return;
-  // The item is a REQUIRED argument. Every message about a row therefore carries the id the
-  // app shows, and no future call site can drop it by writing the text differently.
-  if(text===undefined){ console.warn('pushChange ohne Artikel', it); return; }
-  const body = `${itemLabel(it)}: ${text}`;
-  fetch(PUSH_URL,{
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({secret:PUSH_SECRET, text:body})
-  }).catch(err=>console.warn('Telegram push failed', err));
-}
-function pushNote(text){          // messages that are not about a single row
-  if(!PUSH_URL) return;
-  fetch(PUSH_URL,{
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({secret:PUSH_SECRET, text})
-  }).catch(err=>console.warn('Telegram push failed', err));
-}
 
 /* ---------- state ---------- */
 function planIdx(it){return it.rungs.findIndex(r=>r.plan)}
@@ -3669,7 +3643,6 @@ function renderCatItemPicker(){
       const tileId=el.dataset.id;
       const prevValue=CAT_OVERRIDE[overrideKey(it)];   // undefined if it had no override yet
       setCatOverride(it, tileId);
-      pushChange(it, `Regal → ${tileLabel(tileId)}`);
       closeCatItemPicker();
       render();
       showCatUndo(it, prevValue, tileId);
@@ -3698,7 +3671,6 @@ function undoCatChange(){
   const bar=document.getElementById('catUndoBar');
   clearTimeout(bar._t);
   bar.classList.remove('on');
-  pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
   CAT_UNDO=null;
   render();
 }
@@ -3940,11 +3912,9 @@ function rowClick(e){
     else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
-    pushChange(it, s.step==='ko' ? `Bestand → ${koNum(s.ko)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand zurückgesetzt`);
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
-    pushChange(it, `${s.hidden?t().chgHidden:t().chgShown}`);
     render(); }
   else if(a==='ordpad'){ openOrdPad(ix); }
   else if(a==='auslage'){ openAusPad(ix); }
@@ -3954,7 +3924,6 @@ function rowClick(e){
     const next=Math.max(0,prev+(a==='inc'?1:-1));
     s.order=next; s.answered=true;
     if(next!==prev) s.manual=true;
-    pushChange(it, `Bestellung ${prev} → ${next} CS`);
     render(); }
 }
 list.addEventListener('click',rowClick);
@@ -4137,7 +4106,6 @@ function renderMoveAsk(){
       if(!e) return;
       last={it, prev:CAT_OVERRIDE[overrideKey(it)], to:e.to};
       setCatOverride(it, e.to);
-      pushChange(it, `Regal → ${tileLabel(e.to)}`);
     });
     SCAN_PENDING=[];
     closeMoveAsk();
@@ -4420,7 +4388,6 @@ document.getElementById('invSpeichern').onclick=()=>{
   const ix=INV.ix, it=ITEMS[ix], s=ST[ix]; TAPS++;
   const next=Math.max(0,Math.min(99,invPadVals().cases));
   applyKo(it, s, next);
-  pushChange(it, s.step==='ko' ? `Bestand → ${koNum(next)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand → ${koNum(next)} ${t().caseUnit} (Spanne bestätigt)`);
   closeInvPad(); render();
 };
 
@@ -4458,7 +4425,6 @@ document.getElementById('ordSpeichern').onclick=()=>{
   const next=Math.max(0,parseInt(ORD.val||'0',10)||0);
   s.order=next; s.answered=true;
   if(next!==ORD.orig) s.manual=true;
-  if(next!==ORD.orig) pushChange(ITEMS[ix], `Bestellung ${ORD.orig} → ${next} CS`);
   closeOrdPad(); render();
 };
 
@@ -4490,7 +4456,6 @@ document.getElementById('ausSpeichern').onclick=()=>{
   const ix=AUS.ix, s=ST[ix]; TAPS++;
   const next=Math.max(0,parseInt(AUS.val||'0',10)||0);
   s.auslage=next;
-  if(next!==AUS.orig) pushChange(ITEMS[ix], `Auslage ${AUS.orig} → ${next} ${t().caseUnit}`);
   closeAusPad(); render();
 };
 
@@ -4584,7 +4549,6 @@ document.getElementById('s2Go').onclick=()=>{
     if(s.hidden) return;
     if(!s.answered&&s.mode==='ask'){s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
-  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} ${t().caseUnit} gesamt`);
   document.getElementById('ov2').classList.remove('on');
   toast(t().orderDoneToast.replace('{n}', n));
   render();

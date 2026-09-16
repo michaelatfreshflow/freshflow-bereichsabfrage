@@ -2798,7 +2798,6 @@ function seqDragEnd(e){
   seq.splice(d.to>d.from ? b+1 : b, 0, moving);
   ITEM_ORDER[d.sh]=seq.map(i=>overrideKey(ITEMS[i]));
   saveItemOrder();
-  pushChange(ITEMS[moving], `${t().seqMoved} \u00b7 ${tileLabel(d.sh)}`);
   render();
 }
 document.addEventListener('pointerdown', e=>{
@@ -2818,7 +2817,6 @@ document.addEventListener('keydown', e=>{
   const ix=+g.dataset.i;
   if(!moveItemSeq(ix, e.key==='ArrowUp' ? -1 : 1)) return;
   e.preventDefault();
-  pushChange(ITEMS[ix], `${t().seqMoved} \u00b7 ${tileLabel(seqShelf(ITEMS[ix]))}`);
   seqFlip(ix, render);
   const again=document.querySelector(`.seqGrip[data-i="${ix}"]`); if(again) again.focus();
 });
@@ -3932,33 +3930,6 @@ document.addEventListener('keydown', e=>{
    "20 St." with no way to tell it apart from a 20-piece case. */
 const uw=it=>it&&it.unit==='kg' ? 'kg' : ({de:'Stück',en:'pieces',fr:'pièces'})[LANG];   // long form, for prose
 const ua=it=>it&&it.unit==='kg' ? 'kg' : ({de:'St.',en:'pcs',fr:'pcs'})[LANG];       // short form, for chips/meta
-
-/* ---------- live Telegram push: one message per row change ----------
-   Routed through an Apps Script Web App so the bot token stays server-side
-   (Script Properties) instead of sitting in this public page's source. */
-const PUSH_URL='https://script.google.com/macros/s/AKfycbwR75xk2Mm7KG9vrfsmNKXuPtkO-PTSVJ8uu9Tn8lvwfMHvN3VuRGR0t7n3duK2fXcf/exec';
-const PUSH_SECRET='594060febfe2b4cbb9cb555d6ca87955';
-/* The item id exactly as the app prints it under the name, so whoever types the change
-   into the real app can find the row without guessing from the name. */
-function itemLabel(it){ return it && it.plu != null ? `${it.name} (${it.plu})` : (it ? it.name : '?'); }
-function pushChange(it, text){
-  if(!PUSH_URL) return;
-  // The item is a REQUIRED argument. Every message about a row therefore carries the id the
-  // app shows, and no future call site can drop it by writing the text differently.
-  if(text===undefined){ console.warn('pushChange ohne Artikel', it); return; }
-  const body = `${itemLabel(it)}: ${text}`;
-  fetch(PUSH_URL,{
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({secret:PUSH_SECRET, text:body})
-  }).catch(err=>console.warn('Telegram push failed', err));
-}
-function pushNote(text){          // messages that are not about a single row
-  if(!PUSH_URL) return;
-  fetch(PUSH_URL,{
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({secret:PUSH_SECRET, text})
-  }).catch(err=>console.warn('Telegram push failed', err));
-}
 
 /* ---------- state ---------- */
 function planIdx(it){return it.rungs.findIndex(r=>r.plan)}
@@ -5550,7 +5521,6 @@ function renderCatItemPicker(){
       const prevValue=CAT_OVERRIDE[overrideKey(it)];
       const fromTileId=tileOf(it);
       setCatOverride(it, tileId);
-      pushChange(it, `Regal → ${tileLabel(tileId)}`);
       closeCatItemPicker();
       render();
       showCatUndo(it, prevValue, tileId, fromTileId);
@@ -5589,7 +5559,6 @@ function undoCatChange(){
   const bar=document.getElementById('catUndoBar');
   clearTimeout(bar._t);
   bar.classList.remove('on');
-  pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
   CAT_UNDO=null;
   render();
 }
@@ -5879,11 +5848,9 @@ function rowClick(e){
     else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
     applyKo(it, s, newKo);
-    pushChange(it, s.step==='ko' ? `Bestand → ${koNum(s.ko)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand zurückgesetzt`);
     render(); }
   else if(a==='invpad'){ openInvPad(ix); }
   else if(a==='hide'){ s.hidden=!s.hidden;
-    pushChange(it, `${s.hidden?'aus Bestellung ausgeblendet':'wieder eingeblendet'}`);
     render(); }
   else if(a==='ordpad'){ openOrdPad(ix); }
   else if(a==='auslage'){ openAusPad(ix, b.dataset.shelf || null); }
@@ -5897,7 +5864,6 @@ function rowClick(e){
     const key=overrideKey(it);
     SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key]};
     setCatOverride(it, to);
-    pushChange(it, `Regal → ${tileLabel(to)}`);
     render(); }
   /* Zurueck an derselben Stelle: prev===undefined heisst "hatte gar keine
      Uebersteuerung", der Eintrag muss dann weg statt auf undefined gesetzt zu werden. */
@@ -5907,12 +5873,10 @@ function rowClick(e){
   else if(a==='scanshow'){
     s.hidden=false;
     SCAN_SHOWN[overrideKey(it)]=true;
-    pushChange(it, 'wieder eingeblendet');
     render(); }
   else if(a==='scanunshow'){
     s.hidden=true;
     delete SCAN_SHOWN[overrideKey(it)];
-    pushChange(it, 'aus Bestellung ausgeblendet');
     render(); }
   else if(a==='scanunmove'){
     const key=overrideKey(it), e=SCAN_MOVED[key];
@@ -5921,7 +5885,6 @@ function rowClick(e){
     if(e.prevAuslage!=null) s.auslage=e.prevAuslage;   // Regalhöchstbestand gehoert zur Zuordnung
     saveCatOverride();
     delete SCAN_MOVED[key];
-    pushChange(it, `Regal → ${tileLabel(tileOf(it))} (rückgängig gemacht)`);
     render(); }
   /* Ein Schritt im Regal. Die Liste wird danach neu gebaut, die Zeile wandert
      also unter dem Finger -- genau das ist die Rueckmeldung. */
@@ -5929,14 +5892,12 @@ function rowClick(e){
   else if(a==='seq-up'||a==='seq-dn'){
     if(!seqEditable()) return;
     if(!moveItemSeq(ix, a==='seq-up' ? -1 : 1)) return;
-    pushChange(it, `${t().seqMoved} · ${tileLabel(seqShelf(it))}`);
     seqFlip(ix, render); }
   else if(a==='inc'||a==='dec'){ TAPS++;
     const prev=s.answered?s.order:(it.rungs[s.plan].order??0);
     const next=Math.max(0,prev+(a==='inc'?1:-1));
     s.order=next; s.answered=true;
     if(next!==prev) s.manual=true;
-    pushChange(it, `Bestellung ${prev} → ${next} CS`);
     render(); }
 }
 list.addEventListener('click',rowClick);
@@ -6120,7 +6081,6 @@ function autoFix(list){
     if(st.hidden){
       st.hidden=false;
       SCAN_SHOWN[key]='auto';
-      pushChange(it, 'wieder eingeblendet (automatisch)');
     }
     if(CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id){
       SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
@@ -6130,7 +6090,6 @@ function autoFix(list){
          Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
          Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
       st.auslage=1;
-      pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} · Regalhöchstbestand 1 ${t().caseUnit} (automatisch)`);
     }
   });
 }
@@ -6530,7 +6489,6 @@ document.getElementById('invSpeichern').onclick=()=>{
      Lager+Fläche und wuerde die Zeile als gezaehlt stempeln. */
   if(INV.backOnly){ bsSetExact(ix, next); closeInvPad(); return; }
   applyKo(it, s, next);
-  pushChange(it, s.step==='ko' ? `Bestand → ${koNum(next)} ${t().caseUnit} · Bestellung ${s.order} ${t().caseUnit}` : `Bestand → ${koNum(next)} ${t().caseUnit} (Spanne bestätigt)`);
   closeInvPad(); render();
 };
 
@@ -6568,7 +6526,6 @@ document.getElementById('ordSpeichern').onclick=()=>{
   const next=Math.max(0,parseInt(ORD.val||'0',10)||0);
   s.order=next; s.answered=true;
   if(next!==ORD.orig) s.manual=true;
-  if(next!==ORD.orig) pushChange(ITEMS[ix], `Bestellung ${ORD.orig} → ${next} CS`);
   closeOrdPad(); render();
 };
 
@@ -6648,7 +6605,6 @@ document.getElementById('ausSpeichern').onclick=()=>{
   const nextHome=ausNum(AUS.home);
   if(nextHome!==AUS.origHome){
     ST[AUS.ix].auslage=nextHome;
-    pushChange(it, `${L.displaySize} ${koNum(AUS.origHome)} → ${koNum(nextHome)} ${L.caseUnit}`);
   }
   /* 0 heisst "keine": der Eintrag faellt weg und das Kennzeichen verschwindet
      aus der Liste. Eine gespeicherte 0 waere eine Aussage ueber eine leere
@@ -6657,12 +6613,8 @@ document.getElementById('ausSpeichern').onclick=()=>{
   if(nextSec!==AUS.origSecond){
     if(nextSec==null){
       clearSecond(it);
-      pushChange(it, `${L.secondTag} 0 ${L.caseUnit}`);
     } else {
       setSecond(it, nextSec);
-      pushChange(it, AUS.origSecond==null
-        ? `${L.secondTag} ${koNum(nextSec)} ${L.caseUnit}`
-        : `${L.secondTag} ${koNum(AUS.origSecond)} → ${koNum(nextSec)} ${L.caseUnit}`);
     }
   }
   closeAusPad(); render();
@@ -6749,9 +6701,8 @@ function openSummary(){
 document.getElementById('cta').onclick=openSummary;
 /* Abhaken ist rein kosmetisch -- CATFINISHED traegt keine Antwort und keine Menge
    (siehe tileStats). Das Zuruecknehmen ist deshalb ein Loeschen und sonst nichts:
-   kein pushNote (das Abschliessen meldet auch nichts), keine Navigation. Der
-   Kaufmann bleibt in der Liste, in der er gerade steht -- nur die Rueckfrage
-   liegt davor, siehe renderCatReopen(). */
+   keine Meldung, keine Navigation. Der Kaufmann bleibt in der Liste, in der er
+   gerade steht -- nur die Rueckfrage liegt davor, siehe renderCatReopen(). */
 document.getElementById('reopenRegalBtn').onclick=()=>{
   if(!(CATFILTER && CATFILTER.kind==='tile')) return;
   CATREOPEN={id:CATFILTER.id, label:CATFILTER.label};
@@ -6773,7 +6724,6 @@ document.getElementById('s2Go').onclick=()=>{
     if(s.hidden) return;
     if(!s.answered&&s.mode==='ask'){s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
-  pushNote(`✔ Bestellung abgeschlossen: ${n} offene Aussagen als ✓ bestätigt · ${cases} ${t().caseUnit} gesamt`);
   document.getElementById('ov2').classList.remove('on');
   toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
   render();
@@ -7273,7 +7223,6 @@ function bsClose(apply){
     return;
   }
   if(BS.full) zeroed=bsZeroRest();
-  bsAudit(zeroed);
   /* VOR bsLogAdd(): das zeichnet den Inventur-Reiter neu, und mit noch stehendem
      Entwurf haette die Karte weiter "fortsetzen" angeboten. */
   bsDraftClear();
@@ -7287,21 +7236,6 @@ function bsClose(apply){
   BS.zeroed=zeroed;
   if(zeroed) toast(t().bsZeroed.replace('{n}', zeroed));
   renderInvPanel(); render();
-}
-
-/* Protokoll wie bei jeder anderen Mengenaenderung durch den Kaufmann: pushChange()
-   je Zeile, dazu eine Sammelzeile. Bewusst beim Schliessen und nicht je Kiste --
-   ein Durchgang sind hundert Scans, und hundert Meldungen sind kein Protokoll mehr,
-   sondern Rauschen. Der Text bleibt deutsch wie an allen anderen pushChange-Stellen:
-   das Protokoll geht ans Team, nicht an den Kaufmann. */
-function bsAudit(zeroed){
-  if(!BS.lines.length && !zeroed) return;
-  BS.lines.forEach(l=>{
-    const it=ITEMS[l.ix];
-    pushChange(it, `Lager gescannt → ${l.n} ${t().caseUnit} · Bestellung ${orderVal(l.ix)} ${t().caseUnit}`);
-  });
-  pushNote(`📦 Lager gescannt: ${BS.lines.length} Artikel · ${bsCases()} Kisten`
-    + (zeroed?` · ${zeroed} nicht gescannte Artikel auf 0 gesetzt`:''));
 }
 
 /* Zurueck aus der Liste: erst fragen. Ein halb gezaehlter Durchgang soll weder
@@ -7327,7 +7261,6 @@ function bsCloseNoDraft(){
   BS.lines=[];
   bsClose(false);
   if(lines.length){
-    lines.forEach(l=>pushChange(ITEMS[l.ix], `Lager gescannt → ${l.n} ${t().caseUnit} (nicht als Entwurf gesichert)`));
     bsLogAdd({ts:Date.now(), items:lines.length, cases:cases, zeroed:0, full:false,
               lines:lines.map(l=>({ix:l.ix, n:l.n}))});
   }
@@ -7560,7 +7493,6 @@ function bsSameDay(a,b){
 function bsDraftDiscard(){
   if(!BS_DRAFT) return;
   const lines=BS_DRAFT.lines, cases=lines.reduce((a,l)=>a+l.n,0);
-  lines.forEach(l=>pushChange(ITEMS[l.ix], `Lager gescannt → ${l.n} ${t().caseUnit} (Entwurf verworfen)`));
   bsLogAdd({ts:Date.now(), items:lines.length, cases:cases, zeroed:0, full:false,
             lines:lines.map(l=>({ix:l.ix, n:l.n}))});
   bsDraftClear();
@@ -7576,11 +7508,6 @@ window.addEventListener('beforeunload', ()=>{ if(BS.on) bsDraftSave(); });
 function bsSelfTest(){
   const out=[]; const ok=(n,c,d)=>out.push({n, pass:!!c, d:d||''});
   let ixNo=-1;
-  /* Der Selbsttest schliesst Zaehlungen ab und verwirft Entwuerfe -- beides meldet
-     sonst ans Team. Ein Testlauf ist keine Zaehlung, also schweigt das Protokoll
-     hier und bekommt seine echten Funktionen am Ende zurueck. */
-  const pushChangeSave=pushChange, pushNoteSave=pushNote;
-  pushChange=()=>{}; pushNote=()=>{};
   const snapST=JSON.stringify(ST), snapBS={lines:BS.lines, seen:BS.seen, on:BS.on};
   const reset=()=>{ BS.on=false; BS.lines=[]; BS.seen=new Map(); bsDraftClear();
                     ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)}); };
@@ -8142,7 +8069,6 @@ function bsSelfTest(){
 
   // Zustand zuruecksetzen -- der Selbsttest darf die Seite nicht veraendert hinterlassen.
   bsPickCode=pickSave;            // der Demo-Sucher gehoert der Seite, nicht dem Test
-  pushChange=pushChangeSave; pushNote=pushNoteSave;
   const restored=JSON.parse(snapST);
   restored.forEach((v,ix)=>{ ST[ix]=v; });
   BS.lines=snapBS.lines; BS.seen=snapBS.seen; BS.on=snapBS.on;
