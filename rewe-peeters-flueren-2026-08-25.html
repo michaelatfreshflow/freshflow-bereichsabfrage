@@ -809,11 +809,17 @@ body.isFiltering{
 /* Die Summe haengt hinter dem Regalhöchstbestand, leiser als er: die Zahl davor ist die,
    die der Kaufmann gerade aendern kann, die Summe nur die Einordnung. */
 .dstot{color:var(--mute);margin-left:6px}
-/* Die Aufteilung unter der Summe: leiser als sie, in einer Zeile, mit Abstand
-   zwischen den beiden Angaben statt eines Trennzeichens -- ein Punkt dazwischen
-   liest sich in einer Zahlenzeile schnell als Komma. */
-.dsz__split{margin-top:1px;color:var(--mute);font-weight:var(--ff-weight-medium)}
-.dsz__ak{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold);margin-left:10px}
+/* Die Aufteilung unter der Summe, als zwei Pillchen in derselben Sprache wie
+   die Merkmale am Artikelnamen -- ein Rahmen trennt die beiden Angaben
+   zuverlaessiger als ein Zeichen dazwischen, das in einer Zahlenzeile schnell
+   als Komma gelesen wird. Umbrechen ist erlaubt: lieber zwei Zeilen als eine
+   abgeschnittene Zahl. */
+.dsz__split{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.dsz__chip{border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);
+  padding:1px 8px;background:var(--ff-color-white);color:#5d6b64;
+  font-weight:var(--ff-weight-bold);white-space:nowrap}
+.dsz__chip--ak{border-color:var(--ff-color-tag-promotion-foreground);
+  color:var(--ff-color-tag-promotion-foreground)}
 /* "(optional)" haengt am Namen, nicht daneben: es beschreibt das Feld, es ist
    keine zweite Angabe. */
 .ausOpt{font-weight:var(--ff-weight-medium);color:var(--mute)}
@@ -4637,11 +4643,10 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const homeTag = forceEye && noShelfOpen;
     if(homeTag)
       pills += `<span class="pill place">${tileLabel(tileOf(it))}</span>`;
-    /* Der Artikel hat eine Zweitplatzierung: das muss in der Liste zu sehen
-       sein, ohne die Zeile zu oeffnen -- sonst wird die zusaetzliche Ware beim
-       Zaehlen uebersehen und nach der Aktionswoche vergisst sie niemand
-       abzuraeumen. Die Menge steht an der Auslage-Zeile, hier nur die Tatsache. */
-    if(hasSecond(it)) pills += `<span class="pill place">${L.secondTag}</span>`;
+    /* Kein eigenes Kennzeichen bei den Merkmalen mehr: dass der Artikel eine
+       Zweitplatzierung hat, steht schon in der Bestandsspalte -- dort mit der
+       Menge dabei. Zweimal dasselbe zu sagen macht die Zeile laenger, nicht
+       klarer. */
 
     /* Im Scan-Ergebnis sagt der Block unten dasselbe, nur deutlicher -- dann hier nicht. */
     if(s.hidden && !forceEye) pills+=`<span class="pill hid">Ausgeblendet</span>`;
@@ -4725,7 +4730,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       ? `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">${L.displaySize} <u>${koNum(dsHome(it))}</u> ${L.caseUnit}</div>`
       : `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">
           <div>${L.displaySize} <u>${koNum(dsTotal(it))}</u> ${L.caseUnit}</div>
-          <div class="dsz__split">${L.firstShort} ${koNum(dsHome(it))} <span class="dsz__ak">${L.secondShort} ${koNum(sec)}</span></div>
+          <div class="dsz__split"><span class="dsz__chip">${L.firstShort} ${koNum(dsHome(it))}</span><span class="dsz__chip dsz__chip--ak">${L.secondShort} ${koNum(sec)}</span></div>
         </div>`;
     /* Gezaehltes Lager als eigene, leise Zeile. Der Stepper darueber bleibt unberuehrt --
        gezaehlt wurde das Lager, nicht die Fl\u00e4che. */
