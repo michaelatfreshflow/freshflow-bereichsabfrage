@@ -580,7 +580,7 @@ body.isFiltering{
 /* ---------- Bestand-Stepper (ersetzt die Kachel weniger/✓/mehr) ----------
    Selbe Geometrie wie der Bestellmengen-Stepper (.step) -- gleiche Knopfgroesse,
    gleiche Feldhoehe, gleiche Schriftgroessen. Nur das Feld ist breiter, weil eine
-   Spanne ("0,3 – 99 KO") mehr Platz braucht als eine reine Bestellmenge. */
+   Spanne ("0,3 – 99 Ki") mehr Platz braucht als eine reine Bestellmenge. */
 /* ===========================================================================
    AppFormDialog -- lib/presentation/shared/dialogs/app_form_dialog.dart
    and PrimaryTextButton -- lib/core/widgets/buttons/text_button.dart
@@ -692,7 +692,7 @@ body.isFiltering{
 
    WIDTH. The shared widget is Size(72, 40), built for "12". Measured across all
    223 items in this order guide, 218 of them need more room than that allows:
-   widest value line 105px ("10,64 - 11,6 KO"), widest label 77px
+   widest value line 105px ("10,64 - 11,6 Ki"), widest label 77px
    ("234 - 255 Stueck"). 105 + 14 padding + 2 border = 121, rounded to 124.
    Fixed, never auto -- every stepper in the Bestand column must line up.
 
@@ -809,18 +809,18 @@ body.isFiltering{
 /* Die Summe haengt hinter dem Regalhöchstbestand, leiser als er: die Zahl davor ist die,
    die der Kaufmann gerade aendern kann, die Summe nur die Einordnung. */
 .dstot{color:var(--mute);margin-left:6px}
-/* Die Zweitplatzierung steht in der Aktionsfarbe neben der Auslage -- sie ist
-   die Ausnahme, das Regal ist der Normalfall. */
-.dssec{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold);margin-left:6px}
-/* Anlegen und Entfernen liegen in der Zeile selbst. Entfernen ist der
-   haeufigere Handgriff -- nach der Aktionswoche muss es ohne Suchen gehen. */
-.ausAdd{font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);
-  color:var(--green);background:var(--ff-primary-5);border:1px dashed var(--green);
-  border-radius:var(--ff-radius-c8);padding:8px 14px;cursor:pointer}
-.ausAdd:hover{background:var(--ff-grey-100)}
-.ausClear{font:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);
-  color:var(--ff-color-tag-promotion-foreground);background:var(--ff-color-tag-promotion-background);
-  border:none;border-radius:var(--ff-radius-pill);padding:5px 12px;margin-left:10px;cursor:pointer}
+/* Zwei Werte stehen untereinander, jeder mit seinem Namen davor. Die Namen
+   bilden eine Spalte, damit die Zahlen dahinter eine bilden -- so liest sich
+   die Zweitplatzierung als eigene Angabe und nicht als zweite Haelfte der
+   ersten. */
+.dsz--two{display:flex;flex-direction:column;gap:1px}
+.dsz__r{display:flex;gap:6px;align-items:baseline}
+.dsz__lb{flex:0 0 auto;min-width:96px;color:var(--mute);font-weight:var(--ff-weight-medium)}
+.dsz__r--ak,.dsz__r--ak .dsz__lb{color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-bold)}
+.dsz__r--tot{color:var(--mute)}
+/* "(optional)" haengt am Namen, nicht daneben: es beschreibt das Feld, es ist
+   keine zweite Angabe. */
+.ausOpt{font-weight:var(--ff-weight-medium);color:var(--mute)}
 .dsz[data-a]{cursor:pointer}
 .dsz[data-a]:hover{color:#5d6b64}
 /* The badge centres against the stepper. The app top-aligns it
@@ -2124,7 +2124,7 @@ body.dash-active .scanFab{display:none}
           <button data-u="pcs" id="uPcs">Stück</button><button data-u="cs" class="on" id="uCs">Kisten</button></div>
         <div class="kfield" id="kfBack"><label id="kLager">Lager</label><div class="box" id="invBack">0</div></div>
         <div class="kfield" id="kfFloor"><label id="kFlaeche">Fläche</label><div class="box act" id="invFloor">0</div></div>
-        <div class="kfield" id="kfTotal" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
+        <div class="kfield" id="kfTotal" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 Ki</div><div class="invpcs" id="invUnitPcs"></div></div></div>
         <div class="invHint" id="invHint" hidden></div>
       </div>
       <div class="pad" id="invPad">
@@ -2151,7 +2151,7 @@ body.dash-active .scanFab{display:none}
       </div>
       <div>
         <div class="kfield"><label class="kOrder">Bestellung</label><div class="box act" id="ordVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
+        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="ordUnit">0 Ki</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="ordPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -2851,16 +2851,15 @@ const T={
     continue:'Fortfahren',  // [arb] commonContinue
     completeOrder:'Bestellung abschließen',  // [arb] commonCompleteOrder
     manageOrder:'Bestellung verwalten',  // [arb] orderManageItemsCaption
-    caseCount:'Anzahl Kollis',  // [arb] commonCaseCount
-    caseUnit:'KO',  // [arb] commonCaseUnitLabel
+    caseCount:'Anzahl Kisten',  // [arb] commonCaseCount
+    caseUnit:'Ki',  // [arb] commonCaseUnitLabel
     piece:'Stück',  // [arb] orderItemUnitPiece
     displaySize:'Regalhöchstbestand',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'gesamt',                          // dsTotal
     dsTotalLb:'Gesamt',                        // dsTotalLb
+    firstTag:'Erstplatzierung',                // firstTag
     secondTag:'Zweitplatzierung',              // secondTag
-    secondAdd:'Zweitplatzierung',              // secondAdd
-    secondClear:'Entfernen',                   // secondClear
-    secondClearTip:'Zweitplatzierung entfernen',
+    secondOptional:' (optional)',              // secondOptional
     dsEditTip:'Regalhöchstbestand für diesen Platz anpassen',
     dsAt:'Regalhöchstbestand auf',             // dsAt
     dsOther:'Andere Plätze',                   // dsOther
@@ -3053,7 +3052,7 @@ const T={
     bsFullTitle:'Lager vollständig gezählt?',
     bsFullYes:'Ja, alles erfasst',
     bsFullNo:'Nein, nur teilweise',
-    bsFullCount:'Du hast {i} Artikel ({c} Kolli) erfasst.',
+    bsFullCount:'Du hast {i} Artikel ({c} Kisten) erfasst.',
     bsFullAsk:'Hast du den gesamten Lagerbestand gezählt?',
     bsZeroed:'{n} Artikel auf 0 Kisten gesetzt.',
     bsTag:'Lager gescannt',
@@ -3075,7 +3074,7 @@ const T={
     sfAll:'Alle',
     sfYes:'Gescannt',
     sfNo:'Nicht gescannt',
-    autoFix:'Gescannte Artikel automatisch einblenden und mit Regalhöchstbestand von 1 KO diesem Regal zuordnen',
+    autoFix:'Gescannte Artikel automatisch einblenden und mit Regalhöchstbestand von 1 Ki diesem Regal zuordnen',
     autoFixAk:'Gescannte Artikel automatisch einblenden und zusätzlich auf diese Zweitplatzierung legen',
     autoTag:'automatisch',
     hideNote:'läuft im Ordersatz nicht mit',
@@ -3177,10 +3176,9 @@ const T={
     displaySize:'Display size',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
     dsTotalLb:'Total',
+    firstTag:'Primary Placement',
     secondTag:'Secondary Placement',
-    secondAdd:'Secondary Placement',
-    secondClear:'Remove',
-    secondClearTip:'Remove the secondary placement',
+    secondOptional:' (optional)',
     dsEditTip:'Change the display size for this spot',
     dsAt:'Display size on',
     dsOther:'Other spots',
@@ -3496,10 +3494,9 @@ const T={
     displaySize:'Linéaire',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'total',
     dsTotalLb:'Total',
+    firstTag:'Rayon permanent',
     secondTag:'Emplacement secondaire',
-    secondAdd:'Emplacement secondaire',
-    secondClear:'Retirer',
-    secondClearTip:'Retirer l’emplacement secondaire',
+    secondOptional:' (facultatif)',
     dsEditTip:'Modifier le linéaire pour cet emplacement',
     dsAt:'Linéaire sur',
     dsOther:'Autres emplacements',
@@ -3987,7 +3984,7 @@ function mode(it){
 function noCount(s){ return s.mode==='any' || s.mode==='noladder'; }
 /* Der Bestand ist jetzt ein Stepper statt der Kachel weniger/✓/mehr: "home" ist die
    Ansicht, in die man zurueckkehrt -- 'range' zeigt die Sprosse des Modells (ask/unsure),
-   'need' zeigt "– KO" fuer Pflichtzeilen (count/noladder). Jeder Druck (auch ueber das
+   'need' zeigt "– Ki" fuer Pflichtzeilen (count/noladder). Jeder Druck (auch ueber das
    Eingabefeld getippt) laeuft durch applyKo(): landet der Wert wieder in der Plan-Sprosse,
    zeigt es wieder die Spanne -- das fuehrt bei einem einfachen ±1-Zaehler von selbst
    "nie ueber die Spanne hinaus", ganz ohne eigene Schrittzaehlung. 'touched' ist davon
@@ -4007,7 +4004,7 @@ function initState(it){
           back:null, backOrder:null, backChosen:null,
           pre:{chosen, order, answered:pre, auto}};
 }
-/* Ein KO-Wert (ganz oder gebrochen, aus +/- oder eingetippt) landet entweder wieder in
+/* Ein Ki-Wert (ganz oder gebrochen, aus +/- oder eingetippt) landet entweder wieder in
    der Plan-Sprosse -- dann zeigt es wieder die Spanne, unveraendert vom Ausgangszustand --
    oder er zeigt als Zahl. 'need' hat keine Sprosse zum Zurueckfallen, bleibt also immer
    eine Zahl. touched bleibt danach dauerhaft wahr (siehe initState). */
@@ -4244,20 +4241,20 @@ function snapNice(v){
   return sign*(intPart+best);
 }
 const csNum=v=>snapNice(v).toLocaleString('de-DE',{maximumFractionDigits:2});
-/* Unter 1 KO laeuft der Bestand-Stepper auf dem Einheitenraster (1/Kiste). Dessen Halte
+/* Unter 1 Ki laeuft der Bestand-Stepper auf dem Einheitenraster (1/Kiste). Dessen Halte
    treffen die "runden" Kisten-Bruchzahlen von snapNice() nicht mehr -- 1/6 ist 0,17,
-   1/20 ist 0,05 -- darum wird unter 1 KO auf zwei Nachkommastellen genau angezeigt.
-   Ab 1 KO bleibt es bei der gewohnten snapNice()-Anzeige. */
+   1/20 ist 0,05 -- darum wird unter 1 Ki auf zwei Nachkommastellen genau angezeigt.
+   Ab 1 Ki bleibt es bei der gewohnten snapNice()-Anzeige. */
 const koNum=v=>v<1-1e-9 ? v.toLocaleString('de-DE',{maximumFractionDigits:2}) : csNum(v);
 /* Bestand-Stepper: Kopf- und Stueckzeile fuer die Sprossenansicht (r = Plan-Sprosse),
    dieselben ungerundeten r.lo/r.hi/r.plo/r.phi wie ueberall sonst in dieser Datei. */
-/* KO-Zahl und Stueckzahl stehen uebereinander und meinen dieselbe Grenze -- sie muessen
-   sich ineinander umrechnen lassen. Bisher kam die KO-Zahl aus dem rohen Modellwert und
+/* Ki-Zahl und Stueckzahl stehen uebereinander und meinen dieselbe Grenze -- sie muessen
+   sich ineinander umrechnen lassen. Bisher kam die Ki-Zahl aus dem rohen Modellwert und
    wurde von snapNice() auf eine "runde" Kisten-Bruchzahl geschnappt. Dieses Raster
    (0 / .1 / .2 / .25 / .3 …) weiss nichts von der Kistengroesse und sprang darum ueber
-   Stueckgrenzen: 0,25324 KO wurde zu 0,25, und 0,25 × 12 = 3, waehrend die Zeile darunter
+   Stueckgrenzen: 0,25324 Ki wurde zu 0,25, und 0,25 × 12 = 3, waehrend die Zeile darunter
    korrekt bei 4 Stueck anfing. Das betraf 67 von 181 Zeilen.
-   Die KO-Zahl wird jetzt aus der Stueckgrenze zurueckgerechnet -- die ist die harte, vom
+   Die Ki-Zahl wird jetzt aus der Stueckgrenze zurueckgerechnet -- die ist die harte, vom
    Seitenbauer als ceil(Grenze × Kiste) bestimmte Zahl -- und nur so grob gerundet, dass
    sie mal Kistengroesse wieder genau diese Stueckzahl ergibt. Grob nach fein, dieselbe
    Staffelung wie dec() im Seitenbauer. */
@@ -4290,14 +4287,14 @@ function stText(r,it){
   if(r.plo===r.phi) return `${t().exactly} ${r.plo} ${u}`;
   return `${r.plo} – ${r.phi} ${u}`;
 }
-/* Snapt einen KO-Wert in Schrittrichtung auf das naechste Rasterfeld (0,9 → 0,75
+/* Snapt einen Ki-Wert in Schrittrichtung auf das naechste Rasterfeld (0,9 → 0,75
    abwaerts bei Rasterweite 0,25); von einem Rasterpunkt aus ist es dann genau ein
    ±Schritt. Rohbaustein fuer stepKo(), nirgends sonst direkt benutzt. */
 function snapGrid(ko,d,size){
   const eps=1e-9;
   return d<0 ? Math.max(0, Math.floor((ko-eps)/size)*size) : Math.ceil((ko+eps)/size)*size;
 }
-/* Unter 1 KO wird in ganzen Stueck/kg gesteppt statt in Vierteln: eine Kiste zu 14 Stueck
+/* Unter 1 Ki wird in ganzen Stueck/kg gesteppt statt in Vierteln: eine Kiste zu 14 Stueck
    in Viertel zu teilen ergibt 3,5 Stueck -- eine Menge, die es im Regal nicht gibt. Die
    Schrittweite ist ceil(Kiste/12) Einheiten, damit die Zone unter einer Kiste ungefaehr
    6 bis 12 Halte hat: bei 6er und 12er Kisten ist das 1 Stueck, bei 14 sind es 2, bei
@@ -4309,14 +4306,14 @@ function unitStep(it){
   if(it.unit!=='piece') return null;
   return Math.max(1, Math.ceil(cs/12));
 }
-/* Ein Druck auf −/+ : unter 1 KO haengt die Schrittweite an der Ware. Stueckware laeuft
+/* Ein Druck auf −/+ : unter 1 Ki haengt die Schrittweite an der Ware. Stueckware laeuft
    auf dem Einheitenraster (unitStep), Gewichtsware in Viertelkisten -- ein Stueck kann man
    vom Regal abzaehlen, ein Kilo nicht, lose Ware wird geschaetzt, und dafuer ist die
-   Viertelkiste das passende Mass. Ab 1 KO gilt fuer beide der Halbschritt wie bisher
-   (1 → 1,5 → 2 …), bei Kiste = 1 durchgehend ganze Kisten. Genau 1 KO ist immer ein Halt --
+   Viertelkiste das passende Mass. Ab 1 Ki gilt fuer beide der Halbschritt wie bisher
+   (1 → 1,5 → 2 …), bei Kiste = 1 durchgehend ganze Kisten. Genau 1 Ki ist immer ein Halt --
    auf dem Einheitenraster wird dafuer aufwaerts auf 1 gekappt, damit auch bei krummer
    Teilung (15er Kiste, Schritt 2 → 14/15) die volle Kiste getroffen wird. Bewusst
-   asymmetrisch bei genau 1 KO: abwaerts taucht es noch ins feine Raster ein (14er Kiste:
+   asymmetrisch bei genau 1 Ki: abwaerts taucht es noch ins feine Raster ein (14er Kiste:
    1 → 12 St.), aufwaerts gilt ab 1 die Halbschrittweite (1 → 1,5). */
 function stepKo(it,ko,d){
   const eps=1e-9;
@@ -4329,13 +4326,13 @@ function stepKo(it,ko,d){
   let next=snapGrid(ko,d,size);
   /* Geht die Kiste im Schritt nicht glatt auf (25er Kiste, Schritt 3 → 24), liegt der
      oberste Rasterpunkt ein Stueck unter der vollen Kiste -- ein Tipp, der kaum etwas
-     aendert. Naeher als ein halber Schritt an 1 KO faellt er darum weg: aufwaerts direkt
-     auf 1 KO, abwaerts direkt auf den Punkt darunter. Genau ein halber Schritt Abstand
+     aendert. Naeher als ein halber Schritt an 1 Ki faellt er darum weg: aufwaerts direkt
+     auf 1 Ki, abwaerts direkt auf den Punkt darunter. Genau ein halber Schritt Abstand
      bleibt erhalten, darum der strikte Vergleich mit eps. */
   if(next>0 && next<1 && 1-next < size/2-eps) next = d<0 ? next-size : 1;
   return d<0 ? Math.max(0,next) : Math.min(1,next);
 }
-/* Welche Sprosse enthaelt einen ganzen KO-Wert -- dieselbe lo<=ko<hi-Regel wie ueberall
+/* Welche Sprosse enthaelt einen ganzen Ki-Wert -- dieselbe lo<=ko<hi-Regel wie ueberall
    sonst, Fallback auf die Plan-Sprosse falls keine passt (kann bei "any"/none vorkommen). */
 function rungOfKo(it,ko,planIdx){
   const hit=it.rungs.findIndex(r=>(r.lo==null||ko>=r.lo)&&(r.hi==null||ko<r.hi));
@@ -4358,9 +4355,13 @@ const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" ar
 const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg>';
 /* The value box splits the number from its unit -- value is primaryBodyText16.medium,
    unit primaryCaption12.light -- so the combined string koText() builds has to come
-   apart again. Strings without a unit ("egal wie viel", "–") fall through whole. */
+   apart again. Strings without a unit ("egal wie viel", "–") fall through whole.
+   Die Kisten-Einheit kommt aus der Sprache, nicht aus dem Code: stuende sie hier
+   fest, liefe jede Umbenennung (Ki -> Ki) und jede andere Sprache (CS) ins Leere
+   und die Einheit klebte wieder an der Zahl. */
 function splitUnit(str){
-  const m = String(str).match(/^(.*?)\s*(KO|kg)$/);
+  const u = String(t().caseUnit).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = String(str).match(new RegExp('^(.*?)\\s*(' + u + '|kg)$'));
   return m ? {v:m[1], u:m[2]} : {v:str, u:''};
 }
 /* Mobile/assets/icons/minus.svg and plus.svg, verbatim, with the hardcoded
@@ -4702,12 +4703,18 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        einen Platz gibt, und sagt dann das eine, was die Zahl davor nicht sagen
        kann -- dass draussen mehr liegt als hier. Mit ihr rechnet die
        Bestellung. Ohne Regalfilter ist "hier" der Erstplatzierung. */
+    /* Ohne Zweitplatzierung bleibt die Zeile, wie sie immer war: eine Zahl.
+       Mit Zweitplatzierung stehen die beiden UNTEREINANDER und nicht
+       hintereinander -- nebeneinander liest sich "0,5 1,5" wie eine Spanne,
+       und genau die Verwechslung darf hier nicht passieren. */
     const sec = secondOf(it);
-    cell += `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">`
-      + `${L.displaySize} <u>${koNum(dsHome(it))}</u> ${L.caseUnit}`
-      + (sec!=null ? `<span class="dssec">+ ${L.secondTag} ${koNum(sec)}</span>`
-                   + `<span class="dstot">${L.dsTotal} ${koNum(dsTotal(it))} ${L.caseUnit}</span>` : '')
-      + `</div>`;
+    cell += sec==null
+      ? `<div class="dsz" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">${L.displaySize} <u>${koNum(dsHome(it))}</u> ${L.caseUnit}</div>`
+      : `<div class="dsz dsz--two" data-a="auslage" data-i="${ix}" title="${L.dsEditTip}">
+          <div class="dsz__r"><span class="dsz__lb">${L.firstTag}</span><u>${koNum(dsHome(it))}</u> ${L.caseUnit}</div>
+          <div class="dsz__r dsz__r--ak"><span class="dsz__lb">${L.secondTag}</span><u>${koNum(sec)}</u> ${L.caseUnit}</div>
+          <div class="dsz__r dsz__r--tot"><span class="dsz__lb">${L.dsTotalLb}</span>${koNum(dsTotal(it))} ${L.caseUnit}</div>
+        </div>`;
     /* Gezaehltes Lager als eigene, leise Zeile. Der Stepper darueber bleibt unberuehrt --
        gezaehlt wurde das Lager, nicht die Fl\u00e4che. */
     if(s.back!=null) cell += `<div class="bsInv">${L.backStock} <u>${s.back}</u> ${t().caseUnit} \u00b7 ${L.bsTag}</div>`;
@@ -6116,7 +6123,7 @@ function autoFix(list){
       SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
                        prevAuslage:st.auslage, auto:true};
       setCatOverride(it, CATFILTER.id);
-      /* Der Text verspricht "mit Regalhöchstbestand von 1 KO" -- dann muss es auch passieren.
+      /* Der Text verspricht "mit Regalhöchstbestand von 1 Ki" -- dann muss es auch passieren.
          Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
          Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
       st.auslage=1;
@@ -6350,7 +6357,7 @@ document.addEventListener('click', ()=>{
    antippbar um das Ziel fuer die Tastatur zu wechseln. Stück/Kisten-Umschalter
    wie frueher: in Kisten sind Bruchteile (0.25/0.5/0.75) moeglich. Landet der
    Wert in der Plan-Sprosse, zeigt applyKo() wieder die Spanne, sonst die Zahl
-   in KO. */
+   in Ki. */
 let INV={ix:null,back:'0',floor:'0',act:'floor',unit:'cs'};
 function invPadVals(){
   const b=parseFloat(INV.back||'0')||0, f=parseFloat(INV.floor||'0')||0;
@@ -6364,7 +6371,7 @@ function invPadVals(){
    der Kaufmann tippt beide Zahlen selbst ein. rLoKO/rHiKO sind die ungerundeten
    Sprossen-Grenzen fuer genau diese Anzeige. */
 /* Gleiche Sprache und dieselbe Herleitung wie der Stepper darueber: aus den Stueck-
-   grenzen der Sprosse, nicht aus dem rohen KO-Wert. Der Stueck-Zweig rundete den rohen
+   grenzen der Sprosse, nicht aus dem rohen Ki-Wert. Der Stueck-Zweig rundete den rohen
    Wert bisher selbst (Math.round), was ebenfalls neben plo/phi landen konnte. */
 function invRangeText(plo,phi,unit,cs,it){
   if(unit==='pcs'){
@@ -6569,14 +6576,16 @@ document.getElementById('ordSpeichern').onclick=()=>{
    Getippt wird in die aktive Zeile, ein Tipp auf die andere macht die aktiv.
    Geschrieben wird erst beim Speichern -- so lassen sich beide Zahlen in einem
    Zug richtigstellen.
-   HINZUFUEGEN UND WEGNEHMEN stehen in derselben Zeile, nicht in einem Menue
-   darueber: eine Zweitplatzierung wird haeufiger abgeraeumt als angelegt, und
-   was nach der Aktionswoche umstaendlich ist, bleibt stehen. */
+   BEIDE FELDER STEHEN IMMER DA, die Zweitplatzierung mit 0 vorbelegt. Es gibt
+   darum nichts anzulegen und nichts wegzunehmen: wer sie braucht, tippt eine
+   Zahl hinein, wer sie los sein will, setzt sie auf 0 -- danach ist sie aus
+   der Liste verschwunden. Ein eigener Entfernen-Knopf waere ein zweiter Weg
+   fuer dieselbe Sache. */
 let AUS={ix:null,row:'home',home:'0',second:null,origHome:0,origSecond:null};
 function openAusPad(ix){
   const it=ITEMS[ix];
   const sec=secondOf(it);
-  AUS={ix, row:'home', home:koNum(dsHome(it)), second: sec!=null?koNum(sec):null,
+  AUS={ix, row:'home', home:koNum(dsHome(it)), second: sec!=null?koNum(sec):'0',
        origHome:dsHome(it), origSecond:sec};
   document.getElementById('ausName').textContent=it.name;
   document.getElementById('ausMeta').textContent=
@@ -6587,38 +6596,25 @@ function openAusPad(ix){
 function ausNum(v){ return Math.max(0, parseFloat(String(v||'0').replace(',','.'))||0); }
 function drawAusPad(){
   const L=t();
-  const has=AUS.second!=null;
-  let html=`<div class="kfield ausRow" data-a="aus-row" data-row="home">
-      <label>${L.displaySize}</label>
-      <div class="box${AUS.row==='home'?' act':''}">${AUS.home}</div>
-    </div>`;
-  html += has
-    ? `<div class="kfield ausRow" data-a="aus-row" data-row="second">
-         <label class="ausKind--ak">${L.secondTag}</label>
-         <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
-         <button class="ausClear" type="button" data-a="aus-clear" title="${L.secondClearTip}">${L.secondClear}</button>
-       </div>
-       <div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
-         <div class="tot">${koNum(ausNum(AUS.home)+ausNum(AUS.second))} ${L.caseUnit}</div>
-       </div>`
-    : `<div class="kfield"><button class="ausAdd" type="button" data-a="aus-add">+ ${L.secondAdd}</button></div>`;
+  const secNum=ausNum(AUS.second);
   const root=document.getElementById('ausSpots');
-  root.innerHTML=html;
+  root.innerHTML=`<div class="kfield ausRow" data-a="aus-row" data-row="home">
+      <label>${L.firstTag}</label>
+      <div class="box${AUS.row==='home'?' act':''}">${AUS.home}</div>
+    </div>
+    <div class="kfield ausRow" data-a="aus-row" data-row="second">
+      <label class="ausKind--ak">${L.secondTag}<span class="ausOpt">${L.secondOptional}</span></label>
+      <div class="box${AUS.row==='second'?' act':''}">${AUS.second}</div>
+    </div>
+    ${secNum>0 ? `<div class="kfield" style="margin-top:26px"><label class="kTotal">${L.dsTotalLb}</label>
+      <div class="tot">${koNum(ausNum(AUS.home)+secNum)} ${L.caseUnit}</div></div>` : ''}`;
   root.querySelectorAll('[data-a="aus-row"]').forEach(el=>{
-    el.addEventListener('click', e=>{
-      if(e.target.closest('[data-a="aus-clear"]')) return;
-      AUS.row=el.dataset.row; drawAusPad();
-    });
+    el.addEventListener('click', ()=>{ AUS.row=el.dataset.row; drawAusPad(); });
   });
-  const add=root.querySelector('[data-a="aus-add"]');
-  if(add) add.addEventListener('click', ()=>{ AUS.second=koNum(DS_DEFAULT); AUS.row='second'; drawAusPad(); });
-  const clr=root.querySelector('[data-a="aus-clear"]');
-  if(clr) clr.addEventListener('click', ()=>{ AUS.second=null; AUS.row='home'; drawAusPad(); });
 }
 document.getElementById('ausPad').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return; const k=b.dataset.k; TAPS++;
   const key = AUS.row==='second' ? 'second' : 'home';
-  if(key==='second' && AUS.second==null) return;
   let v=AUS[key]||'0';
   if(k==='del'){ v=v.slice(0,-1); if(v==='') v='0'; AUS[key]=v; }
   else if(k===','){
@@ -6643,11 +6639,14 @@ document.getElementById('ausSpeichern').onclick=()=>{
     ST[AUS.ix].auslage=nextHome;
     pushChange(it, `${L.displaySize} ${koNum(AUS.origHome)} → ${koNum(nextHome)} ${L.caseUnit}`);
   }
-  const nextSec = AUS.second!=null ? ausNum(AUS.second) : null;
+  /* 0 heisst "keine": der Eintrag faellt weg und das Kennzeichen verschwindet
+     aus der Liste. Eine gespeicherte 0 waere eine Aussage ueber eine leere
+     Flaeche -- und damit etwas anderes als "da steht nichts". */
+  const nextSec = ausNum(AUS.second)>0 ? ausNum(AUS.second) : null;
   if(nextSec!==AUS.origSecond){
     if(nextSec==null){
       clearSecond(it);
-      pushChange(it, `${L.secondTag} entfernt`);
+      pushChange(it, `${L.secondTag} 0 ${L.caseUnit}`);
     } else {
       setSecond(it, nextSec);
       pushChange(it, AUS.origSecond==null
