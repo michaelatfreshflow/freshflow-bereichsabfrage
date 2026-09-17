@@ -565,6 +565,42 @@ body.isFiltering{
 .movecta__undo svg{flex:0 0 auto}
 .movecta__undo:hover{background:var(--ff-primary-20)}
 
+/* Dritte Stoerung, dieselbe Bauform: die Bestellmenge wurde von Hand veraendert,
+   ohne dass der Bestand je beantwortet wurde. Das ist ein Widerspruch in der Zeile
+   selbst -- die Leiter uebersetzt einen BESTAND in eine Menge, wer die Menge
+   anfasst, widerspricht damit dem angenommenen Bestand. Frueher tat eine solche
+   Aenderung das Gegenteil: bangOrd() liess das ! fallen, sobald s.manual stand, die
+   Zeile sah also FERTIGER aus, nachdem der Kaufmann die Annahme ungeprueft
+   uebergangen hatte.
+   Kein Dialog: waehrend man ein Regal abgeht, wird oft mehrmals hintereinander
+   getippt, und ein Fenster nach jedem Tipp zerschlaegt den Rhythmus. Der Streifen
+   steht darum in der Zeile, in demselben Vollbreit-Slot wie der Regalwechsel, und
+   wartet dort. */
+.invask{grid-column:1/-1;margin-top:7px;display:flex;align-items:center;gap:10px;
+  flex-wrap:wrap;padding:6px 8px 6px 10px;border-radius:var(--ff-radius-c15);
+  background:var(--amber-bg);border:1px solid var(--ff-color-find-on-page)}
+.invask__mv{display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:1;min-width:0}
+.invask__mv .lb{font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.6px;
+  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:#8a6a12}
+.invask__note{font-size:var(--ff-text-primary-body-text-14);color:var(--ink)}
+.invask__note b{font-weight:var(--ff-weight-bold);white-space:nowrap}
+.invask + .invask,.movecta + .invask,.invask + .movecta{margin-top:6px}
+/* Zwei Knoepfe, zwei Gewichte: "Passt" ist die haeufigere und billigere Antwort und
+   traegt darum die volle Farbe; "Bestand zaehlen" ist der Weg in das Tastenfeld, das
+   es ohnehin schon gibt. Beide beantworten dieselbe Frage -- es gibt kein Wegklicken,
+   das nichts aussagt. */
+.invask__go{flex:0 0 auto;padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);
+  border:0;border-radius:var(--ff-radius-pill);background:var(--green);
+  color:var(--ff-color-white);font-family:inherit;font-weight:var(--ff-weight-bold);cursor:pointer}
+.invask__alt{flex:0 0 auto;padding:7px 15px;border:1px solid var(--ff-color-find-on-page);
+  border-radius:var(--ff-radius-pill);background:var(--ff-color-white);color:#8a6a12;
+  cursor:pointer;font-family:inherit;font-size:var(--ff-text-primary-body-text-14);
+  font-weight:var(--ff-weight-bold)}
+.invask__alt:hover{background:var(--amber-bg)}
+/* Beantwortet ist beantwortet: der Streifen geht weg und laesst nichts stehen. Keine
+   Erfolgsmeldung, kein Weg zurueck -- die Zeile sagt mit der Zahl und dem verschwundenen
+   Rahmen schon alles, und wer die Menge doch anders haben will, tippt sie einfach. */
+
 /* ---------- statement cell ---------- */
 .stmt{border:1.5px solid var(--ff-grey-200);border-radius:10px;padding:9px 12px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);background:var(--ff-color-white)}
 .stmt.skip{border-color:var(--ff-grey-200);background:var(--ff-grey-50);color:var(--ff-grey-400);font-weight:var(--ff-weight-semibold)}
@@ -774,6 +810,16 @@ body.isFiltering{
 .ColumnCounterField--changed .ColumnCounterField__box{
   border-color:var(--ff-color-warning);
 }
+/* Vorgemerkt, nicht uebernommen. Die getippte Zahl steht gross da -- der Kaufmann
+   soll sehen, was er getan hat -- aber der gestrichelte Rahmen sagt, dass sie noch
+   nicht gilt, und darunter steht, was statt dessen noch zaehlt. Gestrichelt und
+   nicht nur amber, weil --changed daneben schon amber ist: die beiden Zustaende
+   muessen sich in einer Liste auf einen Blick unterscheiden. */
+.ColumnCounterField--pending .ColumnCounterField__box{
+  border-color:var(--ff-color-warning);border-style:dashed;border-width:2px;
+  background:var(--amber-bg);
+}
+.ColumnCounterField--pending .ColumnCounterField__label{color:#8a6a12}
 
 .ColumnCounterField__value,
 .InventoryCounterField__value{
@@ -2147,7 +2193,7 @@ body.dash-active .scanFab{display:none}
           <button data-u="pcs" id="uPcs">Stück</button><button data-u="cs" class="on" id="uCs">Kisten</button></div>
         <div class="kfield" id="kfBack"><label id="kLager">Lager</label><div class="box" id="invBack">0</div></div>
         <div class="kfield" id="kfFloor"><label id="kFlaeche">Fläche</label><div class="box act" id="invFloor">0</div></div>
-        <div class="kfield" id="kfTotal" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 KO</div><div class="invpcs" id="invUnitPcs"></div></div></div>
+        <div class="kfield" id="kfTotal" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="invUnit">0 Ki</div><div class="invpcs" id="invUnitPcs"></div></div></div>
         <div class="invHint" id="invHint" hidden></div>
       </div>
       <div class="pad" id="invPad">
@@ -2174,7 +2220,7 @@ body.dash-active .scanFab{display:none}
       </div>
       <div>
         <div class="kfield"><label class="kOrder">Bestellung</label><div class="box act" id="ordVal">0</div></div>
-        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="ordUnit">0 KO</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
+        <div class="kfield" style="margin-top:26px"><label class="kTotal">Gesamt</label><div><div class="tot" id="ordUnit">0 Ki</div><div class="invpcs" id="ordUnitPcs"></div></div></div>
       </div>
       <div class="pad" id="ordPad">
         <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
@@ -2944,8 +2990,8 @@ const T={
     continue:'Fortfahren',  // [arb] commonContinue
     completeOrder:'Bestellung abschließen',  // [arb] commonCompleteOrder
     manageOrder:'Bestellung verwalten',  // [arb] orderManageItemsCaption
-    caseCount:'Anzahl Kollis',  // [arb] commonCaseCount
-    caseUnit:'KO',  // [arb] commonCaseUnitLabel
+    caseCount:'Anzahl Kisten',  // [arb] commonCaseCount
+    caseUnit:'Ki',  // [arb] commonCaseUnitLabel
     piece:'Stück',  // [arb] orderItemUnitPiece
     displaySize:'Auslage',  // [arb] needsAttentionGroupDisplaySizeCaption
     dsTotal:'gesamt',                          // dsTotal
@@ -3142,7 +3188,7 @@ const T={
     bsFullTitle:'Lager vollständig gezählt?',
     bsFullYes:'Ja, alles erfasst',
     bsFullNo:'Nein, nur teilweise',
-    bsFullCount:'Du hast {i} Artikel ({c} Kolli) erfasst.',
+    bsFullCount:'Du hast {i} Artikel ({c} Kisten) erfasst.',
     bsFullAsk:'Hast du den gesamten Lagerbestand gezählt?',
     bsZeroed:'{n} Artikel auf 0 Kisten gesetzt.',
     bsTag:'Lager gescannt',
@@ -3164,7 +3210,7 @@ const T={
     sfAll:'Alle',
     sfYes:'Gescannt',
     sfNo:'Nicht gescannt',
-    autoFix:'Gescannte Artikel automatisch einblenden und mit Auslage von 1 KO diesem Regal zuordnen',
+    autoFix:'Gescannte Artikel automatisch einblenden und mit Auslage von 1 Ki diesem Regal zuordnen',
     autoFixAk:'Gescannte Artikel automatisch einblenden und zusätzlich auf diese Zweitplatzierung legen',
     autoTag:'automatisch',
     hideNote:'läuft im Ordersatz nicht mit',
@@ -3243,6 +3289,12 @@ const T={
     dlgClosing:'Wenn du dieses Regal abschließt, wird dieses als erledigt markiert.',
     unresolvedTitle:'Artikel tragen noch ein !',
     unresolvedSub:'Bestand nicht bestätigt oder Bestellmenge auffällig',
+    invAskLabel:'Noch nicht übernommen',
+    invAskInstead:'gilt:',
+    invAskNote:'Wir rechnen mit einem Bestand von {v}.',
+    invAskOk:'Passt',
+    invAskCount:'Bestand korrigieren',
+    invAskConfirmed:'Bestand bestätigt, nicht gezählt',
   },
   en:{
     ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
@@ -3557,6 +3609,12 @@ const T={
     dlgClosing:'Once you complete the shelf, it will be marked as done.',
     unresolvedTitle:'items still carry a !',
     unresolvedSub:'Inventory not confirmed, or the order quantity is flagged',
+    invAskLabel:'Not applied yet',
+    invAskInstead:'applies:',
+    invAskNote:'We are assuming a stock of {v}.',
+    invAskOk:'That fits',
+    invAskCount:'Correct inventory',
+    invAskConfirmed:'inventory confirmed, not counted',
   },
   fr:{
     ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
@@ -3871,6 +3929,12 @@ const T={
     dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
     unresolvedTitle:'articles portent encore un !',
     unresolvedSub:'Stock non confirmé ou quantité de commande signalée',
+    invAskLabel:'Pas encore appliqué',
+    invAskInstead:'en vigueur :',
+    invAskNote:'Nous estimons un stock de {v}.',
+    invAskOk:'C’est bon',
+    invAskCount:'Corriger le stock',
+    invAskConfirmed:'stock confirmé, non compté',
   },
 };
 const t=()=>T[LANG];
@@ -4077,6 +4141,21 @@ function initState(it){
   const order=it.rungs[p].order??0, chosen=pre?p:null, auto=(m==='ask');
   return {mode:m, plan:p, chosen, order,
           answered:pre, auto, manual:false, touched:false,
+          /* 'touched' ist gezaehlt, 'invOk' ist bestaetigt-ohne-zaehlen. Beide beantworten
+             die Bestandsfrage, und ueberall, wo bisher !s.touched stand, steht jetzt
+             invAnswered() -- sonst kaeme das ! nach einem "Passt" gleich wieder.
+             Getrennt bleiben sie trotzdem: nur eine echte Zahl darf je in den Bestand,
+             ein "Passt" ist eine Zustimmung zur Schaetzung und keine Zaehlung. */
+          invOk:false,
+          /* Die von Hand getippte Bestellmenge, SOLANGE der Bestand dahinter offen ist:
+             sichtbar, aber noch nicht uebernommen. null = nichts vorgemerkt.
+             Sie ist der einzige Ort, an dem eine unbestaetigte Aenderung liegt --
+             s.order bleibt bis zur Bestaetigung die Zahl des Modells, und damit
+             rechnen Fussleiste, Zusammenfassung und die abgeschickte Bestellung.
+             Der Grund: die Leiter uebersetzt einen BESTAND in eine Menge. Eine Menge
+             ohne den Bestand dahinter ist eine halbe Aussage, und eine halbe Aussage
+             soll nicht stillschweigend zur Bestellung werden. */
+          pendOrder:null,
           home, step:home, ko:0,
           hidden:it.hidden===true, auslage:(it.auslage!=null?it.auslage:1),
           /* Lagerbestand aus dem Kisten-Scan. null = nie gescannt, und dann bleibt die
@@ -4090,6 +4169,12 @@ function initState(it){
    oder er zeigt als Zahl. 'need' hat keine Sprosse zum Zurueckfallen, bleibt also immer
    eine Zahl. touched bleibt danach dauerhaft wahr (siehe initState). */
 function applyKo(it,s,ko){
+  /* Die Zaehlung rechnet die Bestellung neu und ueberschreibt dabei eine von Hand
+     gesetzte Menge -- so war es immer, und so soll es bleiben: die gezaehlte Zahl ist
+     die bessere Auskunft. Eine nur vorgemerkte Menge faellt hier ohne Weiteres weg;
+     uebernommen war sie ohnehin nie. Es bleibt nichts davon stehen: die Zeile ist
+     beantwortet, und wer die Menge doch anders haben will, tippt sie danach. */
+  s.pendOrder=null;
   if(s.home==='range' && rungOfKo(it,ko,s.plan)===s.plan){
     s.step=s.home; s.ko=0; s.manual=false;
     s.chosen=s.pre.chosen; s.order=s.pre.order; s.answered=s.pre.answered; s.auto=s.pre.auto;
@@ -4438,7 +4523,11 @@ const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" ari
    unit primaryCaption12.light -- so the combined string koText() builds has to come
    apart again. Strings without a unit ("egal wie viel", "–") fall through whole. */
 function splitUnit(str){
-  const m = String(str).match(/^(.*?)\s*(KO|kg)$/);
+  /* Die Einheit kommt aus t().caseUnit -- fest verdrahtet ("KO|kg") trennte der
+     Ausdruck nach einer Umbenennung gar nichts mehr, und die Zahl stuende ohne ihr
+     kleingesetztes Kuerzel da. In den anderen Sprachen (CS) hat er das vorher schon
+     nicht getan. */
+  const m = String(str).match(new RegExp('^(.*?)\\s*('+t().caseUnit+'|kg)$'));
   return m ? {v:m[1], u:m[2]} : {v:str, u:''};
 }
 /* Mobile/assets/icons/minus.svg and plus.svg, verbatim, with the hardcoded
@@ -4459,7 +4548,7 @@ function stepHTML(it,s,ix){
     <button class="InventoryCounterField__button" type="button" disabled aria-hidden="true">${ICON_PLUS}</button>
   </div>`;
   }
-  const showUnsure = !s.touched && (s.mode==='unsure'||s.mode==='count'||s.mode==='noladder');
+  const showUnsure = !invAnswered(s) && (s.mode==='unsure'||s.mode==='count'||s.mode==='noladder');
   const cls='InventoryCounterField'+(showUnsure?' InventoryCounterField--warn':'');
   let minusOff,plusOff,big,small;
   if(s.step==='need'){
@@ -4580,7 +4669,34 @@ function whyTags(ix, kind){
    das rote ! an den Zeilen mit invNote fuer immer gestanden -- neben einem Feld, das
    ausdruecklich sagt, dass keine Zaehlung noetig ist -- und rowClear() waere dort nie
    wahr geworden (Regalfortschritt und Uebersicht haetten sie dauerhaft offen gefuehrt). */
-function bangInv(it,s){ return !s.touched && !noCount(s) && (s.mode==='unsure' || !!it.invNote); }
+/* Die Bestandsfrage ist beantwortet -- gezaehlt ODER als richtig bestaetigt. Eine
+   Stelle, weil es frueher vier verschiedene !s.touched waren und jede einzeln haette
+   nachgezogen werden muessen. */
+function invAnswered(s){ return s.touched || s.invOk; }
+/* Wird eine Handeingabe vorgemerkt statt uebernommen? Nur solange die App ueberhaupt
+   eine Annahme hat, die sich bestaetigen laesst: home==='range' ist genau dann wahr,
+   wenn der Modus 'ask' oder 'unsure' ist. 'any' und 'noladder' nehmen gar keine
+   Eingabe an, und 'count' verlangt ohnehin schon eine echte Zahl und blockiert die
+   Bestellung (siehe openSummary) -- dort waere ein Einfrieren nur Laerm. Ist der
+   Bestand beantwortet, gilt eine Handeingabe sofort, wie eh und je. */
+function freezeOrd(it,s){ return !invAnswered(s) && s.home==='range'; }
+/* Die Rueckfrage steht genau so lange, wie etwas vorgemerkt ist -- und vorgemerkt
+   wird nur unter freezeOrd(). Eine Bedingung, ein Zustand: es gibt keinen Weg, bei
+   dem der Streifen und die eingefrorene Zahl auseinanderlaufen koennten. */
+function askInv(it,s){ return s.pendOrder!=null; }
+/* Die Gruende, aus denen eine Zeile ein ! traegt, OHNE die offene Rueckfrage. Die
+   Zusammenfassung rechnet damit: ob der Kaufmann eine vorgemerkte Aenderung
+   bestaetigt oder stehen laesst, ist seine Sache und nichts, was ihm beim
+   Abschliessen noch einmal vorgehalten wird. */
+function bangInvBase(it,s){
+  if(noCount(s) || invAnswered(s)) return false;
+  return s.mode==='unsure' || !!it.invNote;
+}
+/* In der Liste zaehlt die Rueckfrage mit -- dort ist sie die Aufgabe. */
+function bangInv(it,s){ return bangInvBase(it,s) || askInv(it,s); }
+/* Unveraendert -- und genau darum brauchte es askInv(): s.manual laesst das
+   Bestell-! fallen, die Zeile war damit frueher komplett still. Jetzt geht statt
+   dessen das Bestands-! an, und die Zeile bleibt offen. */
 function bangOrd(it,s){ return !s.manual && !!it.ordNote; }
 /* a row counts as erfasst for category progress once neither bang shows —
    mirrors the two bang() calls in render() exactly, not the answered flag. */
@@ -4645,7 +4761,16 @@ function invVal(ix){ const it=ITEMS[ix], s=ST[ix]; return s.step==='ko' ? s.ko :
    wirklich gemacht hat. Achtung: Zeilen im Modus 'ask' starten mit answered=true --
    ein blosses !s.answered wuerde die Neuberechnung genau dort verschlucken, wo sie
    am haeufigsten gebraucht wird. */
+/* Was in der Zelle STEHT. Die vorgemerkte Zahl gewinnt: der Kaufmann soll sehen, was
+   er getippt hat. Was tatsaechlich BESTELLT wird, rechnen stats() und openSummary()
+   weiter aus s.order -- das ist der ganze Unterschied zwischen den beiden, und er ist
+   in der Zelle am gestrichelten Rahmen ablesbar. */
 function orderVal(ix){ const it=ITEMS[ix], s=ST[ix]; const planO=it.rungs[s.plan].order??0;
+  if(s.pendOrder!=null) return s.pendOrder;
+  if(s.backOrder!=null && (!s.answered || s.auto)) return s.backOrder;
+  return s.answered ? s.order : planO; }
+/* Was ohne Bestaetigung wirklich bestellt wird -- die Zahl hinter der vorgemerkten. */
+function ordCommitted(ix){ const it=ITEMS[ix], s=ST[ix]; const planO=it.rungs[s.plan].order??0;
   if(s.backOrder!=null && (!s.answered || s.auto)) return s.backOrder;
   return s.answered ? s.order : planO; }
 function bsDrivesOrder(s){ return s.backOrder!=null && (!s.answered || s.auto); }
@@ -4783,11 +4908,38 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       ? hideBlock(L.shownLabel, L.shownNote,
           `${SCAN_SHOWN[overrideKey(it)]==='auto'?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunshow" data-i="${ix}" title="${L.shownTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
       : '';
+    /* Der Bestands-Rueckfrage-Streifen: ein Zustand, die Frage. Sie nennt die Annahme,
+       um die es geht -- dieselbe Spanne, die der Stepper darueber zeigt, nur
+       ausgeschrieben. Das ist die eine Auskunft, die der Kaufmann braucht, um in
+       einem Blick zu entscheiden.
+       Beantwortet verschwindet er ersatzlos: keine Erfolgsmeldung und kein Weg
+       zurueck. Beides erklaerte etwas, das die Zeile selbst schon zeigt, und haette
+       eine erledigte Zeile weiter wie eine offene aussehen lassen. */
+    const askBlock = !askInv(it,s) ? '' : (()=>{
+      /* Nur die Kistenzahl. Die Stueckzahl in Klammern dahinter sagte dasselbe ein
+         zweites Mal in einer anderen Einheit und machte aus einem Satz eine Rechnung --
+         der Stepper darueber zeigt sie ohnehin. */
+      const assume=koText(it.rungs[s.plan],it);
+      return `<div class="invask">
+        <div class="invask__mv">
+          <span class="lb">${L.invAskLabel}</span>
+          <span class="invask__note">${L.invAskNote.replace('{v}',`<b>${assume}</b>`)}</span>
+        </div>
+        <button class="invask__go" type="button" data-a="invok" data-i="${ix}">${L.invAskOk}</button>
+        <button class="invask__alt" type="button" data-a="invcount" data-i="${ix}">${L.invAskCount}</button>
+      </div>`;
+    })();
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
-    const noteTxt = (s.touched||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
+    /* Der Punkt neben dem Stepper ist die kompakte Fassung des Streifens darunter.
+       Er kommt nur zum Zug, wenn die Zeile sonst gar nichts zu sagen haette --
+       ein echter Grund (unsicher, invNote) ist die genauere Auskunft und behaelt
+       den Vorrang. Ohne ihn behauptete bangInv() eine offene Zeile, die in der
+       Bestandsspalte keinerlei Zeichen truege. */
+    let noteTxt = (invAnswered(s)||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
+    if(!noteTxt && askInv(it,s)) noteTxt = L.invAskLabel;
     let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt,'inv',ix)}</div>`;
     /* Die Auslage des Platzes, an dem der Kaufmann GERADE STEHT -- eine Zahl,
        wie eh und je. Welches Regal das ist, sagt schon das Kennzeichen an der
@@ -4813,12 +4965,18 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const changed = (bsDrivesOrder(s) && s.backOrder!==(it.rungs[s.plan].order??0))
       || (s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0));
     const shown = orderVal(ix);
-    const shownPcs = it.case!=null ? Math.round(shown*it.case) : null;
-    let ord = `<div class="withbang"><div class="ColumnCounterField${changed?' ColumnCounterField--changed':''}">
+    const pend = s.pendOrder!=null;
+    /* Unter der vorgemerkten Zahl steht nicht die Stueckzahl, sondern die Zahl, die
+       ohne Bestaetigung wirklich bestellt wird. Das ist an dieser Stelle die einzige
+       Auskunft, die der Kaufmann noch nicht hat: dass die grosse Zahl noch nichts tut. */
+    const shownPcs = pend ? null : (it.case!=null ? Math.round(shown*it.case) : null);
+    const pendSub = pend ? `${L.invAskInstead} ${ordCommitted(ix)} ${L.caseUnit}` : null;
+    let ord = `<div class="withbang"><div class="ColumnCounterField${changed&&!pend?' ColumnCounterField--changed':''}${pend?' ColumnCounterField--pending':''}">
       <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="${t().less}">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="${t().adjustOrder}">
         <span class="ColumnCounterField__value"><b>${shown}</b><i>${t().caseUnit}</i></span>
         ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
+        ${pendSub?`<span class="ColumnCounterField__label">${pendSub}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
     </div>${bang(s.manual?null:it.ordNote,'ord',ix)}</div>`;
@@ -4849,7 +5007,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${hideCta}${moveCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${hideCta}${moveCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -5213,7 +5371,7 @@ function renderCatChip(){
    ohnehin aus. Die Zahl sinkt, waehrend der Kaufmann die Zeilen abarbeitet. */
 function needsAttn(it,s){
   if(s.hidden && !MANAGE_MODE) return false;
-  return (!s.touched && (s.mode==='unsure' || it.invNote)) || !!it.ordNote;
+  return (!invAnswered(s) && (s.mode==='unsure' || it.invNote)) || !!it.ordNote || askInv(it,s);
 }
 function attnCount(){
   return ITEMS.filter((it,ix)=>needsAttn(it,ST[ix])).length;
@@ -6151,12 +6309,47 @@ function rowClick(e){
     pushChange(it, `${t().seqMoved} · ${tileLabel(seqShelf(it))}`);
     seqFlip(ix, render); }
   else if(a==='inc'||a==='dec'){ TAPS++;
-    const prev=s.answered?s.order:(it.rungs[s.plan].order??0);
-    const next=Math.max(0,prev+(a==='inc'?1:-1));
-    s.order=next; s.answered=true;
-    if(next!==prev) s.manual=true;
-    pushChange(it, `Bestellung ${prev} → ${next} CS`);
+    /* Gestuft wird immer von der Zahl aus, die in der Zelle STEHT -- auch wenn das
+       eine vorgemerkte ist. Sonst spraenge die Anzeige beim zweiten Tipp zurueck auf
+       den Vorschlag des Modells. */
+    const committed=ordCommitted(ix);
+    const base=s.pendOrder!=null?s.pendOrder:committed;
+    const next=Math.max(0,base+(a==='inc'?1:-1));
+    if(freezeOrd(it,s)){
+      /* Zurueck auf der Zahl des Modells heisst: es gibt nichts mehr vorzumerken und
+         nichts mehr zu fragen. Der Streifen geht damit von selbst wieder zu. */
+      s.pendOrder = (next===committed) ? null : next;
+      pushChange(it, next===committed
+        ? `Bestellung wieder ${committed} CS`
+        : `Bestellung ${committed} → ${next} CS (vorgemerkt, Bestand offen)`);
+    } else {
+      s.order=next; s.answered=true;
+      /* Eine neue Handeingabe ueberholt den Weg zurueck: die Zahl, auf die er zeigte,
+         hat der Kaufmann gerade selbst ersetzt. */
+      if(next!==base) s.manual=true;
+      pushChange(it, `Bestellung ${base} → ${next} CS`);
+    }
     render(); }
+  /* "Passt" -- die Schaetzung der App wird als richtig uebernommen, ohne zu zaehlen.
+     Das ist eine Antwort auf die Bestandsfrage und beendet den Streifen, ruehrt aber
+     weder die Bestellmenge noch den Stepper an: es wurde nichts gezaehlt, also steht
+     dort weiter die Spanne, nicht eine Zahl. */
+  else if(a==='invok'){ TAPS++;
+    s.invOk=true;
+    /* Ein Druck, zwei Aussagen -- und das ist Absicht: die Schaetzung stimmt, ALSO
+       darf die Menge gelten. Getrennte Knoepfe haetten aus einer Entscheidung zwei
+       gemacht, von denen die zweite nie eine echte Wahl gewesen waere. */
+    if(s.pendOrder!=null){
+      const prev=ordCommitted(ix);
+      s.order=s.pendOrder; s.answered=true; s.auto=false;
+      if(s.order!==prev) s.manual=true;
+      s.pendOrder=null;
+      pushChange(it, `${koText(it.rungs[s.plan],it)} · ${t().invAskConfirmed} · Bestellung ${prev} → ${s.order} CS`);
+    } else {
+      pushChange(it, `${koText(it.rungs[s.plan],it)} · ${t().invAskConfirmed}`);
+    }
+    render(); }
+  else if(a==='invcount'){ openInvPad(ix); }
 }
 list.addEventListener('click',rowClick);
 document.getElementById('q').addEventListener('input',render);
@@ -6357,7 +6550,7 @@ function autoFix(list){
       SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
                        prevAuslage:st.auslage, auto:true};
       setCatOverride(it, CATFILTER.id);
-      /* Der Text verspricht "mit Auslage von 1 KO" -- dann muss es auch passieren.
+      /* Der Text verspricht "mit Auslage von 1 Ki" -- dann muss es auch passieren.
          Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
          Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
       st.auslage=1;
@@ -6769,9 +6962,10 @@ document.getElementById('invSpeichern').onclick=()=>{
 let ORD={ix:null,val:'0',orig:0};
 function openOrdPad(ix){
   const it=ITEMS[ix], s=ST[ix];
-  const planO=it.rungs[s.plan].order??0;
-  const current=s.answered?s.order:planO;
-  ORD={ix,val:String(current),orig:current};
+  /* Geoeffnet wird auf der Zahl, die in der Zelle steht (ggf. der vorgemerkten);
+     verglichen wird gegen die, die wirklich gilt -- sonst hiesse "unveraendert"
+     zweierlei. */
+  ORD={ix,val:String(orderVal(ix)),orig:ordCommitted(ix)};
   document.getElementById('ordName').textContent=it.name;
   document.getElementById('ordMeta').textContent=`${t().case} ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'?'} · ${t().cost} ${eur(it.ek||0)} · ${t().retail} ${eur(it.vk||0)}`;
   drawOrdPad();
@@ -6797,9 +6991,15 @@ document.getElementById('ordAbbrechen').onclick=closeOrdPad;
 document.getElementById('ordSpeichern').onclick=()=>{
   const ix=ORD.ix, s=ST[ix]; TAPS++;
   const next=Math.max(0,parseInt(ORD.val||'0',10)||0);
-  s.order=next; s.answered=true;
-  if(next!==ORD.orig) s.manual=true;
-  if(next!==ORD.orig) pushChange(ITEMS[ix], `Bestellung ${ORD.orig} → ${next} CS`);
+  const it=ITEMS[ix];
+  if(freezeOrd(it,s)){
+    s.pendOrder = (next===ORD.orig) ? null : next;
+    if(next!==ORD.orig) pushChange(it, `Bestellung ${ORD.orig} → ${next} CS (vorgemerkt, Bestand offen)`);
+  } else {
+    s.order=next; s.answered=true;
+    if(next!==ORD.orig){ s.manual=true;
+      pushChange(it, `Bestellung ${ORD.orig} → ${next} CS`); }
+  }
   closeOrdPad(); render();
 };
 
@@ -6933,8 +7133,14 @@ function openSummary(){
      ohne jeden Weg, sie zu beantworten. */
   const blocked=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&!noCount(ST[ix])&&['count','noladder','unsure'].includes(ST[ix].mode));
   const blockedSet=new Set(blocked);
+  /* Eine offene Rueckfrage ist hier KEIN Thema: bestaetigen oder nicht entscheidet der
+     Kaufmann in der Liste, und das Blatt zaehlt es ihm beim Abschliessen nicht noch
+     einmal auf. Darum bangInvBase() statt rowClear() -- eine Zeile, die aus einem
+     echten Grund ein ! traegt, steht weiter hier; eine, die nur eine unbestaetigte
+     Aenderung hat, nicht. */
+  const settled=(it,s)=>!bangInvBase(it,s) && !bangOrd(it,s);
   const unresolved=ITEMS.filter((it,ix)=>
-    !ST[ix].hidden && !rowClear(it,ST[ix]) && !blockedSet.has(it));
+    !ST[ix].hidden && !settled(it,ST[ix]) && !blockedSet.has(it));
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+= s.answered?s.order:(it.rungs[s.plan].order??0)});
   const de=LANG==='de';
   let h='';
@@ -8354,6 +8560,105 @@ function bsSelfTest(){
     ok('klick: + (keine Zeile vorhanden)', true, 'uebersprungen');
   }
   bsScanOff(); bsClose(false); bsDraftClear();
+
+  // 17) Handeingabe wird vorgemerkt statt uebernommen, bis der Bestand beantwortet ist.
+  reset();
+  const ixQ=ITEMS.findIndex((it,ix)=>ST[ix].home==='range' && it.rungs.length>1);
+  const bump=(ix,n)=>{ for(let k=0;k<n;k++){
+    document.querySelector(`#list .row[data-ix="${ix}"] [data-a="inc"]`).click(); } };
+  if(ixQ<0){
+    ok('vormerken: (keine passende Zeile in diesen Daten)', true, 'uebersprungen');
+  } else {
+    const itQ=ITEMS[ixQ], sQ=ST[ixQ];
+    render();
+    const model=ordCommitted(ixQ);
+    ok('vormerken: unangetastet wird nichts gefragt', askInv(itQ,sQ)===false);
+    bump(ixQ,3);
+    ok('vormerken: die getippte Zahl steht in der Zelle',
+       orderVal(ixQ)===model+3, 'zelle='+orderVal(ixQ));
+    /* Der Kern der Aenderung: gesehen ja, uebernommen nein. */
+    ok('vormerken: bestellt wird weiter die Zahl des Modells',
+       ordCommitted(ixQ)===model && sQ.order===model && sQ.manual===false,
+       'bestellt='+ordCommitted(ixQ));
+    ok('vormerken: die Zelle sagt das auch',
+       rowHTML(ixQ).includes('ColumnCounterField--pending'));
+    ok('vormerken: und die Rueckfrage steht da', askInv(itQ,sQ)===true
+       && rowHTML(ixQ).includes('class="invask"'));
+    ok('vormerken: die Zeile gilt nicht als erledigt', rowClear(itQ,sQ)===false);
+    ok('vormerken: und zaehlt in die Regal-Aufmerksamkeit', needsAttn(itQ,sQ)===true);
+    /* Passt steht vor Bestand zaehlen -- die haeufigere Antwort zuerst. */
+    const html=rowHTML(ixQ);
+    ok('vormerken: "Passt" steht vor "Bestand zaehlen"',
+       html.indexOf('data-a="invok"') < html.indexOf('data-a="invcount"'));
+
+    // Zurueck auf die Zahl des Modells: nichts mehr vorgemerkt, nichts mehr zu fragen.
+    const dec=()=>document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="dec"]`).click();
+    dec(); dec(); dec();
+    ok('zuruecktippen: nichts vorgemerkt', sQ.pendOrder===null);
+    ok('zuruecktippen: die Rueckfrage ist von selbst wieder zu', askInv(itQ,sQ)===false);
+
+    // "Passt": bestaetigt den Bestand UND uebernimmt damit die Menge.
+    bump(ixQ,3);
+    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
+    ok('passt: die Menge ist jetzt uebernommen',
+       sQ.order===model+3 && sQ.manual===true && sQ.pendOrder===null, 'order='+sQ.order);
+    ok('passt: und sie zaehlt jetzt auch wirklich', ordCommitted(ixQ)===model+3);
+    ok('passt: gezaehlt wurde nichts -- der Stepper zeigt weiter die Spanne',
+       sQ.touched===false && sQ.invOk===true && sQ.step==='range');
+    ok('passt: kein Streifen, kein gestrichelter Rahmen mehr',
+       !rowHTML(ixQ).includes('class="invask"') && !rowHTML(ixQ).includes('--pending'));
+    ok('passt: die Zeile ist erledigt', rowClear(itQ,sQ)===true);
+    /* Ist der Bestand einmal beantwortet, gilt jede weitere Handeingabe sofort. */
+    bump(ixQ,1);
+    ok('danach: weitere Aenderungen gelten sofort',
+       sQ.pendOrder===null && ordCommitted(ixQ)===model+4, 'bestellt='+ordCommitted(ixQ));
+
+    // Zaehlen statt bestaetigen: die Vormerkung faellt, die Leiter rechnet neu.
+    reset(); render();
+    const sR=ST[ixQ], itR=ITEMS[ixQ];
+    bump(ixQ,3);
+    const wanted=orderVal(ixQ);
+    const other=itR.rungs.findIndex((r,i)=>i!==sR.plan && (r.order??0)!==(itR.rungs[sR.plan].order??0));
+    if(other<0){
+      ok('zaehlen: (keine zweite Sprosse mit anderer Menge)', true, 'uebersprungen');
+    } else {
+      const rO=itR.rungs[other];
+      applyKo(itR, sR, rO.lo!=null ? rO.lo : 0);
+      ok('zaehlen: die Vormerkung ist weg', sR.pendOrder===null);
+      ok('zaehlen: der Bestand ist beantwortet', sR.touched===true && askInv(itR,sR)===false);
+      ok('zaehlen: die Leiter hat die Bestellung gerechnet',
+         sR.order===(rO.order??0) && ordCommitted(ixQ)===(rO.order??0), 'order='+sR.order);
+      ok('zaehlen: die gezaehlte Zahl setzt sich gegen die vorgemerkte durch',
+         sR.order!==wanted || wanted===(rO.order??0), 'wollte '+wanted+', wurde '+sR.order);
+      /* Beantwortet heisst fertig: der Streifen ist weg und laesst nichts stehen --
+         weder eine Erfolgsmeldung noch einen Weg zurueck. */
+      const doneHtml=rowHTML(ixQ);
+      ok('zaehlen: die Zeile laesst nichts stehen',
+         !doneHtml.includes('class="invask"') && !doneHtml.includes('invask is-done')
+         && !doneHtml.includes('data-a="ordundo"') && !doneHtml.includes('--pending'));
+      ok('zaehlen: und gilt als erledigt', rowClear(itR,sR)===true);
+    }
+
+    /* Die Fussleiste rechnet mit dem, was bestellt wird -- nicht mit dem Vorgemerkten. */
+    reset(); render();
+    const kollis=()=>parseInt(document.getElementById('fcases').textContent,10);
+    const k0=kollis();
+    bump(ixQ,2);
+    ok('fussleiste: eine vorgemerkte Menge bewegt die Summe nicht', kollis()===k0, 'kollis='+kollis());
+    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
+    ok('fussleiste: die bestaetigte bewegt sie', kollis()===k0+2, 'kollis='+kollis());
+  }
+  /* Gesperrte Zeilen ('any'/'noladder') und Pflichtzaehlungen ('count') frieren nicht ein:
+     die ersten nehmen gar keine Eingabe an, die letzte blockiert die Bestellung ohnehin. */
+  reset();
+  const ixL=ITEMS.findIndex((it,ix)=>ST[ix].home!=='range');
+  if(ixL<0){
+    ok('vormerken: (keine gesperrte/Pflicht-Zeile in diesen Daten)', true, 'uebersprungen');
+  } else {
+    ok('vormerken: Zeilen ohne Annahme frieren nicht ein',
+       freezeOrd(ITEMS[ixL],ST[ixL])===false, 'mode='+ST[ixL].mode);
+  }
+  reset(); render();
 
   // Zustand zuruecksetzen -- der Selbsttest darf die Seite nicht veraendert hinterlassen.
   bsPickCode=pickSave;            // der Demo-Sucher gehoert der Seite, nicht dem Test
