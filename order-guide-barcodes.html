@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Order Guide — Barcodes &amp; Nachbearbeitung</title>
+<link rel="stylesheet" href="assets/ff-tokens.css">
+<style>
+:root{
+  --green:#306a57; --green-dark:#28584a;
+  --attn:#ff8502; --danger:#a1160a;
+  --line:#e7e6e6; --ink:#27272a; --ink2:#52525b; --ink3:#71717a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#e9eaea}
+body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+.app{max-width:705px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ---------- header ---------- */
+.hdr{background:var(--green);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+.hdr .back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;opacity:.95;cursor:pointer;background:none;border:0;color:inherit;font-family:inherit;padding:0}
+.hdr .titles{flex:1;min-width:0}
+.hdr .t1{font-weight:700;font-size:15px;line-height:1.3}
+.hdr .t2{font-size:12.5px;line-height:1.4;color:#c9dbd3}
+.hdr .t2 b{color:#c1ce5d;font-weight:600}
+.hdr .done{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-size:15px;font-weight:700;flex:none}
+
+/* ---------- save bar ---------- */
+.savebar{display:none;background:var(--ff-orange-10,#fff4e7);border-bottom:1px solid #f5d7ac;padding:10px 16px;gap:12px;align-items:center;position:sticky;top:60px;z-index:25}
+.savebar.on{display:flex}
+.savebar .ico{width:22px;height:22px;border-radius:50%;background:var(--attn);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.savebar .msg{flex:1;font-size:12.5px;line-height:1.45;color:#6b4a19}
+.savebar .msg b{display:block;font-size:13px;color:#4a3410;font-weight:700;margin-bottom:1px}
+.savebar .act{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
+.btn-save{border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;font-family:inherit;background:var(--green);color:#fff;cursor:pointer;white-space:nowrap}
+.btn-save:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
+.savebar .left{font-size:10.5px;color:#8a6a35;white-space:nowrap}
+
+/* ---------- search + toolbar ---------- */
+.search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink3)}
+.search input{border:0;outline:0;font-family:inherit;font-size:15px;flex:1;color:var(--ink)}
+.toolbar{display:flex;align-items:center;justify-content:center;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.sw{width:36px;height:20px;border-radius:12px;background:var(--attn);position:relative;flex:none;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:#fff}
+.toolbar .lbl{font-size:13px;color:var(--ink2)}
+.tsep{width:1px;height:20px;background:var(--line)}
+.tbtn{display:flex;align-items:center;gap:7px;background:none;border:0;font-family:inherit;font-size:13px;color:var(--ink2);cursor:pointer;padding:0}
+.tbtn .u{border-bottom:1px solid #c9c9cd;padding-bottom:1px}
+
+/* ---------- table ---------- */
+.thead,.row{display:grid;grid-template-columns:1fr 112px 128px 150px;gap:10px;padding:10px 16px;align-items:start}
+.thead{border-bottom:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink2);position:sticky;z-index:10;background:#fff}
+.info-i{display:inline-grid;place-items:center;width:15px;height:15px;border:1px solid #c9c9cd;border-radius:3px;font-size:9px;color:var(--ink3);vertical-align:1px;margin-left:5px;font-style:italic;font-weight:600}
+.rows{flex:1}
+.row{border-bottom:1px solid var(--line);position:relative}
+.row.edited{background:#f7fcf6}
+.row.edited::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ff-color-success,#6ea050)}
+
+.nm{font-weight:700;font-size:14.5px;line-height:1.25;margin-bottom:6px}
+.meta{font-size:12.5px;color:var(--ink3);line-height:1.5}
+.meta .plu{color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:10.5px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink2);background:#fff;white-space:nowrap}
+.tag.promo{background:#a1160a;border-color:#a1160a;color:#fff;font-weight:600}
+.tag.bio{background:#fff;border-color:var(--line)}
+
+/* inventory */
+.inv{display:flex;align-items:center;gap:6px}
+.invbox{border:1px solid var(--line);border-radius:7px;padding:6px 8px;text-align:center;min-width:86px;background:#fff}
+.invbox .a{font-size:13px;font-weight:600;line-height:1.2}
+.invbox .a .u{font-size:9.5px;color:var(--ink3);font-weight:600}
+.invbox .b{font-size:10px;color:var(--ink3);margin-top:2px}
+.invbox.none{color:var(--ink3);font-size:12px;padding:10px 8px;background:#fafafa}
+.dsize{font-size:10px;color:var(--ink3);margin-top:6px}
+.dsize b{color:var(--ink2);font-weight:600}
+.bang{width:15px;height:15px;border-radius:50%;background:var(--attn);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:4px}
+.iinfo{width:15px;height:15px;border-radius:50%;border:1.4px solid #5a6bc2;color:#5a6bc2;font-size:9px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:4px;font-style:italic}
+
+/* order stepper */
+.ord{display:flex;align-items:center;gap:5px}
+.step{width:28px;height:30px;border:1px solid var(--line);border-radius:6px;background:#fafafa;color:var(--ink2);font-size:17px;line-height:1;display:grid;place-items:center;cursor:pointer;flex:none;font-family:inherit;padding:0}
+.step:active{background:#efefef}
+.step:disabled{opacity:.4;cursor:not-allowed}
+.qty{border:1px solid var(--line);border-radius:7px;padding:4px 4px 5px;text-align:center;min-width:52px;background:#fff}
+.qty .a{display:flex;align-items:baseline;justify-content:center;gap:2px;color:var(--attn);font-weight:700;font-size:14px;line-height:1.2}
+.qty input{width:26px;border:0;outline:0;background:transparent;font-family:inherit;font-size:14px;font-weight:700;color:var(--attn);text-align:right;padding:0;-moz-appearance:textfield}
+.qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qty .u{font-size:9.5px;color:var(--attn);font-weight:600}
+.qty .b{font-size:10px;color:var(--ink3);margin-top:1px}
+.row.edited .qty{border-color:var(--ff-color-success,#6ea050);box-shadow:0 0 0 1px var(--ff-color-success,#6ea050) inset}
+.row.edited .qty .a,.row.edited .qty input,.row.edited .qty .u{color:var(--ff-color-success,#6ea050)}
+.was{grid-column:3;font-size:10px;color:var(--ink3);margin-top:5px;display:none;align-items:center;gap:5px}
+.row.edited .was{display:flex}
+.was button{background:none;border:0;font-family:inherit;font-size:10px;color:var(--green);cursor:pointer;text-decoration:underline;padding:0}
+
+/* barcode */
+.bc{display:block;width:100%;height:58px}
+.bcw{cursor:pointer}
+.bcw.scanned{opacity:.35}
+.bcn{font-size:9.5px;color:var(--ink3);text-align:center;letter-spacing:.06em;margin-top:3px}
+
+/* ---------- pager ---------- */
+.pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;border-top:1px solid var(--line)}
+.parrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;font-size:16px;color:var(--ink2);font-family:inherit}
+.parrow:disabled{opacity:.35;cursor:not-allowed}
+.pager .p{font-size:13px;color:var(--ink2)}
+.pager .p b{font-weight:700;color:var(--ink)}
+.fab{position:absolute;right:16px;bottom:74px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer;z-index:20}
+
+/* ---------- stats ---------- */
+.stats{display:flex;align-items:center;gap:6px;padding:10px 16px;border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0;z-index:15}
+.stat{flex:1;text-align:center;min-width:0}
+.stat .k{font-size:10px;color:var(--ink3);line-height:1.4}
+.stat .v{font-size:12.5px;font-weight:700;line-height:1.4;white-space:nowrap}
+.stat .v.acc{display:flex;align-items:center;gap:5px;justify-content:center}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ff-color-success,#6ea050);flex:none}
+.cont{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:13.5px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media(max-width:620px){
+  .thead,.row{grid-template-columns:1fr 84px 104px;gap:6px;padding:10px 12px}
+  .bcw{grid-column:1/-1;margin-top:8px}
+  .was{grid-column:1/-1}
+  .invbox{min-width:0;padding:5px 4px}
+  .ord{gap:3px}
+  .step{width:22px;height:26px;font-size:15px}
+  .qty{min-width:40px;padding:3px 2px 4px}
+  .qty input{width:20px}
+  .stats{gap:2px;padding:8px 10px;overflow-x:auto}
+  .stat .v{font-size:11px}
+  .cont{font-size:12px}
+  .savebar{top:auto;position:static}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hdr">
+    <button class="back">&#8249; Back</button>
+    <div class="titles">
+      <div class="t1">Order Guide <span id="hdrDate">Mon, Sep 21</span> &nbsp;|&nbsp; Rewe</div>
+      <div class="t2">Closed <b>Mon, Sep 21 9:43 AM</b></div>
+    </div>
+    <div class="done">&#10003;</div>
+  </div>
+
+  <div class="savebar" id="savebar">
+    <div class="ico">!</div>
+    <div class="msg">
+      <b>Möchtest du die Änderungen speichern?</b>
+      Sobald du alle Barcodes gescannt hast, kannst du die Änderungen übernehmen.
+    </div>
+    <div class="act">
+      <button class="btn-save" id="btnSave" disabled>Änderungen übernehmen</button>
+      <div class="left" id="pagesLeft"></div>
+    </div>
+  </div>
+
+  <div class="search">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input placeholder="Search" aria-label="Search">
+  </div>
+
+  <div class="toolbar">
+    <div class="sw"></div>
+    <span class="lbl">Hide 0-Orders</span>
+    <div class="tsep"></div>
+    <button class="tbtn"><svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 6h16M4 12h11M4 18h6"/></svg><span class="u">Needs Attention (26)</span> &#9662;</button>
+    <div class="tsep"></div>
+    <button class="tbtn"><svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 5h18M6 12h12M10 19h4"/></svg><span>Filter</span></button>
+  </div>
+
+  <div class="thead">
+    <div>Item</div>
+    <div>Inventory<span class="info-i">i</span></div>
+    <div>Order<span class="info-i">i</span></div>
+    <div></div>
+  </div>
+
+  <div class="rows" id="rows"></div>
+
+  <div class="pager">
+    <button class="parrow" id="prev">&#8592;</button>
+    <div class="p">Page <b id="pgNow">1</b> of <b id="pgAll">14</b></div>
+    <button class="parrow" id="next">&#8594;</button>
+  </div>
+
+  <button class="fab" title="Scan">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 19h2v2h-2zM14 19h2v2h-2zM19 14h2v2h-2z"/></svg>
+  </button>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Line Items</div><div class="v" id="sLines">68</div></div>
+    <div class="stat"><div class="k">Case Count</div><div class="v" id="sCases">77</div></div>
+    <div class="stat"><div class="k">Order Cost</div><div class="v" id="sCost">—</div></div>
+    <div class="stat"><div class="k">Retail Price</div><div class="v" id="sRetail">—</div></div>
+    <div class="stat"><div class="k">Margin</div><div class="v" id="sMargin">—</div></div>
+    <div class="stat"><div class="k">Acceptance</div><div class="v acc"><span class="dot"></span><span id="sAcc">—</span></div></div>
+    <button class="cont">Continue Editing <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 10-2.3 5.7M20 5v6h-6"/></svg></button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- fake, but deterministic, order guide ---------- */
+function rng(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296);}
+
+const NAMES=[
+ ["1KG TRAUBE ROT KERNL. REWE BW LS",5,"KG",3.12,3.99],
+ ["500G BOHNE STANGE RL REWE REG PK",6,"Piece",2.57,3.79],
+ ["MANGO BIO FASERARM 8ER REWE BIO 1ST LS",8,"Piece",1.66,1.99],
+ ["1KG ORANGE SAFT UEB VALENSINA GI",10,"Piece",2.56,3.99],
+ ["750G MANDARINE UEB REWE BW GI",12,"Piece",1.64,1.99],
+ ["500G ERDBEERE DE REWE REG SCH",8,"Piece",2.31,2.99],
+ ["1KG APFEL ELSTAR DE REWE BW BT",6,"KG",1.42,1.99],
+ ["BANANE CHIQUITA UEB 18,14KG KT",18,"KG",0.94,1.49],
+ ["400G HEIDELBEERE PE REWE SCH",12,"Piece",2.78,3.49],
+ ["1KG ZWIEBEL GELB DE REWE BT",10,"KG",0.72,1.29],
+ ["500G RISPENTOMATE NL REWE SCH",10,"Piece",1.18,1.79],
+ ["GURKE SCHLANGE DE REWE 1ST",12,"Piece",0.58,0.99],
+ ["250G HIMBEERE ES REWE SCH",10,"Piece",1.92,2.49],
+ ["1KG KARTOFFEL FK DE REWE BT",8,"KG",0.88,1.49],
+ ["PAPRIKA MIX NL REWE 3ER PK",8,"Piece",1.74,2.29],
+ ["300G MOEHRE BUND DE REWE REG BD",12,"Piece",0.79,1.19],
+ ["AVOCADO HASS PE REWE 1ST",12,"Piece",1.12,1.69],
+ ["500G KIRSCHE TR REWE SCH",8,"Piece",3.41,4.49],
+ ["1KG BIRNE CONFERENCE NL REWE BT",6,"KG",1.58,2.19],
+ ["KOPFSALAT DE REWE REG 1ST",10,"Piece",0.61,0.89],
+ ["250G CHAMPIGNON WEISS DE REWE SCH",12,"Piece",0.94,1.39],
+ ["ZUCCHINI ES REWE 1ST LS",10,"Piece",0.66,0.99],
+ ["1KG CLEMENTINE ES REWE BW NT",10,"Piece",1.86,2.49],
+ ["500G KIWI GREEN IT REWE SCH",9,"Piece",1.44,1.99],
+ ["BROKKOLI ES REWE 1ST",8,"Piece",1.02,1.49],
+ ["400G TRAUBE WEISS KERNL. IT REWE SCH",10,"Piece",2.14,2.79],
+ ["1KG ZITRONE ES REWE BIO NT",8,"Piece",2.24,2.99],
+ ["500G PFLAUME DE REWE REG SCH",9,"Piece",1.52,1.99],
+ ["LAUCH DE REWE REG 1ST",12,"Piece",0.71,1.09],
+ ["ANANAS CR REWE 1ST",6,"Piece",1.62,2.29],
+ ["500G RADIESCHEN DE REWE BD",12,"Piece",0.48,0.79],
+ ["1KG MELONE WASSER ES REWE 1ST",4,"Piece",2.88,3.99],
+ ["300G ROMANA HERZEN DE REWE 3ER",10,"Piece",1.24,1.69],
+ ["1KG APFEL BRAEBURN IT REWE BT",6,"KG",1.36,1.89],
+ ["SELLERIE KNOLLE DE REWE 1ST",8,"Piece",0.92,1.39]
+];
+const TAGS=[["Promo: Mon-Sat","promo"],["Bio","bio"],["Core assortment",""],["Promo: Wed-Sat","promo"],["Regional",""]];
+const TOTAL=68, PER_PAGE=5;
+
+const items=[];
+const r=rng(20260921);
+for(let i=0;i<TOTAL;i++){
+  const b=NAMES[i%NAMES.length];
+  const cs=b[1], unit=b[2];
+  const reco=[1,1,1,1,1,1,1,1,1,1,2,2][Math.floor(r()*12)];
+  const noCount=r()<0.28;
+  const hi=Math.round((0.3+r()*1.6)*10)/10;
+  items.push({
+    id:i,
+    name:i<NAMES.length?b[0]:b[0].replace(/^(\d+G|\d+KG)/,m=>m),
+    plu:String(1000000+Math.floor(r()*8999999)),
+    cs:cs, unit:unit,
+    cost:b[3], retail:b[4],
+    sys:reco, reco:reco, qty:reco,
+    display:1+Math.floor(r()*2),
+    noCount:noCount, invHi:hi,
+    attnInv:!noCount && r()<0.75,
+    attnOrd:r()<0.62,
+    ordPrev:[0,1][Math.floor(r()*2)],
+    tags:(()=>{const t=[];if(r()<0.55)t.push(TAGS[0]);if(r()<0.18)t.push(TAGS[1]);if(r()<0.22)t.push(TAGS[2]);if(r()<0.12)t.push(TAGS[3]);return t;})(),
+    ean:"4"+String(Math.floor(r()*1e11)).padStart(12,"0").slice(0,12),
+    scanned:false
+  });
+}
+[7,24,51].forEach(i=>{ items[i].sys=items[i].reco+1; });   // already touched while ordering
+const PAGES=Math.ceil(items.length/PER_PAGE);
+
+/* ---------- fake barcode ---------- */
+function barcodeSVG(seed){
+  const rr=rng(seed*7919+13);
+  const M=2, W=95; let bars="";
+  const bar=(x,w)=>bars+=`<rect x="${x*M}" y="0" width="${w*M}" height="58" fill="#111"/>`;
+  bar(0,1); bar(2,1);                       // left guard
+  let x=4;
+  while(x<W-6){
+    const w=1+Math.floor(rr()*3);
+    bar(x,w);
+    x+=w+1+Math.floor(rr()*2);
+  }
+  bar(W-3,1); bar(W-1,1);                   // right guard
+  return `<svg class="bc" viewBox="0 0 ${W*M} 58" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+/* ---------- state ---------- */
+let page=1, reachedLast=false, dirty=false, saved=false;
+const money=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+const pct=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+const num=n=>(Math.round(n*100)/100).toLocaleString("de-DE");
+
+function render(){
+  const from=(page-1)*PER_PAGE, list=items.slice(from,from+PER_PAGE);
+  rows.innerHTML=list.map(it=>{
+    const base=(v)=>num(v*it.cs)+" "+(it.unit==="KG"?"KG":"Piece");
+    const inv = it.noCount
+      ? `<div class="invbox none">No count<br>needed</div><div class="iinfo">i</div>`
+      : `<div class="invbox"><div class="a">0 – ${num(it.invHi)}<span class="u"> CS</span></div><div class="b">0 – ${base(it.invHi)}</div></div>${it.attnInv?'<div class="bang">!</div>':''}`;
+    return `
+    <div class="row${it.qty!==it.reco?' edited':''}" data-id="${it.id}">
+      <div>
+        <div class="nm">${it.name}</div>
+        <div class="meta"><span class="plu">${it.plu}</span> &nbsp; ${it.cs} ${it.unit}</div>
+        <div class="meta">${money(it.cost)} &nbsp; ${pct((it.retail/1.07-it.cost)/(it.retail/1.07)*100)} &nbsp; ${money(it.retail)}</div>
+        <div class="tags">
+          <span class="tag">Ord. ${it.ordPrev} CS</span>
+          ${it.tags.map(t=>`<span class="tag ${t[1]}">${t[0]}</span>`).join("")}
+        </div>
+      </div>
+      <div>
+        <div class="inv">${inv}</div>
+        <div class="dsize">Display size <b>${it.display} CS</b></div>
+      </div>
+      <div class="ord">
+        <button class="step minus" ${it.qty<=0?"disabled":""}>&#8722;</button>
+        <div class="qty">
+          <div class="a"><input type="number" min="0" max="99" value="${it.qty}" inputmode="numeric"><span class="u">CS</span></div>
+          <div class="b">${base(it.qty)}</div>
+        </div>
+        <button class="step plus">+</button>
+        ${it.attnOrd?'<div class="bang">!</div>':''}
+      </div>
+      <div class="bcw${it.scanned?' scanned':''}">${barcodeSVG(it.id)}<div class="bcn">${it.ean}</div></div>
+      <div class="was">vorher ${it.reco} CS <button class="undo">zurücksetzen</button></div>
+    </div>`;
+  }).join("");
+  pgNow.textContent=page; pgAll.textContent=PAGES;
+  prev.disabled=page===1; next.disabled=page===PAGES;
+  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
+  stats();
+  saveState();
+}
+
+function stats(){
+  const cases=items.reduce((a,i)=>a+i.qty,0);
+  const cost=items.reduce((a,i)=>a+i.qty*i.cs*i.cost,0);
+  const ret=items.reduce((a,i)=>a+i.qty*i.cs*i.retail,0);
+  const kept=items.filter(i=>i.qty===i.sys).length;
+  sLines.textContent=items.length;
+  sCases.textContent=cases;
+  sCost.textContent=money(cost);
+  sRetail.textContent=money(ret);
+  sMargin.textContent=pct(ret?((ret/1.07-cost)/(ret/1.07))*100:0);
+  sAcc.textContent=pct(kept/items.length*100);
+}
+
+function saveState(){
+  if(!dirty) return;
+  savebar.classList.add("on");
+  const left=PAGES-page;
+  btnSave.disabled=!reachedLast;
+  pagesLeft.textContent=reachedLast?"alle Seiten gesehen":(left===1?"noch 1 Seite":"noch "+left+" Seiten");
+}
+
+function touch(){ if(!dirty){dirty=true;saved=false;savebar.classList.add("on");} }
+
+function setQty(id,v){
+  const it=items.find(x=>x.id===id);
+  v=Math.max(0,Math.min(99,isNaN(v)?it.qty:v));
+  if(v===it.qty) return;
+  it.qty=v; touch(); render();
+}
+
+/* ---------- events ---------- */
+const rows=document.getElementById("rows");
+rows.addEventListener("click",e=>{
+  const row=e.target.closest(".row"); if(!row) return;
+  const id=+row.dataset.id, it=items.find(x=>x.id===id);
+  if(e.target.closest(".plus")) setQty(id,it.qty+1);
+  else if(e.target.closest(".minus")) setQty(id,it.qty-1);
+  else if(e.target.closest(".undo")) setQty(id,it.reco);
+  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; render(); }
+});
+rows.addEventListener("change",e=>{
+  if(e.target.matches(".qty input")){
+    const row=e.target.closest(".row");
+    setQty(+row.dataset.id,parseInt(e.target.value,10));
+  }
+});
+rows.addEventListener("focusin",e=>{ if(e.target.matches(".qty input")) e.target.select(); });
+
+document.getElementById("prev").onclick=()=>{ if(page>1){page--;render();window.scrollTo({top:0});} };
+document.getElementById("next").onclick=()=>{
+  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); }
+};
+
+document.getElementById("btnSave").onclick=()=>{
+  if(btnSave.disabled) return;
+  items.forEach(i=>i.reco=i.qty);
+  dirty=false; saved=true;
+  savebar.classList.remove("on");
+  render();
+  toast("Änderungen übernommen");
+};
+
+let tt;
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("on"),2200);
+}
+
+render();
+</script>
+</body>
+</html>
