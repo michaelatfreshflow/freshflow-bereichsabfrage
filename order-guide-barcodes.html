@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Order Guide — barcode screen, editable order</title>
+<link rel="stylesheet" href="assets/ff-tokens.css">
+<style>
+:root{
+  --green:#306a57; --green-dark:#28584a;
+  --attn:#ff8502; --danger:#a1160a;
+  --line:#e7e6e6; --ink:#27272a; --ink2:#52525b; --ink3:#71717a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#e9eaea}
+body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+.app{max-width:705px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ---------- header ---------- */
+.hdr{background:var(--green);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+.hdr .back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;opacity:.95;cursor:pointer;background:none;border:0;color:inherit;font-family:inherit;padding:0}
+.hdr .titles{flex:1;min-width:0}
+.hdr .t1{font-weight:700;font-size:15px;line-height:1.3}
+.hdr .t2{font-size:12.5px;line-height:1.4;color:#c9dbd3}
+.hdr .t2 b{color:#c1ce5d;font-weight:600}
+.hdr .done{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-size:15px;font-weight:700;flex:none}
+
+/* ---------- save bar ---------- */
+.savebar{display:none;background:var(--ff-orange-10,#fff4e7);border-bottom:1px solid #f5d7ac;padding:10px 16px;gap:12px;align-items:center;position:sticky;top:60px;z-index:25}
+.savebar.on{display:flex}
+.savebar .ico{width:22px;height:22px;border-radius:50%;background:var(--attn);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.savebar .msg{flex:1;font-size:12.5px;line-height:1.45;color:#6b4a19}
+.savebar .msg b{display:block;font-size:13px;color:#4a3410;font-weight:700;margin-bottom:1px}
+.savebar .act{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
+.btn-save{border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;font-family:inherit;background:var(--green);color:#fff;cursor:pointer;white-space:nowrap}
+.btn-save:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
+.savebar .left{font-size:10.5px;color:#8a6a35;white-space:nowrap}
+
+/* ---------- search + toolbar ---------- */
+.search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink3)}
+.search input{border:0;outline:0;font-family:inherit;font-size:15px;flex:1;color:var(--ink)}
+.toolbar{display:flex;align-items:center;justify-content:center;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.sw{width:36px;height:20px;border-radius:12px;background:var(--attn);position:relative;flex:none;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:#fff}
+.toolbar .lbl{font-size:13px;color:var(--ink2)}
+.tsep{width:1px;height:20px;background:var(--line)}
+.tbtn{display:flex;align-items:center;gap:7px;background:none;border:0;font-family:inherit;font-size:13px;color:var(--ink2);cursor:pointer;padding:0}
+.tbtn .u{border-bottom:1px solid #c9c9cd;padding-bottom:1px}
+
+/* ---------- table ---------- */
+.thead,.row{display:grid;grid-template-columns:1fr 112px 128px 150px;gap:10px;padding:10px 16px;align-items:start}
+.thead{border-bottom:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink2);position:sticky;z-index:10;background:#fff}
+.info-i{display:inline-grid;place-items:center;width:15px;height:15px;border:1px solid #c9c9cd;border-radius:3px;font-size:9px;color:var(--ink3);vertical-align:1px;margin-left:5px;font-style:italic;font-weight:600}
+.rows{flex:1}
+.row{border-bottom:1px solid var(--line);position:relative}
+
+.nm{font-weight:700;font-size:14.5px;line-height:1.25;margin-bottom:6px}
+.meta{font-size:12.5px;color:var(--ink3);line-height:1.5}
+.meta .plu{color:var(--ink2)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:10.5px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink2);background:#fff;white-space:nowrap}
+.tag.promo{background:#a1160a;border-color:#a1160a;color:#fff;font-weight:600}
+.tag.bio{background:#fff;border-color:var(--line)}
+
+/* inventory */
+.inv{display:flex;align-items:center;gap:6px}
+.invbox{border:1px solid var(--line);border-radius:7px;padding:6px 8px;text-align:center;min-width:86px;background:#fff}
+.invbox .a{font-size:13px;font-weight:600;line-height:1.2}
+.invbox .a .u{font-size:9.5px;color:var(--ink3);font-weight:600}
+.invbox .b{font-size:10px;color:var(--ink3);margin-top:2px}
+.invbox.none{color:var(--ink3);font-size:12px;padding:10px 8px;background:#fafafa}
+.dsize{font-size:10px;color:var(--ink3);margin-top:6px}
+.dsize b{color:var(--ink2);font-weight:600}
+.bang{width:15px;height:15px;border-radius:50%;background:var(--attn);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:4px}
+.iinfo{width:15px;height:15px;border-radius:50%;border:1.4px solid #5a6bc2;color:#5a6bc2;font-size:9px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:4px;font-style:italic}
+
+/* order field -- no stepper: a tap on the box opens the keypad sheet,
+   the same way every other number in these prototypes is entered */
+.ord{display:flex;align-items:center;gap:7px}
+.qty{border:1px solid var(--line);border-radius:7px;padding:6px 8px 7px;text-align:center;min-width:62px;background:#fff;cursor:pointer;font-family:inherit}
+.qty:active{background:var(--ff-grey-50,#f9fafa)}
+.qty .a{display:flex;align-items:baseline;justify-content:center;gap:2px;color:var(--attn);font-weight:700;font-size:15px;line-height:1.2}
+.qty .u{font-size:10px;color:var(--attn);font-weight:600}
+.qty .b{font-size:10px;color:var(--ink3);margin-top:1px}
+
+/* ---------- keypad sheet (identisch zum Tastenfeld der Store-Prototypen) ---------- */
+.ov.ovsheet{align-items:flex-end;padding:0}
+.sheet{background:var(--ff-color-white,#fff);width:100%;max-width:705px;border-radius:var(--ff-radius-c15,15px) 16px 0 0;padding:0 0 18px;max-height:96vh;overflow-y:auto}
+.sheet .sh{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)}
+.sheet .sh h3{margin:0;font-size:var(--ff-text-primary-title-17,17px);flex:1}
+.sheet .sh .x{border:0;background:none;font-size:22px;color:var(--ff-grey-500,#71717a);cursor:pointer;font-family:inherit}
+.sbody{display:grid;grid-template-columns:1fr 240px;gap:22px;padding:18px 22px}
+.kfield{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.kfield label{width:86px;font-weight:700;font-size:14px}
+.kfield .box{border:1.5px solid var(--line);border-radius:var(--ff-radius-c8,8px);padding:8px 14px;min-width:92px;text-align:right;font-weight:700}
+.kfield .box.act{border-color:var(--attn)}
+.kfield .tot{font-weight:800}
+.kfield .pcs{font-size:12px;color:var(--ink3)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{background:var(--ff-grey-100,#f4f4f5);border:0;border-radius:var(--ff-radius-c8,8px);padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:var(--ff-color-dark-green,#2b3a36);font-family:inherit}
+.pad button:active{background:var(--ff-grey-200,#e7e6e6)}
+.sfoot{display:flex;align-items:center;padding:0 22px}
+.sfoot .lnk{color:var(--green);font-weight:700;cursor:pointer}
+.sfoot .sp{flex:1}
+.cta{background:var(--green);color:#fff;border:0;border-radius:999px;padding:13px 30px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.kpnm{font-weight:700;font-size:15px;margin-bottom:4px}
+.kpmeta{font-size:12.5px;color:var(--ink3);line-height:1.6}
+/* barcode */
+.bc{display:block;width:100%;height:58px}
+.bcw{cursor:pointer}
+.bcw.scanned{opacity:.35}
+.bcn{font-size:9.5px;color:var(--ink3);text-align:center;letter-spacing:.06em;margin-top:3px}
+
+/* ---------- pager ---------- */
+.pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;border-top:1px solid var(--line)}
+.parrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;font-size:16px;color:var(--ink2);font-family:inherit}
+.parrow:disabled{opacity:.35;cursor:not-allowed}
+.pager .p{font-size:13px;color:var(--ink2)}
+.pager .p b{font-weight:700;color:var(--ink)}
+.fab{position:absolute;right:16px;bottom:74px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer;z-index:20}
+
+/* ---------- stats ---------- */
+.stats{display:flex;align-items:center;gap:6px;padding:10px 16px;border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0;z-index:15}
+.stat{flex:1;text-align:center;min-width:0}
+.stat .k{font-size:10px;color:var(--ink3);line-height:1.4}
+.stat .v{font-size:12.5px;font-weight:700;line-height:1.4;white-space:nowrap}
+.stat .v.acc{display:flex;align-items:center;gap:5px;justify-content:center}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ff-color-success,#6ea050);flex:none}
+.cont{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:13.5px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer}
+
+
+/* ===========================================================================
+   AppFormDialog -- lib/presentation/shared/dialogs/app_form_dialog.dart
+   and PrimaryTextButton -- lib/core/widgets/buttons/text_button.dart
+   Copied unchanged from the store prototypes: this is the popup the app
+   already uses for "are you sure" questions, so the save question wears it too.
+   =========================================================================== */
+.ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px}
+.ov.on{display:flex}
+.AppFormDialog{width:min(680px,calc(100% - 48px));align-self:center;background:var(--ff-color-white,#fff);
+  border-radius:var(--ff-radius-c8,8px);display:flex;flex-direction:column;overflow:hidden}
+.AppFormDialog__header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ff-grey-200,#e7e6e6)}
+.AppFormDialog__title{padding:18px 24px;font-size:var(--ff-text-primary-title-18,18px);font-weight:var(--ff-weight-semibold,600);color:var(--ff-grey-900,#18181b)}
+.AppFormDialog__close{width:100px;padding:18px 24px;display:flex;align-items:center;justify-content:flex-end;
+  border:0;background:none;cursor:pointer;color:var(--ff-grey-900,#18181b)}
+.AppFormDialog__close svg{display:block}
+.AppFormDialog__body{padding:32px 32px 48px;font-size:var(--ff-text-primary-body-text-16,16px);
+  font-weight:var(--ff-weight-medium,500);color:var(--ff-grey-800,#27272a);line-height:1.5}
+.AppFormDialog__body .sub{display:block;margin-top:12px;font-size:var(--ff-text-primary-body-text-14,14px);color:var(--ink3)}
+.AppFormDialog__actions{display:flex;align-items:center;gap:12px;padding:0 24px 27px 8px}
+.AppFormDialog__actionsEnd{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.PrimaryTextButton{height:48px;padding:0 16px;border:0;border-radius:24px;font-family:inherit;
+  font-size:var(--ff-text-primary-body-text-16,16px);font-weight:var(--ff-weight-semibold,600);
+  cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
+.PrimaryTextButton--dark{background:var(--ff-color-primary,#306a57);color:var(--ff-color-white,#fff)}
+.PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary,#306a57)}
+.PrimaryTextButton--dark:active{background:var(--ff-primary-500,#306a57)}
+.PrimaryTextButton--none:active{background:var(--ff-primary-10,#f7fcf6)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media(max-width:620px){
+  .thead,.row{grid-template-columns:1fr 84px 104px;gap:6px;padding:10px 12px}
+  .bcw{grid-column:1/-1;margin-top:8px}
+  .invbox{min-width:0;padding:5px 4px}
+  .ord{gap:3px}
+  .step{width:22px;height:26px;font-size:15px}
+  .qty{min-width:40px;padding:3px 2px 4px}
+  .qty input{width:20px}
+  .stats{gap:2px;padding:8px 10px;overflow-x:auto}
+  .stat .v{font-size:11px}
+  .cont{font-size:12px}
+  .savebar{top:auto;position:static}
+  .sbody{grid-template-columns:1fr;gap:16px;padding:14px 16px}
+  .kfield label{width:70px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hdr">
+    <button class="back">&#8249; Back</button>
+    <div class="titles">
+      <div class="t1">Order Guide <span id="hdrDate">Mon, Sep 21</span> &nbsp;|&nbsp; Rewe</div>
+      <div class="t2">Closed <b>Mon, Sep 21 9:43 AM</b></div>
+    </div>
+    <div class="done">&#10003;</div>
+  </div>
+
+  <div class="savebar" id="savebar">
+    <div class="ico">!</div>
+    <div class="msg">
+      <b>Do you want to save your changes?</b>
+      Once you have scanned all barcodes, you can apply the changes.
+    </div>
+    <div class="act">
+      <button class="btn-save" id="btnSave" disabled>Apply changes</button>
+      <div class="left" id="pagesLeft"></div>
+    </div>
+  </div>
+
+  <div class="search">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input placeholder="Search" aria-label="Search">
+  </div>
+
+  <div class="toolbar">
+    <div class="sw"></div>
+    <span class="lbl">Hide 0-Orders</span>
+    <div class="tsep"></div>
+    <button class="tbtn"><svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 6h16M4 12h11M4 18h6"/></svg><span class="u">Needs Attention (26)</span> &#9662;</button>
+    <div class="tsep"></div>
+    <button class="tbtn"><svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 5h18M6 12h12M10 19h4"/></svg><span>Filter</span></button>
+  </div>
+
+  <div class="thead">
+    <div>Item</div>
+    <div>Inventory<span class="info-i">i</span></div>
+    <div>Order<span class="info-i">i</span></div>
+    <div></div>
+  </div>
+
+  <div class="rows" id="rows"></div>
+
+  <div class="pager">
+    <button class="parrow" id="prev">&#8592;</button>
+    <div class="p">Page <b id="pgNow">1</b> of <b id="pgAll">14</b></div>
+    <button class="parrow" id="next">&#8594;</button>
+  </div>
+
+  <button class="fab" title="Scan">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 19h2v2h-2zM14 19h2v2h-2zM19 14h2v2h-2z"/></svg>
+  </button>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Line Items</div><div class="v" id="sLines">68</div></div>
+    <div class="stat"><div class="k">Case Count</div><div class="v" id="sCases">77</div></div>
+    <div class="stat"><div class="k">Order Cost</div><div class="v" id="sCost">—</div></div>
+    <div class="stat"><div class="k">Retail Price</div><div class="v" id="sRetail">—</div></div>
+    <div class="stat"><div class="k">Margin</div><div class="v" id="sMargin">—</div></div>
+    <div class="stat"><div class="k">Acceptance</div><div class="v acc"><span class="dot"></span><span id="sAcc">—</span></div></div>
+    <button class="cont">Continue Editing <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 10-2.3 5.7M20 5v6h-6"/></svg></button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="ov ovsheet" id="ovOrd">
+  <div class="sheet">
+    <div class="sh"><h3>Edit order quantity</h3><button class="x" id="ordX">&#10005;</button></div>
+    <div class="sbody">
+      <div>
+        <div class="kpnm" id="ordName"></div>
+        <div class="kpmeta" id="ordMeta"></div>
+        <div class="kfield" style="margin-top:18px"><label>Order</label><div class="box act" id="ordVal">0</div></div>
+        <div class="kfield"><label>Total</label><div><div class="tot" id="ordUnit">0 CS</div><div class="pcs" id="ordUnitPcs"></div></div></div>
+      </div>
+      <div class="pad" id="ordPad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <span></span><button data-k="0">0</button><button data-k="del">&#9003;</button>
+      </div>
+    </div>
+    <div class="sfoot"><span class="lnk" id="ordAbbrechen">Cancel</span><span class="sp"></span>
+      <button class="cta" id="ordSpeichern">Save</button></div>
+  </div>
+</div>
+<div id="saveDlgRoot"></div>
+
+<script>
+/* ---------- fake, but deterministic, order guide ---------- */
+function rng(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296);}
+
+const NAMES=[
+ ["1KG TRAUBE ROT KERNL. REWE BW LS",5,"KG",3.12,3.99],
+ ["500G BOHNE STANGE RL REWE REG PK",6,"Piece",2.57,3.79],
+ ["MANGO BIO FASERARM 8ER REWE BIO 1ST LS",8,"Piece",1.66,1.99],
+ ["1KG ORANGE SAFT UEB VALENSINA GI",10,"Piece",2.56,3.99],
+ ["750G MANDARINE UEB REWE BW GI",12,"Piece",1.64,1.99],
+ ["500G ERDBEERE DE REWE REG SCH",8,"Piece",2.31,2.99],
+ ["1KG APFEL ELSTAR DE REWE BW BT",6,"KG",1.42,1.99],
+ ["BANANE CHIQUITA UEB 18,14KG KT",18,"KG",0.94,1.49],
+ ["400G HEIDELBEERE PE REWE SCH",12,"Piece",2.78,3.49],
+ ["1KG ZWIEBEL GELB DE REWE BT",10,"KG",0.72,1.29],
+ ["500G RISPENTOMATE NL REWE SCH",10,"Piece",1.18,1.79],
+ ["GURKE SCHLANGE DE REWE 1ST",12,"Piece",0.58,0.99],
+ ["250G HIMBEERE ES REWE SCH",10,"Piece",1.92,2.49],
+ ["1KG KARTOFFEL FK DE REWE BT",8,"KG",0.88,1.49],
+ ["PAPRIKA MIX NL REWE 3ER PK",8,"Piece",1.74,2.29],
+ ["300G MOEHRE BUND DE REWE REG BD",12,"Piece",0.79,1.19],
+ ["AVOCADO HASS PE REWE 1ST",12,"Piece",1.12,1.69],
+ ["500G KIRSCHE TR REWE SCH",8,"Piece",3.41,4.49],
+ ["1KG BIRNE CONFERENCE NL REWE BT",6,"KG",1.58,2.19],
+ ["KOPFSALAT DE REWE REG 1ST",10,"Piece",0.61,0.89],
+ ["250G CHAMPIGNON WEISS DE REWE SCH",12,"Piece",0.94,1.39],
+ ["ZUCCHINI ES REWE 1ST LS",10,"Piece",0.66,0.99],
+ ["1KG CLEMENTINE ES REWE BW NT",10,"Piece",1.86,2.49],
+ ["500G KIWI GREEN IT REWE SCH",9,"Piece",1.44,1.99],
+ ["BROKKOLI ES REWE 1ST",8,"Piece",1.02,1.49],
+ ["400G TRAUBE WEISS KERNL. IT REWE SCH",10,"Piece",2.14,2.79],
+ ["1KG ZITRONE ES REWE BIO NT",8,"Piece",2.24,2.99],
+ ["500G PFLAUME DE REWE REG SCH",9,"Piece",1.52,1.99],
+ ["LAUCH DE REWE REG 1ST",12,"Piece",0.71,1.09],
+ ["ANANAS CR REWE 1ST",6,"Piece",1.62,2.29],
+ ["500G RADIESCHEN DE REWE BD",12,"Piece",0.48,0.79],
+ ["1KG MELONE WASSER ES REWE 1ST",4,"Piece",2.88,3.99],
+ ["300G ROMANA HERZEN DE REWE 3ER",10,"Piece",1.24,1.69],
+ ["1KG APFEL BRAEBURN IT REWE BT",6,"KG",1.36,1.89],
+ ["SELLERIE KNOLLE DE REWE 1ST",8,"Piece",0.92,1.39]
+];
+const TAGS=[["Promo: Mon-Sat","promo"],["Bio","bio"],["Core assortment",""],["Promo: Wed-Sat","promo"],["Regional",""]];
+const TOTAL=68, PER_PAGE=5;
+
+const items=[];
+const r=rng(20260921);
+for(let i=0;i<TOTAL;i++){
+  const b=NAMES[i%NAMES.length];
+  const cs=b[1], unit=b[2];
+  const reco=[1,1,1,1,1,1,1,1,1,1,2,2][Math.floor(r()*12)];
+  const noCount=r()<0.28;
+  const hi=Math.round((0.3+r()*1.6)*10)/10;
+  items.push({
+    id:i,
+    name:i<NAMES.length?b[0]:b[0].replace(/^(\d+G|\d+KG)/,m=>m),
+    plu:String(1000000+Math.floor(r()*8999999)),
+    cs:cs, unit:unit,
+    cost:b[3], retail:b[4],
+    sys:reco, reco:reco, qty:reco,
+    display:1+Math.floor(r()*2),
+    noCount:noCount, invHi:hi,
+    attnInv:!noCount && r()<0.75,
+    attnOrd:r()<0.62,
+    ordPrev:[0,1][Math.floor(r()*2)],
+    tags:(()=>{const t=[];if(r()<0.55)t.push(TAGS[0]);if(r()<0.18)t.push(TAGS[1]);if(r()<0.22)t.push(TAGS[2]);if(r()<0.12)t.push(TAGS[3]);return t;})(),
+    ean:"4"+String(Math.floor(r()*1e11)).padStart(12,"0").slice(0,12),
+    scanned:false
+  });
+}
+[7,24,51].forEach(i=>{ items[i].sys=items[i].reco+1; });   // already touched while ordering
+const PAGES=Math.ceil(items.length/PER_PAGE);
+
+/* ---------- fake barcode ---------- */
+function barcodeSVG(seed){
+  const rr=rng(seed*7919+13);
+  const M=2, W=95; let bars="";
+  const bar=(x,w)=>bars+=`<rect x="${x*M}" y="0" width="${w*M}" height="58" fill="#111"/>`;
+  bar(0,1); bar(2,1);                       // left guard
+  let x=4;
+  while(x<W-6){
+    const w=1+Math.floor(rr()*3);
+    bar(x,w);
+    x+=w+1+Math.floor(rr()*2);
+  }
+  bar(W-3,1); bar(W-1,1);                   // right guard
+  return `<svg class="bc" viewBox="0 0 ${W*M} 58" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+/* ---------- state ---------- */
+let page=1, reachedLast=false, dirty=false, saved=false;
+const money=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+const pct=n=>n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+const num=n=>(Math.round(n*100)/100).toLocaleString("de-DE");
+
+function render(){
+  const from=(page-1)*PER_PAGE, list=items.slice(from,from+PER_PAGE);
+  rows.innerHTML=list.map(it=>{
+    const base=(v)=>num(v*it.cs)+" "+(it.unit==="KG"?"KG":"Piece");
+    const inv = it.noCount
+      ? `<div class="invbox none">No count<br>needed</div><div class="iinfo">i</div>`
+      : `<div class="invbox"><div class="a">0 – ${num(it.invHi)}<span class="u"> CS</span></div><div class="b">0 – ${base(it.invHi)}</div></div>${it.attnInv?'<div class="bang">!</div>':''}`;
+    return `
+    <div class="row" data-id="${it.id}">
+      <div>
+        <div class="nm">${it.name}</div>
+        <div class="meta"><span class="plu">${it.plu}</span> &nbsp; ${it.cs} ${it.unit}</div>
+        <div class="meta">${money(it.cost)} &nbsp; ${pct((it.retail/1.07-it.cost)/(it.retail/1.07)*100)} &nbsp; ${money(it.retail)}</div>
+        <div class="tags">
+          <span class="tag">Ord. ${it.ordPrev} CS</span>
+          ${it.tags.map(t=>`<span class="tag ${t[1]}">${t[0]}</span>`).join("")}
+        </div>
+      </div>
+      <div>
+        <div class="inv">${inv}</div>
+        <div class="dsize">Display size <b>${it.display} CS</b></div>
+      </div>
+      <div class="ord">
+        <button type="button" class="qty" aria-label="Edit order quantity">
+          <div class="a">${it.qty}<span class="u">CS</span></div>
+          <div class="b">${base(it.qty)}</div>
+        </button>
+        ${it.attnOrd?'<div class="bang">!</div>':''}
+      </div>
+      <div class="bcw${it.scanned?' scanned':''}">${barcodeSVG(it.id)}<div class="bcn">${it.ean}</div></div>
+    </div>`;
+  }).join("");
+  pgNow.textContent=page; pgAll.textContent=PAGES;
+  prev.disabled=page===1; next.disabled=page===PAGES;
+  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
+  stats();
+  saveState();
+}
+
+function stats(){
+  const cases=items.reduce((a,i)=>a+i.qty,0);
+  const cost=items.reduce((a,i)=>a+i.qty*i.cs*i.cost,0);
+  const ret=items.reduce((a,i)=>a+i.qty*i.cs*i.retail,0);
+  const kept=items.filter(i=>i.qty===i.sys).length;
+  sLines.textContent=items.length;
+  sCases.textContent=cases;
+  sCost.textContent=money(cost);
+  sRetail.textContent=money(ret);
+  sMargin.textContent=pct(ret?((ret/1.07-cost)/(ret/1.07))*100:0);
+  sAcc.textContent=pct(kept/items.length*100);
+}
+
+function saveState(){
+  if(!dirty) return;
+  savebar.classList.add("on");
+  const left=PAGES-page;
+  btnSave.disabled=!reachedLast;
+  pagesLeft.textContent=reachedLast?"all pages seen":(left===1?"1 page left":left+" pages left");
+}
+
+function touch(){ if(!dirty){dirty=true;saved=false;savebar.classList.add("on");} }
+
+function setQty(id,v){
+  const it=items.find(x=>x.id===id);
+  v=Math.max(0,Math.min(99,isNaN(v)?it.qty:v));
+  if(v===it.qty) return;
+  it.qty=v; touch(); dlgDismissed=false; render(); askToSave();
+}
+
+/* ---------- events ---------- */
+const rows=document.getElementById("rows");
+rows.addEventListener("click",e=>{
+  const row=e.target.closest(".row"); if(!row) return;
+  const id=+row.dataset.id, it=items.find(x=>x.id===id);
+  if(e.target.closest(".qty")) openOrdPad(id);
+  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; render(); }
+});
+/* ---------- order keypad ----------
+   Dasselbe Tastenfeld wie in den Store-Prototypen: getippt wird in das Feld,
+   geschrieben wird erst beim Speichern. Abbrechen laesst die Zeile, wie sie war. */
+let ORD={id:null,val:"0"};
+function openOrdPad(id){
+  const it=items.find(x=>x.id===id);
+  ORD={id:id,val:String(it.qty)};
+  document.getElementById("ordName").textContent=it.name;
+  document.getElementById("ordMeta").textContent=
+    `${it.plu} · Case ${it.cs} ${it.unit==="KG"?"KG":"Piece"} · Cost ${money(it.cost)} · Retail ${money(it.retail)} · Reco ${it.reco} CS`;
+  drawOrdPad();
+  document.getElementById("ovOrd").classList.add("on");
+}
+function drawOrdPad(){
+  const it=items.find(x=>x.id===ORD.id);
+  const n=parseInt(ORD.val||"0",10)||0;
+  document.getElementById("ordVal").textContent=ORD.val;
+  document.getElementById("ordUnit").textContent=ORD.val+" CS";
+  document.getElementById("ordUnitPcs").textContent="= "+num(n*it.cs)+" "+(it.unit==="KG"?"KG":"Piece");
+}
+document.getElementById("ordPad").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const k=b.dataset.k;
+  if(k==="del"){ ORD.val=ORD.val.slice(0,-1)||"0"; }
+  else { ORD.val=(ORD.val==="0")?k:(ORD.val+k).slice(0,2); }
+  drawOrdPad();
+});
+function closeOrdPad(){ document.getElementById("ovOrd").classList.remove("on"); }
+document.getElementById("ordX").onclick=closeOrdPad;
+document.getElementById("ordAbbrechen").onclick=closeOrdPad;
+document.getElementById("ovOrd").addEventListener("click",e=>{ if(e.target.id==="ovOrd") closeOrdPad(); });
+document.getElementById("ordSpeichern").onclick=()=>{
+  const id=ORD.id, v=Math.max(0,parseInt(ORD.val||"0",10)||0);
+  closeOrdPad();
+  setQty(id,v);
+};
+
+document.getElementById("prev").onclick=()=>{ if(page>1){page--;render();window.scrollTo({top:0});} };
+document.getElementById("next").onclick=()=>{
+  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); askToSave(); }
+};
+
+
+/* ---------- the save question ----------
+   Dieselbe Form wie die uebrigen Rueckfragen der App (AppFormDialog). Sie kommt,
+   sobald beides zutrifft: es wurde etwas geaendert UND die letzte Seite ist
+   erreicht. Wer sie wegklickt und danach wieder etwas aendert, bekommt sie
+   erneut -- das Vergessen des Speicherns ist genau der Fehler, den sie verhindert. */
+const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.3.71a1 1 0 00-1.41 0L7 5.59 2.11.7A1 1 0 10.7 2.11L5.59 7 .7 11.89a1 1 0 101.41 1.41L7 8.41l4.89 4.89a1 1 0 101.41-1.41L8.41 7l4.89-4.89a1 1 0 000-1.4z" fill="currentColor"/></svg>';
+let dlgDismissed=false, dlgTimer=null;
+
+function askToSave(){
+  clearTimeout(dlgTimer);
+  dlgTimer=setTimeout(()=>{
+    if(!dirty || !reachedLast || dlgDismissed || document.querySelector("#saveDlgRoot .ov")) return;
+    openSaveDialog();
+  },500);
+}
+
+function openSaveDialog(){
+  const n=items.filter(i=>i.qty!==i.reco).length;
+  const root=document.getElementById("saveDlgRoot");
+  root.innerHTML=`<div class="ov on">
+    <div class="AppFormDialog" role="dialog" aria-modal="true">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">Apply changes?</div>
+        <button type="button" class="AppFormDialog__close" id="dlgClose" aria-label="Close">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">
+        You changed ${n===1?"one order quantity":n+" order quantities"} and have paged through all barcodes.
+        <span class="sub">Without applying, the order stays exactly as it was completed – your changes are then lost.</span>
+      </div>
+      <div class="AppFormDialog__actions">
+        <div class="AppFormDialog__actionsEnd">
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="dlgLater">Review again</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="dlgYes">Apply changes</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const close=()=>{ dlgDismissed=true; root.innerHTML=""; };
+  document.getElementById("dlgClose").onclick=close;
+  document.getElementById("dlgLater").onclick=close;
+  document.getElementById("dlgYes").onclick=()=>{ root.innerHTML=""; commitEdits(); };
+}
+
+function commitEdits(){
+  items.forEach(i=>i.reco=i.qty);
+  dirty=false; saved=true; dlgDismissed=false;
+  savebar.classList.remove("on");
+  render();
+  toast("Changes applied");
+}
+document.getElementById("btnSave").onclick=()=>{ if(!btnSave.disabled) commitEdits(); };
+
+let tt;
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("on"),2200);
+}
+
+render();
+</script>
+</body>
+</html>
