@@ -1994,10 +1994,10 @@ body.dash-active .scanFab{display:none}
   <div class="hdr">
     <div class="back" id="backLink">‹ Zurück</div>
     <div class="mid">
-      <div class="t1" id="lblOrdersatz">Ordersatz &nbsp;Di., 25. Aug. &nbsp;<span class="dim">| &nbsp;REWE Peeters Flüren</span></div>
+      <div class="t1" id="lblOrdersatz">Ordersatz &nbsp;<span id="hdrOrderDate">Di., 25. Aug.</span> &nbsp;<span class="dim">| &nbsp;REWE Peeters Flüren</span></div>
       <div class="t2" id="lblDeadline">Bestellschluss heute 13:00 Uhr</div>
     </div>
-    <div class="rgt"><span class="chk">✓</span><div>Mo., 24. Aug.<br>&nbsp;</div></div>
+    <div class="rgt"><span class="chk">✓</span><div><span id="hdrPrevDate">Mo., 24. Aug.</span><br>&nbsp;</div></div>
   </div>
 
   <div class="srch">
@@ -2310,51 +2310,88 @@ const TILES = [
   ['bananen-exoten','Bananen & Exoten','Obst',['banane','avocado','kiwi','mango','melone','ananas','passionsfrüchte','physalis','feigen','nashi','papaya','datteln','passionsfrucht','feige','dattel']],
   ['sonstiges','Kein Regal zugeordnet','Sonstiges',['erdnuss','walnuss','erdnüss','walnüss','maronen','aprikosen getrocknet','eier ','steingartenpflanzen','moosrosen','gladiolen']]
 ];
-/* Regal-ID -> Dateiname des Regal-Icons in assets/categories/. Die Bilddateien
-   heissen englisch, die Regal-IDs bleiben deutsch (sie stecken in
-   localStorage/catOverride und duerfen sich nicht aendern), deshalb diese
-   Zwischenschicht statt eines direkt aus t.id gebauten Pfads. Fehlt ein
-   Eintrag, faellt tileIcon() auf 'other' zurueck -- lieber das Sonstiges-Icon
-   als ein kaputtes Bild. */
+/* Regal-ID -> Dateiname des Regal-Icons in assets/produce-icons/. Die
+   Bilddateien heissen englisch und tragen eine Nummer, die ihre Ordnung
+   festhaelt (01-27 Gemuese, 51-65 Obst, 90-93 Sonstiges); die Regal-IDs
+   bleiben deutsch (sie stecken in localStorage/catOverride und duerfen sich
+   nicht aendern), deshalb diese Zwischenschicht statt eines direkt aus t.id
+   gebauten Pfads. Fehlt ein Eintrag, faellt tileIcon() auf ICON_FALLBACK
+   zurueck -- lieber das Fragezeichen als ein kaputtes Bild. */
 const TILE_ICON = {
-  'kartoffeln-zwiebeln': 'potatoes-onions',
-  'wurzelgemuese':       'root-vegetables',
-  'salate-kohl':         'salads-cabbage',
-  'tomaten':             'tomatoes',
-  'paprika-chili':       'peppers-chili',
-  'fruchtgemuese':       'fruiting-vegetables',
-  'pilze':               'mushrooms',
-  'kraeuter':            'herbs',
-  'gekuehltes-gemuese':  'chilled-vegetables',
-  'gekuehlte-fruechte':  'chilled-fruit',
-  'kernobst':            'pome-fruit',
-  'steinobst-trauben':   'stone-fruit-grapes',
-  'zitrusfruechte':      'citrus-fruit',
-  'bananen-exoten':      'bananas-exotics',
-  'sonstiges':           'other',
+  'kartoffeln-zwiebeln': '06_potatoes',
+  'wurzelgemuese':       '02_root-vegetables',
+  'salate-kohl':         '19_lettuce',
+  'tomaten':             '09_tomatoes',
+  'paprika-chili':       '10_bell-peppers',
+  'fruchtgemuese':       '12_cucumber',
+  'pilze':               '26_mushrooms',
+  'kraeuter':            '25_potted-herbs',
+  'gekuehltes-gemuese':  '27_chilled-vegetables',
+  'gekuehlte-fruechte':  '57_chilled-fruits',
+  'kernobst':            '52_apples-mixed',
+  'steinobst-trauben':   '54_stone-fruit',
+  'zitrusfruechte':      '58_citrus',
+  'bananen-exoten':      '64_tropical-fruit',
+  'sonstiges':           '93_unassigned',
 };
-/* Auswahlliste fuer "Symbol aendern" im Bearbeiten-Screen. In
-   assets/categories/ liegen 36 Dateien, aber nur 27 verschiedene Bilder -- beim
-   Zusammenlegen der 23 Kategorien auf 15 Regale wurden mehrere Icons unter
-   einem zweiten Namen kopiert (potatoes = potatoes-onions, citrus =
-   citrus-fruit, salads = salads-cabbage = leaf, root = root-vegetables,
-   peppers = peppers-chili, stone-fruit = stone-fruit-grapes, bananas =
-   bananas-exotics). Hier steht darum jeweils nur EIN Name pro Bild, sonst
-   stuenden im Auswahlblatt sichtbare Doppelgaenger. Reihenfolge wie der
-   Rundgang: Gemuese, dann Obst, dann Sonstiges. */
+/* Kein Regal und kein eigener Name: das Fragezeichen. Es steht auch fuer ein
+   selbst angelegtes Regal, solange der Kaufmann nichts gewaehlt hat -- ein
+   Platzhalter, der nach einer Wahl aussieht statt nach einem Gemuese, das
+   dort nicht liegt. */
+const ICON_FALLBACK = '93_unassigned';
+/* Auswahlliste fuer "Symbol aendern" im Bearbeiten-Screen: der ganze Satz aus
+   assets/produce-icons/ ausser dem Scanner-Symbol, das kein Regal beschreibt.
+   Jedes Bild kommt genau einmal vor -- der alte Satz hatte sieben Bilder unter
+   zwei Namen und damit sichtbare Doppelgaenger im Blatt. Reihenfolge wie der
+   Rundgang: Gemuese, dann Obst, dann Sonstiges; die Nummer im Dateinamen
+   haelt sie fest. */
 const ICON_CHOICES = [
-  'potatoes-onions','onions','root-vegetables','salads-cabbage','cabbage',
-  'leafy-vegetables','salad-bags','tomatoes','peppers-chili','fruiting-vegetables',
-  'legumes','mushrooms','herbs','chilled-vegetables','chilled-fruit',
-  'pome-fruit','stone-fruit-grapes','grapes','berries','citrus-fruit',
-  'bananas-exotics','exotic','nuts','eggs','flowers','promo','other'
+  '01_carrot','02_root-vegetables','03_radish','04_beetroot','05_ginger',
+  '06_potatoes','07_onions','08_leek','09_tomatoes','10_bell-peppers',
+  '11_chili','12_cucumber','13_zucchini','14_eggplant','15_pumpkin',
+  '16_beans-and-peas','17_cabbage','18_broccoli','19_lettuce','20_bagged-salad',
+  '21_leafy-greens','22_celery','23_basil','24_parsley','25_potted-herbs',
+  '26_mushrooms','27_chilled-vegetables',
+  '51_apple','52_apples-mixed','53_pear','54_stone-fruit','55_grapes',
+  '56_berries','57_chilled-fruits','58_citrus','59_mango','60_pineapple',
+  '61_avocado','62_kiwi','63_melon','64_tropical-fruit','65_nuts',
+  '90_eggs','91_flowers-and-plants','92_promotion','93_unassigned'
 ];
+/* Der alte Satz lag unter anderen Namen in assets/categories/. Wer schon
+   einmal ein Symbol gewaehlt hat, traegt den alten Namen in localStorage --
+   ohne Umschluesselung wuerde loadTileIcons() ihn als unbekannt verwerfen und
+   die Wahl waere mit dem Bilderwechsel still weg. Mehrere alte Namen zeigen
+   auf dasselbe neue Bild, weil der alte Satz Doppelgaenger hatte. */
+const ICON_ALIAS = {
+  'potatoes-onions':'06_potatoes', 'potatoes':'06_potatoes', 'onions':'07_onions',
+  'root-vegetables':'02_root-vegetables', 'root':'02_root-vegetables',
+  'salads-cabbage':'19_lettuce', 'salads':'19_lettuce', 'cabbage':'17_cabbage',
+  'leaf':'21_leafy-greens', 'leafy-vegetables':'21_leafy-greens',
+  'salad-bags':'20_bagged-salad', 'tomatoes':'09_tomatoes',
+  'peppers-chili':'10_bell-peppers', 'peppers':'10_bell-peppers',
+  'fruiting-vegetables':'12_cucumber', 'legumes':'16_beans-and-peas',
+  'mushrooms':'26_mushrooms', 'herbs':'25_potted-herbs',
+  'chilled-vegetables':'27_chilled-vegetables', 'chilled-fruit':'57_chilled-fruits',
+  'pome-fruit':'52_apples-mixed', 'stone-fruit-grapes':'54_stone-fruit',
+  'stone-fruit':'54_stone-fruit', 'grapes':'55_grapes', 'berries':'56_berries',
+  'citrus-fruit':'58_citrus', 'citrus':'58_citrus',
+  'bananas-exotics':'64_tropical-fruit', 'bananas':'64_tropical-fruit',
+  'exotic':'64_tropical-fruit', 'nuts':'65_nuts', 'eggs':'90_eggs',
+  'flowers':'91_flowers-and-plants', 'promo':'92_promotion', 'other':'93_unassigned',
+};
+function aliasIcon(f){ return ICON_ALIAS[f] || f; }
+/* Aus dem Dateinamen eine lesbare Beschriftung: '16_beans-and-peas' ->
+   'Beans and peas'. Sie steht nur im title/alt der Kachel, damit ein
+   Vorlesegeraet nicht die Nummer buchstabiert; im Blatt selbst zaehlt das
+   Bild. */
+function iconName(f){
+  const w=f.replace(/^\d+_/,'').replace(/-/g,' ');
+  return w.charAt(0).toUpperCase()+w.slice(1);
+}
 /* Vorrang wie bei tileLabel(): eigene Wahl des Kaufmanns, dann die
-   Werksvorgabe, dann das Sonstiges-Icon -- fuer eine Zweitplatzierung aber das
-   Aktions-Symbol, damit sie im Raster schon am Bild als solche zu erkennen
-   ist. Der Kaufmann kann es wie bei jedem Regal ueberschreiben. */
+   Werksvorgabe, dann das Fragezeichen. */
 function tileIcon(id){
-  return `assets/categories/${TILE_ICONS[id] || TILE_ICON[id] || 'other'}.png`;
+  return `assets/produce-icons/${TILE_ICONS[id] || TILE_ICON[id] || ICON_FALLBACK}.png`;
 }
 /* Als die 23 Kategorien auf 15 Regale zusammengelegt wurden, aenderten sich
    die Regal-IDs. Auf einem Geraet, das schon einmal benutzt wurde, zeigen
@@ -2522,7 +2559,7 @@ function saveTileLabels(){ try{ localStorage.setItem('catTileLabels', JSON.strin
 let TILE_LABELS = loadTileLabels();
 /* Regal-Symbole sind im Bearbeiten-Screen austauschbar (siehe .rowIcon),
    persistiert pro Geraet wie TILE_LABELS. Ein eigenes Regal hat keinen
-   TILE_ICON-Eintrag und traegt sonst dauerhaft das Sonstiges-Icon; und ein
+   TILE_ICON-Eintrag und traegt sonst dauerhaft das Fragezeichen; und ein
    umbenanntes Regal ("Kernobst" -> "Aepfel & Birnen") behielte sonst das
    alte Bild. Werte, die nicht in ICON_CHOICES stehen, fliegen beim Laden raus
    -- ein Altbestand darf kein kaputtes <img> erzeugen. */
@@ -2534,8 +2571,8 @@ function loadTileIcons(){
     /* Wie bei loadTileLabels(): beim Zusammenlegen kann ein uebersteuertes
        Regal in einem anderen aufgehen -- dann gewinnt die erste Wahl. */
     Object.keys(v).forEach(k=>{
-      const id=aliasTileId(k);
-      if(!(id in out) && ICON_CHOICES.indexOf(v[k])>=0) out[id]=v[k];
+      const id=aliasTileId(k), f=aliasIcon(v[k]);
+      if(!(id in out) && ICON_CHOICES.indexOf(f)>=0) out[id]=f;
     });
     return out;
   }catch(e){ return {}; }
@@ -3150,6 +3187,29 @@ const T={
     dlgClosing:'Wenn du dieses Regal abschließt, wird dieses als erledigt markiert.',
     unresolvedTitle:'Artikel tragen noch ein !',
     unresolvedSub:'Bestand nicht bestätigt oder Bestellmenge auffällig',
+    hdrOrderDate:'Di., 25. Aug.',
+    hdrPrevDate:'Mo., 24. Aug.',
+    shelfEditTitle:'Reihenfolge anpassen',
+    shelfEditSub:'Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben. Ein Tipp auf das Bild wechselt das Symbol.',
+    shelfEditLead:'Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen',
+    shelfNewTile:'+ Neues Regal',
+    shelfNewName:'Name des neuen Regals',
+    shelfOwnTag:'eigene',
+    shelfNoShelfNote:'ohne Regal, steht immer oben',
+    shelfDeleteAsk:'„{name}“ wirklich löschen?',
+    shelfDeleteWhat:'{n} Artikel fallen zurück auf ihr automatisches Regal',
+    iconPickEyebrow:'Regal-Symbol',
+    iconPickSub:'Tippen wählt das Symbol für dieses Regal.',
+    tipChangeIcon:'Symbol ändern',
+    tipRename:'Umbenennen',
+    tipDelete:'Löschen',
+    tipDeleteConfirm:'Löschen bestätigen',
+    tipCreate:'Anlegen',
+    tipSave:'Speichern',
+    tipCancel:'Abbrechen',
+    tipUp:'nach oben',
+    tipDown:'nach unten',
+    tipAlwaysTop:'Steht immer oben',
   },
   en:{
     ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
@@ -3470,6 +3530,29 @@ const T={
     dlgClosing:'Once you complete the shelf, it will be marked as done.',
     unresolvedTitle:'items still carry a !',
     unresolvedSub:'Inventory not confirmed, or the order quantity is flagged',
+    hdrOrderDate:'Tue, 25 Aug',
+    hdrPrevDate:'Mon, 24 Aug',
+    shelfEditTitle:'Reorder shelves',
+    shelfEditSub:'Use ▲ ▼ to move a shelf to its place on your walk. Tap the picture to change the icon.',
+    shelfEditLead:'Reorder, rename and create your own shelves',
+    shelfNewTile:'+ New shelf',
+    shelfNewName:'Name of the new shelf',
+    shelfOwnTag:'own',
+    shelfNoShelfNote:'no shelf, always on top',
+    shelfDeleteAsk:'Really delete “{name}”?',
+    shelfDeleteWhat:'{n} items fall back to their automatic shelf',
+    iconPickEyebrow:'Shelf icon',
+    iconPickSub:'Tap to choose the icon for this shelf.',
+    tipChangeIcon:'Change icon',
+    tipRename:'Rename',
+    tipDelete:'Delete',
+    tipDeleteConfirm:'Confirm deletion',
+    tipCreate:'Create',
+    tipSave:'Save',
+    tipCancel:'Cancel',
+    tipUp:'move up',
+    tipDown:'move down',
+    tipAlwaysTop:'Always on top',
   },
   fr:{
     ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
@@ -3790,6 +3873,29 @@ const T={
     dlgClosing:'Une fois le rayon clôturé, il sera marqué comme terminé.',
     unresolvedTitle:'articles portent encore un !',
     unresolvedSub:'Stock non confirmé ou quantité de commande signalée',
+    hdrOrderDate:'mar. 25 août',
+    hdrPrevDate:'lun. 24 août',
+    shelfEditTitle:'Modifier l’ordre',
+    shelfEditSub:'Avec ▲ ▼, placez le rayon au bon endroit de votre parcours. Touchez l’image pour changer le symbole.',
+    shelfEditLead:'Modifier l’ordre, renommer et créer vos propres rayons',
+    shelfNewTile:'+ Nouveau rayon',
+    shelfNewName:'Nom du nouveau rayon',
+    shelfOwnTag:'perso',
+    shelfNoShelfNote:'sans rayon, toujours en haut',
+    shelfDeleteAsk:'Supprimer « {name} » ?',
+    shelfDeleteWhat:'{n} articles reviennent à leur rayon automatique',
+    iconPickEyebrow:'Symbole du rayon',
+    iconPickSub:'Touchez pour choisir le symbole de ce rayon.',
+    tipChangeIcon:'Changer le symbole',
+    tipRename:'Renommer',
+    tipDelete:'Supprimer',
+    tipDeleteConfirm:'Confirmer la suppression',
+    tipCreate:'Créer',
+    tipSave:'Enregistrer',
+    tipCancel:'Annuler',
+    tipUp:'vers le haut',
+    tipDown:'vers le bas',
+    tipAlwaysTop:'Toujours en haut',
   },
 };
 const t=()=>T[LANG];
@@ -3860,6 +3966,13 @@ function applyLang(){
      beides weg. Nur das fuehrende Label-Wort ersetzen. */
   const lo=document.getElementById('lblOrdersatz');
   if(lo && L.ordersatz) lo.innerHTML = lo.innerHTML.replace(/^[^&<]*/, L.ordersatz+' ');
+  /* Das Bestelldatum im Kopf stand fest auf Deutsch und blieb darum auch im
+     englischen und franzoesischen Aufbau deutsch stehen. Es ist Demo-Chrome,
+     kein gerechnetes Datum -- deshalb je Sprache eine Schreibweise. */
+  const hd=document.getElementById('hdrOrderDate');
+  if(hd && L.hdrOrderDate) hd.textContent=L.hdrOrderDate;
+  const hp=document.getElementById('hdrPrevDate');
+  if(hp && L.hdrPrevDate) hp.textContent=L.hdrPrevDate;
   /* NACH byId: dort steht kpInvTitle auf 'enterInventory'. Das Nur-Lager-Blatt traegt
      einen eigenen Titel, den ein Sprachwechsel bei offenem Blatt sonst ueberschreibt. */
   if(typeof INV!=='undefined' && INV && INV.backOnly){
@@ -4875,10 +4988,8 @@ function tileStats(tileId){
 /* Einmal beim Laden abgegriffen, bevor applyLang() laeuft: Datum und Bestellschluss
    stehen nur im Kopf der Bestellliste, und der wird uebersetzt. */
 const HDR_DATE=(function(){
-  const el=document.getElementById('lblOrdersatz'); if(!el) return '–';
-  const first=[...el.childNodes].find(n=>n.nodeType===3 && n.textContent.trim());
-  const t0=(first?first.textContent:'').replace(/\u00a0/g,' ').trim();
-  return t0.replace(/^\S+\s*/,'').replace(/\|\s*$/,'').trim() || '–';
+  const el=document.getElementById('hdrOrderDate'); if(!el) return '–';
+  return (el.textContent||'').replace(/\u00a0/g,' ').trim() || '–';
 })();
 const HDR_DEADLINE=(function(){
   const el=document.getElementById('lblDeadline'); if(!el) return '–';
@@ -5187,30 +5298,30 @@ function renderCatOverlay(){
     const addRow = ADDING_TILE
       ? `<div class="catrow">
           <span class="dot" style="background:var(--ff-color-accent-green)"></span>
-          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="Name des neuen Regals">
+          <input class="renameInput" id="addTileInput" type="text" maxlength="40" placeholder="${t().shelfNewName}">
           <div class="rebtns">
-            <button class="reordBtn" data-a="cat-add-save" type="button" title="Anlegen">✓</button>
-            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="Abbrechen">✕</button>
+            <button class="reordBtn" data-a="cat-add-save" type="button" title="${t().tipCreate}">✓</button>
+            <button class="reordBtn" data-a="cat-add-cancel" type="button" title="${t().tipCancel}">✕</button>
           </div>
         </div>`
       : `<div class="catrow addrow" data-a="cat-add-open">
           <span class="dot" style="background:transparent"></span>
-          <div class="tx"><div class="nm">+ Neues Regal</div></div>
+          <div class="tx"><div class="nm">${t().shelfNewTile}</div></div>
         </div>`;
-    body = `<div class="catsec"><div class="lb">Reihenfolge anpassen, Namen bearbeiten und eigene Regale anlegen</div></div>
+    body = `<div class="catsec"><div class="lb">${t().shelfEditLead}</div></div>
       <div class="catedit">${addRow}${orderTiles.map((tl,i)=>{
         if(DELETE_TILE_ID===tl.id){
           const n=tileStats(tl.id).list.length;
           /* Eine Zweitplatzierung ist nie der einzige Platz eines Artikels --
              die Ware verliert nur ihren zweiten Ort und bleibt auf dem
              Erstplatzierung. "Fallen zurueck" waere hier schlicht falsch. */
-          const what = `${n} Artikel fallen zurück auf ihr automatisches Regal`;
+          const what = t().shelfDeleteWhat.replace('{n}', n);
           return `<div class="catrow">
             <span class="dot" style="background:${tl.accent}"></span>
-            <div class="tx"><div class="nm">„${tl.label}" wirklich löschen?</div><div class="cnt">${what}</div></div>
+            <div class="tx"><div class="nm">${t().shelfDeleteAsk.replace('{name}', tl.label)}</div><div class="cnt">${what}</div></div>
             <div class="rebtns">
-              <button class="reordBtn" data-a="cat-delete-confirm" data-id="${tl.id}" type="button" title="Löschen bestätigen">✓</button>
-              <button class="reordBtn" data-a="cat-delete-cancel" type="button" title="Abbrechen">✕</button>
+              <button class="reordBtn" data-a="cat-delete-confirm" data-id="${tl.id}" type="button" title="${t().tipDeleteConfirm}">✓</button>
+              <button class="reordBtn" data-a="cat-delete-cancel" type="button" title="${t().tipCancel}">✕</button>
             </div>
           </div>`;
         }
@@ -5225,19 +5336,19 @@ function renderCatOverlay(){
             <span class="dot" style="background:${tl.accent}"></span>
             <input class="renameInput" id="renameInput" type="text" maxlength="40" value="${tl.label.replace(/"/g,'&quot;')}">
             <div class="rebtns">
-              <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="Speichern">✓</button>
-              <button class="reordBtn" data-a="cat-rename-cancel" type="button" title="Abbrechen">✕</button>
+              <button class="reordBtn" data-a="cat-rename-save" data-id="${tl.id}" type="button" title="${t().tipSave}">✓</button>
+              <button class="reordBtn" data-a="cat-rename-cancel" type="button" title="${t().tipCancel}">✕</button>
             </div>
           </div>`;
         }
         return `<div class="catrow">
-          <button class="rowIcon" data-a="cat-icon" data-id="${tl.id}" type="button" title="Symbol ändern"><img src="${tl.icon}" alt="" onerror="this.style.visibility='hidden'"></button>
-          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?' <span class="owntag">eigene</span>':''}</div><div class="cnt">${tl.count} Artikel${tl.id===UNSHELVED_TILE?' · ohne Regal, steht immer oben':''}</div></div>
+          <button class="rowIcon" data-a="cat-icon" data-id="${tl.id}" type="button" title="${t().tipChangeIcon}"><img src="${tl.icon}" alt="" onerror="this.style.visibility='hidden'"></button>
+          <div class="tx"><div class="nm">${tl.label}${isCustomTile(tl.id)?` <span class="owntag">${t().shelfOwnTag}</span>`:''}</div><div class="cnt">${tl.count} ${t().shelfItems}${tl.id===UNSHELVED_TILE?' · '+t().shelfNoShelfNote:''}</div></div>
           <div class="rebtns">
-            ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="Löschen">🗑</button>`:''}
-            <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="Umbenennen">✎</button>
-            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?'Steht immer oben':'nach oben'}"${(tl.id===UNSHELVED_TILE||i<=firstMovable)?' disabled':''}>▲</button>
-            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?'Steht immer oben':'nach unten'}"${(tl.id===UNSHELVED_TILE||i===orderTiles.length-1)?' disabled':''}>▼</button>
+            ${isCustomTile(tl.id)?`<button class="reordBtn" data-a="cat-delete" data-id="${tl.id}" type="button" title="${t().tipDelete}">🗑</button>`:''}
+            <button class="reordBtn" data-a="cat-rename" data-id="${tl.id}" type="button" title="${t().tipRename}">✎</button>
+            <button class="reordBtn" data-a="cat-up" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?t().tipAlwaysTop:t().tipUp}"${(tl.id===UNSHELVED_TILE||i<=firstMovable)?' disabled':''}>▲</button>
+            <button class="reordBtn" data-a="cat-down" data-id="${tl.id}" type="button" title="${tl.id===UNSHELVED_TILE?t().tipAlwaysTop:t().tipDown}"${(tl.id===UNSHELVED_TILE||i===orderTiles.length-1)?' disabled':''}>▼</button>
           </div>
         </div>`;
       }).join('')}</div>`;
@@ -5269,8 +5380,8 @@ function renderCatOverlay(){
       <div class="cathdr">
         <div style="flex:1">
           <div class="eyebrow">${t().shelfEyebrow}</div>
-          <h2>${CAT_EDIT ? 'Reihenfolge anpassen' : t().shelfTitle}</h2>
-          ${CAT_EDIT ? '<div class="sub">Mit ▲ ▼ das Regal an die richtige Stelle im Rundgang schieben. Ein Tipp auf das Bild wechselt das Symbol.</div>' : ''}
+          <h2>${CAT_EDIT ? t().shelfEditTitle : t().shelfTitle}</h2>
+          ${CAT_EDIT ? `<div class="sub">${t().shelfEditSub}</div>` : ''}
         </div>
         <button class="editBtn${CAT_EDIT?' on':''}" id="catEditBtn" type="button">${CAT_EDIT ? t().shelfDone : '✎ '+t().editShelves}</button>
         <button class="x" id="catCloseBtn" type="button" title="${t().close}">✕</button>
@@ -5437,21 +5548,21 @@ function renderIconPicker(){
   const topPx = hdr ? hdr.offsetHeight : 0;
   /* Aktuell sichtbares Symbol, egal ob eigene Wahl oder Werksvorgabe -- damit
      die Kachel markiert ist, die der Kaufmann gerade in der Zeile sieht. */
-  const current = TILE_ICONS[id] || TILE_ICON[id] || 'other';
+  const current = TILE_ICONS[id] || TILE_ICON[id] || ICON_FALLBACK;
   root.innerHTML = `<div class="catov" style="top:${topPx}px">
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
-          <div class="eyebrow">Regal-Symbol</div>
+          <div class="eyebrow">${t().iconPickEyebrow}</div>
           <h2>${tileLabel(id)}</h2>
-          <div class="sub">Tippen wählt das Symbol für dieses Regal.</div>
+          <div class="sub">${t().iconPickSub}</div>
         </div>
         <button class="x" id="iconPickClose" type="button" title="${t().close}">✕</button>
       </div>
       <div class="catbody">
         <div class="IconGrid">${ICON_CHOICES.map(f=>`
-          <button class="IconGridItem${f===current?' IconGridItem--on':''}" data-a="icon-pick" data-file="${f}" type="button" title="${f}">
-            <img src="assets/categories/${f}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+          <button class="IconGridItem${f===current?' IconGridItem--on':''}" data-a="icon-pick" data-file="${f}" type="button" title="${iconName(f)}">
+            <img src="assets/produce-icons/${f}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
           </button>`).join('')}</div>
       </div>
     </div>
