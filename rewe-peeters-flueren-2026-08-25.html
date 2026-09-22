@@ -248,6 +248,165 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .LangMenu__pop button:hover{background:var(--ff-grey-100)}
 .LangMenu__pop button.on{background:var(--ff-primary-10);color:var(--ff-color-primary)}
 .LangMenu__pop button.on i{color:var(--ff-color-primary)}
+/* ---------- Statusanzeige "Fehlende Daten" (dashboard only) ----------
+   lib/presentation/features/missing_input/widgets/missing_input_icon.dart und
+   .../missing_input_modal.dart, .../missing_input_table.dart.
+
+   Der Knopf steht dort, wo im Prototyp bisher der feste gruene Haken stand. Er
+   traegt drei Stufen (MissingInputLevel): success ist nur der Haken ohne Wort --
+   wenn nichts fehlt, gibt es nichts zu lesen; warning und error tragen beide
+   missingInputWarningIconCaption, weil das fehlende Datum selbst die Nachricht
+   ist, nicht seine Schwere. Nur dann ist der Knopf ueberhaupt ein Knopf. */
+.MissingInput{position:relative;display:flex;align-items:center}
+.MissingInput__btn{display:inline-flex;align-items:center;gap:7px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:var(--ff-weight-semibold);
+  font-size:var(--ff-text-primary-body-text-14);line-height:1;
+  -webkit-tap-highlight-color:transparent;transition:background .16s}
+.MissingInput__btn svg{display:block;flex:0 0 auto}
+/* IconBadge ohne Label: Kreis, 30px wie das Profilbild daneben. */
+.MissingInput__btn--ok{width:30px;height:30px;padding:0;border-radius:50%;
+  justify-content:center;background:var(--ff-color-success);color:var(--ff-color-white)}
+/* IconBadge mit Label: Pille. */
+.MissingInput__btn--warn{padding:7px 14px;border-radius:var(--ff-radius-pill);
+  background:var(--ff-color-warning);color:var(--ff-grey-800)}
+.MissingInput__btn--err{padding:7px 14px;border-radius:var(--ff-radius-pill);
+  background:var(--ff-color-danger);color:var(--ff-color-white)}
+.MissingInput__btn--warn:hover,.MissingInput__btn--err:hover{filter:brightness(1.06)}
+
+/* Der Vorhang gehoert zum Knopf, nicht zur Flaeche darunter: ein Klick daneben
+   schliesst -- AppColors.bgDimmed. */
+.MissingInput__ov{position:fixed;inset:0;z-index:70;display:none;background:rgba(20,25,22,.45)}
+.MissingInput__ov.on{display:block}
+/* ToolTipPainter(position: bottom): die Spitze zeigt auf den Knopf. Die Breite
+   folgt _overlayHorizontalSpacing (57) links wie rechts, gedeckelt auf die
+   Fensterbreite des Prototyps. */
+.MissingInput__panel{position:absolute;top:72px;left:57px;right:57px;
+  max-width:1066px;margin:0 auto;
+  max-height:calc(100vh - 104px);
+  background:var(--ff-color-white);border-radius:var(--ff-radius-c8);
+  box-shadow:0 18px 50px rgba(0,0,0,.28);
+  display:flex;flex-direction:column;overflow:hidden}
+.MissingInput__tip{position:absolute;top:62px;width:22px;height:10px;
+  background:var(--ff-color-white);clip-path:polygon(50% 0,100% 100%,0 100%)}
+
+/* Kopf: links der Titel, rechts das Datum -- _Header in missing_input_modal. */
+.MissingInput__hd{display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:19px 24px 12px}
+.MissingInput__hdTitle{font-size:var(--ff-text-primary-title-18);
+  font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800)}
+.MissingInput__hdDate{display:flex;align-items:center;gap:16px;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-color-dark-green)}
+.MissingInput__hdDate i{font-style:normal;font-weight:var(--ff-weight-light)}
+.MissingInput__hdDate b{font-weight:var(--ff-weight-semibold)}
+.MissingInput__rule{height:1px;background:var(--ff-grey-100)}
+
+.MissingInput__body{flex:1;overflow-y:auto;padding:16px 26px 35px 24px}
+/* _StatusBanner: die Stufe der ganzen Tafel, in einem Satz. */
+.MissingInput__banner{display:flex;align-items:center;gap:10px;
+  border-radius:var(--ff-radius-c8);padding:11px 24px 13px;
+  font-size:var(--ff-text-primary-title-18);font-weight:var(--ff-weight-regular)}
+.MissingInput__banner svg{flex:0 0 auto}
+.MissingInput__banner--ok{background:var(--ff-color-success);color:var(--ff-color-white)}
+.MissingInput__banner--warn{background:var(--ff-color-warning);color:var(--ff-grey-800)}
+.MissingInput__banner--err{background:var(--ff-color-danger);color:var(--ff-color-white)}
+.MissingInput__desc{padding:24px 24px 8px;
+  font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);
+  color:var(--ff-grey-600);line-height:1.5}
+
+/* Tabelle: Daten | Status. Die Beschriftungsspalte ist fest, damit die Pillen
+   untereinander stehen -- _kLabelColumnWidth 208 + _kColumnGap 24. */
+.MissingInput__tbl{padding:0 8px}
+.MissingInput__th,.MissingInput__row{display:flex;align-items:center;gap:24px;padding:0 16px}
+.MissingInput__th{height:48px;font-size:var(--ff-text-primary-body-text-14);
+  font-weight:var(--ff-weight-medium);color:var(--ff-grey-500)}
+/* Wird das Fenster schmal, faellt der Wareneingang-Knopf in eine eigene Zeile,
+   statt aus der Tafel zu laufen. Name und Pille bleiben nebeneinander -- sie
+   gehoeren zusammengelesen. */
+.MissingInput__row{min-height:56px;flex-wrap:wrap;row-gap:10px;padding-block:10px}
+.MissingInput__lbl{width:208px;flex:0 0 auto;
+  font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);
+  color:var(--ff-grey-900)}
+.MissingInput__cat{border-top:1px solid var(--ff-grey-100)}
+.MissingInput__cat:first-child{border-top:0}
+/* ExpandableContainer: eine fehlende Zeile faerbt ihren ganzen Block, damit die
+   Datumsliste darunter erkennbar zu ihr gehoert. */
+.MissingInput__cat--err{background:rgba(255,234,234,.5)}
+.MissingInput__cat--warn{background:rgba(250,175,59,.1)}
+
+/* Tag: der Status als Pille. */
+.MissingInput__tag{display:inline-flex;align-items:center;gap:6px;height:32px;
+  padding:0 12px;border-radius:var(--ff-radius-c8);border:1px solid;
+  font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium)}
+.MissingInput__tag--ok{background:transparent;border-color:var(--ff-primary-30);
+  color:var(--ff-color-accent-green)}
+.MissingInput__tag--err{background:var(--ff-color-missing-input-error-bg);
+  border-color:var(--ff-color-missing-input-error-border);color:var(--ff-color-danger)}
+.MissingInput__tag--warn{background:rgba(250,175,59,.2);
+  border-color:rgba(250,175,59,.6);color:var(--ff-color-warning)}
+
+/* Die fehlenden Tage: unter der Statusspalte, nicht unter dem Namen -- so liest
+   man sie als Fortsetzung der Pille. _DateEntryRow. */
+.MissingInput__day{display:flex;align-items:center;height:44px;padding-left:250px;
+  font-size:var(--ff-text-primary-body-text-16);color:var(--ff-grey-800)}
+.MissingInput__day b{width:45px;flex:0 0 auto;font-weight:var(--ff-weight-semibold)}
+.MissingInput__day span{font-weight:var(--ff-weight-regular)}
+
+/* Wareneingang laesst sich als einzige Quelle sofort nachholen: der Knopf steht
+   in der Zeile, die ihn betrifft, damit klar ist, was er verarbeitet. Nach dem
+   Druck bleibt an derselben Stelle stehen, seit wann -- ohne Uhrzeit waere
+   "wird verarbeitet" eine Aussage ohne Halt. */
+.MissingInput__act{margin-left:auto;display:flex;align-items:center;
+  justify-content:flex-end;padding-left:16px;flex:0 1 auto;min-width:0}
+.MissingInput__actBtn{min-height:36px;padding:8px 16px;border-radius:var(--ff-radius-pill);
+  border:0;background:var(--ff-color-primary);color:var(--ff-color-white);
+  font-family:inherit;font-size:var(--ff-text-primary-body-text-14);
+  font-weight:var(--ff-weight-semibold);cursor:pointer;text-align:center;
+  -webkit-tap-highlight-color:transparent}
+.MissingInput__actBtn:hover{background:var(--ff-color-dark-green)}
+.MissingInput__busy{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  justify-content:flex-end;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
+.MissingInput__busy b{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800)}
+.MissingInput__spin{width:14px;height:14px;flex:0 0 auto;border-radius:50%;
+  border:2px solid var(--ff-primary-30);border-top-color:var(--ff-color-primary);
+  animation:miSpin .9s linear infinite}
+@keyframes miSpin{to{transform:rotate(360deg)}}
+
+.MissingInput__foot{display:flex;justify-content:flex-end;padding:0 40px 16px}
+/* ---------- Push auf das Geraet ----------
+   Kein Teil der App, sondern das, was das Geraet darueber legt: die Meldung
+   erreicht den Markt auch dann, wenn die Tafel laengst zu ist oder jemand
+   schon in der Bestellliste steht. Deshalb liegt sie ueber allem -- auch ueber
+   dem Scan-Blatt -- und ueberlebt den Wechsel zwischen Dashboard und Liste.
+
+   Die Form ist die eines iPadOS-Banners: Symbol, Absender, Zeit, dann Titel und
+   Text. Antippen fuehrt dahin, wovon die Meldung spricht. */
+.FFPush{position:fixed;top:14px;left:50%;transform:translate(-50%,-140%);
+  z-index:9600;width:min(460px, calc(100% - 28px));
+  display:none;gap:12px;align-items:flex-start;
+  background:rgba(252,252,252,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-radius:18px;padding:12px 14px;
+  box-shadow:0 12px 34px rgba(0,0,0,.28);
+  text-align:left;cursor:pointer;
+  transition:transform .42s cubic-bezier(.2,.9,.3,1.1), opacity .28s;
+  opacity:0;-webkit-tap-highlight-color:transparent}
+.FFPush.on{display:flex;transform:translate(-50%,0);opacity:1}
+.FFPush__icon{width:38px;height:38px;flex:0 0 auto;border-radius:9px;
+  background:var(--ff-color-primary);display:grid;place-items:center}
+.FFPush__txt{flex:1;min-width:0}
+.FFPush__top{display:flex;align-items:baseline;gap:8px;
+  font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500);
+  text-transform:uppercase;letter-spacing:.4px}
+.FFPush__app{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.FFPush__when{margin-left:auto;text-transform:none;letter-spacing:0}
+.FFPush__title{margin-top:2px;font-size:var(--ff-text-primary-body-text-14);
+  font-weight:var(--ff-weight-bold);color:var(--ff-grey-900)}
+.FFPush__body{margin-top:1px;font-size:var(--ff-text-primary-body-text-14);
+  color:var(--ff-grey-800);line-height:1.35}
+.FFPush__x{flex:0 0 auto;align-self:center;border:0;background:none;padding:6px;
+  color:var(--ff-grey-400);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.FFPush__x:hover{color:var(--ff-grey-600)}
+@media (prefers-reduced-motion: reduce){ .FFPush{transition:opacity .2s} }
 /* ---------- toolbars ---------- */
 .srch{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line)}
 .srch input{border:0;outline:0;font-size:var(--ff-text-primary-body-text-16);flex:1;color:var(--ink)}
@@ -1867,7 +2026,9 @@ body.dash-active .scanFab{display:none}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <span class="dash-divider"></span>
-    <span class="chk" style="width:30px;height:30px;font-size:var(--ff-text-primary-body-text-16)">✓</span>
+    <!-- Statusanzeige: solange Daten fehlen, steht hier statt des Hakens die
+         rote Pille. Sie ist nur dann ein Knopf, wenn es etwas zu oeffnen gibt. -->
+    <div class="MissingInput" id="miWrap"></div>
     <div class="LangMenu" id="langMenu">
       <button type="button" class="LangMenu__btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
         <span id="langCurrent">DE</span>
@@ -1883,6 +2044,10 @@ body.dash-active .scanFab{display:none}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ff-color-white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
     </div>
   </div>
+
+  <!-- Die Tafel haengt am Knopf: Vorhang plus Spitze nach oben, wie das Overlay
+       in missing_input_icon.dart. Sie wird bei jedem Oeffnen neu gebaut. -->
+  <div class="MissingInput__ov" id="miOv"></div>
 
   <div class="dash-body">
     <div class="dash-panel" id="panelDash">
@@ -2270,6 +2435,8 @@ body.dash-active .scanFab{display:none}
 </div>
 
 <div class="undobar" id="catUndoBar"></div>
+
+<div class="FFPush" id="ffPush" role="status" aria-live="polite"></div>
 
   <!-- Eine Ansicht: die Liste. Das Scan-Feld klappt darueber auf und nimmt den Platz
        der Kopfzeile ein. -->
@@ -3007,6 +3174,31 @@ const T={
     margin:'Spanne',  // [arb] commonProfitMargin
     acceptance:'Übernahme',  // [arb] commonAcceptanceRateCaption
     shrink:'Abschriften',  // [arb] missingInputShrinkCategoryCaption
+    /* Statusanzeige "Fehlende Daten". Alles mit [arb] steht so in der App --
+       nur der Wareneingang-Knopf ist neu und wartet noch auf echte Schluessel. */
+    miStatus:'Status',  // [arb] commonStatus
+    miDate:'Datum',  // [arb] commonDate
+    miDismiss:'Zurück',  // [arb] commonDismiss
+    miColData:'Daten',  // [arb] missingInputTableDataColumn
+    miColStatus:'Status',  // [arb] missingInputTableStatusColumn
+    miMissing:'Fehlen',  // [arb] missingInputTableMissingStatus
+    miUploaded:'Hochgeladen',  // [arb] missingInputTableUploadedStatus
+    miBannerOk:'Alles auf dem neuesten Stand!',  // [arb] missingInputSuccessBannerMessage
+    miBannerWarn:'Daten fehlen.',  // [arb] missingInputWarningBannerMessage
+    miBannerErr:'Kritische Daten fehlen. Bitte überprüfen Sie die Datenquelle unten.',  // [arb] missingInputCriticalBannerMessage
+    miDesc:'Freshflow funktioniert am besten, wenn es Zugriff auf alle notwendigen Daten hat. Um einen reibungslosen Ablauf der Bestellung zu gewährleisten, stellen Sie bitte sicher, dass alle erforderlichen Daten vor dem Bearbeiten einer Bestellung hochgeladen wurden.',  // [arb] missingInputDescription
+    miCaption:'Fehlende Daten',  // [arb] missingInputWarningIconCaption
+    miCatIntake:'Wareneingang',  // [arb] missingInputOrderIntakeCategoryCaption
+    miCatSales:'Verkauf',  // [arb] missingInputSalesCategoryCaption
+    miProcessIntake:'Jetzt Wareneingang verarbeiten',
+    miProcessing:'Wareneingang wird verarbeitet',
+    miSince:'seit {t}',
+    /* Der Push. Die App verschickt heute keine -- es gibt also auch keine
+       .arb-Schluessel dafuer; der Wortlaut stammt aus der Anforderung. */
+    pushApp:'Freshflow',
+    pushNow:'jetzt',
+    pushIntakeTitle:'Wareneingang verarbeitet',
+    pushIntakeBody:'Der Wareneingang wurde verarbeitet. Du kannst jetzt mit dem Bestellen starten.',
     revenue:'Umsatz',  // [arb] revenueOverviewTitle
     weather:'Wetter',  // [arb] dashboardWeatherCardTitle
     todayOverview:'Heutige Übersicht',  // [arb] dashboardRevenueSalesOverviewCardTitle
@@ -3328,6 +3520,27 @@ const T={
     margin:'Margin',  // [arb] commonProfitMargin
     acceptance:'Acceptance',  // [arb] commonAcceptanceRateCaption
     shrink:'Shrink',  // [arb] missingInputShrinkCategoryCaption
+    miStatus:'Status',  // [arb] commonStatus
+    miDate:'Date',  // [arb] commonDate
+    miDismiss:'Dismiss',  // [arb] commonDismiss
+    miColData:'Data',  // [arb] missingInputTableDataColumn
+    miColStatus:'Status',  // [arb] missingInputTableStatusColumn
+    miMissing:'Missing',  // [arb] missingInputTableMissingStatus
+    miUploaded:'Uploaded',  // [arb] missingInputTableUploadedStatus
+    miBannerOk:'All up to date!',  // [arb] missingInputSuccessBannerMessage
+    miBannerWarn:'Data is missing.',  // [arb] missingInputWarningBannerMessage
+    miBannerErr:'Critical data is missing. Please verify the data source below.',  // [arb] missingInputCriticalBannerMessage
+    miDesc:'Freshflow operates at its best when it has access to all the necessary data. To ensure smooth order processing, please ensure that all required data is uploaded prior to placing an order.',  // [arb] missingInputDescription
+    miCaption:'Missing data',  // [arb] missingInputWarningIconCaption
+    miCatIntake:'Order Intake',  // [arb] missingInputOrderIntakeCategoryCaption
+    miCatSales:'Sales',  // [arb] missingInputSalesCategoryCaption
+    miProcessIntake:'Process order intake now',
+    miProcessing:'Order intake is being processed',
+    miSince:'since {t}',
+    pushApp:'Freshflow',
+    pushNow:'now',
+    pushIntakeTitle:'Order intake processed',
+    pushIntakeBody:'The order intake has been processed. You can start ordering now.',
     revenue:'Revenue',  // [arb] revenueOverviewTitle
     weather:'Weather',  // [arb] dashboardWeatherCardTitle
     todayOverview:'Today\'s Overview',  // [arb] dashboardRevenueSalesOverviewCardTitle
@@ -3648,6 +3861,27 @@ const T={
     margin:'Marge',  // [arb] commonProfitMargin
     acceptance:'Acceptation',  // [arb] commonAcceptanceRateCaption
     shrink:'Casse',  // [arb] missingInputShrinkCategoryCaption
+    miStatus:'Statut',  // [arb] commonStatus
+    miDate:'Date',  // [arb] commonDate
+    miDismiss:'Ignorer',  // [arb] commonDismiss
+    miColData:'Données',  // [arb] missingInputTableDataColumn
+    miColStatus:'Statut',  // [arb] missingInputTableStatusColumn
+    miMissing:'Manquant',  // [arb] missingInputTableMissingStatus
+    miUploaded:'À jour',  // [arb] missingInputTableUploadedStatus
+    miBannerOk:'Tout est à jour !',  // [arb] missingInputSuccessBannerMessage
+    miBannerWarn:'Des données sont manquantes.',  // [arb] missingInputWarningBannerMessage
+    miBannerErr:'Des données critiques manquent. Veuillez vérifier la source de données ci-dessous.',  // [arb] missingInputCriticalBannerMessage
+    miDesc:"Freshflow fonctionne au mieux lorsqu'il a accès à toutes les données nécessaires. Pour assurer le bon traitement des commandes, veuillez vous assurer que toutes les données requises sont téléchargées avant de passer une commande.",  // [arb] missingInputDescription
+    miCaption:'Données manquantes',  // [arb] missingInputWarningIconCaption
+    miCatIntake:'Livraison',  // [arb] missingInputOrderIntakeCategoryCaption
+    miCatSales:'Ventes',  // [arb] missingInputSalesCategoryCaption
+    miProcessIntake:'Traiter la livraison maintenant',
+    miProcessing:'Livraison en cours de traitement',
+    miSince:'depuis {t}',
+    pushApp:'Freshflow',
+    pushNow:'maintenant',
+    pushIntakeTitle:'Livraison traitée',
+    pushIntakeBody:'La livraison a été traitée. Vous pouvez maintenant commencer à commander.',
     revenue:'Chiffre d\'affaires',  // [arb] revenueOverviewTitle
     weather:'Météo',  // [arb] dashboardWeatherCardTitle
     todayOverview:'Synthèse du jour',  // [arb] dashboardRevenueSalesOverviewCardTitle
@@ -3990,6 +4224,7 @@ function applyLang(){
      Sprache stehen. */
   /* Das Sortiermenue baut seine Texte selbst -- ohne diesen Aufruf bliebe bei
      offenem Menue die alte Sprache stehen. */
+  if(typeof miRender==='function') miRender();
   if(typeof renderSortUI==='function' && document.getElementById('sortPop')) renderSortUI();
   if(typeof renderStorePanel==='function' && document.getElementById('mmTitle')) renderStorePanel();
   if(typeof renderInvPanel==='function' && document.getElementById('invTitle')) renderInvPanel();
@@ -4066,6 +4301,303 @@ document.addEventListener('keydown', e=>{
     document.getElementById('langBtn').setAttribute('aria-expanded','false');
   }
 });
+
+/* ================= Statusanzeige "Fehlende Daten" =================
+   lib/presentation/features/missing_input/* -- der Knopf in der gruenen Leiste,
+   die Tafel darunter.
+
+   Die App fuehrt je Quelle eine Liste der Tage, an denen nichts ankam, und
+   verdichtet sie zu einer Stufe (MissingInputLevel): success, warning, error.
+   Fehlt gar nichts, bleibt vom Knopf nur der Haken -- ohne Wort, weil es dann
+   nichts zu lesen gibt. Fehlt etwas, traegt er missingInputWarningIconCaption
+   und oeffnet auf Druck die Tafel.
+
+   Im Prototyp fehlt der Wareneingang des Vortags: der haeufigste Fall in einem
+   Markt und der einzige, den der Kaufmann selbst nachholen kann. Genau deshalb
+   haengt der Knopf "Jetzt Wareneingang verarbeiten" an dieser Zeile und an
+   keiner anderen -- wer ihn drueckt, weiss dann, was gerade laeuft und seit wann. */
+
+/* Das Bestelldatum der Datei, nicht der Tag des Betrachters: alles andere auf
+   dieser Flaeche (Uebersicht, Ordersatzkopf) steht auf dem 25.08.2026. */
+const MI_TODAY = new Date(2026, 7, 25);
+const MI_DAY_MS = 86400000;
+
+/* level: 'ok' | 'warn' | 'err'. days sind die Tage ohne Lieferung. */
+const MI = {
+  cats: [
+    { key:'shrink',    lbl:()=>t().shrink,     level:'ok',  days:[] },
+    { key:'ordersatz', lbl:()=>t().ordersatz,  level:'ok',  days:[] },
+    { key:'sales',     lbl:()=>t().miCatSales, level:'ok',  days:[] },
+    { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
+      days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }
+  ],
+  /* null = noch nicht angestossen, sonst der Zeitpunkt des Drucks. */
+  intakeStartedAt: null,
+  /* Wie lange die Verarbeitung im Prototyp laeuft. In der echten Kette haengt das
+     an der Datei, die der Markt schickt -- hier lang genug, dass man den Zustand
+     liest, kurz genug, dass niemand darauf wartet. */
+  intakeRunMs: 4200
+};
+
+/* AlertDismissalService: die Tafel draengt sich einmal am Tag auf, nicht bei
+   jedem Blick aufs Dashboard. Gemerkt wird der Tag des Betrachters, je Markt --
+   dasselbe, was die App in den SharedPreferences ablegt. */
+const MI_DISMISS_KEY = 'missing_alert_lastDismiss_' + GUIDE_ID;
+function miTodayIso(){
+  const n=new Date();
+  return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+}
+function miDismissedToday(){
+  try{ return localStorage.getItem(MI_DISMISS_KEY)===miTodayIso(); }catch(e){ return false; }
+}
+function miRememberDismissal(){
+  try{ localStorage.setItem(MI_DISMISS_KEY, miTodayIso()); }catch(e){}
+}
+
+/* MissingInputCategoryListX.severity: die schwerste Stufe gewinnt. */
+function miSeverity(){
+  if(MI.cats.some(c=>c.level==='err')) return 'err';
+  if(MI.cats.some(c=>c.level==='warn')) return 'warn';
+  return 'ok';
+}
+
+/* asMonthDayYear -- 'MMM dd, yyyy'. toLocaleDateString baut die Reihenfolge je
+   Sprache um, deshalb hier von Hand zusammengesetzt. */
+function miMonthDayYear(d){
+  const loc=dateLoc();
+  const mon=d.toLocaleDateString(loc,{month:'short'});
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${mon} ${day}, ${d.getFullYear()}`;
+}
+/* asDay -- 'EEE'. */
+function miDay(d){ return d.toLocaleDateString(dateLoc(),{weekday:'short'}); }
+function miClock(d){
+  return d.toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'});
+}
+
+const MI_ICON = {
+  ok:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.4-4.2-4.2 1.7-1.7 2.5 2.5 5.4-5.4 1.7 1.7-7.1 7.1z"/></svg>',
+  warn:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+  err:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2 1.6 20.4h20.8L12 3.2zm1 13.4h-2v-2h2v2zm0-3.6h-2V9.4h2v3.6z"/></svg>'
+};
+const MI_TAGIC = {
+  ok:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg>',
+  warn:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+  err:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2 1.6 20.4h20.8L12 3.2zm1 13.4h-2v-2h2v2zm0-3.6h-2V9.4h2v3.6z"/></svg>'
+};
+
+/* Der Knopf. Bei 'ok' nur der Kreis mit dem Haken -- die App haengt dort kein
+   Wort an, weil ein erledigter Zustand nichts zu melden hat. */
+function miRenderBtn(){
+  const wrap=document.getElementById('miWrap'); if(!wrap) return;
+  const L=t(), sev=miSeverity();
+  const cls = sev==='ok' ? 'ok' : sev==='warn' ? 'warn' : 'err';
+  const label = sev==='ok' ? '' : `<span>${L.miCaption}</span>`;
+  wrap.innerHTML =
+    `<button type="button" class="MissingInput__btn MissingInput__btn--${cls}" id="miBtn"`
+    + ` aria-haspopup="dialog" aria-expanded="false"`
+    + ` aria-label="${L.miStatus}${sev==='ok'?'':' – '+L.miCaption}">`
+    + MI_ICON[sev] + label + '</button>';
+}
+
+/* Die Tafel. Wird bei jedem Oeffnen und bei jedem Sprachwechsel neu gebaut --
+   ein halb uebersetztes Fenster waere schlimmer als gar keines. */
+function miRenderPanel(){
+  const ov=document.getElementById('miOv');
+  if(!ov || !ov.classList.contains('on')) return;
+  const L=t(), sev=miSeverity();
+  const banner = sev==='ok' ? L.miBannerOk : sev==='warn' ? L.miBannerWarn : L.miBannerErr;
+
+  const rows = MI.cats.map(c=>{
+    const ok = c.level==='ok';
+    const tag = `<span class="MissingInput__tag MissingInput__tag--${c.level}">`
+              + MI_TAGIC[c.level] + (ok ? L.miUploaded : L.miMissing) + '</span>';
+    /* Nur die Wareneingangszeile traegt die Handlung: sie ist die einzige
+       Quelle, die der Markt selbst nochmal anstossen kann. */
+    let act='';
+    if(c.key==='intake' && !ok){
+      act = MI.intakeStartedAt
+        ? `<div class="MissingInput__act"><span class="MissingInput__busy">`
+          + `<span class="MissingInput__spin"></span>`
+          + `<b>${L.miProcessing}</b>`
+          + `<span>· ${L.miSince.replace('{t}', miClock(MI.intakeStartedAt))}</span>`
+          + `</span></div>`
+        : `<div class="MissingInput__act">`
+          + `<button type="button" class="MissingInput__actBtn" id="miIntakeBtn">${L.miProcessIntake}</button>`
+          + `</div>`;
+    }
+    const days = ok ? '' : c.days.map(d=>
+      `<div class="MissingInput__day"><b>${miDay(d)}</b><span>${miMonthDayYear(d)}</span></div>`).join('');
+    return `<div class="MissingInput__cat${ok?'':' MissingInput__cat--'+c.level}">`
+         + `<div class="MissingInput__row"><div class="MissingInput__lbl">${c.lbl()}</div>${tag}${act}</div>`
+         + days + '</div>';
+  }).join('');
+
+  ov.innerHTML =
+    `<span class="MissingInput__tip" id="miTip"></span>`
+    + `<div class="MissingInput__panel" role="dialog" aria-modal="true" aria-label="${L.miStatus}">`
+    + `<div class="MissingInput__hd">`
+    +   `<div class="MissingInput__hdTitle">${L.miStatus}</div>`
+    +   `<div class="MissingInput__hdDate"><i>${L.miDate}</i><b>${miMonthDayYear(MI_TODAY)}</b></div>`
+    + `</div>`
+    + `<div class="MissingInput__rule"></div>`
+    + `<div class="MissingInput__body">`
+    +   `<div class="MissingInput__banner MissingInput__banner--${sev}">${MI_ICON[sev]}<span>${banner}</span></div>`
+    +   `<div class="MissingInput__desc">${L.miDesc}</div>`
+    +   `<div class="MissingInput__tbl">`
+    +     `<div class="MissingInput__th"><div class="MissingInput__lbl">${L.miColData}</div><span>${L.miColStatus}</span></div>`
+    +     `<div class="MissingInput__rule"></div>`
+    +     rows
+    +   `</div>`
+    + `</div>`
+    + `<div class="MissingInput__foot">`
+    +   `<button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="miDismiss">${L.miDismiss}</button>`
+    + `</div>`
+    + `</div>`;
+  miPlaceTip();
+}
+
+/* Die Spitze sitzt unter der Mitte des Knopfs, nicht in der Mitte der Tafel --
+   sonst zeigt sie auf nichts. */
+function miPlaceTip(){
+  const tip=document.getElementById('miTip');
+  const btn=document.getElementById('miBtn');
+  const panel=tip && tip.nextElementSibling;
+  if(!tip||!btn||!panel) return;
+  const b=btn.getBoundingClientRect(), p=panel.getBoundingClientRect();
+  const x=Math.min(Math.max(b.left + b.width/2 - p.left, 16), p.width-16);
+  tip.style.left = (x-11)+'px';
+}
+
+function miOpen(){
+  const ov=document.getElementById('miOv'); if(!ov) return;
+  ov.classList.add('on');
+  document.getElementById('miBtn')?.setAttribute('aria-expanded','true');
+  miRenderPanel();
+}
+function miClose(){
+  const ov=document.getElementById('miOv'); if(!ov) return;
+  /* Nur die rote Stufe wird weggeklickt und bleibt weg -- eine gruene Tafel hat
+     sich nie aufgedraengt, also gibt es an ihr auch nichts zu merken. */
+  if(miSeverity()==='err') miRememberDismissal();
+  ov.classList.remove('on');
+  ov.innerHTML='';
+  document.getElementById('miBtn')?.setAttribute('aria-expanded','false');
+}
+/* Knopf und Tafel gehoeren zusammen: nach jeder Zustandsaenderung beides neu. */
+function miRender(){ miRenderBtn(); miRenderPanel(); }
+
+document.addEventListener('click', e=>{
+  if(e.target.closest('#miBtn')){
+    const ov=document.getElementById('miOv');
+    if(ov && ov.classList.contains('on')) miClose(); else miOpen();
+    return;
+  }
+  if(e.target.closest('#miIntakeBtn')){
+    /* Einmal anstossen genuegt -- ein zweiter Druck haette keinen zweiten
+       Wareneingang zur Folge, nur eine neue Uhrzeit. */
+    if(!MI.intakeStartedAt) miStartIntake();
+    return;
+  }
+  if(e.target.closest('#miDismiss')){ miClose(); return; }
+  /* Klick auf den Vorhang, nicht in die Tafel. */
+  const ov=document.getElementById('miOv');
+  if(ov && ov.classList.contains('on') && e.target===ov) miClose();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  const ov=document.getElementById('miOv');
+  if(ov && ov.classList.contains('on')) miClose();
+});
+window.addEventListener('resize', miPlaceTip);
+miRenderBtn();
+
+/* ---------- der Lauf und was danach kommt ----------
+   Der Druck stoesst an, die Meldung kommt spaeter: genau dazwischen liegt der
+   Grund fuer den Push. Wer den Knopf drueckt, legt das Geraet weg und raeumt
+   weiter ein -- die Nachricht muss ihn auch dann erreichen, wenn die Tafel zu
+   ist oder er laengst in der Bestellliste steht. */
+function miStartIntake(){
+  MI.intakeStartedAt=new Date();
+  miRenderPanel();
+  toast(t().miProcessing);
+  setTimeout(miFinishIntake, MI.intakeRunMs);
+}
+function miFinishIntake(){
+  const cat=MI.cats.find(c=>c.key==='intake');
+  if(!cat) return;
+  cat.level='ok'; cat.days=[];
+  /* Der Knopf in der Leiste faellt auf den Haken zurueck, die offene Tafel
+     schreibt sich gruen -- beides dieselbe Quelle, also ein Aufruf. */
+  miRender();
+  ffPush(t().pushIntakeTitle, t().pushIntakeBody, enterApp);
+}
+
+/* ---------- Push auf das Geraet ----------
+   Ein Bild, kein Versand: die App verschickt heute keine Pushes, und dieser hier
+   verlaesst die Seite nicht. Er zeigt nur, was auf dem Sperrbildschirm stuende. */
+let FFPUSH_TIMER=null, FFPUSH_ACTION=null;
+function ffPush(title, body, onTap){
+  const el=document.getElementById('ffPush'); if(!el) return;
+  const L=t();
+  FFPUSH_ACTION = onTap || null;
+  el.innerHTML =
+    `<span class="FFPush__icon">`
+    + `<svg width="22" height="22" viewBox="0 0 49 48" fill="none" xmlns="http://www.w3.org/2000/svg">`
+    +   `<path d="M31.3359 4.50001C31.3359 7.51949 28.9476 9.9375 25.8984 9.9375H23.2734C17.7898 9.9375 13.3359 14.2573 13.3359 19.6875V28.6071L13.3359 43.5H17.8359V28.6071V20.8149V19.6875C17.8359 16.668 20.2243 14.25 23.2734 14.25H25.8984C27.9394 14.25 29.7376 13.7971 31.3359 12.75C34.0501 10.9675 35.8359 7.88474 35.8359 4.5L31.3359 4.50001Z" fill="var(--ff-color-white)"/>`
+    +   `<path d="M17.8359 43.5V38.0625C17.8359 35.4496 20.0277 33.375 22.7109 33.375H26.4609C31.5567 33.375 35.8359 29.1956 35.8359 24.1875V14.0625C35.8359 17.5312 34.3359 20.625 31.3359 22.4062V24.1875C31.3359 26.8004 29.1442 29.0625 26.4609 29.0625H22.7109C20.9385 29.0625 19.2637 29.4282 17.8359 30.2991C15.2019 31.8959 13.3359 34.7964 13.3359 38.0625V43.5H17.8359Z" fill="var(--ff-color-white)"/>`
+    +   `<path d="M31.3359 12.6543V14.6686C31.3359 17.2897 29.1413 19.5 26.4609 19.5H22.7109C20.9404 19.5 19.2622 19.935 17.8359 20.8087V28.5747C17.8359 25.9537 20.0306 23.8125 22.7109 23.8125H26.4609C31.5511 23.8125 35.8359 19.6923 35.8359 14.6686V4.5C35.8359 7.92191 33.9797 10.7812 31.3359 12.6543Z" fill="var(--ff-color-white)"/>`
+    + `</svg></span>`
+    + `<span class="FFPush__txt">`
+    +   `<span class="FFPush__top"><span class="FFPush__app">${L.pushApp}</span>`
+    +     `<span class="FFPush__when">${L.pushNow}</span></span>`
+    +   `<div class="FFPush__title">${title}</div>`
+    +   `<div class="FFPush__body">${body}</div>`
+    + `</span>`
+    + `<button type="button" class="FFPush__x" id="ffPushX" aria-label="${L.close}">`
+    +   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>`
+    + `</button>`;
+  el.classList.add('on');
+  clearTimeout(FFPUSH_TIMER);
+  /* Ein Banner geht von selbst wieder weg -- wer es wegwischt, hat es gelesen,
+     wer es nicht ansieht, soll es nicht den ganzen Tag im Weg haben. */
+  FFPUSH_TIMER=setTimeout(ffPushHide, 9000);
+}
+function ffPushHide(){
+  clearTimeout(FFPUSH_TIMER);
+  const el=document.getElementById('ffPush'); if(!el) return;
+  el.classList.remove('on');
+  FFPUSH_ACTION=null;
+}
+document.addEventListener('click', e=>{
+  if(e.target.closest('#ffPushX')){ ffPushHide(); return; }
+  const card=e.target.closest('#ffPush');
+  if(card){
+    const go=FFPUSH_ACTION;
+    ffPushHide();
+    /* Ein Push, der nur verschwindet, haette nichts ausgerichtet: er fuehrt
+       dahin, wovon er spricht -- hier in die Bestellliste. */
+    if(typeof go==='function' && document.body.classList.contains('dash-active')) go();
+  }
+});
+
+/* Zurueck auf Anfang: Wareneingang fehlt wieder, der Lauf ist vergessen, und das
+   Wegklicken von heute zaehlt nicht mehr. */
+function miResetDemo(){
+  const cat=MI.cats.find(c=>c.key==='intake');
+  if(cat){ cat.level='err'; cat.days=[ new Date(MI_TODAY.getTime()-MI_DAY_MS) ]; }
+  MI.intakeStartedAt=null;
+  ffPushHide();
+  try{ localStorage.removeItem(MI_DISMISS_KEY); }catch(e){}
+  miRender();
+}
+
+/* Auto-Anzeige: bei kritisch fehlenden Daten oeffnet sich die Tafel von selbst,
+   einmal am Tag. Das ist der Fall, um den es geht -- wer morgens die App
+   aufmacht und den fehlenden Wareneingang nicht sieht, bestellt darauf los. */
+if(miSeverity()==='err' && !miDismissedToday()){
+  requestAnimationFrame(()=>requestAnimationFrame(miOpen));
+}
 
 
 /* it.unit comes straight from prod_orders_output.case.unit ("KG" or "Piece", read at
@@ -6669,6 +7201,10 @@ document.getElementById('resetAbbrechen').addEventListener('click', closeResetDl
 document.getElementById('resetGo').addEventListener('click', ()=>{
   TAPS=0; ITEMS.forEach((it,ix)=>{ST[ix]=initState(it)});
   CATFINISHED={}; CATFILTER=null; CATCONFIRM=null; CATREOPEN=null; AUTO_FIX=false; endCatCelebration();
+  /* Der fehlende Wareneingang gehoert zum Ausgangszustand: ohne ihn liesse sich
+     der Ablauf nur einmal je Tag und Geraet vorfuehren -- die Tafel merkt sich
+     ihr Wegklicken sonst bis Mitternacht. */
+  miResetDemo();
   render();
   closeResetDlg();
 });
