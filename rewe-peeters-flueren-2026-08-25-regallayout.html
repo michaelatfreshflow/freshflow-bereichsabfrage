@@ -490,6 +490,7 @@ body.isFiltering{
    Kachel-Blatt, nur etwas kleiner, weil sie hier in einer Zeile steht. */
 .movecta--place{padding:8px 10px}
 .movecta--place .rlPill{padding:6px 13px}
+.movecta__opts{flex:0 0 auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
 /* Der Durchstrich steht erst hier: vorher waere er falsch -- der Artikel steht ja
    noch in diesem Regal. Nach dem Zuordnen ist er die Zustandsanzeige ("das ist jetzt
    Vergangenheit"), und "BISHER" plus Pfeil plus Farbe sagen das Uebrige. */
@@ -1434,11 +1435,6 @@ body.dash-active .scanFab{display:none}
 .bsOv__view .scanCam__ghost span{height:44px}
 .bsOv__view .scanCam__ghost span:nth-child(4n){height:32px}
 .bsOv__sheet{flex:1 1 auto;min-height:0;border-radius:16px 16px 0 0;color:var(--ink)}
-/* Im Regal-Sucher steht unten das Regalbild selbst -- eine ganze Regalkachel
-   mit Bild, nicht eine Zeile. Die Kamera nimmt dort darum deutlich weniger als
-   bei "Lager scannen": auf dem iPad (820 Punkte hoch) muss die Kachel samt ✕
-   ueber die Fussleiste passen, ohne dass man erst scrollt. */
-#rlCam .bsOv__view{flex:0 0 25%;min-height:118px}
 /* Quittung fuer einen gezaehlten Scan: kurzes gruenes Aufleuchten des Suchers.
    Die Abweisung nimmt dieselbe Flaeche in Rot -- gleiche Stelle, gegenteilige
    Farbe, damit sich beide nicht verwechseln lassen. */
@@ -1496,7 +1492,7 @@ body.dash-active .scanFab{display:none}
    in der Liste (data-a="invpad") -- es gibt keinen zweiten Antwortweg, sonst
    haette das Regalbild seinen eigenen Zustand.
    =========================================================================== */
-.Regalbild{padding:6px 0 10px}
+.Regalbild{padding:6px 18px 10px}
 .Regalbild__row{margin-bottom:20px}
 .Regalbild__rowLb{display:flex;align-items:center;gap:9px;margin-bottom:8px;min-height:26px;
   font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);color:var(--mute)}
@@ -1583,37 +1579,7 @@ body.dash-active .scanFab{display:none}
 .Regalbild__row--rest .Regalbild__rowLb{color:var(--ff-color-needs-attention)}
 /* Leer ist der Normalfall und keine Warnung. */
 .Regalbild__row--rest .Regalbild__rowLb.is-empty{color:var(--mute)}
-/* Ein Regal ohne Bild: der Satz steht ueber der ersten, leeren Reihe -- die
-   Reihe mit ihrer Scan-Kachel ist der Einstieg, nicht ein Text an ihrer Stelle. */
-.Regalbild__setup{margin:0 0 16px;font-size:var(--ff-text-primary-body-text-14);color:var(--mute);line-height:1.5;max-width:620px}
-.Regalbild__setup b{color:var(--ink)}
 
-/* Die leere Kachel am Ende jeder Reihe: der einzige Einstieg ins Scannen. Sie
-   steht dort, wo der naechste Artikel hinkommt -- ein Knopf in einer Werkzeug-
-   leiste haette erst sagen muessen, in WELCHE Reihe er legt. */
-/* Sie klebt am rechten Rand der Reihe: eine Reihe mit zwoelf Artikeln ist
-   breiter als der Bildschirm, und der einzige Einstieg ins Scannen darf nicht
-   erst hinter dem Scrollen liegen. Steht die Reihe ganz da, bleibt die Kachel
-   einfach hinter dem letzten Artikel. */
-.RegalAdd{position:sticky;right:0;flex:0 0 auto;width:118px;align-self:stretch;min-height:148px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;background:var(--ff-color-white);
-  border:1.5px dashed var(--ff-grey-300);border-radius:var(--ff-radius-c12);
-  font-family:inherit;cursor:pointer;color:var(--green);-webkit-tap-highlight-color:transparent}
-.RegalAdd:active{background:var(--ff-primary-10);border-color:var(--green)}
-.Regalbild__strip:not(.rbOver) .RegalAdd{box-shadow:-14px 0 14px -10px rgba(39,39,42,.13)}
-@media (hover:hover){ .RegalAdd:hover{background:var(--ff-primary-10);border-color:var(--green)} }
-.RegalAdd__ic{position:relative;width:42px;height:42px;border-radius:var(--ff-radius-pill);
-  background:var(--ff-primary-20);display:flex;align-items:center;justify-content:center}
-.RegalAdd__ic svg{width:21px;height:21px;display:block}
-/* Das + sitzt AM Symbol, nicht daneben: die Kachel sagt "scannen" und
-   "hinzufuegen" in einem Bild. */
-.RegalAdd__ic b{position:absolute;right:-4px;top:-4px;width:18px;height:18px;border-radius:var(--ff-radius-pill);
-  background:var(--green);color:var(--ff-color-white);font-size:var(--ff-text-primary-caption-12);
-  line-height:18px;text-align:center;font-weight:var(--ff-weight-bold)}
-.RegalAdd__lb{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);text-align:center;padding:0 8px}
-
-.Regalbild__bar{display:flex;align-items:center;gap:10px;margin:0 0 14px;min-height:22px}
-.Regalbild__hint{flex:1;font-size:var(--ff-text-primary-caption-12);color:var(--mute);line-height:1.45}
 .Regalbild__del{border:1px solid var(--line);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);
   font-family:inherit;font-size:var(--ff-text-primary-sub-title-10);font-weight:var(--ff-weight-bold);
   color:var(--red);padding:4px 10px;cursor:pointer}
@@ -1657,17 +1623,6 @@ body.rbDragging .Regalbild__strip{touch-action:none}
 .rtPlace__btn:active:not(:disabled){background:var(--ff-primary-20)}
 .rtPlace__btn:disabled{color:var(--ff-grey-300);box-shadow:none;background:transparent;cursor:default}
 
-.RegalTile--edit{width:166px;cursor:default}
-.RegalTile--edit:active{background:var(--ff-color-white)}
-.RegalTile--edit.RegalTile--attn:active{background:var(--amber-bg)}
-.RegalTile__ctl{display:flex;gap:4px;margin:0 -11px;padding:8px 9px;border-top:1px solid var(--line)}
-.RegalTile__btn{flex:1 1 0;min-width:0;height:28px;padding:0;border:1px solid var(--line);
-  background:var(--ff-color-white);border-radius:var(--ff-radius-c8);font-family:inherit;
-  font-size:var(--ff-text-primary-sub-title-10);color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.RegalTile__btn:active:not(:disabled){background:var(--ff-primary-20)}
-.RegalTile__btn:disabled{color:var(--ff-grey-300);cursor:default}
-.RegalTile__btn--x{color:var(--red)}
-.RegalTile__btn--x:active{background:var(--red-bg)}
 /* Im Regalbild sagen die Spaltenkoepfe der LISTE ("Artikel | Bestand | Bestellung")
    nichts mehr -- es gibt keine Spalten. Nur die der Liste: dieselbe Klasse steckt
    auch in den Blaettern (Scan-Ergebnis, Regalkachel), und dort ueber genau einer
@@ -1686,7 +1641,6 @@ body.isShelfView #colh{display:none}
 /* Regal einrichten: dieselbe Kamera wie "Lager scannen" (.bsOv), nur zaehlt hier
    nicht die Kiste, sondern der PLATZ -- Reihe waehlen, links nach rechts scannen,
    naechste Reihe. */
-.rlRows{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:0 18px 12px}
 .rlPill{border:1.5px solid var(--line);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);
   font-family:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);
   color:var(--ink);padding:8px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -1695,7 +1649,6 @@ body.isShelfView #colh{display:none}
 .rlPill:disabled{opacity:.4;cursor:default}
 /* Das Scan-Blatt zeigt das Regalbild selbst -- es braucht nur die Polsterung,
    die .scanRes__body nicht mitbringt. */
-.rlScan{padding:14px 18px 2px}
 .rlPill .n{margin-left:6px;font-weight:var(--ff-weight-medium);opacity:.7}
 </style>
 </head>
@@ -1989,27 +1942,6 @@ body.isShelfView #colh{display:none}
       <div class="bsRej" id="bsRej" role="status" aria-live="assertive" hidden></div>
     </div>
     <div class="scanRes__sheet bsOv__sheet" id="bsResSheet"></div>
-  </div>
-  <!-- Regal einrichten: dieselbe Kamera und dasselbe Blatt wie "Lager scannen"
-       (.bsOv), nur zaehlt hier nicht die Kiste, sondern der Platz. Die Reihenfolge
-       der Scans ist die Reihenfolge im Regal. -->
-  <div class="bsOv" id="rlCam" role="dialog" aria-modal="true" aria-labelledby="rlTitle">
-    <div class="scanCam__hdr">
-      <div class="ttl" id="rlTitle">Reihe scannen</div>
-      <button class="x" id="rlX" type="button" title="Schließen">✕</button>
-    </div>
-    <div class="scanCam__view bsOv__view">
-      <div class="scanCam__hint scanCam__hint--top" id="rlHint">Regaletikett in den Rahmen halten</div>
-      <div class="scanCam__win">
-        <i></i><i></i><i></i><i></i>
-        <div class="scanCam__ghost" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="scanCam__line"></div>
-      </div>
-      <div class="scanCam__hint scanCam__hint--bot" id="rlSub">Von links nach rechts – jeder Scan ist der nächste Platz</div>
-      <div class="bsFlash" aria-hidden="true"></div>
-      <div class="bsRej" id="rlRej" role="status" aria-live="assertive" hidden></div>
-    </div>
-    <div class="scanRes__sheet bsOv__sheet" id="rlSheet"></div>
   </div>
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
@@ -2779,8 +2711,6 @@ const T={
     /* Regalbild */
     rlList:'Liste',
     rlPicture:'Regalbild',
-    rbHint:'Kachel gedrückt halten und an ihren Platz ziehen – auch in eine andere Reihe.',
-    rbAddTile:'Artikel scannen',
     rbPlaceLb:'Platz im Regal',
     rbNoPlace:'kein Platz',
     rbDelRow:'Reihe löschen',
@@ -2792,22 +2722,10 @@ const T={
     rlTop:'oben',
     rlPos:'Reihe {r} · Platz {p}',
     rlNoPos:'Noch kein Platz im Regal',
-    rlRowEmpty:'noch nichts in dieser Reihe',
+    rlRowEmpty:'Artikel scannen oder eine Kachel hierher ziehen',
     rlRestRow:'Keiner Reihe zugeordnet',
     rlRestNone:'Eine Kachel hierher ziehen gibt ihren Platz frei',
-    rlSetupBody:'Hier entsteht das Regalbild. Fang mit Reihe 1 an: Artikel am Regal von links nach rechts scannen – oder eine Kachel von unten heraufziehen.',
-    rlEyebrow:'Regalbild',
-    rlTitle:'Reihe scannen',
-    rlHint:'Regaletikett in den Rahmen halten',
-    rlSub:'Von links nach rechts – jeder Scan ist der nächste Platz',
-    rlNote:'Die Reihenfolge der Scans ist die Reihenfolge im Regal. Reihe 1 ist die oberste.',
     rlAddRow:'+ Reihe',
-    rlLeft:'Noch nicht im Bild: {n} von {t} Artikeln',
-    rlAllIn:'Alle {t} Artikel dieses Regals haben einen Platz.',
-    rlRejUnknown:'Nummer {n} steht nicht im Ordersatz',
-    rlRejForeign:'{a} gehört zu Regal {r}',
-    rlRejPlaced:'{a} steht schon in Reihe {n}',
-    rlRejFull:'Mehr als 4 Reihen hat kein Regal',
     rlTileDone:'gezählt',
   },
   en:{
@@ -3043,8 +2961,6 @@ const T={
     /* Regalbild */
     rlList:'List',
     rlPicture:'Shelf view',
-    rbHint:'Press and hold a tile, then drag it to its place – into another row as well.',
-    rbAddTile:'Scan item',
     rbPlaceLb:'Place on the shelf',
     rbNoPlace:'no place',
     rbDelRow:'Delete row',
@@ -3056,22 +2972,10 @@ const T={
     rlTop:'top',
     rlPos:'Row {r} · place {p}',
     rlNoPos:'No place on the shelf yet',
-    rlRowEmpty:'nothing on this row yet',
+    rlRowEmpty:'Scan an item, or drag a tile here',
     rlRestRow:'Not assigned to a row',
     rlRestNone:'Drag a tile here to free its place',
-    rlSetupBody:'This is where the shelf view takes shape. Start with row 1: scan the items at the shelf from left to right – or drag a tile up from below.',
-    rlEyebrow:'Shelf view',
-    rlTitle:'Scan row',
-    rlHint:'Hold the shelf label in the frame',
-    rlSub:'Left to right – every scan is the next place',
-    rlNote:'The order you scan in is the order on the shelf. Row 1 is the top one.',
     rlAddRow:'+ Row',
-    rlLeft:'Not placed yet: {n} of {t} items',
-    rlAllIn:'All {t} items on this shelf have a place.',
-    rlRejUnknown:'Number {n} is not in the order guide',
-    rlRejForeign:'{a} belongs to shelf {r}',
-    rlRejPlaced:'{a} is already on row {n}',
-    rlRejFull:'No shelf has more than 4 rows',
     rlTileDone:'counted',
   },
   fr:{
@@ -3307,8 +3211,6 @@ const T={
     /* Regalbild */
     rlList:'Liste',
     rlPicture:'Vue rayon',
-    rbHint:'Maintenez une tuile appuyée, puis faites-la glisser à sa place – y compris dans une autre rangée.',
-    rbAddTile:'Scanner un article',
     rbPlaceLb:'Place dans le rayon',
     rbNoPlace:'pas de place',
     rbDelRow:'Supprimer la rangée',
@@ -3320,22 +3222,10 @@ const T={
     rlTop:'en haut',
     rlPos:'Rangée {r} · place {p}',
     rlNoPos:'Pas encore de place dans le rayon',
-    rlRowEmpty:'rien sur cette rangée pour le moment',
+    rlRowEmpty:'Scannez un article ou faites glisser une tuile ici',
     rlRestRow:'Non affecté à une rangée',
     rlRestNone:'Faites glisser une tuile ici pour libérer sa place',
-    rlSetupBody:'C’est ici que la vue rayon prend forme. Commencez par la rangée 1 : scannez les articles au rayon de gauche à droite – ou faites remonter une tuile depuis le bas.',
-    rlEyebrow:'Vue rayon',
-    rlTitle:'Scanner la rangée',
-    rlHint:'Placez l’étiquette rayon dans le cadre',
-    rlSub:'De gauche à droite – chaque scan est la place suivante',
-    rlNote:'L’ordre des scans est l’ordre dans le rayon. La rangée 1 est celle du haut.',
     rlAddRow:'+ Rangée',
-    rlLeft:'Pas encore placés : {n} sur {t} articles',
-    rlAllIn:'Les {t} articles de ce rayon ont tous une place.',
-    rlRejUnknown:'Le numéro {n} n’est pas dans le guide de commande',
-    rlRejForeign:'{a} appartient au rayon {r}',
-    rlRejPlaced:'{a} est déjà sur la rangée {n}',
-    rlRejFull:'Aucun rayon n’a plus de 4 rangées',
     rlTileDone:'compté',
   },
 };
@@ -3367,7 +3257,7 @@ function applyLang(){
   /* carries a trailing chevron the .arb string does not have */
   /* sheets: several share a label, so these go by class or by a small list */
   const tips={dashFab:'openOrderTip', resetBtn:'reset', scanFab:'scanTip',
-              bsX:'close', rlX:'close'};
+              bsX:'close'};
   for(const [id,key] of Object.entries(tips)){
     const el=document.getElementById(id);
     if(el && L[key]){ el.setAttribute('title', L[key]); el.setAttribute('aria-label', L[key]); }
@@ -3375,7 +3265,6 @@ function applyLang(){
   const byId={s2Title:'completeOrder', nextRegalBtn:'nextShelfArrow',
               reopenRegalBtn:'reopenShelf',
               bsTitle:'bsTitle', bsHint:'bsHint', bsSub:'bsSub',
-              rlTitle:'rlTitle', rlHint:'rlHint', rlSub:'rlSub',
               bsListTitle:'bsListTitle', bsDone:'bsDone',
               bsFullTitle:'bsFullTitle', bsFullHint:'bsFullHint',
               kpInvTitle:'enterInventory', kpOrdTitle:'enterOrder',
@@ -3909,10 +3798,15 @@ function eyeIcon(off){
 /* backOnly: die Zeile fuer die Lager-Sitzung. Gleiche Zeile, gleiche Kopfzeile,
    gleicher Zaehler wie in der Bestellliste -- nur ohne die Bestellspalte, denn dort
    wird das Lager gezaehlt und nicht bestellt. */
-/* noPlace: das Kachel-Blatt fragt den Platz schon in seinem eigenen Streifen.
-   Ohne dieses Argument stuende die Auswahl dort zweimal -- einmal oben und
-   einmal an der Zeile -- und man wuesste nicht, welche der beiden gilt. */
-function rowHTML(ix, extraCls, forceEye, backOnly, noPlace){
+/* inSheet: die Zeile steht im Kachel-Blatt des Regalbilds.
+   Dort gehoeren die drei Bloecke NICHT hin. Sie sind die Sprache des
+   Scan-Ergebnisses -- "das habe ich gerade getan, hier kannst du es zuruecknehmen".
+   Wer eine Kachel im Regal antippt, hat nichts gescannt: er sieht die Zeile und
+   ihren Platz, und der Platz steht schon im eigenen Streifen darueber. Ein
+   "Bisheriges Regal → Dieses Regal" waere dort die Antwort auf eine Frage, die
+   niemand gestellt hat. Das Auge bleibt (forceEye): Ausblenden ist auch am
+   Regal eine sinnvolle Handlung. */
+function rowHTML(ix, extraCls, forceEye, backOnly, inSheet){
   const it=ITEMS[ix], s=ST[ix], L=t();
     /* item_information_row.dart puts the PLU and case size on one line and the
        prices on the next, as bare numbers -- the app labels neither, and it
@@ -3942,7 +3836,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly, noPlace){
        als eigenes Kennzeichen oben. */
     /* Ziel der Zuordnung: das offene Regal -- nur wenn es eines gibt und der Artikel
        nicht schon darin steht. Ohne Regal kein Ziel, also kein Knopf. */
-    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
+    const moveTo = (forceEye && !inSheet && CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
       ? CATFILTER.id : null;
     if(forceEye) scanTags(ix).forEach(x=>{
       if(x===L.scanTagHidden) return;                          // steht schon als eigenes Kennzeichen
@@ -3956,7 +3850,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly, noPlace){
        Knopf: was er tut, muss ohne den Kopf im Regalfilter lesbar sein. */
     /* Schon zugeordnet, und zwar hierher: derselbe Block, nur mit Rueckgaengig. */
     const mvDone = SCAN_MOVED[overrideKey(it)];
-    const moveBack = (forceEye && CATFILTER && CATFILTER.kind==='tile' && mvDone
+    const moveBack = (forceEye && !inSheet && CATFILTER && CATFILTER.kind==='tile' && mvDone
       && mvDone.to===CATFILTER.id && tileOf(it)===CATFILTER.id) ? mvDone : null;
     const autoTag = `<span class="movecta__auto">${L.autoTag}</span>`;
     const mvBlock = (from, to, tail, cls) => `<div class="movecta${cls}">
@@ -3987,13 +3881,21 @@ function rowHTML(ix, extraCls, forceEye, backOnly, noPlace){
        DIESEM Regal liegt -- vorher ist die Regalfrage die groessere, und zwei
        Fragen gleichzeitig sind eine zu viel. Damit beantwortet der FAB-Scan die
        ganze Kette an einer Stelle: Artikel -> Regal -> Reihe. */
-    const placeCta = (forceEye && !noPlace && CATFILTER && CATFILTER.kind==='tile'
+    /* Links steht, WO der Artikel liegt, rechts, WAS man daran aendern kann --
+       dieselbe Aufteilung wie in den beiden Bloecken darueber, wo rechts der
+       Knopf sitzt. Die Auswahl ist hier die Hauptsache: nach einem Scan ist das
+       die einzige offene Frage, und sie soll unter dem Daumen liegen. */
+    const placeAt = (CATFILTER && CATFILTER.kind==='tile') ? regalPosOf(ix) : null;
+    const placeCta = (forceEye && !inSheet && CATFILTER && CATFILTER.kind==='tile'
         && tileOf(it)===CATFILTER.id && (SHELF_VIEW || hasLayout(CATFILTER.id)))
-      ? `<div class="movecta movecta--place"><div class="movecta__mv">
-          <span class="lb">${L.rbPlaceLb}</span>${placePillsHTML(ix)}
-        </div></div>`
+      ? `<div class="movecta movecta--place">
+          <div class="movecta__mv"><span class="lb">${L.rbPlaceLb}</span>
+            ${placeAt ? `<span class="to">${L.rlPos.replace('{r}', placeAt.row).replace('{p}', placeAt.pos)}</span>`
+                      : `<span class="movecta__note">${L.rlNoPos}</span>`}</div>
+          <div class="movecta__opts">${placePillsHTML(ix)}${placeStepHTML(ix)}</div>
+        </div>`
       : '';
-    const hideCta = !forceEye ? ''
+    const hideCta = (!forceEye || inSheet) ? ''
       : s.hidden
       ? hideBlock(L.hideLabel, L.hideNote,
           `<button class="cta movecta__go" type="button" data-a="scanshow" data-i="${ix}" title="${L.hideBtnTip}">${L.hideBtn}</button>`, '')
@@ -4096,11 +3998,14 @@ function render(){
   if(shelfView){
     list.querySelectorAll('.Regalbild__strip').forEach(el=>
       el.classList.toggle('is-scrollable', el.scrollWidth > el.clientWidth + 4));
-    /* Die Reihe, in die gerade etwas gelegt wurde, laeuft an ihr Ende -- sonst
-       steht der neue Platz rechts ausserhalb des Bildschirms. */
-    const just=list.querySelector('.RegalTile--just');
-    const strip=just && just.closest('.Regalbild__strip');
-    if(strip) strip.scrollLeft=strip.scrollWidth;
+    /* Nach einer Platzaenderung sieht das Bild dorthin, wo der Artikel JETZT
+       steht -- waagerecht an seine Stelle in der Reihe, senkrecht auf die Reihe
+       selbst. Vorher lief der Streifen stur an sein Ende; wer einen Artikel auf
+       Platz 2 von 14 schob, sah dort das Ende und nicht seinen Artikel.
+       Genau einmal je Aenderung (RB_SEEK wird verbraucht): sonst risse jedes
+       spaetere Neuzeichnen -- ein Tastendruck am Stepper, ein Buchstabe in der
+       Suche -- die Ansicht wieder an dieselbe Stelle zurueck. */
+    if(RB_SEEK!=null){ rbReveal(RB_SEEK); RB_SEEK=null; }
   }
   SHOWN_IDX=shownIdx;  // die Scan-Ansicht liest hier ab, was die Liste gerade NICHT zeigt
   stats(shownIdx);
@@ -4298,6 +4203,26 @@ function rbEnsure(tileId){
    row<0 heisst "kein Platz": dann bleibt er draussen und steht unter dem Regal.
    pos==null heisst "ans Ende". Das ist genau das, was das Ziehen braucht, und
    zugleich das, was der Scan tut -- eine Regel, zwei Wege dorthin. */
+/* Die Kachel, die das Bild nach dem naechsten Zeichnen anfahren soll. Getrennt
+   von RB_JUST: der Ring bleibt liegen, das Scrollen passiert einmal. */
+let RB_SEEK=null;
+/* Waagerecht in die Mitte ihres Streifens, senkrecht ins obere Fuenftel der
+   Ansicht -- nicht in die Mitte: das Kachel-Blatt liegt unten ueber dem Bild,
+   und was dort landet, liegt dahinter. */
+function rbReveal(ix){
+  const list=document.getElementById('list'); if(!list) return;
+  const tile=list.querySelector(`.RegalTile[data-i="${ix}"]`); if(!tile) return;
+  const strip=tile.closest('.Regalbild__strip');
+  if(strip){
+    const tr=tile.getBoundingClientRect(), sr=strip.getBoundingClientRect();
+    strip.scrollLeft += (tr.left - sr.left) - (sr.width - tr.width)/2;
+  }
+  const row=tile.closest('.Regalbild__row');
+  if(row){
+    const rr=row.getBoundingClientRect(), lr=list.getBoundingClientRect();
+    list.scrollTop += (rr.top - lr.top) - lr.height*0.18;
+  }
+}
 function rbPlace(tileId, ix, row, pos){
   rbEnsure(tileId);
   const rows=layoutRows(tileId).map(r=>r.filter(x=>x!==ix));
@@ -4306,9 +4231,24 @@ function rbPlace(tileId, ix, row, pos){
     r.splice(pos==null ? r.length : Math.max(0, Math.min(r.length, pos)), 0, ix);
   }
   layoutWrite(tileId, rows);
-  RB_JUST=ix;
+  RB_JUST=ix; RB_SEEK=ix;
 }
 function rbAdd(tileId, row, ix){ rbPlace(tileId, ix, row, null); }
+/* Der Platz, den ein frisch zugeordneter Artikel bekommt: ans Ende der zuletzt
+   benutzten Reihe. RB_ROW faengt bei Reihe 1 an und bleibt danach dort stehen,
+   wo zuletzt etwas hingelegt wurde -- wer gerade Reihe 2 einraeumt, legt den
+   naechsten Artikel wieder nach Reihe 2, ohne es noch einmal zu sagen.
+
+   Eine Regel, zwei Wege dorthin: die Automatik (autoFix) und der Knopf
+   "Hierher zuordnen". Was schon einen Platz hat, behaelt ihn -- ein zweiter
+   Scan darf einen Artikel nicht ans Ende schieben. */
+function rbPlaceDefault(tileId, ix){
+  if(rbRowOf(tileId, ix)>=0) return -1;
+  const n=Math.max(1, layoutRows(tileId).length);
+  const row=Math.min(Math.max(0, RB_ROW), n-1);
+  rbPlace(tileId, ix, row, null);
+  return row;
+}
 /* Einen Platz nach links oder rechts, innerhalb der Reihe. Derselbe Schreibweg
    wie das Ziehen: rbPlace() nimmt die Kachel erst heraus, das Einfuegen an der
    Nachbarstelle ist deshalb genau der Tausch mit dem Nachbarn. */
@@ -4389,23 +4329,15 @@ function regalTileHTML(ix, ctx){
     <span class="RegalTile__num"><i>${L.inventory}</i><b>${v}${u?`<u>${u}</u>`:''}</b></span>
     <span class="RegalTile__num"><i>${L.order}</i><b>${orderVal(ix)}<u>${L.caseUnit}</u></b></span>
     <span class="RegalTile__foot">${L.displaySize} <b>${koNum(s.auslage!=null?s.auslage:1)}</b> ${L.caseUnit}</span>`;
-  /* Ohne ctx ist die Kachel ein Knopf: tippen schlaegt sie auf, lange druecken
-     hebt sie zum Ziehen an. Im Scan-Blatt ist sie ein Feld mit genau einem
-     Knopf -- dem ✕, das einen Fehlscan sofort wieder aus der Reihe nimmt.
-     Reihenwechsel gibt es dort nicht: das Blatt zeigt nur eine Reihe. */
-  if(!ctx || !ctx.x)
-    return `<button class="${cls}" type="button" data-a="regaltile" data-i="${ix}" title="${it.name.replace(/"/g,'&quot;')}">${inner}</button>`;
+  /* Die Kachel ist ein Knopf: tippen schlaegt sie auf, lange druecken hebt sie
+     zum Ziehen an. Es gibt keine zweite Bauform mehr -- alles, was man mit
+     einer Kachel tun kann, haengt an diesen beiden Gesten und am Blatt dahinter. */
+  return `<button class="${cls}" type="button" data-a="regaltile" data-i="${ix}" title="${it.name.replace(/"/g,'&quot;')}">${inner}</button>`;
   /* ◀ ▶ direkt an der Kachel: die Reihenfolge stimmt am haeufigsten genau dann
      nicht, wenn man gerade gescannt hat -- zwei Artikel vertauscht, und man
      steht noch davor. Die Reihe ist hier ganz zu sehen, die Kachel wandert also
      unter dem Daumen sichtbar an ihre Stelle. Hoch/tief fehlt: das Blatt zeigt
      eine Reihe, ein Sprung nach oben waere ein Sprung ins Nichts. */
-  return `<div class="${cls} RegalTile--edit" data-i="${ix}">${inner}
-    <div class="RegalTile__ctl">
-      <button class="RegalTile__btn" type="button" data-rb="nudge" data-d="-1" data-i="${ix}" title="${L.rbLeft}"${ctx.pos===0?' disabled':''}>\u25c0</button>
-      <button class="RegalTile__btn" type="button" data-rb="nudge" data-d="1" data-i="${ix}" title="${L.rbRight}"${ctx.pos===ctx.len-1?' disabled':''}>\u25b6</button>
-      <button class="RegalTile__btn RegalTile__btn--x" type="button" data-rb="take" data-i="${ix}" title="${L.rbTake}">\u2715</button>
-    </div></div>`;
 }
 /* Das Regalbild zeigt DIE ZEILEN, DIE DIE LISTE AUCH ZEIGEN WUERDE (shownIdx) --
    Suche und Filter gelten also weiter, nur eben an ihrem Platz. Umgestellt wird
@@ -4420,12 +4352,15 @@ function shelfHTML(shownIdx){
   const L=t(), id=CATFILTER.id;
   const show=new Set(shownIdx);
   const vis = ix => show.has(ix);
-  const fresh = !hasLayout(id);
-  const rows = fresh ? [[]] : layoutRows(id);
+  /* Gespeicherte Reihen, auch leere: ein Regal, das gerade erst angelegt wird,
+     hat eine Reihe 1 ohne Ware -- und "+ Reihe" muss sie vermehren koennen.
+     Frueher stand hier hasLayout() (= "steht schon Ware darin"), und solange
+     nichts lag, zeichnete das Bild stur eine einzige Reihe: "+ Reihe" schrieb
+     zwar eine zweite, zu sehen war sie nie. */
+  const stored = layoutRows(id);
+  const rows = stored.length ? stored : [[]];
   const rest = layoutRest(id).filter(vis);
   let h='<div class="Regalbild">';
-  if(fresh) h += `<div class="Regalbild__setup">${L.rlSetupBody}</div>`;
-  h += `<div class="Regalbild__bar"><div class="Regalbild__hint">${L.rbHint}</div></div>`;
   rows.forEach((row,i)=>{
     const cells=row.filter(vis);
     h += `<div class="Regalbild__row">
@@ -4435,11 +4370,9 @@ function shelfHTML(shownIdx){
         ${(!row.length && rows.length>1)
           ? `<button class="Regalbild__del" type="button" data-rb="delrow" data-row="${i}" title="${L.rbDelRow}">\u2715 ${L.rbDelRow}</button>` : ''}
       </div>
-      <div class="Regalbild__strip" data-row="${i}">${cells.map(ix=>regalTileHTML(ix)).join('')}${row.length ? '' : `
-        <button class="RegalAdd" type="button" data-rb="scan" data-row="${i}" title="${L.rbAddTile}">
-          <span class="RegalAdd__ic">${ICON_SCAN}<b>+</b></span>
-          <span class="RegalAdd__lb">${L.rbAddTile}</span>
-        </button>`}</div>
+      <div class="Regalbild__strip" data-row="${i}">${cells.length
+        ? cells.map(ix=>regalTileHTML(ix)).join('')
+        : `<div class="Regalbild__none">${L.rlRowEmpty}</div>`}</div>
       <div class="Regalbild__board"></div>
     </div>`;
   });
@@ -4500,6 +4433,20 @@ function placePillsHTML(ix){
   return Array.from({length:nRows},(_,i)=>`<button class="rlPill${i===at?' on':''}" type="button" data-rb="setrow" data-row="${i}" data-i="${ix}">${L.rlRow.replace('{n}', i+1)}</button>`).join('')
     + `<button class="rlPill${at<0?' on':''}" type="button" data-rb="setrow" data-row="-1" data-i="${ix}">${L.rbNoPlace}</button>`;
 }
+/* Der Platz-Stepper als eigenes Bauteil: er steht im Kachel-Blatt und im
+   Scan-Ergebnis. Ohne Platz kein Stepper -- es gaebe nichts zu verschieben. */
+function placeStepHTML(ix){
+  const L=t();
+  if(!CATFILTER || CATFILTER.kind!=='tile') return '';
+  const rows=layoutRows(CATFILTER.id), at=rbRowOf(CATFILTER.id, ix);
+  if(at<0) return '';
+  const row=rows[at], p=row.indexOf(ix);
+  return `<span class="rtPlace__step">
+    <button class="rtPlace__btn" type="button" data-rb="nudge" data-d="-1" data-i="${ix}" title="${L.rbLeft}"${p<=0?' disabled':''}>\u25c0</button>
+    <b>${L.rbPos.replace('{p}', p+1).replace('{n}', row.length)}</b>
+    <button class="rtPlace__btn" type="button" data-rb="nudge" data-d="1" data-i="${ix}" title="${L.rbRight}"${p>=row.length-1?' disabled':''}>\u25b6</button>
+  </span>`;
+}
 function rtPlaceHTML(ix){
   const L=t();
   if(!CATFILTER || CATFILTER.kind!=='tile') return '';
@@ -4510,15 +4457,7 @@ function rtPlaceHTML(ix){
   const nRows = Math.max(1, rows.length);
   const row = at>=0 ? rows[at] : [];
   const p = at>=0 ? row.indexOf(ix) : -1;
-  /* Die Reihe waehlt man mit den Pillen, den Platz IN der Reihe mit ◀ ▶ --
-     zwei Fragen, zwei Bedienelemente, beide an derselben Stelle. Die Zaehlung
-     dazwischen ist die Rueckmeldung: das Blatt deckt das Regalbild ab, also muss
-     die Bewegung an der Zahl ablesbar sein und nicht erst hinter dem Blatt. */
-  const step = at<0 ? '' : `<span class="rtPlace__step">
-      <button class="rtPlace__btn" type="button" data-rb="nudge" data-d="-1" data-i="${ix}" title="${L.rbLeft}"${p<=0?' disabled':''}>\u25c0</button>
-      <b>${L.rbPos.replace('{p}', p+1).replace('{n}', row.length)}</b>
-      <button class="rtPlace__btn" type="button" data-rb="nudge" data-d="1" data-i="${ix}" title="${L.rbRight}"${p>=row.length-1?' disabled':''}>\u25b6</button>
-    </span>`;
+  const step = placeStepHTML(ix);
   return `<div class="rtPlace"><span class="lb">${L.rbPlaceLb}</span>
     ${placePillsHTML(ix)}
     ${step}
@@ -5293,6 +5232,11 @@ function rowClick(e){
     SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key]};
     setCatOverride(it, to);
     pushChange(it, `Regal → ${tileLabel(to)}`);
+    /* Zugeordnet heisst: er steht jetzt in diesem Regal -- dann auch an einem
+       Platz darin, und zwar an demselben, an dem der letzte gelandet ist.
+       Der Block darunter zeigt ihn sofort und laesst ihn umstellen. */
+    const row=rbPlaceDefault(to, ix);
+    if(row>=0) pushChange(it, `Regalbild → ${t().rlRow.replace('{n}', row+1)}`);
     render(); }
   /* Zurueck an derselben Stelle: prev===undefined heisst "hatte gar keine
      Uebersteuerung", der Eintrag muss dann weg statt auf undefined gesetzt zu werden. */
@@ -5312,6 +5256,9 @@ function rowClick(e){
   else if(a==='scanunmove'){
     const key=overrideKey(it), e=SCAN_MOVED[key];
     if(!e) return;
+    /* Rueckgaengig heisst auch: der Platz in diesem Regal faellt weg. Er gehoert
+       zu einem Regal, in dem der Artikel gleich nicht mehr steht. */
+    if(e.to) rbTake(e.to, ix);
     if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
     saveCatOverride();
     delete SCAN_MOVED[key];
@@ -5347,7 +5294,7 @@ function pluApproxMatch(plu, qDigits){
    der Hand haelt, will ihn sehen, auch wenn er in der Liste gerade wegfaellt.
    Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
    an rowClick(), also am selben Zustand wie die Liste. */
-let SCAN={plu:null, matches:[], unlisted:null, timer:null};
+let SCAN={plu:null, matches:[], unlisted:null, alts:[], timer:null};
 
 /* ---------- Gescannt, aber nicht im Ordersatz ----------
    Am Regal steht mehr, als auf der Bestellliste steht: Artikel aus einer
@@ -5412,6 +5359,14 @@ function setScanCode(digits){
   SCAN.plu=digits||'';
   SCAN.matches=scanMatches(SCAN.plu);
   SCAN.unlisted=SCAN.matches.length?null:unlistedOf(SCAN.plu);
+  /* Die Vorschlaege werden EINMAL je Scan bestimmt und bleiben dann stehen.
+     scanAlternatives() bewertet unter anderem, ob ein Artikel im selben Regal
+     liegt -- wer also einen Vorschlag "hierher zuordnet", verliert genau diesen
+     Punkt und faellt aus der frisch gerechneten Liste heraus. Die Zeile
+     verschwand damit im Moment des Zuordnens, und mit ihr das Rueckgaengig.
+     Gleiche Regel wie FILT_KEEP in der Liste: was einmal gezeigt wurde, bleibt
+     stehen, bis die Frage neu gestellt wird. */
+  SCAN.alts = SCAN.unlisted ? scanAlternatives(SCAN.unlisted) : [];
 }
 
 /* Der FAB sitzt immer unten rechts, ueber der Fussleiste -- deren Hoehe haengt an
@@ -5513,6 +5468,11 @@ function autoFix(list){
       setCatOverride(it, CATFILTER.id);
       pushChange(it, `Regal → ${tileLabel(CATFILTER.id)} (automatisch)`);
     }
+    /* Und gleich an seinen Platz -- siehe rbPlaceDefault(). */
+    if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)===CATFILTER.id){
+      const row=rbPlaceDefault(CATFILTER.id, ix);
+      if(row>=0) pushChange(it, `Regalbild → ${t().rlRow.replace('{n}', row+1)} (automatisch)`);
+    }
   });
 }
 
@@ -5534,7 +5494,7 @@ function renderScanRes(keepOpen, keepFocus){
   /* Nicht im Ordersatz, aber im Artikelstamm: dann steht oben der Name des
      Artikels, den man in der Hand haelt, und darunter die Alternativen. */
   const u = noCode ? null : SCAN.unlisted;
-  const alts = u ? scanAlternatives(u) : [];
+  const alts = u ? (SCAN.alts||[]) : [];
   const head = noCode ? L.scanTitle
     : (u ? u.name
     : (m.length===1 ? ITEMS[m[0]].name
@@ -6140,11 +6100,8 @@ function bsAdjust(ix, d){
 }
 
 /* ---- Rueckmeldung: sichtbar, nicht hoerbar oder fuehlbar ---- */
-/* Dasselbe Aufblitzen auf beiden Kameras: "Lager scannen" und "Regal einrichten"
-   sind dieselbe Geste, nur ein anderes Fenster -- deshalb ein Aufrufer-Argument
-   statt einer zweiten, gleich aussehenden Funktion. */
-function bsFlash(kind, camId){
-  const cam=document.getElementById(camId||'bsCam'); if(!cam) return;
+function bsFlash(kind){
+  const cam=document.getElementById('bsCam'); if(!cam) return;
   cam.classList.remove('ok','rej');
   void cam.offsetWidth;                     // Neustart der Transition erzwingen
   cam.classList.add(kind);
@@ -6358,221 +6315,39 @@ document.getElementById('bsX').addEventListener('click', ()=>bsClose(false));
    Der Prototyp ist eine einzelne Datei ohne Testlauf, deshalb hier: die Tests
    rufen genau die Funktionen, an denen der Sucher haengt, und stellen den Zustand
    danach wieder her, damit die Seite benutzbar bleibt. */
-/* ===========================================================================
-   Reihe scannen  --  der schnelle Weg, eine Reihe zu fuellen
-   Suggested home: lib/presentation/features/order/widgets/shelf/shelf_row_scan.dart
-
-   Die Kamera ist eine Beschleunigung des Bearbeiten-Modus, kein zweiter Ort:
-   jeder Scan haengt den Artikel SOFORT an die aktive Reihe des Regalbilds
-   (rbAdd), das Bild darunter wird mitgezeichnet. Es gibt darum kein
-   "Speichern" und kein Verwerfen -- was gescannt ist, steht im Regal, und
-   korrigiert wird an derselben Kachel wie alles andere.
-
-   Die Reihenfolge der Scans IST die Reihenfolge im Regal: links nach rechts.
-   Wann die Reihe zu Ende ist, weiss nur der Mensch davor -- der Reihenwechsel
-   ist darum ein Knopf und wird nicht geraten.
-   =========================================================================== */
-let RL={on:false, tile:null, row:0, timer:null, skip:{}};
-
-/* Alle Artikel dieses Regals, in Ordersatz-Reihenfolge. Ausgeblendete gehoeren
-   dazu: sie stehen im Regal, auch wenn die Bestellung sie ueberspringt -- ein
-   Regalbild mit Loechern waere kein Bild des Regals. */
-function rlItemsHere(){
-  const out=[];
-  ITEMS.forEach((it,ix)=>{ if(tileOf(it)===RL.tile) out.push(ix); });
-  return out;
-}
-
-/* Der einzige Eingang -- Sucher und Selbsttest laufen beide hier durch, damit
-   getestet wird, was der Kaufmann auch benutzt. Abgewiesen wird, was am Regal
-   wirklich passiert: eine Nummer aus einem anderen Regal, ein Artikel, der
-   schon einen Platz hat, und eine Nummer, die im Ordersatz gar nicht steht. */
-function rlFeed(digits){
-  digits = String(digits==null?'':digits).replace(/\D/g,'');
-  if(!digits) return {ok:false, reason:'unknown', code:digits};
-  const m = scanMatches(digits);
-  if(!m.length) return {ok:false, reason:'unknown', code:digits};
-  const ix=m[0], it=ITEMS[ix];
-  if(tileOf(it)!==RL.tile) return {ok:false, reason:'foreign', ix, code:digits};
-  const at=rbRowOf(RL.tile, ix);
-  if(at>=0) return {ok:false, reason:'placed', ix, row:at, code:digits};
-  rbAdd(RL.tile, RL.row, ix);
-  return {ok:true, ix, row:RL.row, code:digits};
-}
-
-function rlOpen(tileId, row){
-  if(!tileId) return;
-  RL.on=true; RL.tile=tileId; RL.skip={}; RB_JUST=null;
-  rbEnsure(tileId);
-  const n=layoutRows(tileId).length;
-  RL.row=Math.max(0, Math.min(n-1, row==null?RB_ROW:row));
-  RB_ROW=RL.row;
-  const cam=document.getElementById('rlCam');
-  cam.classList.remove('ok','rej');
-  cam.classList.add('on');
-  document.getElementById('rlRej').hidden=true;
-  rlRender(); render();
-  clearTimeout(RL.timer);
-  RL.timer=setTimeout(rlTick, 1200);
-}
-/* Schliessen heisst: Kamera zu. Geschrieben wurde unterwegs -- es gibt hier
-   nichts mehr zu bestaetigen und nichts zu verwerfen. */
-function rlClose(){
-  RL.on=false;
-  clearTimeout(RL.timer); RL.timer=null;
-  const cam=document.getElementById('rlCam');
-  cam.classList.remove('on','ok','rej');
-  render();
-}
-function rlSetRow(i){
-  const n=layoutRows(RL.tile).length;
-  if(i<0 || i>=n) return;
-  RL.row=i; RB_ROW=i; RB_JUST=null;
-  rlRender(); render(); rlWake();
-}
-function rlAddRow(){
-  if(!rbAddRow(RL.tile)){ rlReject({reason:'full'}); return; }
-  RL.row=layoutRows(RL.tile).length-1; RB_ROW=RL.row; RB_JUST=null;
-  rlRender(); render(); rlWake();
-}
-function rlReject(res){
-  const L=t(), el=document.getElementById('rlRej'); if(!el) return;
-  let msg;
-  if(res.reason==='foreign')     msg=L.rlRejForeign.replace('{a}', ITEMS[res.ix].name).replace('{r}', tileLabel(tileOf(ITEMS[res.ix])));
-  else if(res.reason==='placed') msg=L.rlRejPlaced.replace('{a}', ITEMS[res.ix].name).replace('{n}', res.row+1);
-  else if(res.reason==='full')   msg=L.rlRejFull;
-  else                           msg=L.rlRejUnknown.replace('{n}', res.code||'\u2013');
-  el.innerHTML = msg + '<span class="sub">' + L.rlSub + '</span>';
-  el.hidden=false;
-  bsFlash('rej','rlCam');
-  clearTimeout(el._t);
-  el._t=setTimeout(()=>{ el.hidden=true; }, 1500);
-}
-
-/* Das Blatt unter der Kamera zeigt KEINE eigene Darstellung, sondern das
-   Regalbild selbst -- dieselben Kacheln wie der Bildschirm darunter, nur auf
-   die Reihe gefiltert, die gerade gefuellt wird. Damit ist das Scannen keine
-   zweite Ansicht mehr, sondern dieselbe: was hier entsteht, steht danach
-   unveraendert im Regal.
-
-   Nach jedem Scan laeuft die Reihe an ihr Ende. Ohne das landet der neue
-   Artikel bei einer langen Reihe rechts ausserhalb des Bildschirms, und der
-   Scan sieht aus, als waere nichts passiert. */
-function rlRender(){
-  const L=t(), sheet=document.getElementById('rlSheet'); if(!sheet) return;
-  const rows=layoutRows(RL.tile), here=rlItemsHere();
-  const row=rows[RL.row]||[];
-  const left=layoutRest(RL.tile).length;
-  sheet.innerHTML = `
-    <div class="scanRes__hdr">
-      <div style="flex:1;min-width:0">
-        <div class="eyebrow">${L.rlEyebrow}</div>
-        <h3>${tileLabel(RL.tile)} \u00b7 ${L.rlRow.replace('{n}', RL.row+1)}</h3>
-      </div>
-      <button class="x" id="rlDoneX" type="button" title="${L.close}">\u2715</button>
-    </div>
-    <div class="scanRes__note">${left ? L.rlLeft.replace('{n}', left).replace('{t}', here.length)
-                                      : L.rlAllIn.replace('{t}', here.length)}</div>
-    <div class="rlRows">
-      ${rows.map((r,i)=>`<button class="rlPill${i===RL.row?' on':''}" type="button" data-rl="row" data-row="${i}">${L.rlRow.replace('{n}', i+1)}<span class="n">${r.length}</span></button>`).join('')}
-      <button class="rlPill add" type="button" data-rl="addrow"${rows.length>=RL_MAX_ROWS?' disabled':''}>${L.rlAddRow}</button>
-    </div>
-    <div class="scanRes__body">
-      <div class="rlScan"><div class="Regalbild">
-        <div class="Regalbild__row">
-          <div class="Regalbild__strip" id="rlStrip" data-row="${RL.row}">${row.length
-            ? row.map((ix,pos)=>regalTileHTML(ix,{x:true, pos, len:row.length})).join('')
-            : `<div class="Regalbild__none">${L.rlRowEmpty}</div>`}</div>
-          <div class="Regalbild__board"></div>
-        </div>
-      </div></div>
-    </div>
-    <div class="scanRes__foot">
-      <div style="flex:1;font-size:var(--ff-text-primary-caption-12);color:var(--mute);line-height:1.4">${L.rlNote}</div>
-      <button class="cta" type="button" data-rl="close">${L.shelfDone}</button>
-    </div>`;
-  const x=document.getElementById('rlDoneX');
-  if(x) x.onclick=rlClose;
-  /* immer ans Ende: dort liegt der letzte Scan */
-  const strip=document.getElementById('rlStrip');
-  if(strip) strip.scrollLeft=strip.scrollWidth;
-}
-
-/* Fuer die Demo werden Codes nachgestellt statt gelesen. Der Sucher liest immer
-   den NAECHSTEN Artikel dieses Regals, der noch keinen Platz hat, in
-   Ordersatz-Reihenfolge -- nichts Zufaelliges: die Sitzung soll sichtbar eine
-   Reihe fuellen und vorankommen. Die drei Abweisungen in rlFeed() werden hier
-   nicht nachgestellt; belegt sind sie im Selbsttest.
-
-   Ein Code, den rlFeed() nicht annimmt (eine PLU, die tolerant auf einen
-   anderen Artikel aufloest), wird uebersprungen -- sonst zoege der Sucher
-   denselben Artikel endlos noch einmal. Ist nichts mehr uebrig, endet die
-   Sitzung von selbst: es laeuft kein Timer weiter, hinter dem nichts passiert. */
-function rlPickIx(){
-  return layoutRest(RL.tile).find(ix=>ITEMS[ix].plu!=null && !RL.skip[ix]);
-}
-function rlTick(){
-  if(!RL.on) return;
-  const ix=rlPickIx();
-  if(ix==null){ RL.timer=null; rlRender(); return; }
-  const res=rlFeed(String(ITEMS[ix].plu));
-  if(res.ok) bsFlash('ok','rlCam');
-  else { RL.skip[ix]=true; rlReject(res); }
-  rlRender(); render();
-  RL.timer=setTimeout(rlTick, 900);
-}
-/* Der Sucher haelt an, sobald jeder Artikel einen Platz hat. Gibt es wieder
-   etwas zu lesen -- eine neue Reihe, ein freigegebener Platz -- laeuft er
-   weiter, ohne dass man die Kamera neu oeffnen muss. */
-function rlWake(){
-  if(RL.on && !RL.timer && rlPickIx()!=null) RL.timer=setTimeout(rlTick, 700);
-}
-
-document.getElementById('rlX').addEventListener('click', rlClose);
-/* Alles, was das Regalbild anfasst, haengt an data-rl (Kamera) bzw. data-rb
-   (Bild): die Knoepfe entstehen in mehreren neu gezeichneten Blaettern, ein
+/* Alles, was das Regalbild anfasst, haengt an data-rl (die Ansicht) bzw. data-rb
+   (das Bild): die Knoepfe entstehen in mehreren neu gezeichneten Blaettern, ein
    Listener am Dokument ueberlebt jedes davon. */
 document.addEventListener('click', e=>{
   const b=e.target.closest('[data-rl]');
   if(b){
-    const a=b.dataset.rl;
-    if(a==='view'){ setShelfView(b.dataset.view==='shelf'); }
-    else if(a==='row'){ rlSetRow(+b.dataset.row); }
-    else if(a==='addrow'){ rlAddRow(); }
-    else if(a==='close'){ rlClose(); }
+    if(b.dataset.rl==='view') setShelfView(b.dataset.view==='shelf');
     return;
   }
   const c=e.target.closest('[data-rb]');
   if(!c) return;
   const a=c.dataset.rb;
-  /* Waehrend einer Scan-Sitzung ist ihr Regal gemeint -- das Blatt liegt ueber
-     dem Bild, und beide zeigen dasselbe. */
-  const id = RL.on ? RL.tile : ((CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null);
-  const after=()=>{ render(); if(RL.on){ rlRender(); rlWake(); } };
+  const id = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+  const after=()=>{ render(); if(SCAN.matches.length) renderScanRes(true); };
   if(!id) return;
   if(a==='addrow'){ RB_JUST=null; rbAddRow(id); after(); }
   else if(a==='delrow'){ RB_JUST=null; rbDelRow(id, +c.dataset.row); after(); }
   else if(a==='take'){ RB_JUST=null; rbTake(id, +c.dataset.i); after(); }
   else if(a==='nudge'){ rbNudge(id, +c.dataset.i, +c.dataset.d); after(); if(RT!=null) renderRegalTile(); }
-  /* Der Platz aus dem Kachel-Blatt: derselbe Schreibweg wie das Ziehen, nur
-     ohne Geste -- ans Ende der gewaehlten Reihe, oder heraus aus dem Bild. */
+  /* Derselbe Schreibweg wie das Ziehen, nur ohne Geste -- ans Ende der
+     gewaehlten Reihe, oder heraus aus dem Bild. Die gewaehlte Reihe bleibt als
+     RB_ROW stehen: der naechste Scan legt dorthin, ohne dass man es noch einmal
+     sagen muss. Genau so fuellt sich eine Reihe, Scan fuer Scan. */
   else if(a==='setrow'){
     const row=+c.dataset.row;
     rbPlace(id, +c.dataset.i, row, null);
-    if(row<0) RB_JUST=null;
+    if(row<0) RB_JUST=null; else RB_ROW=row;
     after(); renderRegalTile();
-  }
-  /* Die Scan-Kachel steht IN ihrer Reihe und sagt damit selbst, wohin gelegt
-     wird -- der Sucher braucht keinen zweiten Regler dafuer. */
-  else if(a==='scan'){
-    if(!SHELF_VIEW) setShelfView(true);
-    rlOpen(id, c.dataset.row!=null?+c.dataset.row:RB_ROW);
   }
 });
 document.addEventListener('keydown', e=>{
   if(e.key!=='Escape') return;
   if(RB_DRAG) rbDragCancel();
-  else if(RL.on) rlClose();
   else if(RT!=null) closeRegalTile();
 });
 
@@ -6605,7 +6380,7 @@ const RB_SLOP=9;          // so viel Bewegung gilt noch als Wischen, nicht als G
 let RB_PRESS=null;        // {ix, el, x, y, timer, pid}
 let RB_DRAG=null;         // {ix, id, el, ghost, dx, dy, x, y, raf}
 let RB_EAT_UNTIL=0;       // Zeitstempel: bis hierhin wird der Klick nach einem Zug geschluckt
-function rbTileId(){ return RL.on ? RL.tile : ((CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null); }
+function rbTileId(){ return (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null; }
 function rbPressClear(){ if(RB_PRESS){ clearTimeout(RB_PRESS.timer); RB_PRESS=null; } }
 
 function rbDragStart(el, ix, x, y){
@@ -6678,7 +6453,7 @@ function rbDragOver(x,y){
     const r=tiles[i].getBoundingClientRect();
     if(x < r.left + r.width/2){ before=tiles[i]; break; }
   }
-  strip.insertBefore(d.el, before || strip.querySelector('.RegalAdd') || null);
+  strip.insertBefore(d.el, before);
 }
 function rbDragEnd(commit){
   const d=RB_DRAG; if(!d) return;
@@ -6706,7 +6481,7 @@ function rbDragEnd(commit){
     }
   }
   render();
-  if(RL.on){ rlRender(); rlWake(); }
+  if(SCAN.matches.length) renderScanRes(true);
 }
 function rbDragCancel(){ rbDragEnd(false); }
 
@@ -6864,14 +6639,12 @@ function bsSelfTest(){
   return out;
 }
 /* Derselbe Selbsttest-Aufbau wie bei "Lager scannen": geprueft wird der Weg,
-   den der Kaufmann nimmt (rlFeed), und die Uebersetzung in das gespeicherte
-   Regalbild und zurueck (rlSave -> layoutRows/layoutRest). */
+   den der Kaufmann nimmt (rbPlace/rbNudge/autoFix), und die Uebersetzung in das
+   gespeicherte Regalbild und zurueck (layoutRows/layoutRest). */
 function rlSelfTest(){
   const out=[]; const ok=(n,c,d)=>out.push({n, pass:!!c, d:d||''});
   const snapLayout=JSON.parse(JSON.stringify(SHELF_LAYOUT));
   const snapRow=RB_ROW;
-  const snapRL={on:RL.on, tile:RL.tile, row:RL.row};
-  clearTimeout(RL.timer); RL.timer=null; RL.on=false;
 
   /* Ein Regal mit mindestens drei Artikeln, an dem alle Tests haengen. */
   const tile=TILE_ORDER.find(id=>ITEMS.filter(it=>tileOf(it)===id && it.plu!=null).length>=3);
@@ -6879,7 +6652,7 @@ function rlSelfTest(){
   const foreignIx=ITEMS.findIndex(it=>it.plu!=null && tileOf(it)!==tile);
   const code=ix=>String(ITEMS[ix].plu);
   const rows=()=>layoutRows(tile).map(r=>r.join(','));
-  const start=()=>{ SHELF_LAYOUT[tile]={rows:[[]]}; RB_ROW=0; RL.tile=tile; RL.row=0; };
+  const start=()=>{ SHELF_LAYOUT[tile]={rows:[[]]}; RB_ROW=0; };
 
   // 1) Hinzufuegen haengt hinten an die Reihe an -- die Reihenfolge ist die Ordnung.
   start();
@@ -6937,23 +6710,24 @@ function rlSelfTest(){
   rbAddRow(tile); rbAddRow(tile); rbAddRow(tile); rbAddRow(tile);
   ok('bei 4 Reihen ist Schluss', layoutRows(tile).length===RL_MAX_ROWS, 'rows='+layoutRows(tile).length);
 
-  // 7) Der Scan schreibt in DIESELBE Reihe, die das Bild zeigt.
+  // 7) Die Automatik legt einen gescannten Artikel ans Ende der Zielreihe --
+  //    und laesst einen, der schon liegt, in Ruhe.
   start();
-  RL.row=0;
-  const r1=rlFeed(code(here[0]));
-  ok('ein Scan landet in der aktiven Reihe',
-     r1.ok && rows()[0]===String(here[0]), JSON.stringify(r1)+' '+rows().join(' | '));
-
-  // 8) Zweiter Scan desselben Artikels: abgewiesen, mit der Reihe, in der er steht.
-  const dup=rlFeed(code(here[0]));
-  ok('derselbe Artikel bekommt keinen zweiten Platz',
-     !dup.ok && dup.reason==='placed' && dup.row===0, JSON.stringify(dup));
-
-  // 9) Nachbarregal in der Hand, und eine Nummer, die im Ordersatz nicht steht.
-  const fo=foreignIx>=0 ? rlFeed(code(foreignIx)) : {ok:false,reason:'foreign'};
-  ok('Artikel eines anderen Regals wird abgewiesen', !fo.ok && fo.reason==='foreign', JSON.stringify(fo));
-  const un=rlFeed('99999999');
-  ok('unbekannte Nummer wird abgewiesen', !un.ok && un.reason==='unknown', JSON.stringify(un));
+  const snapFilter=CATFILTER, snapAuto=AUTO_FIX;
+  CATFILTER={kind:'tile', id:tile}; AUTO_FIX=true;
+  RB_ROW=0;
+  autoFix([here[0]]); autoFix([here[1]]);
+  ok('Automatik legt Scan fuer Scan ans Ende der Zielreihe',
+     rows()[0]===[here[0],here[1]].join(','), rows().join(' | '));
+  ok('ohne eigene Wahl ist das Ziel Reihe 1', RB_ROW===0, 'RB_ROW='+RB_ROW);
+  /* Eine eigene Wahl bleibt stehen: der naechste Artikel folgt ihr. */
+  rbAddRow(tile);
+  rbPlace(tile, here[2], 1, null); RB_ROW=1;
+  rbPlaceDefault(tile, here[3]!=null?here[3]:here[2]);
+  ok('nach einer Wahl von Reihe 2 landet der naechste dort',
+     rows()[1].split(',').length===(here[3]!=null?2:1), rows().join(' | '));
+  ok('wer schon liegt, bleibt liegen', rbPlaceDefault(tile, here[0])===-1 && rows()[0]===[here[0],here[1]].join(','), rows().join(' | '));
+  CATFILTER=snapFilter; AUTO_FIX=snapAuto;
 
   // 10) Kein Artikel geht verloren, keiner steht doppelt.
   const all=ITEMS.reduce((a,it,ix)=>(tileOf(it)===tile&&a.push(ix),a),[]);
@@ -6970,7 +6744,6 @@ function rlSelfTest(){
 
   SHELF_LAYOUT=snapLayout; saveShelfLayout();
   RB_ROW=snapRow;
-  RL.on=snapRL.on; RL.tile=snapRL.tile; RL.row=snapRL.row;
   render();
 
   const fail=out.filter(o=>!o.pass);
