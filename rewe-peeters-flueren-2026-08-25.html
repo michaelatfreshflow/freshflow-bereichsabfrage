@@ -3527,6 +3527,9 @@ const T={
     invAskOk:'Passt',
     invAskCount:'Bestand korrigieren',
     invAskConfirmed:'Bestand bestätigt, nicht gezählt',
+    dsAskLabel:'Kein Regalhöchstbestand',
+    dsAskNote:'Bestellung erhöht – bitte Regalhöchstbestand eintragen.',
+    dsAskBtn:'Regalhöchstbestand auf 1 {u} setzen',
   },
   en:{
     ordersatz:'Order Guide',  // [arb] missingInputOrderSetCategoryCaption
@@ -3914,6 +3917,9 @@ const T={
     invAskOk:'That fits',
     invAskCount:'Correct inventory',
     invAskConfirmed:'inventory confirmed, not counted',
+    dsAskLabel:'No display size',
+    dsAskNote:'Order raised – please enter the display size.',
+    dsAskBtn:'Set display size to 1 {u}',
   },
   fr:{
     ordersatz:'Guide de commande',  // [arb] missingInputOrderSetCategoryCaption
@@ -4301,6 +4307,9 @@ const T={
     invAskOk:'C’est bon',
     invAskCount:'Corriger le stock',
     invAskConfirmed:'stock confirmé, non compté',
+    dsAskLabel:'Pas de linéaire',
+    dsAskNote:'Commande augmentée – merci de saisir le linéaire.',
+    dsAskBtn:'Mettre le linéaire à 1 {u}',
   },
 };
 const t=()=>T[LANG];
@@ -5568,6 +5577,20 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         <button class="invask__alt" type="button" data-a="invcount" data-i="${ix}">${L.invAskCount}</button>
       </div>`;
     })();
+    /* Mehr bestellt, aber am Regal ist kein Platz eingetragen: die hoehere Menge haette
+       nirgends zu liegen. Gefragt wird nur, wenn der Kaufmann selbst hochgesetzt hat --
+       vorgemerkt ueber der geltenden Zahl, oder von Hand ueber der des Modells. Ein Druck
+       setzt die Startannahme von einer Kiste, wie beim Zuordnen aus dem Scan. */
+    const raised = s.pendOrder!=null
+      ? s.pendOrder > ordCommitted(ix)
+      : (s.manual && orderVal(ix) > (it.rungs[s.chosen!=null?s.chosen:s.plan].order??0));
+    const dsAskBlock = (s.hidden || backOnly || !raised || dsTotal(it)!==0) ? '' : `<div class="invask">
+        <div class="invask__mv">
+          <span class="lb">${L.dsAskLabel}</span>
+          <span class="invask__note">${L.dsAskNote}</span>
+        </div>
+        <button class="invask__go" type="button" data-a="dsone" data-i="${ix}">${L.dsAskBtn.replace('{u}',L.caseUnit)}</button>
+      </div>`;
     if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} ✎</button>`;
 
     /* inventory cell */
@@ -5653,7 +5676,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${hideCta}${moveCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -6890,6 +6913,7 @@ function rowClick(e){
     }
     render(); }
   else if(a==='invcount'){ openInvPad(ix); }
+  else if(a==='dsone'){ TAPS++; s.auslage=1; render(); }
 }
 list.addEventListener('click',rowClick);
 document.getElementById('q').addEventListener('input',render);
