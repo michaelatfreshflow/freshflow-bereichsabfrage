@@ -351,6 +351,21 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
 .MissingInput__day b{width:45px;flex:0 0 auto;font-weight:var(--ff-weight-semibold)}
 .MissingInput__day span{font-weight:var(--ff-weight-regular)}
 
+/* Der fehlende Wareneingang ist der einzige Ausfall, den das System still
+   ueberbrueckt -- ohne diesen Satz liest der Markt die rote Zeile als "heute
+   geht nichts". Er steht unter den fehlenden Tagen, also als Antwort auf die
+   Luecke, die darueber steht, und nicht als allgemeine Ansage. Die Zeile
+   entschuldigt die Luecke nicht: rot bleibt rot, die Tafel draengt sich
+   weiterhin einmal am Tag auf. */
+.MissingInput__hint{display:flex;align-items:flex-start;gap:8px;
+  padding:0 16px 14px 250px;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600);
+  line-height:1.4}
+.MissingInput__hint svg{flex:0 0 auto;margin-top:1px;color:var(--ff-grey-500)}
+/* Schmale Tafel: der Satz bekommt die volle Breite, sonst steht er als
+   Buchstabenturm neben dem Datum. */
+@media (max-width:900px){ .MissingInput__hint{padding-left:16px} }
+
 /* Wareneingang laesst sich als einzige Quelle sofort nachholen: der Knopf steht
    in der Zeile, die ihn betrifft, damit klar ist, was er verarbeitet. Nach dem
    Druck bleibt an derselben Stelle stehen, seit wann -- ohne Uhrzeit waere
@@ -3191,6 +3206,7 @@ const T={
     miCatIntake:'Wareneingang',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Verkauf',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Wareneingangsdaten abschicken',
+    miIntakeFallback:'Ist kein Wareneingang in Freshflow, nehmen wir die Bestellung des Vortages als Wareneingang an.',
     miProcessing:'Wareneingang wird verarbeitet',
     miSince:'seit {t}',
     /* Der Push. Die App verschickt heute keine -- es gibt also auch keine
@@ -3535,6 +3551,7 @@ const T={
     miCatIntake:'Order Intake',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Sales',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Send order intake data',
+    miIntakeFallback:"If no order intake reaches Freshflow, we take the previous day's order as the intake.",
     miProcessing:'Order intake is being processed',
     miSince:'since {t}',
     pushApp:'Freshflow',
@@ -3876,6 +3893,7 @@ const T={
     miCatIntake:'Livraison',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Ventes',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Envoyer les données de livraison',
+    miIntakeFallback:'Sans livraison dans Freshflow, nous prenons la commande de la veille comme livraison.',
     miProcessing:'Livraison en cours de traitement',
     miSince:'depuis {t}',
     pushApp:'Freshflow',
@@ -4428,9 +4446,17 @@ function miRenderPanel(){
     }
     const days = ok ? '' : c.days.map(d=>
       `<div class="MissingInput__day"><b>${miDay(d)}</b><span>${miMonthDayYear(d)}</span></div>`).join('');
+    /* Einmal je Zeile, nicht je Tag -- der Hinweis gilt der Luecke, nicht dem
+       einzelnen Datum. Er bleibt waehrend des Laufs stehen: bis die Daten da
+       sind, rechnet das System weiter mit der Bestellung des Vortages. */
+    const hint = (c.key==='intake' && !ok)
+      ? `<div class="MissingInput__hint">`
+        + `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`
+        + `<span>${L.miIntakeFallback}</span></div>`
+      : '';
     return `<div class="MissingInput__cat${ok?'':' MissingInput__cat--'+c.level}">`
          + `<div class="MissingInput__row"><div class="MissingInput__lbl">${c.lbl()}</div>${tag}${act}</div>`
-         + days + '</div>';
+         + days + hint + '</div>';
   }).join('');
 
   ov.innerHTML =
