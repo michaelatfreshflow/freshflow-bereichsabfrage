@@ -3234,7 +3234,11 @@ const T={
     miCatIntake:'Wareneingang',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Verkauf',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Wareneingangsdaten abschicken',
-    miIntakeFallback:'Wurde kein Wareneingang übermittelt, nimmt Freshflow die Bestellung als Wareneingang an.',
+    /* Nur der Wareneingang steht "aus" statt zu "fehlen": hinter ihm liegt eine
+       Annahme, die weiterrechnet. Die anderen Quellen fehlen wirklich, sie
+       behalten missingInputTableMissingStatus. */
+    miPending:'Ausstehend',
+    miIntakeFallback:'Bisher wurden keine neuen Daten empfangen. Freshflow nutzt vorübergehend die ursprüngliche Bestellmenge als Grundlage.',
     miProcessing:'Wareneingang wird verarbeitet',
     miSince:'seit {t}',
     /* Der Push. Die App verschickt heute keine -- es gibt also auch keine
@@ -3595,7 +3599,8 @@ const T={
     miCatIntake:'Order Intake',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Sales',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Send order intake data',
-    miIntakeFallback:'If no order intake is transmitted, Freshflow takes the order as the intake.',
+    miPending:'Pending',
+    miIntakeFallback:'No new data has been received yet. Freshflow is temporarily using the original order quantity as the basis.',
     miProcessing:'Order intake is being processed',
     miSince:'since {t}',
     pushApp:'Freshflow',
@@ -3953,7 +3958,8 @@ const T={
     miCatIntake:'Livraison',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Ventes',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Envoyer les données de livraison',
-    miIntakeFallback:"Si aucune livraison n'est transmise, Freshflow considère la commande comme la livraison.",
+    miPending:'En attente',
+    miIntakeFallback:"Aucune nouvelle donnée n'a encore été reçue. Freshflow utilise provisoirement la quantité commandée initiale comme base.",
     miProcessing:'Livraison en cours de traitement',
     miSince:'depuis {t}',
     pushApp:'Freshflow',
@@ -4502,8 +4508,11 @@ function miRenderPanel(){
 
   const rows = MI.cats.map(c=>{
     const ok = c.level==='ok';
+    const status = ok ? L.miUploaded
+                 : c.key==='intake' ? L.miPending
+                 : L.miMissing;
     const tag = `<span class="MissingInput__tag MissingInput__tag--${c.level}">`
-              + MI_TAGIC[c.level] + (ok ? L.miUploaded : L.miMissing) + '</span>';
+              + MI_TAGIC[c.level] + status + '</span>';
     /* Nur die Wareneingangszeile traegt die Handlung: sie ist die einzige
        Quelle, die der Markt selbst nochmal anstossen kann. */
     let act='';
