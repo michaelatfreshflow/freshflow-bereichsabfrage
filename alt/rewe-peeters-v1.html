@@ -160,6 +160,9 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 .sbody{display:grid;grid-template-columns:1fr 1fr 280px;gap:24px;padding:18px 22px}
 .kfield{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .kfield label{width:60px;font-weight:700;font-size:14.5px}
+/* Das ausgeschriebene "Regalhöchstbestand" passt nicht in die 60px-Spalte des
+   Bestands-Tastenfelds -- nur dieses Blatt bekommt darum eine eigene Breite. */
+#ov3 .kfield label{width:auto;min-width:60px;flex:0 0 auto}
 .kfield .box{border:1.5px solid #e3e3e3;border-radius:9px;padding:8px 14px;min-width:92px;text-align:right;font-weight:700}
 .kfield .box.act{border-color:var(--amber)}
 .kfield .tot{font-weight:800}
@@ -188,7 +191,7 @@ html,body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,
 
 <p class="note">
 <b>Mockup: Bestand als Aussage bestätigen statt Zahl eintippen.</b> Echte Daten aus REWE Peeters Flüren, Dienstag 18.08.2026, alle 172 Artikel, Szenario-Bestellung Theta 6,0.
-Gefragt wird in Stück mit der Kollizahl in Klammern, einseitig wo die Sprosse offen ist, als Spanne nur wo sie beidseitig begrenzt ist.
+Gefragt wird in Stück mit der Kistenzahl in Klammern, einseitig wo die Sprosse offen ist, als Spanne nur wo sie beidseitig begrenzt ist.
 Ja ist überall vorausgewählt, außer wo der Bestand ohnehin geprüft werden muss, und lässt sich demarkieren, ohne dass die Eingabe aufgeht. Nein öffnet die Eingabe sofort und verlangt eine echte Zahl.
 Die Fußzeile ist statisch mit den Werten aus dem Screenshot. Die Kärtchen unten sind Erklärung für uns, nicht Teil der App.
 </p>
@@ -234,7 +237,7 @@ Die Fußzeile ist statisch mit den Werten aus dem Screenshot. Die Kärtchen unte
   <div class="list" id="list"></div>
 
   <div class="foot">
-    <div class="m">Anzahl Kollis<b>47</b></div>
+    <div class="m">Anzahl Kisten<b>47</b></div>
     <div class="m">EK<b>694,37 €</b></div>
     <div class="m">VK<b>935,05 €</b></div>
     <div class="m">Spanne<b>25,74%</b></div>
@@ -253,12 +256,12 @@ Die Fußzeile ist statisch mit den Werten aus dem Screenshot. Die Kärtchen unte
         <div class="nm" id="shName"></div>
         <div class="meta" id="shMeta"></div>
         <div class="pills" id="shPills"></div>
-        <div class="dsz" style="margin-top:22px">Auslage <b id="shDisp">1</b> KO</div>
+        <div class="dsz" style="margin-top:22px">Regalhöchstbestand <b id="shDisp">1</b> Ki</div>
         <div class="appv" id="shWhy" style="margin-top:14px;max-width:270px;line-height:1.5"></div>
       </div>
       <div>
         <div class="seg" id="unitseg" style="margin-bottom:14px">
-          <button data-u="pcs" class="on">Stück</button><button data-u="cs">Kolli</button></div>
+          <button data-u="pcs" class="on">Stück</button><button data-u="cs">Kiste</button></div>
         <div class="kfield"><label>Lager</label><div class="box" id="kBack">0</div></div>
         <div class="kfield"><label>Fläche</label><div class="box act" id="kFloor">0</div></div>
         <div class="kfield" style="margin-top:26px"><label>Gesamt</label><div class="tot" id="kTotal">0</div></div>
@@ -281,7 +284,7 @@ Die Fußzeile ist statisch mit den Werten aus dem Screenshot. Die Kärtchen unte
 
 <div class="ov" id="ov3">
   <div class="sheet">
-    <div class="sh"><h3>Bitte geben Sie die Auslagengrösse für den folgenden Artikel ein.</h3>
+    <div class="sh"><h3>Bitte geben Sie den Regalhöchstbestand für den folgenden Artikel ein.</h3>
       <button class="x" id="a3X">✕</button></div>
     <div class="sbody">
       <div>
@@ -290,7 +293,7 @@ Die Fußzeile ist statisch mit den Werten aus dem Screenshot. Die Kärtchen unte
         <div class="pills" id="a3Pills"></div>
       </div>
       <div>
-        <div class="kfield"><label>Auslage</label><div class="box act" id="a3Val">1 KO</div></div>
+        <div class="kfield"><label>Regalhöchstbestand</label><div class="box act" id="a3Val">1 Ki</div></div>
       </div>
       <div class="pad" id="a3Pad">
         <button data-k="0.25">0.25</button><button data-k="0.5">0.5</button><button data-k="0.75">0.75</button>
@@ -335,7 +338,7 @@ const T={
      conf:'bestätigt', anysub:'Bestellung ändert sich nicht mit dem Bestand',
      countsub:'Turnusmässige Zählung fällig', nolsub:'Modell rechnet hier keine Spanne',
      unsure:'App-Bestand widerspricht Plan A', bulk:'Alle bestätigen', reset:'Zurücksetzen',
-     onlyopen:'Nur offene', all:'Alle', delta:(a,b)=>`Bestellung ${a} → ${b} KO`, nodelta:'Bestellung unverändert'},
+     onlyopen:'Nur offene', all:'Alle', delta:(a,b)=>`Bestellung ${a} → ${b} Ki`, nodelta:'Bestellung unverändert'},
  en:{atleast:(n,cs)=>`At least ${n} pieces${cs}?`, atmost:(n,cs)=>n===0?`Shelf empty?`:`At most ${n} pieces${cs}?`,
      between:(a,b,cs)=>a===b?`Exactly ${a} pieces${cs}?`:`Between ${a} and ${b} pieces${cs}?`,
      any:'No count needed', count:'Count: enter inventory', noladder:'Enter inventory',
@@ -388,9 +391,9 @@ function snapKO(v){
 const csNum=v=>snapKO(v).toLocaleString('de-DE',{maximumFractionDigits:2});
 function csPart(it,i){
   const r=it.rungs[i];
-  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} KO)` : '';
-  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} KO)` : '';
-  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} KO)` : '';
+  if(r.kind==='atleast') return r.lo!=null? ` (${csNum(r.lo)} Ki)` : '';
+  if(r.kind==='lessthan') return r.hi!=null? ` (${csNum(r.hi)} Ki)` : '';
+  if(r.kind==='between') return (r.lo!=null&&r.hi!=null)? ` (${csNum(r.lo)} bis ${csNum(r.hi)} Ki)` : '';
   return '';
 }
 function stmtFor(it,i){
@@ -417,7 +420,7 @@ function chipFor(it,i){
 function csFmt(v){
   const t=(Math.round(v*100)/100).toFixed(2).split('.');
   const dec=t[1].replace(/0$/,'');
-  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">KO</span>`;
+  return `${t[0]}.<sup>${dec===''?'0':dec}</sup> <span class="u">Ki</span>`;
 }
 function bang(note){ return note ? `<span class="bang" title="${note}">!</span>` : ''; }
 const eur=n=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
@@ -431,7 +434,7 @@ function render(){
     const s=ST[ix], L=t();
     const hide = (q && !it.name.toLowerCase().includes(q)) || (FILT==='open' && s.answered);
     const meta = `Kiste ${it.case!=null?it.case.toLocaleString('de-DE'):'?'} · EK ${it.ek!=null?eur(it.ek):'?'} · VK ${it.vk!=null?eur(it.vk):'?'}`;
-    let pills=`<span class="pill">Best. 0 KO</span>`;
+    let pills=`<span class="pill">Best. 0 Ki</span>`;
     if(/BIO/.test(it.name)) pills+=`<span class="pill b">Bio</span>`;
 
     /* inventory cell */
@@ -463,14 +466,14 @@ function render(){
               </div>`;
     }
     let cell = `<div class="withbang">${box}${bang(it.invNote)}</div>${acts}${extra}`;
-    cell += `<div class="dsz"><button class="dszbtn" data-a="disp" data-i="${ix}">Auslage <u>${dispNum(s.disp)}</u> KO</button></div>`;
+    cell += `<div class="dsz"><button class="dszbtn" data-a="disp" data-i="${ix}">Regalhöchstbestand <u>${dispNum(s.disp)}</u> Ki</button></div>`;
 
     /* order cell */
     const changed = s.answered && s.chosen!=null && (it.rungs[s.chosen].order??0)!==(it.rungs[s.plan].order??0);
     const planO=it.rungs[s.plan].order??0;
     const shown = s.answered ? s.order : planO;
     let ord = `<div class="withbang end"><div class="step"><button data-a="dec" data-i="${ix}">−</button>
-      <div class="v${changed?' chg':''}">${shown} KO</div>
+      <div class="v${changed?' chg':''}">${shown} Ki</div>
       <button data-a="inc" data-i="${ix}">+</button></div>${bang(it.ordNote)}</div>`;
     html += `<div class="row${s.answered?' done':''}${hide?' hide':''}">
       <div><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div>
@@ -544,16 +547,16 @@ function padVals(){
                           : {raw, pcs:Math.round(raw*cs), cases:raw};
 }
 function drawPad(){
-  const u = PAD.unit==='pcs' ? ' St.' : ' KO';
+  const u = PAD.unit==='pcs' ? ' St.' : ' Ki';
   document.getElementById('kBack').textContent=PAD.back+u;
   document.getElementById('kFloor').textContent=PAD.floor+u;
   document.getElementById('kBack').classList.toggle('act',PAD.act==='back');
   document.getElementById('kFloor').classList.toggle('act',PAD.act==='floor');
   const v=padVals(), it=ITEMS[PAD.ix], st=ST[PAD.ix];
   document.getElementById('kTotal').textContent=
-    (PAD.unit==='pcs'? v.pcs+' St.' : v.cases.toLocaleString('de-DE')+' KO');
+    (PAD.unit==='pcs'? v.pcs+' St.' : v.cases.toLocaleString('de-DE')+' Ki');
   document.getElementById('kPcs').textContent =
-    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' KO'
+    (PAD.unit==='pcs'? '= '+v.cases.toLocaleString('de-DE',{maximumFractionDigits:2})+' Ki'
                      : '= '+v.pcs+' '+t().pieces);
   /* fraction keys only make sense in Kisten mode */
   ['0.25','0.5','0.75'].forEach(k=>{
@@ -629,20 +632,20 @@ function legend(){
     `<div class="lg"><b>${x[1]} × ${x[0]}</b><i>${x[2]}</i></div>`).join('');
 }
 const _r=render; render=function(){_r();legend()};
-/* ---------- Auslage ---------- */
+/* ---------- Regalhöchstbestand ---------- */
 let A3={ix:null,val:'',touched:false};
 function openDisp(ix){
   A3={ix,val:String(ST[ix].disp),touched:false};
   const it=ITEMS[ix];
   document.getElementById('a3Name').textContent=it.name;
   document.getElementById('a3Meta').textContent=`Kiste ${it.case?.toLocaleString('de-DE')} · EK ${eur(it.ek||0)} · VK ${eur(it.vk||0)}`;
-  document.getElementById('a3Pills').innerHTML=`<span class="pill">Best. 0 KO</span>`
+  document.getElementById('a3Pills').innerHTML=`<span class="pill">Best. 0 Ki</span>`
     + (/BIO/.test(it.name)?`<span class="pill b">Bio</span>`:'');
   drawDisp(); document.getElementById('ov3').classList.add('on');
 }
 function drawDisp(){
   const el=document.getElementById('a3Val');
-  el.textContent=(A3.val===''?'0':A3.val)+' KO';
+  el.textContent=(A3.val===''?'0':A3.val)+' Ki';
   el.style.color = A3.touched ? 'var(--ink)' : '#b0b0b0';
 }
 document.getElementById('a3Pad').addEventListener('click',e=>{
@@ -662,7 +665,7 @@ document.getElementById('a3Save').onclick=()=>{
   TAPS++;
   const v=parseFloat(A3.val||'0')||0;
   ST[A3.ix].disp=v;
-  render(); closeDisp(); toast(`Auslage gespeichert: ${dispNum(v)} KO`);
+  render(); closeDisp(); toast(`Regalhöchstbestand gespeichert: ${dispNum(v)} Ki`);
 };
 
 /* ---------- complete order ---------- */
@@ -683,7 +686,7 @@ function openSummary(){
   } else {
     h+=`<div class="stmt ok" style="font-size:14px">✓ Alle Artikel beantwortet</div>`;
   }
-  h+=`<div class="s2sum"><b>${cases}</b> Kollis in der Bestellung</div>`;
+  h+=`<div class="s2sum"><b>${cases}</b> Kisten in der Bestellung</div>`;
   document.getElementById('s2Body').innerHTML=h;
   const go=document.getElementById('s2Go');
   go.disabled=blocked.length>0; go.style.opacity=blocked.length?.4:1;
