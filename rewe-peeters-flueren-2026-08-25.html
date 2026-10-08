@@ -1890,6 +1890,47 @@ body.dash-active .stage{display:none}
 .mmBtn{flex:0 0 auto;border:1.5px solid var(--ff-grey-200);background:var(--ff-color-white);
   border-radius:var(--ff-radius-pill);padding:8px 16px;font:inherit;font-weight:var(--ff-weight-bold);
   font-size:var(--ff-text-primary-caption-12);cursor:pointer}
+/* Mein Markt: Reiter wie in der App -- aktiver Reiter orange gefuellt, die anderen weiss. */
+.mmTabs{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:0 0 24px}
+.mmTabs button{border:0;background:var(--ff-color-white);color:var(--ink);border-radius:var(--ff-radius-c12);
+  padding:11px 22px;font:inherit;font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);
+  cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.mmTabs button.on{background:var(--ff-color-accent-orange);color:var(--ff-color-white);font-weight:var(--ff-weight-bold)}
+.mmPane[hidden],.mmFaq[hidden],.mmEmpty[hidden]{display:none}
+.mmEmpty{background:var(--ff-color-white);border-radius:var(--ff-radius-c15);padding:28px 24px;text-align:center;
+  color:var(--mute);font-size:var(--ff-text-primary-body-text-14)}
+.mmEmpty b{display:block;color:var(--ink);font-size:var(--ff-text-primary-body-text-16);margin-bottom:6px}
+.mmEmpty .mmBtn{margin-top:14px}
+.mmFaq{display:block;width:100%;border:0;border-radius:var(--ff-radius-c15);background:var(--ff-grey-100)}
+/* Anleitungen: Kapitel links als Aufklapp-Liste, Videokacheln rechts. */
+.mmGd{display:grid;grid-template-columns:270px 1fr;gap:28px;align-items:start}
+.mmGd__side{background:var(--ff-color-white);border-radius:var(--ff-radius-c15);overflow:hidden;position:sticky;top:0}
+.mmGd__ch{display:flex;align-items:center;width:100%;border:0;background:none;text-align:left;cursor:pointer;
+  padding:20px 22px;font:inherit;font-size:var(--ff-text-primary-title-18);font-weight:var(--ff-weight-semibold);color:var(--ink);
+  border-top:1px solid var(--ff-grey-100)}
+.mmGd__ch:first-child{border-top:0}
+.mmGd__ch span{flex:1}
+.mmGd__ch svg{flex:0 0 auto;color:var(--ff-grey-400);transition:transform .2s}
+.mmGd__ch.open svg{transform:rotate(180deg)}
+.mmGd__sub{padding:0 22px 12px}
+.mmGd__sub[hidden]{display:none}
+.mmGd__sub button{display:block;width:100%;border:0;background:none;text-align:left;cursor:pointer;font:inherit;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600);padding:7px 0 7px 12px;border-left:2px solid var(--ff-grey-200)}
+.mmGd__sub button:hover{color:var(--green);border-left-color:var(--green)}
+.mmGd__sec{font-size:var(--ff-text-primary-heading-24);font-weight:var(--ff-weight-semibold);color:var(--green-d);
+  margin:0 0 18px;scroll-margin-top:16px}
+.mmGd__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px;margin-bottom:40px}
+.mmVid{background:var(--ff-color-white);border-radius:var(--ff-radius-c15);padding:14px 14px 22px;scroll-margin-top:16px;transition:box-shadow .2s}
+.mmVid.flash{box-shadow:0 0 0 3px var(--ff-color-accent-orange)}
+.mmVid h4{margin:14px 0 8px;font-size:var(--ff-text-primary-title-18);font-weight:var(--ff-weight-bold);line-height:1.35;color:var(--ink)}
+.mmVid p{margin:0;font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-700);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Vorschaubild: helle Flaeche, Obst und Gemuese am Rand, Play-Knopf in der Mitte. */
+.mmVid__th{position:relative;aspect-ratio:16/8.5;border-radius:var(--ff-radius-c12);overflow:hidden;background:#ebe7df}
+.mmVid__th img{position:absolute;width:32%;height:auto;pointer-events:none}
+.mmVid__play{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
+  background:var(--ff-color-white);display:grid;place-items:center;color:var(--green);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+@media(max-width:900px){ .mmGd{grid-template-columns:1fr} .mmGd__side{position:static} }
 /* display:flex schlaegt sonst das hidden-Attribut -- Autoren-CSS vor UA-CSS. */
 .invFab[hidden]{display:none}
 .invFab{position:fixed;right:26px;bottom:92px;z-index:50;
@@ -2352,10 +2393,40 @@ body.dash-active .scanFab{display:none}
     </div>
     </div><!-- /panelDash -->
 
-    <!-- Mein Markt: Einstellungen sind hier aufgegangen, statt einen eigenen Reiter
-         zu belegen -- es sind Angaben ueber den Markt, kein Tagesgeschaeft. -->
+    <!-- Mein Markt: wie in der App, mit Reitern. Anleitungen (Videos) zuerst, dann
+         Fragen & Antworten (je Haendler eine eigene, extern gehostete Seite im iframe),
+         dann die Marktdaten samt Einstellungen. -->
     <div class="dash-panel" id="panelStore" hidden>
-      <div class="dash-sec-lb" id="mmTitle">Mein Markt</div>
+      <div class="mmTabs" id="mmTabs" role="tablist">
+        <button type="button" role="tab" data-mt="guides" id="mmTabGuides">Anleitungen</button>
+        <button type="button" role="tab" data-mt="faq" id="mmTabFaq">Fragen &amp; Antworten</button>
+        <button type="button" role="tab" data-mt="info" id="mmTabInfo">Markt Informationen</button>
+        <button type="button" role="tab" data-mt="users" id="mmTabUsers">Benutzer</button>
+        <button type="button" role="tab" data-mt="logs" id="mmTabLogs">Store Logs</button>
+      </div>
+
+      <div class="mmPane" data-mp="guides">
+        <div class="mmGd">
+          <div class="mmGd__side" id="mmGdSide"></div>
+          <div class="mmGd__main" id="mmGdMain"></div>
+        </div>
+      </div>
+
+      <div class="mmPane" data-mp="faq" hidden>
+        <iframe class="mmFaq" id="mmFaqFrame" title="Fragen &amp; Antworten" loading="lazy" hidden></iframe>
+        <div class="mmEmpty" id="mmFaqEmpty" hidden></div>
+      </div>
+
+      <div class="mmPane" data-mp="users" hidden>
+        <div class="mmEmpty" id="mmUsersEmpty">Die Benutzerverwaltung folgt.</div>
+      </div>
+
+      <div class="mmPane" data-mp="logs" hidden>
+        <div class="mmEmpty" id="mmLogsEmpty">Noch keine Einträge.</div>
+      </div>
+
+      <div class="mmPane" data-mp="info" hidden>
+      <div class="dash-sec-lb" id="mmTitle">Markt Informationen</div>
       <div class="mmCard">
         <div class="mmCard__nm" id="mmStoreName">REWE Peeters Flüren</div>
         <div class="mmRow"><span id="mmLblOrdersatz">Ordersatz</span><b id="mmOrdersatz">–</b></div>
@@ -2371,6 +2442,7 @@ body.dash-active .scanFab{display:none}
         <div class="mmRow"><span id="mmLblReset">Zurücksetzen</span>
           <button class="mmBtn" id="mmResetBtn" type="button">Zurücksetzen</button></div>
       </div>
+      </div><!-- /mmPane info -->
     </div>
 
     <!-- Inventur: Zaehlen hat hier ein Zuhause, unabhaengig von einer offenen
@@ -2402,9 +2474,10 @@ body.dash-active .scanFab{display:none}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
       <span id="dbNav3">Bestand</span>
     </div>
+    <!-- Ladensymbol wie in der App (Material "store"), nicht das Info-i. -->
     <div class="dash-navitem">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/></svg>
-      <span id="dbNav4">Infos</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+      <span id="dbNav4">Mein Markt</span>
     </div>
   </div>
 </div>
@@ -3480,7 +3553,7 @@ const T={
     navSettings:'Einstellungen',  // [arb] navSettings
     navInventur:'Bestand',
     invPanelTitle:'Lagerbestand',
-    navInfos:'Infos',
+    navInfos:'Mein Markt',
     invResumeTitle:'Zählung fortsetzen',
     bsLeaveTitle:'Zählung als Entwurf speichern?',
     bsLeaveBody:'{i} Artikel · {c} Kisten sind gezählt. Als Entwurf gespeichert, lässt sich später weiterzählen.',
@@ -3501,6 +3574,15 @@ const T={
     mmLanguage:'Sprache',
     mmDeadlineLbl:'Bestellschluss',
     mmItemsLbl:'Artikel im Ordersatz',
+    mmTabGuides:'Anleitungen',
+    mmTabFaq:'Fragen & Antworten',
+    mmTabInfo:'Markt Informationen',
+    mmTabUsers:'Benutzer',
+    mmTabLogs:'Store Logs',
+    mmUsersEmpty:'Die Benutzerverwaltung folgt.',
+    mmLogsEmpty:'Noch keine Einträge.',
+    mmFaqMissingTitle:'Für {r}-Märkte gibt es die Fragen & Antworten noch nicht.',
+    mmFaqMissingBody:'Bis dahin hilft dein Freshflow-Ansprechpartner weiter.',
     orderQuantity:'Bestellmenge',  // [arb] needsAttentionGroupOrderCaption
     allEvents:'Ereignisse',  // [arb] dashboardEventsTableColumnHeader
     backArrow:'‹ Zurück',
@@ -3903,7 +3985,7 @@ const T={
     navSettings:'Settings',  // [arb] navSettings
     navInventur:'Stocktaking',
     invPanelTitle:'Back storage stocktake',
-    navInfos:'Info',
+    navInfos:'My Store',
     invResumeTitle:'Continue count',
     bsLeaveTitle:'Save the count as a draft?',
     bsLeaveBody:'{i} items · {c} cases counted. Saved as a draft, you can carry on later.',
@@ -3924,6 +4006,15 @@ const T={
     mmLanguage:'Language',
     mmDeadlineLbl:'Order deadline',
     mmItemsLbl:'Items in the order guide',
+    mmTabGuides:'Guides',
+    mmTabFaq:'Q&A',
+    mmTabInfo:'Store information',
+    mmTabUsers:'Users',
+    mmTabLogs:'Store Logs',
+    mmUsersEmpty:'User management is coming.',
+    mmLogsEmpty:'No entries yet.',
+    mmFaqMissingTitle:'There is no Q&A for {r} stores yet.',
+    mmFaqMissingBody:'Until then, your Freshflow contact can help.',
     orderQuantity:'Order quantity',  // [arb] needsAttentionGroupOrderCaption
     allEvents:'Event',  // [arb] dashboardEventsTableColumnHeader
     backArrow:'‹ Back',
@@ -4326,7 +4417,7 @@ const T={
     navSettings:'Paramètres',  // [arb] navSettings
     navInventur:'Inventaire',
     invPanelTitle:'Inventaire de la réserve',
-    navInfos:'Infos',
+    navInfos:'Mon magasin',
     invResumeTitle:'Reprendre le comptage',
     bsLeaveTitle:'Enregistrer le comptage comme brouillon ?',
     bsLeaveBody:'{i} articles · {c} colis comptés. Enregistré en brouillon, vous pourrez continuer plus tard.',
@@ -4347,6 +4438,15 @@ const T={
     mmLanguage:'Langue',
     mmDeadlineLbl:'Heure limite',
     mmItemsLbl:'Articles dans l’assortiment',
+    mmTabGuides:'Tutoriels',
+    mmTabFaq:'Questions & réponses',
+    mmTabInfo:'Informations magasin',
+    mmTabUsers:'Utilisateurs',
+    mmTabLogs:'Journal',
+    mmUsersEmpty:'La gestion des utilisateurs arrive bientôt.',
+    mmLogsEmpty:'Aucune entrée pour le moment.',
+    mmFaqMissingTitle:'Pas encore de questions & réponses pour les magasins {r}.',
+    mmFaqMissingBody:'En attendant, ton contact Freshflow peut t’aider.',
     orderQuantity:'Quantité commandée',  // [arb] needsAttentionGroupOrderCaption
     allEvents:'Événement',  // [arb] dashboardEventsTableColumnHeader
     backArrow:'‹ Retour',
@@ -6491,10 +6591,145 @@ function showDashTab(i){
   if(panel==='panelInv')   renderInvPanel();
   const body=document.querySelector('.dash-body'); if(body) body.scrollTop=0;
 }
+/* ---- Mein Markt: Reiter ------------------------------------------------------
+   Fragen & Antworten ist je Haendler eine eigene, extern gehostete Seite, die hier
+   nur eingebettet wird -- Inhalt und Suche pflegen wir dort, nicht in der App.
+   Fehlt fuer den Haendler eine Seite, zeigt der Reiter vorerst die EDEKA-Fassung als Vorschau.
+   ?retailer=edeka in der Adresse schaltet den Prototyp auf einen anderen Haendler. */
+const STORE_RETAILER = (new URLSearchParams(location.search).get('retailer') || 'rewe').toLowerCase();
+const RETAILER_NAME = {rewe:'REWE', edeka:'EDEKA', intermarche:'Intermarché'};
+const FAQ_URL = {
+  edeka: 'faq/edeka.html',     // wird durch die gehostete Adresse ersetzt
+};
+const FAQ_FALLBACK = 'edeka'; // solange ein Haendler keine eigene Seite hat
+let MM_TAB = 'guides';
+
+/* Anleitungen. Die Videos selbst gibt es im Prototyp nicht -- nur die Kacheln. */
+const MM_GUIDES = [
+  {ch:'Die Grundlagen', vids:[
+    ['Einführung in die Bestellvorbereitungen','In diesem Video zeigen wir dir, wie du alle nötigen Vorbereitungen für die tägliche Bestellung triffst.'],
+    ['Regalhöchstbestand','Schritt-für-Schritt-Anleitung, wie du den Regalhöchstbestand für jeden Artikel richtig einstellst.'],
+    ['App Konfiguration','Schritt-für-Schritt-Anleitung, um die Freshflow-App für deinen Markt einzurichten.']]},
+  {ch:'Tägliche Bestellung', vids:[
+    ['Überprüfung der Bestellvorschläge','So prüfst du die Vorschläge gezielt, zuerst die Artikel mit Ausrufezeichen.'],
+    ['Eingabe der Bestände','Wie du Bestände prüfst und korrigierst, bevor du die Vorschläge bewertest.']]},
+  {ch:'Funktionen', vids:[
+    ['Wie kann man Elemente ausblenden?','Artikel ausblenden, die du gerade nicht bestellen willst, und wieder einblenden.'],
+    ['Filter nutzen','Nach Aktionsartikeln, Bio-Artikeln oder Artikeln mit Ausrufezeichen filtern.']]},
+  {ch:'Technisches', vids:[
+    ['Ordersatz weiterleiten','Wie der wöchentliche Ordersatz per E-Mail zu Freshflow kommt.'],
+    ['Arbeiten ohne Internet','Was im Kühlraum ohne Netz geht und was nicht.']]},
+];
+/* Obst und Gemuese am Rand des Vorschaubilds, wie auf den Video-Titelbildern der App. */
+const MM_THUMB_ICONS = [
+  ['53_pear.png','left:-9%;top:4%'],['51_apple.png','left:-8%;bottom:-14%'],['56_berries.png','left:15%;bottom:-20%;width:24%'],
+  ['01_carrot.png','right:15%;top:-22%;width:28%'],['51_apple.png','right:-7%;top:-10%;width:28%'],
+  ['04_beetroot.png','right:-9%;top:32%;width:30%'],['07_onions.png','right:12%;bottom:-24%;width:26%'],
+];
+const MM_CHEV = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+function mmEsc(v){ return String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* Die Produkt-Icons haben eine eigene Pastell-Kachel als Hintergrund. Auf dem Vorschaubild
+   soll nur die Frucht stehen: Kachelfarbe (Eckpixel) per Canvas freistellen. Geht das
+   nicht (file://, Canvas gesperrt), werden die Icons rund beschnitten. */
+const MM_ICON_SRC = {};
+function mmKeyIcons(root){
+  const files=[...new Set([...root.querySelectorAll('img[data-ic]')].map(i=>i.dataset.ic))];
+  files.forEach(f=>{
+    const apply = src=>root.querySelectorAll(`img[data-ic="${f}"]`).forEach(i=>{ i.src=src; });
+    const round = ()=>root.querySelectorAll(`img[data-ic="${f}"]`).forEach(i=>{ i.style.borderRadius='50%'; });
+    if(MM_ICON_SRC[f]){ apply(MM_ICON_SRC[f]); return; }
+    const url='assets/produce-icons/'+f, img=new Image();
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas'); c.width=img.naturalWidth; c.height=img.naturalHeight;
+        const x=c.getContext('2d'); x.drawImage(img,0,0);
+        const d=x.getImageData(0,0,c.width,c.height), p=d.data, r=p[0], g=p[1], b=p[2];
+        for(let k=0;k<p.length;k+=4){
+          const dist=Math.abs(p[k]-r)+Math.abs(p[k+1]-g)+Math.abs(p[k+2]-b);
+          if(dist<24) p[k+3]=0; else if(dist<48) p[k+3]=Math.round(p[k+3]*(dist-24)/24);
+        }
+        x.putImageData(d,0,0);
+        MM_ICON_SRC[f]=c.toDataURL('image/png'); apply(MM_ICON_SRC[f]);
+      }catch(_){ apply(url); round(); }
+    };
+    img.onerror=()=>{};
+    img.src=url;
+  });
+}
+function renderGuides(){
+  const side=document.getElementById('mmGdSide'), main=document.getElementById('mmGdMain');
+  if(!side || side.dataset.built) return;
+  side.dataset.built='1';
+  const thumb = MM_THUMB_ICONS.map(([f,st])=>`<img data-ic="${f}" alt="" style="${st}">`).join('')
+    + '<span class="mmVid__play"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20"/></svg></span>';
+  side.innerHTML = MM_GUIDES.map((g,k)=>`
+    <button class="mmGd__ch" type="button" data-gch="${k}"><span>${mmEsc(g.ch)}</span>${MM_CHEV}</button>
+    <div class="mmGd__sub" data-gsub="${k}" hidden>${g.vids.map((v,j)=>`<button type="button" data-gvid="${k}-${j}">${mmEsc(v[0])}</button>`).join('')}</div>`).join('');
+  main.innerHTML = MM_GUIDES.map((g,k)=>`
+    <div class="mmGd__sec" id="mmGdSec${k}">${mmEsc(g.ch)}</div>
+    <div class="mmGd__grid">${g.vids.map((v,j)=>`
+      <div class="mmVid" id="mmVid${k}-${j}"><div class="mmVid__th">${thumb}</div>
+        <h4>${mmEsc(v[0])}</h4><p>${mmEsc(v[1])}</p></div>`).join('')}</div>`).join('');
+  mmKeyIcons(main);
+  const scrollTo = el=>{ if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); };
+  side.onclick = e=>{
+    const v=e.target.closest('[data-gvid]');
+    if(v){
+      const card=document.getElementById('mmVid'+v.dataset.gvid); scrollTo(card);
+      if(card){ card.classList.add('flash'); setTimeout(()=>card.classList.remove('flash'),1200); }
+      return;
+    }
+    const ch=e.target.closest('[data-gch]'); if(!ch) return;
+    const k=ch.dataset.gch, sub=side.querySelector(`[data-gsub="${k}"]`);
+    const open=!ch.classList.contains('open');
+    ch.classList.toggle('open', open); sub.hidden=!open;
+    if(open) scrollTo(document.getElementById('mmGdSec'+k));
+  };
+}
+
+/* Das iframe fuellt den Platz bis zur Leiste unten; gescrollt wird darin. */
+function sizeFaqFrame(){
+  const f=document.getElementById('mmFaqFrame'); if(!f || f.hidden || !f.offsetParent) return;
+  const nav=document.querySelector('.dash-nav');
+  const body=document.querySelector('.dash-body');
+  const padB=body ? parseFloat(getComputedStyle(body).paddingBottom)||0 : 0;
+  const h=window.innerHeight - f.getBoundingClientRect().top - (nav?nav.offsetHeight:0) - padB - 2;
+  f.style.height=Math.max(420, h)+'px';
+}
+function renderFaq(){
+  const L=t();
+  const url = FAQ_URL[STORE_RETAILER] || FAQ_URL[FAQ_FALLBACK];
+  const f=document.getElementById('mmFaqFrame'), empty=document.getElementById('mmFaqEmpty');
+  f.hidden=!url; empty.hidden=!!url;
+  if(url){
+    if(f.getAttribute('src')!==url) f.setAttribute('src', url);
+    requestAnimationFrame(sizeFaqFrame);
+    return;
+  }
+  const name = RETAILER_NAME[STORE_RETAILER] || STORE_RETAILER.toUpperCase();
+  empty.innerHTML = `<b>${mmEsc(L.mmFaqMissingTitle.replace('{r}', name))}</b>${mmEsc(L.mmFaqMissingBody)}`;
+}
+window.addEventListener('resize', sizeFaqFrame);
+
+function showMmTab(tab){
+  MM_TAB=tab;
+  document.querySelectorAll('#mmTabs [data-mt]').forEach(b=>{
+    const on=b.dataset.mt===tab; b.classList.toggle('on',on); b.setAttribute('aria-selected', on);
+  });
+  document.querySelectorAll('#panelStore [data-mp]').forEach(p=>{ p.hidden = p.dataset.mp!==tab; });
+  if(tab==='guides') renderGuides();
+  if(tab==='faq') renderFaq();
+}
+
 function renderStorePanel(){
   const L=t();
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
-  set('mmTitle', L.navInfos); set('mmSettings', L.navSettings);
+  set('mmTabGuides', L.mmTabGuides); set('mmTabFaq', L.mmTabFaq); set('mmTabInfo', L.mmTabInfo);
+  set('mmTabUsers', L.mmTabUsers); set('mmTabLogs', L.mmTabLogs);
+  set('mmUsersEmpty', L.mmUsersEmpty); set('mmLogsEmpty', L.mmLogsEmpty);
+  showMmTab(MM_TAB);
+  set('mmTitle', L.mmTabInfo); set('mmSettings', L.navSettings);
   set('mmLblOrdersatz', L.ordersatz); set('mmLblDeadline', L.mmDeadlineLbl);
   set('mmLblItems', L.mmItemsLbl); set('mmLblLang', L.mmLanguage); set('mmLblReset', L.reset);
   set('mmOrdersatz', HDR_DATE); set('mmDeadline', HDR_DEADLINE); set('mmItems', String(ITEMS.length));
@@ -6549,6 +6784,9 @@ function renderInvPanel(){
 }
 document.querySelectorAll('.dash-navitem').forEach((el,i)=>el.addEventListener('click',()=>showDashTab(i)));
 document.getElementById('invFab').addEventListener('click', bsOpen);
+document.getElementById('mmTabs').addEventListener('click', e=>{
+  const b=e.target.closest('[data-mt]'); if(b) showMmTab(b.dataset.mt);
+});
 document.getElementById('mmLangSeg').addEventListener('click', e=>{
   const b=e.target.closest('button'); if(!b) return;
   setLang(b.dataset.lang);
