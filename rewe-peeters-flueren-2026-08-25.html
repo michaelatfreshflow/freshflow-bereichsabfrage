@@ -2752,6 +2752,35 @@ let AUTO_FIX=false;
    scannt in Regalreihenfolge -- ein Artikel, der neu ans Regal kommt, gehoert
    darum hinter den davor gescannten, nicht ans Ende der Liste. */
 const SCAN_LAST={};
+/* Steht ein gescannter Artikel zwar in diesem Regal, aber nicht direkt hinter dem
+   zuletzt gescannten, fragt die Zeile, ob er dorthin gehoert. Gilt nur fuer den
+   gerade angesprungenen Artikel; der naechste Scan raeumt Frage und Rueckgaengig ab.
+   SCAN_ASK={ix, tile, after}, SCAN_REORDER={ix, tile, after, prev, auto}. */
+let SCAN_ASK=null, SCAN_REORDER=null;
+/* "Direkt hinter" in der Reihenfolge, die man in der Liste sieht -- ausgeblendete
+   Artikel stehen nicht in der Liste und zaehlen darum nicht als Luecke. */
+function seqDirectlyBehind(ix, tileId, afterKey){
+  const seq=shelfSeq(tileId).filter(i=>i===ix || !ST[i].hidden).map(i=>overrideKey(ITEMS[i]));
+  const a=seq.indexOf(afterKey);
+  return a>=0 && seq[a+1]===overrideKey(ITEMS[ix]);
+}
+function scanReorder(ix, tileId, afterKey, auto){
+  SCAN_REORDER={ix, tile:tileId, after:afterKey, auto:!!auto,
+    prev:Array.isArray(ITEM_ORDER[tileId]) ? ITEM_ORDER[tileId].slice() : undefined};
+  seqPlaceAfter(ITEMS[ix], tileId, afterKey);
+  SCAN_ASK=null;
+}
+function scanUnreorder(){
+  const r=SCAN_REORDER; if(!r) return;
+  if(r.prev===undefined) delete ITEM_ORDER[r.tile]; else ITEM_ORDER[r.tile]=r.prev;
+  saveItemOrder();
+  SCAN_REORDER=null;
+  SCAN_ASK={ix:r.ix, tile:r.tile, after:r.after};   // zurueck auf die Frage
+}
+function scanNameOf(key){
+  const it=ITEMS.find(x=>overrideKey(x)===key);
+  return it ? it.name : '';
+}
 function scanLastIn(tileId){
   const k=SCAN_LAST[tileId];
   if(!k) return null;
@@ -3414,6 +3443,11 @@ const T={
     moveRowBtn:'Hierher zuordnen',
     moveAfterBtn:'Hinter letztem Scan zuordnen',
     scanShelfLb:'Regal',
+    reorderLb:'Im Regal hinter',
+    reorderBtn:'Hinter letztem Scan einsortieren',
+    reorderTip:'Den Artikel in der Regalreihenfolge direkt hinter den zuletzt gescannten stellen',
+    reorderDoneLb:'Einsortiert hinter',
+    reorderUndoTip:'Alte Reihenfolge wiederherstellen',
     scanPickBtn:'Regal wählen',
     scanPickTip:'Regal für diesen Artikel wählen',
     addHereBtn:'Zusätzlich hier',              // addHereBtn
@@ -3810,6 +3844,11 @@ const T={
     moveRowBtn:'Assign here',
     moveAfterBtn:'Place after last scan',
     scanShelfLb:'Shelf',
+    reorderLb:'On the shelf behind',
+    reorderBtn:'Move behind last scan',
+    reorderTip:'Put the item directly behind the last scanned one in the shelf order',
+    reorderDoneLb:'Moved behind',
+    reorderUndoTip:'Restore the previous order',
     scanPickBtn:'Choose shelf',
     scanPickTip:'Choose a shelf for this item',
     addHereBtn:'Also here',
@@ -4206,6 +4245,11 @@ const T={
     moveRowBtn:'Affecter ici',
     moveAfterBtn:'Placer après le dernier scan',
     scanShelfLb:'Rayon',
+    reorderLb:'En rayon après',
+    reorderBtn:'Placer après le dernier scan',
+    reorderTip:'Placer l’article juste après le dernier article scanné dans l’ordre du rayon',
+    reorderDoneLb:'Placé après',
+    reorderUndoTip:'Rétablir l’ordre précédent',
     scanPickBtn:'Choisir un rayon',
     scanPickTip:'Choisir un rayon pour cet article',
     addHereBtn:'Ici aussi',
@@ -5607,6 +5651,19 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           </div><button class="cta movecta__go" type="button" data-a="scanpick" data-i="${ix}" title="${L.scanPickTip}">${L.scanPickBtn}</button>
         </div>`
       : '';
+    const reAsk = (!forceEye && SCAN_ASK && SCAN_ASK.ix===ix && scanRow) ? SCAN_ASK : null;
+    const reDone = (!forceEye && SCAN_REORDER && SCAN_REORDER.ix===ix && scanRow) ? SCAN_REORDER : null;
+    const reorderCta = reAsk
+      ? `<div class="movecta">
+          <div class="movecta__mv"><span class="lb">${L.reorderLb}</span><span class="to">${scanNameOf(reAsk.after)}</span></div>
+          <button class="cta movecta__go" type="button" data-a="scanreorder" data-i="${ix}" title="${L.reorderTip}">${L.reorderBtn}</button>
+        </div>`
+      : reDone
+      ? `<div class="movecta is-done">
+          <div class="movecta__mv"><span class="lb">${L.reorderDoneLb}</span><span class="to">${scanNameOf(reDone.after)}</span></div>
+          ${reDone.auto?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunreorder" data-i="${ix}" title="${L.reorderUndoTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>
+        </div>`
+      : '';
     /* Ausgeblendet heisst: laeuft in der Bestellung gar nicht mit. Das ist die
        schwerere der zwei Stoerungen -- deshalb steht dieser Block ueber dem
        Regal-Block, wenn beide zutreffen. Anders als dort haengt er an keinem
@@ -5745,7 +5802,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -6926,6 +6983,13 @@ function rowClick(e){
   /* Zuordnen aus dem Scan-Ergebnis: dieselbe Wirkung wie der Regal-Picker, nur
      ohne Umweg -- Ziel ist das offene Regal. render() zeichnet das Blatt mit,
      der Knopf verschwindet also mit der Zuordnung. */
+  else if(a==='scanreorder'){
+    if(!SCAN_ASK || SCAN_ASK.ix!==ix) return;
+    scanReorder(ix, SCAN_ASK.tile, SCAN_ASK.after, false);
+    render(); markScanJump(true); }
+  else if(a==='scanunreorder'){
+    scanUnreorder();
+    render(); markScanJump(true); }
   else if(a==='scanpick'){ CAT_ITEM_PICK_SCAN=true; openCatItemPicker(ix); }
   else if(a==='scanmove'){
     const to = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
@@ -7180,6 +7244,9 @@ function doScan(digits){
     /* Steht der Artikel in der Liste, die man gerade vor sich hat? Dann springt die
        Liste zu ihm. Dasselbe gilt, wenn die Automatik ihn gerade erst hierher geholt
        bzw. eingeblendet hat -- was sie getan hat, steht dann in der Rueckgaengig-Leiste. */
+    const tileId = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+    const anchor = tileId ? scanLastIn(tileId) : null;   // vor autoFix, das den Anker verschiebt
+    SCAN_ASK=null; SCAN_REORDER=null;
     SCAN.matches.forEach(i=>{ SCAN_SEEN[overrideKey(ITEMS[i])]=true; });
     const fixed = AUTO_FIX ? autoFix(SCAN.matches) : {};
     SCAN_JUMP=null;   // der vorige Treffer verliert Hervorhebung und Rueckgaengig
@@ -7190,9 +7257,18 @@ function doScan(digits){
     if(!CATOPEN && SCAN.matches.length && SCAN.matches.every(i=>shown.has(i))){
       closeScanRes();
       SCAN_JUMP=SCAN.matches.slice();
-      if(CATFILTER && CATFILTER.kind==='tile')
-        SCAN_LAST[CATFILTER.id]=overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]);
-      if(Object.keys(fixed).length) render();   // erledigt-Bloecke der Automatik unter die Zeile
+      const ix=SCAN.matches[0];
+      /* Stand schon im Regal, aber nicht direkt hinter dem zuletzt gescannten: fragen --
+         oder mit der Automatik gleich einsortieren. Was autoFix gerade erst hierher
+         geholt hat, steht schon richtig (scanAssign) und faellt hier nicht an. */
+      if(tileId && anchor && anchor!==overrideKey(ITEMS[ix]) && !fixed[ix]?.moved
+         && !seqDirectlyBehind(ix, tileId, anchor)){
+        if(AUTO_FIX) scanReorder(ix, tileId, anchor, true);
+        else SCAN_ASK={ix, tile:tileId, after:anchor};
+      }
+      /* Der Anker wandert immer mit: man steht jetzt an diesem Artikel. */
+      if(tileId) SCAN_LAST[tileId]=overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]);
+      render();   // Frage bzw. erledigt-Bloecke unter die Zeile
       markScanJump(true);
     } else renderScanRes();
   }, 340);
