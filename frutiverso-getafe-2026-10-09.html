@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Freshflow · Frutiverso Getafe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --green:#306A57; --green-d:#2B3A36; --ink:#18181B; --mute:#71717A; --line:#E7E6E6;
+  --amber:#FAAF3B; --amber-bg:#FFF7EB; --red:#E65050; --red-bg:#FDEEEE;
+  --blue-bg:#C7E8ED; --ok:#6EA050; --ok-bg:#EDF3EC; --lime:#C1CE5D;
+}
+html,body{margin:0;height:100%;background:#111;color:var(--ink);
+  font-family:'Inter','Noto Sans Arabic',-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+html[lang=ar] body{font-family:'Noto Sans Arabic','Inter',-apple-system,sans-serif}
+button{font-family:inherit}
+.num{unicode-bidi:isolate;direction:ltr;display:inline-block}
+
+/* both screens share one frame */
+.frame{width:min(100%,1180px);height:100%;margin:0 auto;background:#F4F5F4;display:flex;flex-direction:column;overflow:hidden;position:relative}
+@media(min-width:1400px){ body{display:flex;align-items:center} .frame{height:min(100vh,1000px);border-radius:12px} }
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.on{display:flex}
+
+/* ---------- header (shared) ---------- */
+.hdr{background:var(--green);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.hdr .sp{flex:1}
+.store{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:99px;padding:8px 16px;font-weight:700;font-size:14px;white-space:nowrap}
+.profile{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:0 0 auto}
+.back{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer;background:none;border:0;color:#fff;padding:4px 0}
+html[dir=rtl] .back .chev{transform:scaleX(-1)}
+.hdr .mid{flex:1;min-width:0}
+.hdr .t1{font-weight:700;font-size:15.5px}
+.hdr .t1 .dim{opacity:.75;font-weight:600}
+.hdr .t2{font-size:12.5px;color:#cfe0d7;margin-top:2px}
+.hdr .t2 b{color:#F5B453}
+
+/* language switch: always three choices, same control on both screens */
+.langsw{display:inline-flex;background:rgba(255,255,255,.14);border-radius:99px;padding:3px;gap:2px;flex:0 0 auto}
+.langsw button{border:0;background:none;color:#fff;font-weight:700;font-size:12.5px;padding:6px 11px;border-radius:99px;cursor:pointer;opacity:.8;white-space:nowrap}
+.langsw button.on{background:#fff;color:var(--green);opacity:1}
+
+/* ---------- dashboard ---------- */
+.dbody{flex:1;overflow-y:auto;padding:24px 26px 30px}
+.sec{font-size:13.5px;font-weight:600;margin:0 0 10px}
+.sec .dt{color:var(--mute);font-weight:500}
+.row1{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;margin-bottom:24px}
+.card{background:#fff;border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.08);padding:18px 20px}
+.ordcard{background:var(--amber-bg);border:1px solid #F5DFB3;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;
+  min-height:150px;cursor:pointer;transition:box-shadow .15s}
+.ordcard:hover{box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.ordcard.sent{background:var(--ok-bg);border-color:#cfe0d7}
+.ordcard .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ordcard .nm{font-weight:800;font-size:17px}
+.ordcard .dl{font-size:13px;color:#6b5a33;margin-top:4px}
+.ordcard .cnt{font-size:15px;color:#4a4a4a;margin-top:10px}
+.ordcard .go{margin-top:auto;align-self:flex-end;font-weight:700;font-size:13.5px;color:var(--green)}
+.pillopen{background:var(--amber);color:#fff;font-weight:700;font-size:11.5px;border-radius:99px;padding:4px 12px;text-transform:uppercase}
+.ordcard.sent .pillopen{background:var(--green)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kpi .lb{font-size:13px;font-weight:600}
+.kpi .val{font-size:24px;font-weight:800;margin-top:8px}
+.kpi .chg{font-weight:700;font-size:14px;color:var(--green);margin-top:6px}
+.kpi .rng{font-size:11.5px;color:var(--mute);margin-top:8px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:24px}
+.mini .lb{font-size:13.5px;font-weight:600;margin-bottom:12px}
+.wx{display:flex;align-items:center;gap:16px}
+.wx .city{font-weight:700;font-size:14px}
+.wx .addr{font-size:12px;color:var(--mute);margin-top:2px}
+.wx .temp{font-size:30px;font-weight:800;margin-top:6px}
+.wx .sun{margin-inline-start:auto}
+.sunpill{background:#FFF1C9;color:#7a5a00;font-size:11px;font-weight:700;border-radius:99px;padding:3px 10px;display:inline-block;margin-top:8px}
+.ev{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:0}
+.ev .nm{font-weight:700;font-size:13.5px}
+.ev .dt{font-size:12.5px;color:var(--mute);white-space:nowrap}
+.chart .hd{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.chart .hd .nm{font-weight:700;font-size:14.5px}
+.chart .hd .val{font-weight:800;font-size:16px}
+.chart .hd .chg{font-weight:700;font-size:13.5px;color:var(--green)}
+.chart .hd .rng{margin-inline-start:auto;font-size:11.5px;color:var(--mute)}
+.chart svg{width:100%;height:auto;display:block}
+.nav{flex:0 0 auto;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:10px 0 12px;position:relative}
+.navit{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--mute);background:none;border:0;cursor:pointer}
+.navit.on{color:var(--amber)}
+.fab{position:absolute;left:50%;top:-22px;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:0;
+  display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer}
+
+/* ---------- order screen ---------- */
+#order{background:#fff}
+.srch{display:flex;align-items:center;gap:10px;padding:11px 20px;border-bottom:1px solid var(--line)}
+.srch input{border:0;outline:0;font-size:16px;flex:1;color:var(--ink);background:none;font-family:inherit}
+.cats{display:flex;gap:8px;padding:10px 20px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;flex:0 0 auto}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;border:1.5px solid #e4e9e6;background:#fff;border-radius:99px;padding:4px 12px 4px 4px;
+  font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap}
+html[dir=rtl] .cat{padding:4px 4px 4px 12px}
+.cat img{width:26px;height:26px;border-radius:99px;object-fit:cover;background:#eee}
+.cat .n{font-weight:500;color:var(--mute)}
+.cat.all{padding:6px 14px}
+.cat.on{background:var(--green);border-color:var(--green);color:#fff}
+.cat.on .n{color:#cfe0d7}
+.colh,.row{display:grid;grid-template-columns:1fr 230px 200px;gap:14px;padding:10px 20px;align-items:center}
+.colh{border-bottom:2px solid #333;font-weight:700;font-size:13.5px}
+.colh .e{text-align:end}
+.list{flex:1;min-height:0;overflow-y:auto}
+.row{border-bottom:1px solid #f2f2f2;padding:11px 20px}
+.row.chg{background:#FFFCF5}
+.grp{padding:14px 20px 6px;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:#FAFBFA;border-bottom:1px solid #f2f2f2;display:flex;align-items:center;gap:8px}
+html[lang=ar] .grp{letter-spacing:0}
+.grp img{width:20px;height:20px;border-radius:5px;object-fit:cover}
+.nm{font-weight:800;font-size:14.5px;line-height:1.25}
+.meta{color:#9a9a9a;font-size:11.5px;margin-top:4px}
+.pills{display:inline-flex;gap:5px;margin-inline-start:6px;vertical-align:2px}
+.pill{border:1px solid #e0e0e0;border-radius:99px;padding:1px 8px;font-size:10.5px;color:#5d6b64;background:#fff;font-weight:600}
+.pill.b{border-color:#cfe0d7;background:#F1F7F3;color:var(--green)}
+.pill.promo{border-color:#e6b5a6;background:var(--red-bg);color:#8d2b0c;font-weight:700}
+.step{display:flex;align-items:center;justify-content:flex-end}
+.step.inv{justify-content:flex-start}
+.step button{width:38px;height:44px;border:0;background:#F1F2F1;font-size:19px;color:#3a3a3a;cursor:pointer}
+.step button:disabled{color:#c9cdca;cursor:default}
+.step button:first-child{border-start-start-radius:9px;border-end-start-radius:9px}
+.step button:last-child{border-start-end-radius:9px;border-end-end-radius:9px}
+.step .v{min-width:92px;height:44px;border:1px solid #e3e3e3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:14.5px;font-weight:700;background:#fff;cursor:pointer;white-space:nowrap}
+.step .v.chg{border-color:var(--amber)}
+.step .v .sub{font-size:10.5px;font-weight:600;color:var(--mute)}
+.ref{margin-top:6px;text-align:end;font-size:11.5px;color:#a0a0a0}
+.ref b{color:#6d6d6d}
+.ref a{color:var(--green);font-weight:700;cursor:pointer;text-decoration:none;margin-inline-start:6px}
+.empty{padding:40px 20px;text-align:center;color:var(--mute)}
+.foot{display:flex;align-items:center;gap:26px;padding:14px 20px;border-top:1px solid var(--line);background:#fff;flex:0 0 auto}
+.foot .m{font-size:12px;color:var(--mute)}
+.foot .m b{display:block;font-size:16px;color:var(--ink);margin-top:2px}
+.foot .sp{flex:1}
+.cta{background:var(--green);color:#fff;border:0;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
+.cta:hover{background:var(--green-d)}
+.cta.ghost{background:#fff;color:var(--green);border:1.5px solid var(--green)}
+
+/* ---------- sheets ---------- */
+.ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.ov.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;border-radius:16px 16px 0 0;padding-bottom:18px;max-height:96vh;overflow-y:auto}
+.sheet.center{align-self:center;border-radius:16px}
+.sh{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)}
+.sh h3{margin:0;font-size:17px;flex:1}
+.sh .x{border:0;background:none;font-size:22px;color:#777;cursor:pointer}
+.kbody{display:grid;grid-template-columns:1fr 260px;gap:22px;padding:18px 22px}
+.kval{border:1.5px solid var(--amber);border-radius:10px;padding:12px 16px;font-size:26px;font-weight:800;text-align:center;margin:14px 0 6px}
+.kunit{text-align:center;font-size:12.5px;color:var(--mute)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;direction:ltr}
+.pad button{background:#F1F6F2;border:0;border-radius:9px;padding:15px 0;font-size:17px;font-weight:700;cursor:pointer;color:#1f3a2d}
+.pad button:hover{background:#E4EFE7}
+.sfoot{display:flex;align-items:center;padding:0 22px;gap:12px}
+.sfoot .lnk{color:var(--green);font-weight:700;cursor:pointer}
+.sfoot .sp{flex:1}
+.sum{padding:18px 22px;font-size:14px;line-height:1.9;color:#3d4a44}
+.sum b{color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;
+  font-size:13.5px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.on{opacity:1}
+
+/* ---------- phone width ---------- */
+@media(max-width:760px){
+  .hdr{padding:12px 16px;flex-wrap:wrap}
+  .store{display:none}
+  .dbody{padding:18px 16px 24px}
+  .row1,.row2{grid-template-columns:1fr}
+  .hdr .t1 .dim{display:none}
+  .hdr .t1{font-size:14.5px}
+  .hdr .t2{font-size:11.5px}
+  .colh{grid-template-columns:1fr 1fr;padding:8px 16px;font-size:12.5px}
+  .colh>div:first-child{display:none}
+  .row{grid-template-columns:1fr 1fr;padding:12px 16px}
+  .row .itemcell{grid-column:1/-1}
+  .step .v{min-width:70px}
+  .foot{gap:14px;flex-wrap:wrap;padding:12px 16px}
+  .foot .m.opt{display:none}
+  .foot .sp{display:none}
+  .foot .cta{flex:1}
+  .kbody{grid-template-columns:1fr}
+  .srch,.cats{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+<div class="frame">
+
+<!-- ================= DASHBOARD ================= -->
+<section class="screen on" id="dash">
+  <div class="hdr">
+    <svg width="26" height="26" viewBox="0 0 49 48" fill="none" aria-label="Freshflow">
+      <path d="M31.3359 4.50001C31.3359 7.51949 28.9476 9.9375 25.8984 9.9375H23.2734C17.7898 9.9375 13.3359 14.2573 13.3359 19.6875V28.6071L13.3359 43.5H17.8359V28.6071V20.8149V19.6875C17.8359 16.668 20.2243 14.25 23.2734 14.25H25.8984C27.9394 14.25 29.7376 13.7971 31.3359 12.75C34.0501 10.9675 35.8359 7.88474 35.8359 4.5L31.3359 4.50001Z" fill="#fff"/>
+      <path d="M17.8359 43.5V38.0625C17.8359 35.4496 20.0277 33.375 22.7109 33.375H26.4609C31.5567 33.375 35.8359 29.1956 35.8359 24.1875V14.0625C35.8359 17.5312 34.3359 20.625 31.3359 22.4062V24.1875C31.3359 26.8004 29.1442 29.0625 26.4609 29.0625H22.7109C20.9385 29.0625 19.2637 29.4282 17.8359 30.2991C15.2019 31.8959 13.3359 34.7964 13.3359 38.0625V43.5H17.8359Z" fill="#fff"/>
+      <path d="M31.3359 12.6543V14.6686C31.3359 17.2897 29.1413 19.5 26.4609 19.5H22.7109C20.9404 19.5 19.2622 19.935 17.8359 20.8087V28.5747C17.8359 25.9537 20.0306 23.8125 22.7109 23.8125H26.4609C31.5511 23.8125 35.8359 19.6923 35.8359 14.6686V4.5C35.8359 7.92191 33.9797 10.7812 31.3359 12.6543Z" fill="#fff"/>
+    </svg>
+    <div class="sp"></div>
+    <div class="store">Frutiverso Getafe</div>
+    <div class="langsw" data-langsw></div>
+    <div class="profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg></div>
+  </div>
+
+  <div class="dbody">
+    <div class="row1">
+      <div>
+        <div class="sec" data-t="nextOrder"></div>
+        <div class="ordcard" id="ordCard">
+          <div class="top"><div class="nm">Frutiverso</div><span class="pillopen" id="ordPill"></span></div>
+          <div class="dl" id="ordDl"></div>
+          <div class="cnt" id="ordLeft"></div>
+          <div class="go" id="ordGo"></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec"><span data-t="overview"></span> <span class="dt" id="todayLbl"></span></div>
+        <div class="kpis">
+          <div class="card kpi"><div class="lb" data-t="revenue"></div><div class="val" id="kRev"></div><div class="chg">▲ <span class="num" id="kRevC"></span></div><div class="rng" id="kRng1"></div></div>
+          <div class="card kpi"><div class="lb" data-t="waste"></div><div class="val" id="kWaste"></div><div class="chg">▼ <span class="num" id="kWasteC"></span></div><div class="rng" id="kRng2"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card mini">
+        <div class="lb" data-t="weather"></div>
+        <div class="wx">
+          <div>
+            <div class="city">Getafe, Madrid</div>
+            <div class="addr">Calle Madrid, 115</div>
+            <div class="temp"><span class="num">20°C</span></div>
+            <span class="sunpill" data-t="sunny"></span>
+          </div>
+          <svg class="sun" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#F2A900" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="#FFD54A"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.6" y1="4.6" x2="6.4" y2="6.4"/><line x1="17.6" y1="17.6" x2="19.4" y2="19.4"/><line x1="4.6" y1="19.4" x2="6.4" y2="17.6"/><line x1="17.6" y1="6.4" x2="19.4" y2="4.6"/></svg>
+        </div>
+      </div>
+      <div class="card mini">
+        <div class="lb" data-t="events"></div>
+        <div id="events"></div>
+      </div>
+    </div>
+
+    <div class="card chart">
+      <div class="hd">
+        <span class="nm" data-t="revenue"></span>
+        <span class="val" id="cRev"></span>
+        <span class="chg">▲ <span class="num" id="cRevC"></span></span>
+        <span class="rng" id="cRng"></span>
+      </div>
+      <svg id="revChart" viewBox="0 0 860 190" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="fab" id="fab" type="button" data-tt="openOrder">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </button>
+    <button class="navit on" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg><span data-t="navDash"></span></button>
+    <button class="navit" type="button" id="navOrders"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/></svg><span data-t="navOrders"></span></button>
+    <button class="navit" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 20v-6h6v6"/></svg><span data-t="navStore"></span></button>
+    <button class="navit" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="navSettings"></span></button>
+  </div>
+</section>
+
+<!-- ================= ORDER ================= -->
+<section class="screen" id="order">
+  <div class="hdr">
+    <button class="back" id="backBtn" type="button"><span class="chev">‹</span> <span data-t="back"></span></button>
+    <div class="mid">
+      <div class="t1"><span data-t="order"></span> &nbsp;<span id="hdrDate"></span> &nbsp;<span class="dim">| &nbsp;Frutiverso Getafe</span></div>
+      <div class="t2" id="hdrDeadline"></div>
+    </div>
+    <div class="langsw" data-langsw></div>
+  </div>
+
+  <div class="srch">
+    <span style="color:#9a9a9a">⌕</span>
+    <input id="q" type="search" autocomplete="off">
+  </div>
+  <div class="cats" id="cats"></div>
+
+  <div class="colh"><div data-t="item"></div><div data-t="inventory"></div><div class="e" data-t="order"></div></div>
+  <div class="list" id="list"></div>
+
+  <div class="foot">
+    <div class="m"><span data-t="cases"></span><b class="num" id="fCases">0</b></div>
+    <div class="m"><span data-t="cost"></span><b class="num" id="fCost">0</b></div>
+    <div class="m opt"><span data-t="sales"></span><b class="num" id="fSales">0</b></div>
+    <div class="m opt"><span data-t="margin"></span><b class="num" id="fMargin">0</b></div>
+    <div class="sp"></div>
+    <button class="cta" id="sendBtn" type="button" data-t="sendOrder"></button>
+  </div>
+</section>
+</div>
+
+<!-- keypad -->
+<div class="ov" id="ovPad">
+  <div class="sheet">
+    <div class="sh"><h3 id="padTitle"></h3><button class="x" id="padX" type="button">✕</button></div>
+    <div class="kbody">
+      <div>
+        <div class="nm" id="padName"></div>
+        <div class="kval" id="padVal">0</div>
+        <div class="kunit" id="padUnit"></div>
+      </div>
+      <div class="pad" id="pad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="." id="padDot">,</button><button data-k="0">0</button><button data-k="del">⌫</button>
+      </div>
+    </div>
+    <div class="sfoot"><span class="lnk" id="padCancel" data-t="cancel"></span><span class="sp"></span>
+      <button class="cta" id="padSave" type="button" style="padding:11px 30px" data-t="save"></button></div>
+  </div>
+</div>
+
+<!-- send order -->
+<div class="ov" id="ovSend">
+  <div class="sheet center">
+    <div class="sh"><h3 data-t="sendOrder"></h3><button class="x" id="sendX" type="button">✕</button></div>
+    <div class="sum" id="sendBody"></div>
+    <div class="sfoot"><span class="lnk" id="sendCancel" data-t="back"></span><span class="sp"></span>
+      <button class="cta" id="sendGo" type="button" style="padding:11px 26px" data-t="confirmSend"></button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Frutiverso Getafe · demo store, fictional data.
+   Order day Fri 9 Oct 2026, order deadline 13:00 Madrid time,
+   delivery Sat 10 Oct. Inventory is one number in cases (no ranges);
+   the order follows it until the user types an order of their own.
+   ============================================================ */
+const ORDER_DATE = '2026-10-09';
+const DELIVERY_DATE = '2026-10-10';
+const DEADLINE_UTC = Date.UTC(2026, 9, 9, 11, 0);   // 13:00 CEST
+const TZ = 'Europe/Madrid';
+
+/* ---------- strings ---------- */
+const STR = {
+ en:{nextOrder:'Next order', overview:'Overview', revenue:'Revenue', waste:'Waste', weather:'Weather', sunny:'Sunny',
+     events:'Upcoming events', navDash:'Dashboard', navOrders:'Orders', navStore:'My store', navSettings:'Settings',
+     openOrder:'Open order', open:'Open', sentPill:'Sent', left:'{h} h {m} min left', closed:'Order deadline passed',
+     deadline:'Order deadline {d} 13:00', delivery:'Delivery {d}', goOrder:'Open order ›', viewOrder:'View order ›',
+     last4w:'last 4 weeks', back:'Back', order:'Order', item:'Item', inventory:'Inventory', search:'Search',
+     all:'All', cases:'Cases', cost:'Purchase cost', sales:'Sales value', margin:'Margin', sendOrder:'Send order',
+     confirmSend:'Confirm and send', cancel:'Cancel', save:'Save', organic:'Organic', promo:'Promo',
+     caseU:'cs', pcs:'pcs', kg:'kg', perCase:'case', suggested:'Suggested', reset:'reset',
+     padInv:'Enter the inventory for this item', padOrd:'Enter the order for this item', inCases:'in cases',
+     sumCases:'<b>{n}</b> cases for delivery {d}', sumItems:'<b>{n}</b> items in the order',
+     sumChanged:'<b>{n}</b> items you changed', sumCost:'Purchase cost <b>{v}</b>',
+     sent:'Order sent · {n} cases', noHits:'No items found', ev1:'Spain National Day', ev2:'All Saints\' Day', ev3:'Constitution Day'},
+ es:{nextOrder:'Próximo pedido', overview:'Resumen', revenue:'Ventas', waste:'Mermas', weather:'Tiempo', sunny:'Soleado',
+     events:'Próximos eventos', navDash:'Inicio', navOrders:'Pedidos', navStore:'Mi tienda', navSettings:'Ajustes',
+     openOrder:'Abrir pedido', open:'Abierto', sentPill:'Enviado', left:'Quedan {h} h {m} min', closed:'Plazo de pedido vencido',
+     deadline:'Cierre de pedido {d} 13:00', delivery:'Entrega {d}', goOrder:'Abrir pedido ›', viewOrder:'Ver pedido ›',
+     last4w:'últimas 4 semanas', back:'Atrás', order:'Pedido', item:'Artículo', inventory:'Existencias', search:'Buscar',
+     all:'Todo', cases:'Cajas', cost:'Coste de compra', sales:'Valor de venta', margin:'Margen', sendOrder:'Enviar pedido',
+     confirmSend:'Confirmar y enviar', cancel:'Cancelar', save:'Guardar', organic:'Ecológico', promo:'Oferta',
+     caseU:'cj', pcs:'uds', kg:'kg', perCase:'caja', suggested:'Sugerido', reset:'restablecer',
+     padInv:'Introduce las existencias de este artículo', padOrd:'Introduce el pedido de este artículo', inCases:'en cajas',
+     sumCases:'<b>{n}</b> cajas para la entrega del {d}', sumItems:'<b>{n}</b> artículos en el pedido',
+     sumChanged:'<b>{n}</b> artículos modificados por ti', sumCost:'Coste de compra <b>{v}</b>',
+     sent:'Pedido enviado · {n} cajas', noHits:'No se han encontrado artículos', ev1:'Fiesta Nacional de España', ev2:'Todos los Santos', ev3:'Día de la Constitución'},
+ ar:{nextOrder:'الطلب القادم', overview:'نظرة عامة', revenue:'المبيعات', waste:'الهدر', weather:'الطقس', sunny:'مشمس',
+     events:'المناسبات القادمة', navDash:'الرئيسية', navOrders:'الطلبات', navStore:'متجري', navSettings:'الإعدادات',
+     openOrder:'فتح الطلب', open:'مفتوح', sentPill:'تم الإرسال', left:'متبقٍ {h} س {m} د', closed:'انتهى موعد الطلب',
+     deadline:'آخر موعد للطلب {d} الساعة 13:00', delivery:'التسليم {d}', goOrder:'فتح الطلب ›', viewOrder:'عرض الطلب ›',
+     last4w:'آخر 4 أسابيع', back:'رجوع', order:'الطلب', item:'الصنف', inventory:'المخزون', search:'بحث',
+     all:'الكل', cases:'الصناديق', cost:'تكلفة الشراء', sales:'قيمة البيع', margin:'الهامش', sendOrder:'إرسال الطلب',
+     confirmSend:'تأكيد وإرسال', cancel:'إلغاء', save:'حفظ', organic:'عضوي', promo:'عرض',
+     caseU:'صندوق', pcs:'قطعة', kg:'كغ', perCase:'الصندوق', suggested:'المقترح', reset:'استعادة',
+     padInv:'أدخل المخزون لهذا الصنف', padOrd:'أدخل الطلب لهذا الصنف', inCases:'بالصناديق',
+     sumCases:'<b>{n}</b> صندوقًا للتسليم يوم {d}', sumItems:'<b>{n}</b> صنفًا في الطلب',
+     sumChanged:'<b>{n}</b> أصناف عدّلتها', sumCost:'تكلفة الشراء <b>{v}</b>',
+     sent:'تم إرسال الطلب · {n} صندوقًا', noHits:'لم يتم العثور على أصناف', ev1:'العيد الوطني لإسبانيا', ev2:'عيد جميع القديسين', ev3:'يوم الدستور'}
+};
+const LANGS = [['es','ES'],['ar','عربي'],['en','EN']];
+const LOCALE = {en:'en-GB', es:'es-ES', ar:'ar-u-nu-latn'};
+let LANG = 'en';
+try{ const s=localStorage.getItem('frutiverso.lang'); if(STR[s]) LANG=s; }catch(e){}
+const T = (k,v)=>{ let s=STR[LANG][k]??k; if(v) for(const x in v) s=s.split('{'+x+'}').join(v[x]); return s; };
+const nf = (n,d=0)=>n.toLocaleString(LOCALE[LANG],{minimumFractionDigits:d,maximumFractionDigits:d});
+const csf = n=>n.toLocaleString(LOCALE[LANG],{maximumFractionDigits:2});
+const eur = (n,d=2)=>new Intl.NumberFormat(LOCALE[LANG],{style:'currency',currency:'EUR',minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
+const dfmt = (iso,o)=>new Intl.DateTimeFormat(LOCALE[LANG],Object.assign({timeZone:TZ},o)).format(new Date(iso+'T12:00:00Z'));
+const dShort = iso=>dfmt(iso,{weekday:'short',day:'numeric',month:'short'});
+
+/* ---------- categories (store-walk order) ---------- */
+const CATS = [
+ ['citrus','citrus.png',{en:'Citrus',es:'Cítricos',ar:'الحمضيات'}],
+ ['pome','pome-fruit.png',{en:'Apples & pears',es:'Manzanas y peras',ar:'التفاح والإجاص'}],
+ ['grapes','grapes.png',{en:'Grapes',es:'Uvas',ar:'العنب'}],
+ ['bananas','bananas.png',{en:'Bananas',es:'Plátanos',ar:'الموز'}],
+ ['exotic','exotic.png',{en:'Tropical & seasonal',es:'Tropicales y de temporada',ar:'فواكه استوائية وموسمية'}],
+ ['berries','berries.png',{en:'Berries',es:'Frutos rojos',ar:'التوتيات'}],
+ ['tomatoes','tomatoes.png',{en:'Tomatoes',es:'Tomates',ar:'الطماطم'}],
+ ['peppers','peppers.png',{en:'Peppers',es:'Pimientos',ar:'الفلفل'}],
+ ['veg','fruiting-vegetables.png',{en:'Vegetables',es:'Hortalizas',ar:'الخضروات'}],
+ ['salads','salads.png',{en:'Lettuce & greens',es:'Lechugas y hojas',ar:'الخس والورقيات'}],
+ ['root','root-vegetables.png',{en:'Root vegetables',es:'Raíces',ar:'الخضروات الجذرية'}],
+ ['potatoes','potatoes-onions.png',{en:'Potatoes & onions',es:'Patatas y cebollas',ar:'البطاطس والبصل'}],
+ ['herbs','herbs.png',{en:'Fresh herbs',es:'Hierbas frescas',ar:'الأعشاب الطازجة'}],
+ ['nuts','nuts.png',{en:'Dates & nuts',es:'Dátiles y frutos secos',ar:'التمور والمكسرات'}]
+];
+const catOf = id=>CATS.find(c=>c[0]===id);
+
+/* ---------- items (fictional) ----------
+   n: names, u: kg | pcs, cs: units per case, ek/vk: price per unit,
+   inv: inventory in cases, need: cases needed until the next delivery */
+const ITEMS = [
+ {c:'citrus',plu:'40112',n:{es:'Naranja de zumo Valencia',ar:'برتقال للعصير فالنسيا',en:'Juice oranges, Valencia'},u:'kg',cs:15,ek:0.89,vk:1.49,inv:1.5,need:3.6},
+ {c:'citrus',plu:'40113',n:{es:'Naranja de mesa Navelina',ar:'برتقال نافلينا',en:'Navelina oranges'},u:'kg',cs:15,ek:1.05,vk:1.79,inv:1,need:2.4},
+ {c:'citrus',plu:'40130',n:{es:'Mandarina Clemenules',ar:'يوسفي كليمنولز',en:'Clemenules mandarins'},u:'kg',cs:10,ek:1.35,vk:2.29,inv:0.5,need:2.8,promo:true},
+ {c:'citrus',plu:'40150',n:{es:'Limón Verna',ar:'ليمون فيرنا',en:'Verna lemons'},u:'kg',cs:10,ek:1.20,vk:1.99,inv:0.75,need:1.3},
+ {c:'citrus',plu:'40155',n:{es:'Lima',ar:'ليم أخضر',en:'Limes'},u:'kg',cs:4,ek:2.10,vk:3.49,inv:0.5,need:0.6},
+ {c:'pome',plu:'40201',n:{es:'Manzana Golden',ar:'تفاح غولدن',en:'Golden apples'},u:'kg',cs:13,ek:1.10,vk:1.89,inv:1,need:2.2},
+ {c:'pome',plu:'40205',n:{es:'Manzana Fuji',ar:'تفاح فوجي',en:'Fuji apples'},u:'kg',cs:13,ek:1.35,vk:2.39,inv:0.5,need:1.4},
+ {c:'pome',plu:'40208',n:{es:'Manzana Pink Lady',ar:'تفاح بينك ليدي',en:'Pink Lady apples'},u:'kg',cs:12,ek:2.20,vk:3.49,inv:1,need:1.1},
+ {c:'pome',plu:'40220',n:{es:'Pera Conferencia',ar:'إجاص كونفرنس',en:'Conference pears'},u:'kg',cs:12,ek:1.30,vk:2.19,inv:0.5,need:1.6},
+ {c:'pome',plu:'40224',n:{es:'Pera Blanquilla',ar:'إجاص بلانكيا',en:'Blanquilla pears'},u:'kg',cs:12,ek:1.25,vk:1.99,inv:0.25,need:0.9},
+ {c:'grapes',plu:'40301',n:{es:'Uva blanca Italia',ar:'عنب أبيض إيطاليا',en:'White grapes, Italia'},u:'kg',cs:5,ek:1.70,vk:2.79,inv:0.5,need:2.1},
+ {c:'grapes',plu:'40305',n:{es:'Uva roja Red Globe',ar:'عنب أحمر ريد غلوب',en:'Red Globe grapes'},u:'kg',cs:5,ek:1.80,vk:2.99,inv:1,need:1.7},
+ {c:'grapes',plu:'40310',n:{es:'Uva sin semillas ecológica',ar:'عنب بدون بذور عضوي',en:'Seedless grapes, organic'},u:'kg',cs:4,ek:3.10,vk:4.99,inv:0.25,need:0.8,bio:true},
+ {c:'bananas',plu:'40401',n:{es:'Plátano de Canarias IGP',ar:'موز جزر الكناري',en:'Canary Islands bananas'},u:'kg',cs:18,ek:1.45,vk:2.29,inv:1.5,need:4.2,promo:true},
+ {c:'bananas',plu:'40405',n:{es:'Banana',ar:'موز',en:'Bananas'},u:'kg',cs:18,ek:0.95,vk:1.49,inv:1,need:1.8},
+ {c:'exotic',plu:'40501',n:{es:'Aguacate Hass',ar:'أفوكادو هاس',en:'Hass avocado'},u:'pcs',cs:20,ek:0.55,vk:0.99,inv:1,need:2.3},
+ {c:'exotic',plu:'40505',n:{es:'Mango Kent',ar:'مانجو كنت',en:'Kent mango'},u:'pcs',cs:10,ek:0.95,vk:1.69,inv:0.5,need:1.2},
+ {c:'exotic',plu:'40510',n:{es:'Piña Golden',ar:'أناناس غولدن',en:'Golden pineapple'},u:'pcs',cs:6,ek:1.40,vk:2.49,inv:1,need:1.4},
+ {c:'exotic',plu:'40515',n:{es:'Kiwi Hayward',ar:'كيوي هايوارد',en:'Hayward kiwi'},u:'kg',cs:10,ek:2.10,vk:3.49,inv:0.5,need:1.0},
+ {c:'exotic',plu:'40520',n:{es:'Granada Mollar de Elche',ar:'رمان مولار إلتشي',en:'Mollar pomegranate, Elche'},u:'kg',cs:5,ek:1.60,vk:2.79,inv:0.5,need:1.9,promo:true},
+ {c:'exotic',plu:'40525',n:{es:'Caqui Persimon',ar:'كاكي برسيمون',en:'Persimmon (kaki)'},u:'kg',cs:6,ek:1.40,vk:2.49,inv:0.5,need:1.5},
+ {c:'exotic',plu:'40530',n:{es:'Chirimoya',ar:'قشطة (شيريمويا)',en:'Cherimoya'},u:'kg',cs:4,ek:2.60,vk:4.29,inv:0.25,need:0.5},
+ {c:'berries',plu:'40601',n:{es:'Fresas 500 g',ar:'فراولة 500 غ',en:'Strawberries 500 g'},u:'pcs',cs:8,ek:1.60,vk:2.79,inv:0.5,need:1.6},
+ {c:'berries',plu:'40605',n:{es:'Arándanos 125 g',ar:'توت أزرق 125 غ',en:'Blueberries 125 g'},u:'pcs',cs:12,ek:1.15,vk:1.99,inv:0.5,need:1.3},
+ {c:'berries',plu:'40610',n:{es:'Frambuesas 125 g',ar:'توت العليق 125 غ',en:'Raspberries 125 g'},u:'pcs',cs:12,ek:1.35,vk:2.39,inv:0.25,need:0.7},
+ {c:'tomatoes',plu:'40701',n:{es:'Tomate pera',ar:'طماطم بيرا',en:'Plum tomatoes'},u:'kg',cs:6,ek:1.15,vk:1.99,inv:1,need:2.4},
+ {c:'tomatoes',plu:'40705',n:{es:'Tomate en rama',ar:'طماطم عنقودية',en:'Vine tomatoes'},u:'kg',cs:6,ek:1.45,vk:2.49,inv:0.5,need:1.3},
+ {c:'tomatoes',plu:'40710',n:{es:'Tomate cherry 250 g',ar:'طماطم كرزية 250 غ',en:'Cherry tomatoes 250 g'},u:'pcs',cs:12,ek:0.70,vk:1.29,inv:1,need:1.5},
+ {c:'peppers',plu:'40801',n:{es:'Pimiento rojo',ar:'فلفل أحمر',en:'Red peppers'},u:'kg',cs:5,ek:1.55,vk:2.69,inv:0.5,need:1.6},
+ {c:'peppers',plu:'40805',n:{es:'Pimiento verde italiano',ar:'فلفل أخضر إيطالي',en:'Italian green peppers'},u:'kg',cs:5,ek:1.30,vk:2.19,inv:0.5,need:1.4},
+ {c:'peppers',plu:'40810',n:{es:'Pimientos de Padrón 200 g',ar:'فلفل بادرون 200 غ',en:'Padrón peppers 200 g'},u:'pcs',cs:10,ek:0.90,vk:1.59,inv:0.5,need:0.9},
+ {c:'veg',plu:'40901',n:{es:'Calabacín',ar:'كوسة',en:'Courgette'},u:'kg',cs:6,ek:0.95,vk:1.69,inv:0.5,need:1.7},
+ {c:'veg',plu:'40905',n:{es:'Berenjena',ar:'باذنجان',en:'Aubergine'},u:'kg',cs:5,ek:1.05,vk:1.79,inv:0.5,need:1.5},
+ {c:'veg',plu:'40910',n:{es:'Pepino',ar:'خيار',en:'Cucumber'},u:'kg',cs:10,ek:0.80,vk:1.39,inv:0.5,need:1.2},
+ {c:'veg',plu:'40915',n:{es:'Calabaza',ar:'قرع',en:'Pumpkin'},u:'kg',cs:10,ek:0.75,vk:1.29,inv:0.5,need:0.8},
+ {c:'salads',plu:'41001',n:{es:'Lechuga iceberg',ar:'خس آيسبرغ',en:'Iceberg lettuce'},u:'pcs',cs:10,ek:0.55,vk:0.99,inv:0.5,need:1.4},
+ {c:'salads',plu:'41005',n:{es:'Lechuga romana',ar:'خس روماني',en:'Romaine lettuce'},u:'pcs',cs:12,ek:0.50,vk:0.89,inv:0.5,need:1.2},
+ {c:'salads',plu:'41010',n:{es:'Cogollos de Tudela 2 ud.',ar:'قلوب خس توديلا قطعتان',en:'Tudela lettuce hearts, 2 pack'},u:'pcs',cs:12,ek:0.85,vk:1.49,inv:0.25,need:1.0},
+ {c:'salads',plu:'41015',n:{es:'Espinacas ecológicas 300 g',ar:'سبانخ عضوية 300 غ',en:'Spinach, organic 300 g'},u:'pcs',cs:8,ek:1.25,vk:2.19,inv:0.5,need:0.7,bio:true},
+ {c:'root',plu:'41101',n:{es:'Zanahoria bolsa 1 kg',ar:'جزر كيس 1 كغ',en:'Carrots 1 kg bag'},u:'pcs',cs:10,ek:0.65,vk:1.09,inv:1,need:1.6},
+ {c:'root',plu:'41105',n:{es:'Remolacha cocida 500 g',ar:'شمندر مطبوخ 500 غ',en:'Cooked beetroot 500 g'},u:'pcs',cs:12,ek:0.75,vk:1.29,inv:0.5,need:0.6},
+ {c:'root',plu:'41110',n:{es:'Jengibre',ar:'زنجبيل',en:'Ginger'},u:'kg',cs:3,ek:3.20,vk:5.49,inv:0.25,need:0.5},
+ {c:'root',plu:'41115',n:{es:'Ajo morado de Las Pedroñeras',ar:'ثوم بنفسجي لاس بيدرونييراس',en:'Purple garlic, Las Pedroñeras'},u:'pcs',cs:20,ek:0.95,vk:1.69,inv:0.5,need:1.1},
+ {c:'potatoes',plu:'41201',n:{es:'Patata lavada',ar:'بطاطس مغسولة',en:'Washed potatoes'},u:'kg',cs:15,ek:0.60,vk:0.99,inv:1.5,need:3.1},
+ {c:'potatoes',plu:'41205',n:{es:'Cebolla dulce',ar:'بصل حلو',en:'Sweet onions'},u:'kg',cs:10,ek:0.70,vk:1.19,inv:1,need:1.9},
+ {c:'potatoes',plu:'41210',n:{es:'Cebolla morada',ar:'بصل أحمر',en:'Red onions'},u:'kg',cs:5,ek:0.95,vk:1.59,inv:0.5,need:0.9},
+ {c:'potatoes',plu:'41215',n:{es:'Puerro',ar:'كراث',en:'Leek'},u:'kg',cs:5,ek:1.20,vk:1.99,inv:0.5,need:0.7},
+ {c:'herbs',plu:'41301',n:{es:'Perejil manojo',ar:'بقدونس حزمة',en:'Parsley bunch'},u:'pcs',cs:20,ek:0.35,vk:0.69,inv:0.5,need:1.3},
+ {c:'herbs',plu:'41305',n:{es:'Cilantro manojo',ar:'كزبرة حزمة',en:'Coriander bunch'},u:'pcs',cs:20,ek:0.35,vk:0.69,inv:0.5,need:1.6},
+ {c:'herbs',plu:'41310',n:{es:'Hierbabuena manojo',ar:'نعناع حزمة',en:'Mint bunch'},u:'pcs',cs:20,ek:0.40,vk:0.79,inv:0.25,need:1.8},
+ {c:'nuts',plu:'41401',n:{es:'Dátiles Medjoul 500 g',ar:'تمر مجهول 500 غ',en:'Medjool dates 500 g'},u:'pcs',cs:10,ek:3.40,vk:5.99,inv:0.5,need:1.2},
+ {c:'nuts',plu:'41405',n:{es:'Almendra marcona 200 g',ar:'لوز ماركونا 200 غ',en:'Marcona almonds 200 g'},u:'pcs',cs:12,ek:2.30,vk:3.99,inv:0.5,need:0.6}
+];
+
+/* ---------- order logic: one rule, whole cases ---------- */
+const suggest = (it,inv)=>Math.max(0, Math.ceil(it.need - inv - 1e-9));
+const ST = ITEMS.map(it=>({inv:it.inv, invChg:false, ord:null}));   // ord:null = follow the suggestion
+const ordOf = i=>ST[i].ord ?? suggest(ITEMS[i], ST[i].inv);
+let CAT = null, SENT = false;
+
+/* ---------- language ---------- */
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('frutiverso.lang', l); }catch(e){}
+  document.documentElement.lang = l;
+  document.documentElement.dir = l==='ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-t]').forEach(el=>el.textContent = T(el.dataset.t));
+  document.querySelectorAll('[data-tt]').forEach(el=>el.title = T(el.dataset.tt));
+  document.querySelectorAll('[data-langsw]').forEach(el=>{
+    el.innerHTML = LANGS.map(([k,lb])=>`<button type="button" data-l="${k}" class="${k===l?'on':''}">${lb}</button>`).join('');
+  });
+  document.getElementById('q').placeholder = T('search');
+  document.getElementById('padDot').textContent = (0.5).toLocaleString(LOCALE[l]).charAt(1);
+  renderDash(); renderOrder();
+  if(PAD) openPad(PAD.i, PAD.kind);
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-langsw] button'); if(b) setLang(b.dataset.l);
+});
+
+/* ---------- dashboard ---------- */
+const REV = [2840,3010,3120,3390,3980,4620,1980, 2900,2950,3180,3420,4050,4710,2010, 2870,3060,3210,3460,4110,4790,2050, 2960,3090,3300,3510,4180,4890];
+const REV_LY = REV.map((v,i)=>Math.round(v*(0.95+0.02*Math.sin(i))));
+function remaining(){
+  const ms = DEADLINE_UTC - Date.now();
+  if(ms<=0) return null;
+  const m = Math.floor(ms/60000);
+  return {h:Math.floor(m/60), m:m%60};
+}
+function renderDash(){
+  const rem = remaining();
+  const card = document.getElementById('ordCard');
+  card.classList.toggle('sent', SENT);
+  document.getElementById('ordPill').textContent = SENT ? T('sentPill') : T('open');
+  document.getElementById('ordDl').innerHTML = T('deadline',{d:dShort(ORDER_DATE)}) + ' · ' + T('delivery',{d:dShort(DELIVERY_DATE)});
+  document.getElementById('ordLeft').textContent = SENT ? T('sent',{n:nf(totals().cases)}) : (rem ? T('left',{h:nf(rem.h),m:nf(rem.m)}) : T('closed'));
+  document.getElementById('ordGo').textContent = SENT ? T('viewOrder') : T('goOrder');
+  document.getElementById('todayLbl').textContent = dfmt(new Date().toISOString().slice(0,10),{day:'numeric',month:'short',year:'numeric'});
+  const rev = REV.reduce((a,b)=>a+b,0);
+  const rng = dfmt('2026-09-11',{day:'numeric',month:'short'})+' – '+dfmt('2026-10-08',{day:'numeric',month:'short'});
+  document.getElementById('kRev').textContent = eur(rev,0);
+  document.getElementById('kRevC').textContent = '+'+nf(4.1,1)+' %';
+  document.getElementById('kWaste').textContent = eur(1240,0);
+  document.getElementById('kWasteC').textContent = '−'+nf(18.6,1)+' %';
+  document.getElementById('kRng1').textContent = rng;
+  document.getElementById('kRng2').textContent = rng;
+  document.getElementById('cRev').textContent = eur(rev,0);
+  document.getElementById('cRevC').textContent = '+'+nf(4.1,1)+' %';
+  document.getElementById('cRng').textContent = T('last4w')+' · '+rng;
+  document.getElementById('events').innerHTML = [['ev1','2026-10-12'],['ev2','2026-11-01'],['ev3','2026-12-06']]
+    .map(([k,d])=>`<div class="ev"><div class="nm">${T(k)}</div><div class="dt">${dfmt(d,{weekday:'short',day:'numeric',month:'short'})}</div></div>`).join('');
+  drawChart();
+}
+function drawChart(){
+  const W=860, H=160, max=5200, n=REV.length;
+  const x=i=>Math.round(i*(W-60)/(n-1))+50, y=v=>Math.round(H-v/max*(H-12));
+  const pts=a=>a.map((v,i)=>x(i)+','+y(v)).join(' ');
+  let s='';
+  [1000,2500,4000].forEach(v=>{ s+=`<line x1="50" y1="${y(v)}" x2="${W}" y2="${y(v)}" stroke="#ececec"/><text x="0" y="${y(v)+4}" font-size="11" fill="#9a9a9a">${eur(v,0)}</text>`; });
+  s+=`<polygon fill="#DDE8FB" opacity=".55" points="${pts(REV)} ${x(n-1)},${H} ${x(0)},${H}"/>`;
+  s+=`<polyline fill="none" stroke="#9CB7DE" stroke-width="2" stroke-dasharray="4 4" points="${pts(REV_LY)}"/>`;
+  s+=`<polyline fill="none" stroke="#3D7EEA" stroke-width="2.4" points="${pts(REV)}"/>`;
+  for(let i=0;i<n;i+=7){
+    const d=new Date(Date.UTC(2026,8,11+i,12));
+    s+=`<text x="${x(i)}" y="${H+22}" font-size="11" fill="#9a9a9a" text-anchor="middle">${new Intl.DateTimeFormat(LOCALE[LANG],{day:'numeric',month:'short',timeZone:TZ}).format(d)}</text>`;
+  }
+  const svg=document.getElementById('revChart');
+  svg.setAttribute('direction','ltr');
+  svg.innerHTML=s;
+}
+setInterval(()=>{ if(document.getElementById('dash').classList.contains('on')) renderDash(); }, 30000);
+
+/* ---------- navigation ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); }
+function openOrder(){ show('order'); renderOrder(); }
+document.getElementById('fab').onclick = openOrder;
+document.getElementById('ordCard').onclick = openOrder;
+document.getElementById('navOrders').onclick = openOrder;
+document.getElementById('backBtn').onclick = ()=>{ show('dash'); renderDash(); };
+
+/* ---------- order list ---------- */
+const unitOf = it=>it.u==='kg' ? T('kg') : T('pcs');
+const itemName = it=>it.n[LANG];   // the list shows the selected language only
+function renderCats(){
+  const cnt = id=>ITEMS.filter(it=>it.c===id).length;
+  let h = `<button class="cat all${CAT===null?' on':''}" data-cat="" type="button">${T('all')} <span class="n num">${ITEMS.length}</span></button>`;
+  CATS.forEach(([id,img,lb])=>{
+    h += `<button class="cat${CAT===id?' on':''}" data-cat="${id}" type="button"><img src="assets/categories/${img}" alt="" onerror="this.style.display='none'">${lb[LANG]} <span class="n num">${cnt(id)}</span></button>`;
+  });
+  document.getElementById('cats').innerHTML = h;
+}
+document.getElementById('cats').addEventListener('click', e=>{
+  const b=e.target.closest('[data-cat]'); if(!b) return;
+  CAT = b.dataset.cat || null;
+  renderOrder();
+  document.getElementById('list').scrollTop = 0;
+});
+function renderOrder(){
+  document.getElementById('hdrDate').textContent = dShort(ORDER_DATE);
+  document.getElementById('hdrDeadline').innerHTML = `<b>${T('deadline',{d:dShort(ORDER_DATE)})}</b> · ${T('delivery',{d:dShort(DELIVERY_DATE)})}`;
+  renderCats();
+  const q = (document.getElementById('q').value||'').toLowerCase().trim();
+  let html='';
+  CATS.forEach(([cid,img,lb])=>{
+    if(CAT && CAT!==cid) return;
+    const rows = ITEMS.map((it,i)=>i).filter(i=>{
+      const it=ITEMS[i];
+      if(it.c!==cid) return false;
+      if(!q) return true;
+      return it.plu.includes(q) || ['es','ar','en'].some(l=>it.n[l].toLowerCase().includes(q));
+    });
+    if(!rows.length) return;
+    html += `<div class="grp"><img src="assets/categories/${img}" alt="" onerror="this.style.display='none'">${lb[LANG]}</div>`;
+    rows.forEach(i=>{
+      const it=ITEMS[i], s=ST[i];
+      const sug = suggest(it, s.inv), o = ordOf(i), chg = s.ord!=null && s.ord!==sug;
+      let pills='';
+      if(it.bio) pills+=`<span class="pill b">${T('organic')}</span>`;
+      if(it.promo) pills+=`<span class="pill promo">${T('promo')}</span>`;
+      const meta = `<span class="num">${it.plu}</span> · ${T('perCase')} ${csf(it.cs)} ${unitOf(it)} · <span class="num">${eur(it.vk)}</span>/${unitOf(it)}`;
+      html += `<div class="row${chg?' chg':''}">
+        <div class="itemcell"><div class="nm">${itemName(it)}${pills?`<span class="pills">${pills}</span>`:''}</div>
+          <div class="meta">${meta}</div></div>
+        <div><div class="step inv">
+          <button data-a="inv" data-d="-1" data-i="${i}" type="button"${s.inv<=0?' disabled':''}>−</button>
+          <div class="v${s.invChg?' chg':''}" data-a="invpad" data-i="${i}"><span>${csf(s.inv)} ${T('caseU')}</span><span class="sub">${csf(Math.round(s.inv*it.cs*10)/10)} ${unitOf(it)}</span></div>
+          <button data-a="inv" data-d="1" data-i="${i}" type="button">+</button></div></div>
+        <div><div class="step">
+          <button data-a="ord" data-d="-1" data-i="${i}" type="button"${o<=0?' disabled':''}>−</button>
+          <div class="v${chg?' chg':''}" data-a="ordpad" data-i="${i}"><span>${nf(o)} ${T('caseU')}</span><span class="sub">${csf(o*it.cs)} ${unitOf(it)}</span></div>
+          <button data-a="ord" data-d="1" data-i="${i}" type="button">+</button></div>
+          ${chg?`<div class="ref">${T('suggested')} <b>${nf(sug)} ${T('caseU')}</b><a data-a="undo" data-i="${i}">${T('reset')}</a></div>`:''}</div>
+      </div>`;
+    });
+  });
+  document.getElementById('list').innerHTML = html || `<div class="empty">${T('noHits')}</div>`;
+  renderFoot();
+}
+function totals(){
+  let cases=0, cost=0, sales=0, items=0, changed=0;
+  ITEMS.forEach((it,i)=>{
+    const o=ordOf(i);
+    cases+=o; cost+=o*it.cs*it.ek; sales+=o*it.cs*it.vk;
+    if(o>0) items++;
+    if(ST[i].ord!=null && ST[i].ord!==suggest(it,ST[i].inv)) changed++;
+  });
+  return {cases,cost,sales,items,changed};
+}
+function renderFoot(){
+  const t=totals();
+  document.getElementById('fCases').textContent = nf(t.cases);
+  document.getElementById('fCost').textContent = eur(t.cost);
+  document.getElementById('fSales').textContent = eur(t.sales);
+  document.getElementById('fMargin').textContent = nf(t.sales?(t.sales-t.cost)/t.sales*100:0,1)+' %';
+}
+document.getElementById('q').addEventListener('input', renderOrder);
+document.getElementById('list').addEventListener('click', e=>{
+  const el=e.target.closest('[data-a]'); if(!el) return;
+  const i=+el.dataset.i, it=ITEMS[i], s=ST[i], d=+el.dataset.d;
+  switch(el.dataset.a){
+    case 'inv': s.inv=Math.max(0, Math.round((s.inv + d*0.5)*4)/4); s.invChg = s.inv!==it.inv; break;
+    case 'ord': s.ord=Math.max(0, ordOf(i)+d); if(s.ord===suggest(it,s.inv)) s.ord=null; break;
+    case 'undo': s.ord=null; break;
+    case 'invpad': return openPad(i,'inv');
+    case 'ordpad': return openPad(i,'ord');
+  }
+  renderOrder();
+});
+
+/* ---------- keypad ---------- */
+let PAD=null;
+function openPad(i,kind){
+  const it=ITEMS[i];
+  PAD={i,kind,str:''};
+  document.getElementById('padTitle').textContent = T(kind==='inv'?'padInv':'padOrd');
+  document.getElementById('padName').textContent = itemName(it);
+  document.getElementById('padDot').style.visibility = kind==='inv' ? 'visible' : 'hidden';
+  drawPad();
+  document.getElementById('ovPad').classList.add('on');
+}
+function padNum(){ return PAD.str==='' ? (PAD.kind==='inv'?ST[PAD.i].inv:ordOf(PAD.i)) : parseFloat(PAD.str)||0; }
+function drawPad(){
+  const it=ITEMS[PAD.i], v=padNum();
+  document.getElementById('padVal').textContent = (PAD.str===''?csf(v):PAD.str.replace('.',(0.5).toLocaleString(LOCALE[LANG]).charAt(1)))+' '+T('caseU');
+  document.getElementById('padUnit').textContent = T('inCases')+' · '+csf(Math.round(v*it.cs*10)/10)+' '+unitOf(it);
+}
+document.getElementById('pad').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b||!PAD) return;
+  const k=b.dataset.k;
+  if(k==='del') PAD.str=PAD.str.slice(0,-1);
+  else if(k==='.'){ if(!PAD.str.includes('.')) PAD.str=(PAD.str||'0')+'.'; }
+  else if(PAD.str.replace('.','').length<4) PAD.str = (PAD.str==='0'?'':PAD.str)+k;
+  drawPad();
+});
+const closePad=()=>{ document.getElementById('ovPad').classList.remove('on'); PAD=null; };
+document.getElementById('padX').onclick = closePad;
+document.getElementById('padCancel').onclick = closePad;
+document.getElementById('padSave').onclick = ()=>{
+  const i=PAD.i, it=ITEMS[i], s=ST[i], v=padNum();
+  if(PAD.kind==='inv'){ s.inv=Math.round(v*100)/100; s.invChg = s.inv!==it.inv; }
+  else { s.ord=Math.round(v); if(s.ord===suggest(it,s.inv)) s.ord=null; }
+  closePad(); renderOrder();
+};
+
+/* ---------- send ---------- */
+function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
+document.getElementById('sendBtn').onclick = ()=>{
+  const t=totals();
+  document.getElementById('sendBody').innerHTML =
+    `<div>${T('sumCases',{n:nf(t.cases),d:dShort(DELIVERY_DATE)})}</div>
+     <div>${T('sumItems',{n:nf(t.items)})}</div>
+     <div>${T('sumChanged',{n:nf(t.changed)})}</div>
+     <div>${T('sumCost',{v:eur(t.cost)})}</div>`;
+  document.getElementById('ovSend').classList.add('on');
+};
+const closeSend=()=>document.getElementById('ovSend').classList.remove('on');
+document.getElementById('sendX').onclick = closeSend;
+document.getElementById('sendCancel').onclick = closeSend;
+document.getElementById('sendGo').onclick = ()=>{
+  SENT=true; closeSend();
+  toast(T('sent',{n:nf(totals().cases)}));
+  show('dash'); renderDash();
+};
+
+setLang(LANG);
+</script>
+</body>
+</html>
