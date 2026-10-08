@@ -724,6 +724,14 @@ body.isFiltering{
    also die Folge im Klartext: was das Ausblenden fuer die Bestellung bedeutet. */
 .movecta__note{font-size:var(--ff-text-primary-body-text-14);color:var(--mute)}
 .movecta + .movecta{margin-top:6px}
+/* Kennzeichen an der zuletzt gescannten Zeile: dahinter kommt der naechste. */
+.pill.lastscan{border-color:#4F78B5;background:#E3ECF8;color:#2F5690;font-weight:var(--ff-weight-bold)}
+/* Die zuletzt gescannte Zeile traegt einen eigenen, blauen Grund -- anders als das
+   Gruen der gerade angesprungenen Zeile. Meist ist es dieselbe Zeile; dann gewinnt
+   das Gruen (scanJust steht weiter unten) und das Kennzeichen sagt den Rest. Zwei
+   Farben stehen nur da, solange eine Frage offen ist oder das Scan-Ergebnis einen
+   Artikel aus einem anderen Regal zeigt: dann ist Blau "dahinter kommt er". */
+.row.lastScan{background:#EEF3FB;box-shadow:inset 4px 0 0 #4F78B5}
 .movecta .movecta__go{padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
 /* "automatisch" steht am Block, nicht am Knopf: der Knopf tut dasselbe wie sonst,
    nur die Ursache war eine andere. */
@@ -2769,6 +2777,7 @@ function scanReorder(ix, tileId, afterKey, auto){
     prev:Array.isArray(ITEM_ORDER[tileId]) ? ITEM_ORDER[tileId].slice() : undefined};
   seqPlaceAfter(ITEMS[ix], tileId, afterKey);
   SCAN_ASK=null;
+  setScanLast(tileId, overrideKey(ITEMS[ix]));
 }
 function scanUnreorder(){
   const r=SCAN_REORDER; if(!r) return;
@@ -2776,10 +2785,15 @@ function scanUnreorder(){
   saveItemOrder();
   SCAN_REORDER=null;
   SCAN_ASK={ix:r.ix, tile:r.tile, after:r.after};   // zurueck auf die Frage
+  if(SCAN_LAST[r.tile]===overrideKey(ITEMS[r.ix])) setScanLast(r.tile, r.after);
 }
 function scanNameOf(key){
   const it=ITEMS.find(x=>overrideKey(x)===key);
   return it ? it.name : '';
+}
+function setScanLast(tileId, key){
+  if(!tileId) return;
+  if(key) SCAN_LAST[tileId]=key; else delete SCAN_LAST[tileId];
 }
 function scanLastIn(tileId){
   const k=SCAN_LAST[tileId];
@@ -3444,6 +3458,7 @@ const T={
     moveAfterBtn:'Hinter letztem Scan zuordnen',
     scanShelfLb:'Regal',
     reorderLb:'Im Regal hinter',
+    lastScanTag:'Letzter Scan',
     reorderBtn:'Hinter letztem Scan einsortieren',
     reorderTip:'Den Artikel in der Regalreihenfolge direkt hinter den zuletzt gescannten stellen',
     reorderDoneLb:'Einsortiert hinter',
@@ -3845,6 +3860,7 @@ const T={
     moveAfterBtn:'Place after last scan',
     scanShelfLb:'Shelf',
     reorderLb:'On the shelf behind',
+    lastScanTag:'Last scan',
     reorderBtn:'Move behind last scan',
     reorderTip:'Put the item directly behind the last scanned one in the shelf order',
     reorderDoneLb:'Moved behind',
@@ -4246,6 +4262,7 @@ const T={
     moveAfterBtn:'Placer après le dernier scan',
     scanShelfLb:'Rayon',
     reorderLb:'En rayon après',
+    lastScanTag:'Dernier scan',
     reorderBtn:'Placer après le dernier scan',
     reorderTip:'Placer l’article juste après le dernier article scanné dans l’ordre du rayon',
     reorderDoneLb:'Placé après',
@@ -5567,6 +5584,8 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     else if(it.ordNote && it.ordNote.includes('in_promotion')) pills+=`<span class="pill promo">${WD[1]}-${WD[6]}</span>`;
     if(it.kern) pills+=`<span class="pill kern">${L.kernTag}</span>`;
     if(it.bio) pills+=`<span class="pill b">Bio</span>`;
+    if(!forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it))
+      pills+=`<span class="pill lastscan">${L.lastScanTag}</span>`;
     /* Der Hinweis, der die Zeile ehrlich macht. Ein Artikel mit
        Zweitplatzierung wird genau EINMAL gezaehlt -- also muss an der Zeile
        stehen, dass noch woanders Ware desselben Artikels liegt, sonst tippt
@@ -5800,7 +5819,8 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       <div class="itemcell"><div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${bsCounterHTML(ix,n)}</div></div>`;
     }
-    return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
+    const isLastScan = !forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it);
+    return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
@@ -7245,6 +7265,11 @@ function doScan(digits){
        Liste zu ihm. Dasselbe gilt, wenn die Automatik ihn gerade erst hierher geholt
        bzw. eingeblendet hat -- was sie getan hat, steht dann in der Rueckgaengig-Leiste. */
     const tileId = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+    /* Eine offene Frage wurde uebergangen: man stand trotzdem an dem Artikel, er wird
+       jetzt der Anker. Solange sie offen war, blieb der Anker (und das Kennzeichen
+       "Letzter Scan") beim Artikel davor -- sonst zeigte die Liste auf die Zeile, die
+       gerade gefragt wird, hinter welchen Artikel sie gehoert. */
+    if(SCAN_ASK) setScanLast(SCAN_ASK.tile, overrideKey(ITEMS[SCAN_ASK.ix]));
     const anchor = tileId ? scanLastIn(tileId) : null;   // vor autoFix, das den Anker verschiebt
     SCAN_ASK=null; SCAN_REORDER=null;
     SCAN.matches.forEach(i=>{ SCAN_SEEN[overrideKey(ITEMS[i])]=true; });
@@ -7266,8 +7291,9 @@ function doScan(digits){
         if(AUTO_FIX) scanReorder(ix, tileId, anchor, true);
         else SCAN_ASK={ix, tile:tileId, after:anchor};
       }
-      /* Der Anker wandert immer mit: man steht jetzt an diesem Artikel. */
-      if(tileId) SCAN_LAST[tileId]=overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]);
+      /* Der Anker wandert mit: man steht jetzt an diesem Artikel. Nur solange die Frage
+         offen ist, bleibt er beim vorigen (siehe oben). */
+      if(tileId && !SCAN_ASK) setScanLast(tileId, overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]));
       render();   // Frage bzw. erledigt-Bloecke unter die Zeile
       markScanJump(true);
     } else renderScanRes();
@@ -7282,7 +7308,7 @@ function scanUndoMove(ix){
   if(!e) return false;
   if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
   if(e.prevAuslage!==undefined) s.auslage=e.prevAuslage;   // Regalhöchstbestand gehoert zur Zuordnung
-  if(SCAN_LAST[e.to]===key){ if(e.prevLast) SCAN_LAST[e.to]=e.prevLast; else delete SCAN_LAST[e.to]; }
+  if(SCAN_LAST[e.to]===key) setScanLast(e.to, e.prevLast);
   saveCatOverride();
   delete SCAN_MOVED[key];
   return true;
@@ -7323,7 +7349,7 @@ function scanAssign(it, to){
   const anchor=scanLastIn(to);
   setCatOverride(it, to);
   if(anchor) seqPlaceAfter(it, to, anchor);
-  SCAN_LAST[to]=overrideKey(it);
+  setScanLast(to, overrideKey(it));
 }
 function autoFix(list){
   const done={};
