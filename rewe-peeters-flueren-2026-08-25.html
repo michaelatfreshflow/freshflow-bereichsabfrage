@@ -1348,6 +1348,7 @@ body.isFiltering{
 }
 
 .catov{position:absolute;left:0;right:0;bottom:0;background:var(--ff-grey-50);display:flex;z-index:20}
+.catov.catov--overScan{z-index:75}   /* ueber dem Scan-Ergebnis (.scanRes, z 70) */
 .catsheet{flex:1;display:flex;flex-direction:column;background:var(--ff-grey-50);overflow:hidden}
 .cathdr{background:var(--green);color:var(--ff-color-white);padding:18px 24px;display:flex;align-items:flex-start;gap:20px}
 /* The app uppercases UI text exactly once in the whole codebase (a table column
@@ -1947,6 +1948,12 @@ body.dash-active .stage{display:none}
   box-shadow:0 10px 26px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.18)}
 .scanFab:hover{background:var(--green-d)}
 .scanFab:active{transform:translateY(1px)}
+/* Steht der gescannte Artikel in der Liste, die man gerade vor sich hat, springt die
+   Liste zu ihm statt ein Popover zu oeffnen. Die Zeile blitzt kurz auf und behaelt
+   danach einen hellen Ton mit gruener Kante, bis zum naechsten Scan -- so findet man
+   sie wieder, auch wenn man zwischendurch woanders hinschaut. */
+.row.scanJust{background:#EAF7EE;box-shadow:inset 4px 0 0 var(--green);animation:scanJust 1.4s ease-out}
+@keyframes scanJust{0%,30%{background:#CDEBD6}100%{background:#EAF7EE}}
 body.dash-active .scanFab{display:none}
 
 .scanCam{position:absolute;inset:0;z-index:60;display:none;background:#0b0d0c;
@@ -2902,6 +2909,45 @@ const SCAN_SEEN={};
    "erledigt", und sagen dazu, dass nicht der Kaufmann getippt hat. Rueckgaengig
    bleibt an derselben Stelle. */
 let AUTO_FIX=false;
+/* Zuletzt gescannter Artikel je Regal: {tileId: key}. Wer am Regal entlang scannt,
+   scannt in Regalreihenfolge -- ein Artikel, der neu ans Regal kommt, gehoert
+   darum hinter den davor gescannten, nicht ans Ende der Liste. */
+const SCAN_LAST={};
+/* Steht ein gescannter Artikel zwar in diesem Regal, aber nicht direkt hinter dem
+   zuletzt gescannten, fragt die Zeile, ob er dorthin gehoert. Gilt nur fuer den
+   gerade angesprungenen Artikel; der naechste Scan raeumt Frage und Rueckgaengig ab.
+   SCAN_ASK={ix, tile, after}, SCAN_REORDER={ix, tile, after, prev, auto}. */
+let SCAN_ASK=null, SCAN_REORDER=null;
+/* "Direkt hinter" in der Reihenfolge, die man in der Liste sieht -- ausgeblendete
+   Artikel stehen nicht in der Liste und zaehlen darum nicht als Luecke. */
+function seqDirectlyBehind(ix, tileId, afterKey){
+  const seq=shelfSeq(tileId).filter(i=>i===ix || !ST[i].hidden).map(i=>overrideKey(ITEMS[i]));
+  const a=seq.indexOf(afterKey);
+  return a>=0 && seq[a+1]===overrideKey(ITEMS[ix]);
+}
+function scanReorder(ix, tileId, afterKey, auto){
+  SCAN_REORDER={ix, tile:tileId, after:afterKey, auto:!!auto,
+    prev:Array.isArray(ITEM_ORDER[tileId]) ? ITEM_ORDER[tileId].slice() : undefined};
+  seqPlaceAfter(ITEMS[ix], tileId, afterKey);
+  SCAN_ASK=null;
+}
+function scanUnreorder(){
+  const r=SCAN_REORDER; if(!r) return;
+  if(r.prev===undefined) delete ITEM_ORDER[r.tile]; else ITEM_ORDER[r.tile]=r.prev;
+  saveItemOrder();
+  SCAN_REORDER=null;
+  SCAN_ASK={ix:r.ix, tile:r.tile, after:r.after};   // zurueck auf die Frage
+}
+function scanNameOf(key){
+  const it=ITEMS.find(x=>overrideKey(x)===key);
+  return it ? it.name : '';
+}
+function scanLastIn(tileId){
+  const k=SCAN_LAST[tileId];
+  if(!k) return null;
+  const ix=ITEMS.findIndex(it=>overrideKey(it)===k);
+  return (ix>=0 && tileOf(ITEMS[ix])===tileId) ? k : null;   // inzwischen weggezogen: kein Anker
+}
 let SCAN_FILT='all';        // 'all' | 'yes' | 'no'
 function setCatOverride(it, tileId){
   const from=tileOf(it);
@@ -3525,7 +3571,7 @@ const T={
     scanTypeOrScan:'Barcode eingeben oder scannen.',
     scanNotListed:'Nicht im Ordersatz.',
     scanNo:'Nr.',
-    scanAltLead:'Diese Artikel aus dem Ordersatz kommen dem am nächsten:',
+    scanAltLead:'Dieser Artikel aus dem Ordersatz kommt ihm am nächsten:',
     scanAltNone:'Kein ähnlicher Artikel im Ordersatz gefunden.',
     bsBtn:'Lagerbestand scannen',
     bsTitle:'Lagerbestand scannen',
@@ -3577,6 +3623,15 @@ const T={
     moveToNew:'Neues Regal',
     moveDoneTip:'Zuordnung zurücknehmen',
     moveRowBtn:'Hierher zuordnen',
+    moveAfterBtn:'Hinter letztem Scan zuordnen',
+    scanShelfLb:'Regal',
+    reorderLb:'Im Regal hinter',
+    reorderBtn:'Hinter letztem Scan einsortieren',
+    reorderTip:'Den Artikel in der Regalreihenfolge direkt hinter den zuletzt gescannten stellen',
+    reorderDoneLb:'Einsortiert hinter',
+    reorderUndoTip:'Alte Reihenfolge wiederherstellen',
+    scanPickBtn:'Regal wählen',
+    scanPickTip:'Regal für diesen Artikel wählen',
     addHereBtn:'Zusätzlich hier',              // addHereBtn
     addHereTip:'Artikel zusätzlich auf diese Zweitplatzierung legen',
     addHereLead:'Bleibt auf',                  // addHereLead
@@ -3598,6 +3653,7 @@ const T={
     shownNote:'läuft im Ordersatz mit',
     shownTip:'Wieder ausblenden',
     moveRowTip:'Artikel dem offenen Regal zuordnen',
+    moveAfterTip:'Artikel dem offenen Regal zuordnen, direkt hinter dem zuletzt gescannten Artikel',
     confirmFinishFull:'Bestätigen und abschließen',
     legBangInv:'! Bestand',
     legBangOrder:'! Bestellung',
@@ -3937,7 +3993,7 @@ const T={
     scanTypeOrScan:'Type a barcode or scan one.',
     scanNotListed:'Not in the order guide.',
     scanNo:'No.',
-    scanAltLead:'These order-guide items come closest:',
+    scanAltLead:'This order-guide item comes closest:',
     scanAltNone:'No similar item found in the order guide.',
     bsBtn:'Scan back storage',
     bsTitle:'Scan back storage',
@@ -3989,6 +4045,15 @@ const T={
     moveToNew:'New shelf',
     moveDoneTip:'Undo the assignment',
     moveRowBtn:'Assign here',
+    moveAfterBtn:'Place after last scan',
+    scanShelfLb:'Shelf',
+    reorderLb:'On the shelf behind',
+    reorderBtn:'Move behind last scan',
+    reorderTip:'Put the item directly behind the last scanned one in the shelf order',
+    reorderDoneLb:'Moved behind',
+    reorderUndoTip:'Restore the previous order',
+    scanPickBtn:'Choose shelf',
+    scanPickTip:'Choose a shelf for this item',
     addHereBtn:'Also here',
     addHereTip:'Put the item on this Secondary Placement as well',
     addHereLead:'Stays on',
@@ -4010,6 +4075,7 @@ const T={
     shownNote:'part of the order guide',
     shownTip:'Hide again',
     moveRowTip:'Assign the item to the open shelf',
+    moveAfterTip:'Assign the item to the open shelf, right after the last scanned item',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
     legBangOrder:'! Order',
@@ -4349,7 +4415,7 @@ const T={
     scanTypeOrScan:'Saisissez un code-barres ou scannez.',
     scanNotListed:'Absent de l’assortiment.',
     scanNo:'N°',
-    scanAltLead:'Ces articles de l’assortiment s’en rapprochent le plus :',
+    scanAltLead:'Cet article de l’assortiment s’en rapproche le plus :',
     scanAltNone:'Aucun article similaire dans l’assortiment.',
     bsBtn:'Scanner la réserve',
     bsTitle:'Scanner la réserve',
@@ -4401,6 +4467,15 @@ const T={
     moveToNew:'Nouveau rayon',
     moveDoneTip:'Annuler l’affectation',
     moveRowBtn:'Affecter ici',
+    moveAfterBtn:'Placer après le dernier scan',
+    scanShelfLb:'Rayon',
+    reorderLb:'En rayon après',
+    reorderBtn:'Placer après le dernier scan',
+    reorderTip:'Placer l’article juste après le dernier article scanné dans l’ordre du rayon',
+    reorderDoneLb:'Placé après',
+    reorderUndoTip:'Rétablir l’ordre précédent',
+    scanPickBtn:'Choisir un rayon',
+    scanPickTip:'Choisir un rayon pour cet article',
     addHereBtn:'Ici aussi',
     addHereTip:'Placer l’article aussi sur cet emplacement secondaire',
     addHereLead:'Reste en',
@@ -4422,6 +4497,7 @@ const T={
     shownNote:'fait partie de l’assortiment',
     shownTip:'Masquer à nouveau',
     moveRowTip:'Affecter l’article au rayon ouvert',
+    moveAfterTip:'Affecter l’article au rayon ouvert, juste après le dernier article scanné',
     confirmFinishFull:'Confirmer et clôturer',
     legBangInv:'! Inventaire',
     legBangOrder:'! Commande',
@@ -5247,6 +5323,16 @@ function seqPlaceLast(it, tileId, fromTile){
   ITEM_ORDER[tileId]=cur.concat([k]);
   saveItemOrder();
 }
+/* Wie seqPlaceLast(), aber direkt hinter afterKey -- faellt auf "hinten" zurueck,
+   wenn der Anker nicht (mehr) in diesem Regal steht. */
+function seqPlaceAfter(it, tileId, afterKey){
+  const k=overrideKey(it);
+  const cur=shelfSeq(tileId).map(i=>overrideKey(ITEMS[i])).filter(x=>x!==k);
+  const at=afterKey ? cur.indexOf(afterKey) : -1;
+  if(at<0) cur.push(k); else cur.splice(at+1, 0, k);
+  ITEM_ORDER[tileId]=cur;
+  saveItemOrder();
+}
 function seqDrop(it, tileId){
   const l=ITEM_ORDER[tileId]; if(!Array.isArray(l)) return;
   const k=overrideKey(it);
@@ -6015,7 +6101,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        als eigenes Kennzeichen oben. */
     /* Ziel der Zuordnung: das offene Regal -- nur wenn es eines gibt und der Artikel
        nicht schon darin steht. Ohne Regal kein Ziel, also kein Knopf. */
-    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id)
+    const moveTo = (forceEye && CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
       ? CATFILTER.id : null;
     if(forceEye) scanTags(ix).forEach(x=>{
       if(x===L.scanTagHidden) return;                          // steht schon als eigenes Kennzeichen
@@ -6028,24 +6114,54 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        Zeile ihren eigenen Knopf statt einer Ankreuzliste. Das Ziel steht im
        Knopf: was er tut, muss ohne den Kopf im Regalfilter lesbar sein. */
     /* Schon zugeordnet, und zwar hierher: derselbe Block, nur mit Rueckgaengig. */
+    /* Die gerade per Scan angesprungene Zeile in der Liste traegt dieselben erledigt-
+       Bloecke wie das Popover -- das Rueckgaengig steht so direkt unter dem Artikel,
+       bis zum naechsten Scan. Die Handlungs-Knoepfe (zuordnen, einblenden) bleiben
+       dem Popover vorbehalten. */
+    const scanRow = forceEye || !!(SCAN_JUMP && SCAN_JUMP.includes(ix));
+    const tileOpen = !!(CATFILTER && CATFILTER.kind==='tile');
     const mvDone = SCAN_MOVED[overrideKey(it)];
-    const moveBack = (forceEye && CATFILTER && CATFILTER.kind==='tile' && mvDone
-      && mvDone.to===CATFILTER.id && tileOf(it)===CATFILTER.id) ? mvDone : null;
+    const moveBack = (scanRow && mvDone && tileOf(it)===mvDone.to
+      && (!tileOpen || mvDone.to===CATFILTER.id)) ? mvDone : null;
+    /* Kein Regal offen (Uebersicht, "Alle Artikel", Chips): es gibt kein "hierher".
+       Dann waehlt man das Regal selbst -- derselbe Picker wie am Stift der Zeile. */
+    const pickShelf = forceEye && !tileOpen && !moveBack;
     const autoTag = `<span class="movecta__auto">${L.autoTag}</span>`;
     const mvBlock = (from, to, tail, cls) =>
       `<div class="movecta${cls}">
           <div class="movecta__mv">
             <span class="lb">${L.moveFrom}</span><span class="from">${tileLabel(from)}</span>
             <span class="arr">→</span>
-            <span class="lb">${L.moveTo}</span><span class="to">${tileLabel(to)}</span>
+            <span class="lb">${tileOpen?L.moveTo:L.moveToNew}</span><span class="to">${tileLabel(to)}</span>
           </div>${tail}
         </div>`;
     const moveCta = moveTo
       ? mvBlock(tileOf(it), moveTo,
-          `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`, '')
+          (scanLastIn(moveTo)
+            ? `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveAfterTip}">${L.moveAfterBtn}</button>`
+            : `<button class="cta movecta__go" type="button" data-a="scanmove" data-i="${ix}" title="${L.moveRowTip}">${L.moveRowBtn}</button>`), '')
       : moveBack
       ? mvBlock(moveBack.from, moveBack.to,
           `${moveBack.auto?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunmove" data-i="${ix}" title="${L.moveDoneTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>`, ' is-done')
+      : pickShelf
+      ? `<div class="movecta">
+          <div class="movecta__mv">
+            <span class="lb">${L.scanShelfLb}</span><span class="to">${tileLabel(tileOf(it))}</span>
+          </div><button class="cta movecta__go" type="button" data-a="scanpick" data-i="${ix}" title="${L.scanPickTip}">${L.scanPickBtn}</button>
+        </div>`
+      : '';
+    const reAsk = (!forceEye && SCAN_ASK && SCAN_ASK.ix===ix && scanRow) ? SCAN_ASK : null;
+    const reDone = (!forceEye && SCAN_REORDER && SCAN_REORDER.ix===ix && scanRow) ? SCAN_REORDER : null;
+    const reorderCta = reAsk
+      ? `<div class="movecta">
+          <div class="movecta__mv"><span class="lb">${L.reorderLb}</span><span class="to">${scanNameOf(reAsk.after)}</span></div>
+          <button class="cta movecta__go" type="button" data-a="scanreorder" data-i="${ix}" title="${L.reorderTip}">${L.reorderBtn}</button>
+        </div>`
+      : reDone
+      ? `<div class="movecta is-done">
+          <div class="movecta__mv"><span class="lb">${L.reorderDoneLb}</span><span class="to">${scanNameOf(reDone.after)}</span></div>
+          ${reDone.auto?autoTag:''}<button class="movecta__undo" type="button" data-a="scanunreorder" data-i="${ix}" title="${L.reorderUndoTip}">${ICON_UNDO}<span>${L.moveUndoBtn}</span></button>
+        </div>`
       : '';
     /* Ausgeblendet heisst: laeuft in der Bestellung gar nicht mit. Das ist die
        schwerere der zwei Stoerungen -- deshalb steht dieser Block ueber dem
@@ -6056,7 +6172,8 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         <span class="lb">${label}</span><span class="movecta__note">${note}</span>
       </div>${tail}
     </div>`;
-    const hideCta = !forceEye ? ''
+    const hideCta = !scanRow ? ''
+      : s.hidden && !forceEye ? ''
       : s.hidden
       ? hideBlock(L.hideLabel, L.hideNote,
           `<button class="cta movecta__go" type="button" data-a="scanshow" data-i="${ix}" title="${L.hideBtnTip}">${L.hideBtn}</button>`, '')
@@ -6185,7 +6302,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     }
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -6246,7 +6363,7 @@ function render(){
     const recoHide = RECO_FILT==='pos' ? recoOf(ix)===0 : RECO_FILT==='zero' ? recoOf(ix)!==0 : false;
     let catFilterHide = false;
     if(CATFILTER){
-      if(CATFILTER.kind==='tile') catFilterHide = !tileOf(it)===CATFILTER.id;
+      if(CATFILTER.kind==='tile') catFilterHide = tileOf(it)!==CATFILTER.id;
     }
     const hiddenSuppressed = VIS_FILT==='hidden' ? !s.hidden
                            : VIS_FILT==='visible' ? (s.hidden && !MANAGE_MODE) : false;
@@ -6262,6 +6379,7 @@ function render(){
   closeWhy();          // der Knopf, an dem es haengt, wird gleich neu gebaut
   list.innerHTML=html;
   SHOWN_IDX=shownIdx;  // die Scan-Ansicht liest hier ab, was die Liste gerade NICHT zeigt
+  if(typeof markScanJump==='function') markScanJump(false);
   stats(shownIdx);
   if(typeof renderScanRes==='function') renderScanRes(true);
 }
@@ -6978,8 +7096,11 @@ function renderIconPicker(){
    Der Knopf bleibt stumm, solange der Entwurf dem gespeicherten Zustand
    entspricht: nichts zu speichern, also nichts zu druecken. */
 let CAT_ITEM_PICK=null;   // item index currently being recategorised, or null
+/* Aus dem Scan-Ergebnis geoeffnet: der Picker liegt dann ueber dem Popover, und die
+   Wahl wird wie ein "zuordnen" aus dem Scan vermerkt -- mit Rueckgaengig am Artikel. */
+let CAT_ITEM_PICK_SCAN=false;
 function openCatItemPicker(ix){ CAT_ITEM_PICK=ix; renderCatItemPicker(); }
-function closeCatItemPicker(){ CAT_ITEM_PICK=null; renderCatItemPicker(); }
+function closeCatItemPicker(){ CAT_ITEM_PICK=null; CAT_ITEM_PICK_SCAN=false; renderCatItemPicker(); }
 function renderCatItemPicker(){
   const root=document.getElementById('catItemPickerRoot');
   if(CAT_ITEM_PICK==null){ root.innerHTML=''; return; }
@@ -6988,7 +7109,7 @@ function renderCatItemPicker(){
   const hdr=document.querySelector('.hdr');
   const topPx = hdr ? hdr.offsetHeight : 0;
   const current=tileOf(it);
-  root.innerHTML = `<div class="catov" style="top:${topPx}px">
+  root.innerHTML = `<div class="catov${CAT_ITEM_PICK_SCAN?' catov--overScan':''}" style="top:${topPx}px">
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
@@ -7014,6 +7135,16 @@ function renderCatItemPicker(){
       const tileId=el.dataset.id;
       const prevValue=CAT_OVERRIDE[overrideKey(it)];
       const fromTileId=tileOf(it);
+      if(CAT_ITEM_PICK_SCAN){
+        const ix=CAT_ITEM_PICK;
+        closeCatItemPicker();
+        if(tileId===fromTileId) return;
+        SCAN_MOVED[overrideKey(it)]={from:fromTileId, to:tileId, prev:prevValue, prevLast:SCAN_LAST[tileId]};
+        scanAssign(it, tileId);
+        render();
+        scanJumpIfShown(ix);
+        return;
+      }
       setCatOverride(it, tileId);
       closeCatItemPicker();
       render();
@@ -7352,13 +7483,22 @@ function rowClick(e){
   /* Zuordnen aus dem Scan-Ergebnis: dieselbe Wirkung wie der Regal-Picker, nur
      ohne Umweg -- Ziel ist das offene Regal. render() zeichnet das Blatt mit,
      der Knopf verschwindet also mit der Zuordnung. */
+  else if(a==='scanreorder'){
+    if(!SCAN_ASK || SCAN_ASK.ix!==ix) return;
+    scanReorder(ix, SCAN_ASK.tile, SCAN_ASK.after, false);
+    render(); markScanJump(true); }
+  else if(a==='scanunreorder'){
+    scanUnreorder();
+    render(); markScanJump(true); }
+  else if(a==='scanpick'){ CAT_ITEM_PICK_SCAN=true; openCatItemPicker(ix); }
   else if(a==='scanmove'){
     const to = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
     if(!to) return;
     const key=overrideKey(it);
-    SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key]};
-    setCatOverride(it, to);
-    render(); }
+    SCAN_MOVED[key]={from:tileOf(it), to, prev:CAT_OVERRIDE[key], prevLast:SCAN_LAST[to]};
+    scanAssign(it, to);
+    render();
+    scanJumpIfShown(ix); }
   /* Zurueck an derselben Stelle: prev===undefined heisst "hatte gar keine
      Uebersteuerung", der Eintrag muss dann weg statt auf undefined gesetzt zu werden. */
   /* Wieder einblenden aus dem Scan-Ergebnis: dieselbe Wirkung wie das Auge, nur
@@ -7367,18 +7507,13 @@ function rowClick(e){
   else if(a==='scanshow'){
     s.hidden=false;
     SCAN_SHOWN[overrideKey(it)]=true;
-    render(); }
+    render();
+    scanJumpIfShown(ix); }
   else if(a==='scanunshow'){
-    s.hidden=true;
-    delete SCAN_SHOWN[overrideKey(it)];
+    scanUndoShow(ix);
     render(); }
   else if(a==='scanunmove'){
-    const key=overrideKey(it), e=SCAN_MOVED[key];
-    if(!e) return;
-    if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
-    if(e.prevAuslage!==undefined) s.auslage=e.prevAuslage;   // Regalhöchstbestand gehoert zur Zuordnung
-    saveCatOverride();
-    delete SCAN_MOVED[key];
+    if(!scanUndoMove(ix)) return;
     render(); }
   /* Ein Schritt im Regal. Die Liste wird danach neu gebaut, die Zeile wandert
      also unter dem Finger -- genau das ist die Rueckmeldung. */
@@ -7447,6 +7582,8 @@ function pluApproxMatch(plu, qDigits){
    Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
    an rowClick(), also am selben Zustand wie die Liste. */
 let SCAN={plu:null, matches:[], unlisted:null, timer:null};
+// var, nicht let: render() laeuft schon beim Start, bevor diese Zeile erreicht ist.
+var SCAN_JUMP=null;
 
 /* ---------- Gescannt, aber nicht im Ordersatz ----------
    Am Regal steht mehr, als auf der Bestellliste steht: Artikel aus einer
@@ -7509,7 +7646,7 @@ function scanAlternatives(u){
    denselben Zustand, damit das Ergebnis nicht davon abhaengt, wie er hereinkam. */
 function setScanCode(digits){
   SCAN.plu=digits||'';
-  SCAN.matches=scanMatches(SCAN.plu);
+  SCAN.matches=scanBest(scanMatches(SCAN.plu));
   SCAN.unlisted=SCAN.matches.length?null:unlistedOf(SCAN.plu);
 }
 
@@ -7528,10 +7665,15 @@ scanFootOffset();
    Ordersatz steht: auch dieser Fall gehoert ans Regal und soll in der Demo von
    selbst vorkommen, nicht erst wenn man die Nummer von Hand eintippt. */
 function pickScanCode(){
-  if(UNLISTED.length && Math.random()<0.34)
-    return String(UNLISTED[Math.floor(Math.random()*UNLISTED.length)].plu);
   const vis=new Set(SHOWN_IDX);
   const all=ITEMS.map((_,ix)=>ix);
+  /* Jeder zweite Scan trifft einen Artikel, der schon in diesem Regal steht: dann
+     springt die Liste zu ihm. Die andere Haelfte teilt sich auf in Artikel aus
+     anderen Regalen (2/3) und Nummern, die gar nicht im Ordersatz stehen (1/3). */
+  const on=CATOPEN?[]:SHOWN_IDX.filter(ix=>ITEMS[ix].plu!=null);
+  if(on.length && Math.random()<0.5) return String(ITEMS[on[Math.floor(Math.random()*on.length)]].plu);
+  if(UNLISTED.length && Math.random()<0.34)
+    return String(UNLISTED[Math.floor(Math.random()*UNLISTED.length)].plu);
   const off=all.filter(ix=>!vis.has(ix) && ITEMS[ix].plu!=null);
   const pool=off.length?off:all.filter(ix=>ITEMS[ix].plu!=null);
   if(!pool.length) return null;
@@ -7547,12 +7689,23 @@ function scanMatches(digits){
   return ITEMS.reduce((a,it,ix)=>(pluApproxMatch(it.plu,digits)&&a.push(ix),a),[]);
 }
 
+/* Ein Scan hat genau ein Ergebnis. Teilen sich mehrere Artikel die Nummer (oder
+   trifft eine getippte Teilnummer mehrere), gewinnt der im offenen Regal, dann der
+   in der Liste sichtbare, dann der eingeblendete -- sonst die Ordersatz-Reihenfolge. */
+function scanBest(list){
+  if(list.length<2) return list;
+  const vis=new Set(SHOWN_IDX);
+  const tile=(CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+  const sc=ix=>(tile && tileOf(ITEMS[ix])===tile ? 4 : 0) + (vis.has(ix) ? 2 : 0) + (ST[ix].hidden ? 0 : 1);
+  return [list.slice().sort((a,b)=>sc(b)-sc(a) || a-b)[0]];
+}
+
 /* Warum waere diese Zeile in der Liste gerade nicht zu sehen? Die Antwort steht
    im Popover, damit der Sprung nicht wie ein Fehler wirkt. */
 function scanTags(ix){
   const it=ITEMS[ix], s=ST[ix], L=t(), tags=[];
   if(s.hidden) tags.push(L.scanTagHidden);
-  if(CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id)
+  if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id)
     tags.push(L.scanTagShelf+' · '+tileLabel(tileOf(it)));
   const filtOn=filtActive();
   if(filtOn && !filtMatch(it,s) && !(FILT_KEEP&&FILT_KEEP.has(ix))) tags.push(L.scanTagFilter);
@@ -7588,34 +7741,111 @@ function doScan(digits){
   setTimeout(()=>{
     cam.classList.remove('on','busy');
     setScanCode(digits);
+    /* Steht der Artikel in der Liste, die man gerade vor sich hat? Dann springt die
+       Liste zu ihm. Dasselbe gilt, wenn die Automatik ihn gerade erst hierher geholt
+       bzw. eingeblendet hat -- was sie getan hat, steht dann in der Rueckgaengig-Leiste. */
+    const tileId = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+    const anchor = tileId ? scanLastIn(tileId) : null;   // vor autoFix, das den Anker verschiebt
+    SCAN_ASK=null; SCAN_REORDER=null;
     SCAN.matches.forEach(i=>{ SCAN_SEEN[overrideKey(ITEMS[i])]=true; });
-    if(AUTO_FIX) autoFix(SCAN.matches);
+    const fixed = AUTO_FIX ? autoFix(SCAN.matches) : {};
+    SCAN_JUMP=null;   // der vorige Treffer verliert Hervorhebung und Rueckgaengig
     render();
-    renderScanRes();
+    /* ...nach render() gemessen: der Filter "Gescannt: nein" nimmt die Zeile gerade
+       mit diesem Scan aus der Liste -- dann gibt es nichts zum Hinspringen. */
+    const shown=new Set(SHOWN_IDX);
+    if(!CATOPEN && SCAN.matches.length && SCAN.matches.every(i=>shown.has(i))){
+      closeScanRes();
+      SCAN_JUMP=SCAN.matches.slice();
+      const ix=SCAN.matches[0];
+      /* Stand schon im Regal, aber nicht direkt hinter dem zuletzt gescannten: fragen --
+         oder mit der Automatik gleich einsortieren. Was autoFix gerade erst hierher
+         geholt hat, steht schon richtig (scanAssign) und faellt hier nicht an. */
+      if(tileId && anchor && anchor!==overrideKey(ITEMS[ix]) && !fixed[ix]?.moved
+         && !seqDirectlyBehind(ix, tileId, anchor)){
+        if(AUTO_FIX) scanReorder(ix, tileId, anchor, true);
+        else SCAN_ASK={ix, tile:tileId, after:anchor};
+      }
+      /* Der Anker wandert immer mit: man steht jetzt an diesem Artikel. */
+      if(tileId) SCAN_LAST[tileId]=overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]);
+      render();   // Frage bzw. erledigt-Bloecke unter die Zeile
+      markScanJump(true);
+    } else renderScanRes();
   }, 340);
+}
+function scanUndoShow(ix){
+  ST[ix].hidden=true;
+  delete SCAN_SHOWN[overrideKey(ITEMS[ix])];
+}
+function scanUndoMove(ix){
+  const it=ITEMS[ix], s=ST[ix], key=overrideKey(it), e=SCAN_MOVED[key];
+  if(!e) return false;
+  if(e.prev===undefined) delete CAT_OVERRIDE[key]; else CAT_OVERRIDE[key]=e.prev;
+  if(e.prevAuslage!==undefined) s.auslage=e.prevAuslage;   // Regalhöchstbestand gehoert zur Zuordnung
+  if(SCAN_LAST[e.to]===key){ if(e.prevLast) SCAN_LAST[e.to]=e.prevLast; else delete SCAN_LAST[e.to]; }
+  saveCatOverride();
+  delete SCAN_MOVED[key];
+  return true;
+}
+/* Nach "zuordnen" bzw. "einblenden" aus dem Popover: steht die Zeile jetzt in der
+   Liste, geht das Popover zu und die Liste springt zu ihr -- wie bei einem Scan, der
+   gleich im Regal trifft. Ist sie noch nicht zu sehen (z. B. noch ausgeblendet),
+   bleibt das Popover offen, damit der zweite Handgriff erreichbar ist. */
+function scanJumpIfShown(ix){
+  if(!document.getElementById('scanRes').classList.contains('on')) return;
+  if(CATOPEN || !SHOWN_IDX.includes(ix)) return;
+  closeScanRes();
+  SCAN_JUMP=[ix];
+  render();   // die Zeile bekommt jetzt ihre erledigt-Bloecke mit Rueckgaengig
+  markScanJump(true);
+}
+/* Die Liste springt zur gescannten Zeile und hebt sie hervor. render() baut die
+   Zeilen neu, darum setzt es die Hervorhebung danach wieder (scroll=false). */
+function markScanJump(scroll){
+  const box=document.getElementById('list');
+  if(!box || !SCAN_JUMP) return;
+  const rows=SCAN_JUMP.map(ix=>box.querySelector(`.row[data-ix="${ix}"]`)).filter(Boolean);
+  rows.forEach(r=>{ r.style.animation=scroll?'':'none'; r.classList.add('scanJust'); });
+  if(!scroll || !rows.length) return;
+  const r=rows[0], top=box.scrollTop + r.getBoundingClientRect().top - box.getBoundingClientRect().top;
+  const reduced=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  box.scrollTo({top:Math.max(0, top - (box.clientHeight - r.offsetHeight)/2), behavior:reduced?'auto':'smooth'});
 }
 /* Der Grund und die Zuordnung stehen an der Zeile selbst -- beim Schliessen wird
    nichts mehr nachgefragt. */
 /* Genau die zwei Handgriffe, die die Bloecke anbieten -- nicht mehr. Was schon
    erledigt ist, wird nicht noch einmal angefasst, und ohne offenes Regal gibt es
    kein Ziel, also wird auch nichts zugeordnet. */
+/* Zuordnen aus dem Scan: hinter den zuletzt gescannten Artikel dieses Regals, sonst
+   ans Ende. Danach ist der neue Artikel selbst der zuletzt gescannte -- der naechste
+   kommt hinter ihn, so wie man am Regal weitergeht. */
+function scanAssign(it, to){
+  const anchor=scanLastIn(to);
+  setCatOverride(it, to);
+  if(anchor) seqPlaceAfter(it, to, anchor);
+  SCAN_LAST[to]=overrideKey(it);
+}
 function autoFix(list){
+  const done={};
   (list||[]).forEach(ix=>{
     const it=ITEMS[ix], st=ST[ix], key=overrideKey(it);
     if(st.hidden){
       st.hidden=false;
       SCAN_SHOWN[key]='auto';
+      (done[ix]=done[ix]||{auto:true}).shown=true;
     }
-    if(CATFILTER && CATFILTER.kind==='tile' && !tileOf(it)===CATFILTER.id){
+    if(CATFILTER && CATFILTER.kind==='tile' && tileOf(it)!==CATFILTER.id){
       SCAN_MOVED[key]={from:tileOf(it), to:CATFILTER.id, prev:CAT_OVERRIDE[key],
-                       prevAuslage:st.auslage, auto:true};
-      setCatOverride(it, CATFILTER.id);
+                       prevAuslage:st.auslage, prevLast:SCAN_LAST[CATFILTER.id], auto:true};
+      scanAssign(it, CATFILTER.id);
+      (done[ix]=done[ix]||{auto:true}).moved=true;
       /* Der Text verspricht "mit Regalhöchstbestand von 1 Ki" -- dann muss es auch passieren.
          Ein Artikel, der neu an dieses Regal kommt, stand hier vorher nicht: eine
          Kiste ist die Startannahme, die der Kaufmann danach anpasst. */
       st.auslage=1;
     }
   });
+  return done;
 }
 
 function closeScanRes(){
@@ -7636,7 +7866,7 @@ function renderScanRes(keepOpen, keepFocus){
   /* Nicht im Ordersatz, aber im Artikelstamm: dann steht oben der Name des
      Artikels, den man in der Hand haelt, und darunter die Alternativen. */
   const u = noCode ? null : SCAN.unlisted;
-  const alts = u ? scanAlternatives(u) : [];
+  const alts = u ? scanAlternatives(u).slice(0,1) : [];   // auch hier: genau ein Ergebnis
   const head = noCode ? L.scanTitle
     : (u ? u.name
     : (m.length===1 ? ITEMS[m[0]].name
@@ -7699,6 +7929,8 @@ function renderScanRes(keepOpen, keepFocus){
     AUTO_FIX=afc.checked;
     if(AUTO_FIX) autoFix(SCAN.matches);
     render(); renderScanRes(true);
+    /* Steht der Artikel dadurch jetzt in der Liste: hinspringen wie nach einem Scan. */
+    if(AUTO_FIX && SCAN.matches.length) scanJumpIfShown(SCAN.matches[0]);
   };
   document.getElementById('scanResAgain').onclick=openScanCam;
   /* dieselbe Bedienung wie in der Liste -- Stepper, Tastenfelder, Ausrufezeichen */
