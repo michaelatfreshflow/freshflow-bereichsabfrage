@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freshflow · Fragen & Antworten · EDEKA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  Fragen & Antworten fuer EDEKA-Maerkte. Eigenstaendige Seite, wird in der App
+  unter Mein Markt > Fragen & Antworten per iframe eingebettet (eine Seite je
+  Haendler). Keine externen Skripte: die Suche laeuft komplett hier drin, damit
+  sie auch im Kuehlraum ohne Netz funktioniert, sobald die Seite einmal geladen ist.
+  Quelle: Freshflow_FAQ_EDEKA.pdf, Stand Oktober 2026.
+-->
+<style>
+:root{
+  --green:#306a57; --green-10:#f7fcf6; --green-20:#d9e9de; --green-30:#c6dfcd;
+  --amber:#fc9511; --amber-bg:#fff4e7; --find:#fee5c3;
+  --ink:#18181b; --ink-2:#3f3f46; --mute:#71717a; --line:#e7e6e6; --bg:#f4f4f5; --white:#fff;
+  --r:15px; --pill:999px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;
+  font-size:15px;line-height:1.5}
+button{font:inherit;color:inherit}
+
+.wrap{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* Linke Spalte: Kapitel, wie die Anleitungen daneben. */
+.side{background:var(--white);border-right:1px solid var(--line);position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto}
+.side__hd{padding:22px 22px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.chap{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;cursor:pointer;
+  padding:15px 22px;border-top:1px solid var(--bg);font-size:16px;font-weight:600;color:var(--ink)}
+.chap:hover{background:var(--green-10)}
+.chap span{flex:1}
+.chap i{font-style:normal;font-size:12px;font-weight:700;color:var(--mute);background:var(--bg);border-radius:var(--pill);padding:2px 9px}
+.chap.on{color:var(--green);background:var(--green-10);box-shadow:inset 3px 0 0 var(--green)}
+.chap.on i{background:var(--green-20);color:var(--green)}
+.chap.dim{opacity:.4}
+
+.main{min-width:0;padding:0 32px 48px}
+
+/* Suche bleibt oben stehen, waehrend die Liste darunter scrollt. */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:22px 0 12px}
+.ttl{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.ttl h1{margin:0;font-size:22px;font-weight:800;color:var(--green-d,#2b3a36)}
+.ttl small{font-size:13px;color:var(--mute);font-weight:500}
+.search{position:relative}
+.search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--mute);pointer-events:none}
+.search input{width:100%;height:52px;border:1.5px solid var(--line);border-radius:var(--pill);background:var(--white);
+  padding:0 52px 0 48px;font:inherit;font-size:16px;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s}
+.search input:focus{border-color:var(--green);box-shadow:0 0 0 4px var(--green-20)}
+.search input::placeholder{color:var(--ff-grey-400,#a1a1aa)}
+.clr{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;
+  background:var(--bg);color:var(--mute);cursor:pointer;display:none;font-size:16px;line-height:1}
+.clr.on{display:grid;place-items:center}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.sugg b{font-size:13px;font-weight:600;color:var(--mute);margin-right:2px}
+.chip{border:1.5px solid var(--line);background:var(--white);border-radius:var(--pill);padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.chip:hover{border-color:var(--green);color:var(--green)}
+.meta{font-size:13px;color:var(--mute);margin-top:12px;min-height:20px}
+.meta b{color:var(--ink)}
+
+.sec{margin:22px 0 10px;font-size:18px;font-weight:700;color:var(--green-d,#2b3a36);scroll-margin-top:170px}
+.sec:first-child{margin-top:6px}
+
+.qa{background:var(--white);border-radius:var(--r);box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:10px;
+  border:1.5px solid transparent;scroll-margin-top:170px;transition:border-color .15s}
+.qa[open]{border-color:var(--green-30)}
+.qa summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;gap:14px;padding:17px 20px;
+  font-size:16px;font-weight:600;line-height:1.4}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary .q{flex:1}
+.qa summary .tag{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:3px}
+.qa summary .chev{flex:0 0 auto;margin-top:2px;color:var(--mute);transition:transform .2s}
+.qa[open] summary .chev{transform:rotate(180deg);color:var(--green)}
+.qa .a{padding:0 20px 18px 20px;color:var(--ink-2);font-size:15px}
+.qa .a p{margin:0 0 10px}
+.qa .a p:last-child{margin-bottom:0}
+.qa .a ol,.qa .a ul{margin:0 0 10px;padding-left:22px}
+.qa .a li{margin:3px 0}
+.qa .a .key{background:var(--green-10);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:9px 12px;margin:0 0 10px;color:var(--ink);font-weight:600}
+.badge{display:inline-block;font-size:11px;font-weight:700;color:#9a5a00;background:var(--amber-bg);border-radius:var(--pill);padding:2px 9px;margin-left:8px;vertical-align:2px}
+mark{background:var(--find);color:inherit;border-radius:3px;padding:0 1px}
+
+.empty{background:var(--white);border-radius:var(--r);padding:28px 24px;text-align:center;color:var(--ink-2)}
+.empty h3{margin:0 0 6px;font-size:17px;color:var(--ink)}
+.empty p{margin:0 0 14px;font-size:14px}
+.empty .sugg{justify-content:center}
+.foot{margin-top:28px;font-size:13px;color:var(--mute);text-align:center}
+
+/* Schmal (iPad hochkant, Handy): Kapitel als Chips statt Seitenleiste. */
+.chaprow{display:none}
+@media (max-width:820px){
+  .wrap{grid-template-columns:1fr}
+  .side{display:none}
+  .main{padding:0 16px 40px}
+  .chaprow{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:2px;scrollbar-width:none}
+  .chaprow::-webkit-scrollbar{display:none}
+  .chaprow .chip{flex:0 0 auto}
+  .chaprow .chip.on{background:var(--green);border-color:var(--green);color:var(--white)}
+  .sugg{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="side" aria-label="Kapitel">
+    <div class="side__hd">Kapitel</div>
+    <div id="chapList"></div>
+  </nav>
+
+  <main class="main">
+    <div class="top">
+      <div class="ttl"><h1>Fragen &amp; Antworten</h1><small>für EDEKA-Märkte · Stand Oktober 2026</small></div>
+      <div class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
+               placeholder="Frage oder Stichwort, z. B. Ordersatz, offline, Ausrufezeichen" aria-label="Fragen durchsuchen">
+        <button class="clr" id="clr" type="button" aria-label="Suche leeren">✕</button>
+      </div>
+      <div class="sugg" id="sugg"></div>
+      <div class="chaprow" id="chapRow"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div id="list"></div>
+    <div class="foot">Nicht gefunden, was du suchst? Dein Freshflow-Ansprechpartner steht in der App unter „Mein Markt“.</div>
+  </main>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Inhalt. c = Kapitel, q = Frage, a = Antwort (HTML), k = Suchwoerter, die nicht
+   im Text stehen, aber so gesucht werden (Alltagswoerter, alte Namen).
+   --------------------------------------------------------------------------- */
+const CHAPTERS = [
+  'Die App im Alltag',
+  'Bestand und Regalhöchstbestand',
+  'Bestellvorschlag prüfen und anpassen',
+  'Artikel und Ordersatz',
+  'Werbung und Aktionen',
+  'Streckenlieferanten und lokale Lieferanten',
+  'Daten und Technik',
+];
+
+const FAQ = [
+  // 1 Die App im Alltag
+  {c:0, id:'was-ist-freshflow', q:'Was ist die Freshflow-App und wer benutzt sie?',
+   a:`<p>Die App läuft auf dem iPad und hilft dir als Obst- und Gemüse-Fachkraft bei der täglichen Bestellung beim EDEKA-Lager. Für jeden Artikel gibt es einen Bestellvorschlag. Du übernimmst ihn, änderst ihn oder lehnst ihn ab, bevor der Bestellschluss erreicht ist.</p>
+      <p class="key">Die App schlägt vor, du entscheidest.</p>`,
+   k:'ipad tablet einführung überblick wer nutzt'},
+  {c:0, id:'ablauf-bestellung', q:'Wie läuft eine Bestellung in der App ab?',
+   a:`<ol><li>Bestellung für den Liefertag öffnen.</li>
+      <li>Bestände prüfen und bei Bedarf korrigieren.</li>
+      <li>Vorschläge Artikel für Artikel prüfen, gezielt auch über den Filter für Artikel mit Ausrufezeichen.</li>
+      <li>Bestellung abschließen.</li></ol>`,
+   k:'schritte reihenfolge workflow täglich bestellen anleitung'},
+  {c:0, id:'wie-entsteht-vorschlag', q:'Wie entsteht der Bestellvorschlag?',
+   a:`<p>Die App lernt aus Abverkauf, Wareneingang und Abschriften der letzten rund zwei Jahre. Dazu kommen Wetter, Ferien, Feiertage und Haltbarkeit.</p>
+      <p>Vergangene Aktionen werden herausgerechnet, damit ein Artikel nach einer Aktion nicht dauerhaft zu viel bestellt wird. Jeder Markt hat sein eigenes Modell.</p>`,
+   k:'algorithmus berechnung prognose ki künstliche intelligenz forecast modell vorhersage'},
+  {c:0, id:'dauer', q:'Wie lange dauert die tägliche Bestellung?',
+   a:`<p>Nicht länger als bisher. Die App bereitet die Vorschläge vor, du prüfst sie und schließt die Bestellung ab.</p>`,
+   k:'zeit dauer minuten aufwand schneller'},
+  {c:0, id:'offline', q:'Funktioniert die App auch ohne Internet, zum Beispiel im Kühlraum?',
+   a:`<p>Weitgehend ja. Internet brauchst du nur zum Öffnen und Abschließen der Bestellung und zum Ein- und Ausblenden von Artikeln.</p>
+      <p>Ist die Bestellung vorher geöffnet, kannst du Bestände und Bestellmengen auch offline eintragen.</p>`,
+   k:'offline wlan wifi netz empfang verbindung kühlraum lager funkloch'},
+  {c:0, id:'videos-ansprechpartner', q:'Wo finde ich Erklärvideos und meinen Ansprechpartner?',
+   a:`<p>Kurze Erklärvideos zu Bestellung, Bestandspflege und Regalhöchstbestand findest du auf dem Startbildschirm und unter „Mein Markt“ im Reiter „Anleitungen“.</p>
+      <p>Unter „Mein Markt“ stehen auch Name, Telefonnummer und E-Mail-Adresse deines Freshflow-Ansprechpartners.</p>`,
+   k:'video anleitung schulung tutorial kontakt support hilfe telefon hotline email'},
+  {c:0, id:'app-geht-nicht', q:'Was tun, wenn die App einmal nicht funktioniert?',
+   a:`<p>Bestell an dem Tag ganz normal auf dem bisherigen Weg bei EDEKA. Ein einzelner Tag ohne App-Bestellung ist unkritisch.</p>
+      <p>Die Bestellung steht danach in der App als „überfällig“, das kannst du ignorieren. Am nächsten Bestelltag die wichtigsten Bestände kurz prüfen und Freshflow Bescheid geben.</p>`,
+   k:'absturz fehler geht nicht störung kaputt notfall überfällig ausfall hängt lädt nicht'},
+
+  // 2 Bestand und Regalhöchstbestand
+  {c:1, id:'regalhoechstbestand', q:'Was ist der Regalhöchstbestand und wie stelle ich ihn richtig ein?',
+   a:`<p>Der Regalhöchstbestand ist die normale, volle Regalgröße eines Artikels in Kisten, z. B. „1 Ki“. Die App nutzt ihn als Mindestfüllung für die Präsentation.</p>
+      <p>Trag die Menge ein, die für euch „normal voll“ ist, und änder sie nur, wenn sich das Regal dauerhaft ändert, z. B. durch einen zusätzlichen Aufbau.</p>
+      <p class="key">Alle in der Abteilung sollten unter „voll“ dasselbe verstehen.</p>`,
+   k:'auslage auslagegröße auslagengröße rhb regal regalgröße präsentation mindestbestand voll kiste'},
+  {c:1, id:'bestand-kurz-vor-ablauf', q:'Welche Ware zähle ich als Bestand, wenn sie kurz vor dem Ablauf steht?',
+   a:`<p class="key">Nur was morgen noch verkaufsfähig ist.</p>
+      <p>Ware, die heute reduziert rausgeht oder abgeschrieben wird, zählt nicht als Bestand, auch wenn sie noch daliegt. Sonst rechnet die App mit Ware, die es morgen nicht mehr gibt, und bestellt zu wenig.</p>`,
+   k:'zählen inventur mhd ablauf reduziert verderb qualität alt welk'},
+  {c:1, id:'bestand-korrigieren', q:'Was passiert, wenn ich einen Bestand korrigiere?',
+   a:`<p>Die App rechnet den Bestellvorschlag sofort neu. Darum immer zuerst den Bestand prüfen und korrigieren und erst danach den Vorschlag bewerten.</p>
+      <p>Wer stattdessen nur die Bestellmenge ändert, bekommt auf Dauer schlechtere Vorschläge.</p>`,
+   k:'korrektur ändern neu berechnen bestandskorrektur zählen inventur'},
+
+  // 3 Bestellvorschlag pruefen und anpassen
+  {c:2, id:'ausrufezeichen', q:'Was bedeutet ein Ausrufezeichen bei einem Artikel?',
+   a:`<p>Das System ist sich bei diesem Artikel nicht sicher, zum Beispiel bei Aktionsartikeln, neuen Artikeln, Stichproben oder ungewöhnlichen Verkaufsdaten. Prüf diese Artikel vor dem Abschluss kurz.</p>
+      <p>Eine gewisse Anzahl pro Tag ist normal. Werden es deutlich mehr, sprich mit deinem Freshflow-Ansprechpartner.</p>`,
+   k:'! warnung markierung unsicher hinweis achtung needs attention rot'},
+  {c:2, id:'vertrauen-anfang', q:'Wie sehr kann ich den Vorschlägen am Anfang vertrauen?',
+   a:`<p>In den ersten rund zwei Wochen bitte noch alle Artikel aktiv anschauen. Danach reicht es, gezielt die Artikel mit Ausrufezeichen zu prüfen.</p>
+      <p>Am Anfang wird erfahrungsgemäß mehr geändert. Das Vertrauen wächst, wenn ihr gemeinsam mit Freshflow auf die Zahlen schaut.</p>`,
+   k:'vertrauen start einführung anfang erste wochen verlassen'},
+  {c:2, id:'vorschlag-aendern', q:'Wann sollte ich den Vorschlag bewusst ändern, und lernt das System daraus?',
+   a:`<p>Eingreifen ist erwünscht bei allem, was die App nicht sehen kann: Qualität und Optik der Ware, Saisonstart, Großkunden, Wetterumschwung, besonderes Feiertagsgeschäft.</p>
+      <p>Bestellt ihr deutlich anders als vorgeschlagen, schaut Freshflow sich das an und nutzt es, um die Vorschläge zu verbessern.</p>
+      <p class="key">Grundsätzlich wird nach Abverkauf bestellt. Eingriffe bleiben die Ausnahme für solche Sonderfälle, nicht die tägliche Routine.</p>`,
+   k:'ändern überschreiben lernen anpassen eingreifen korrigieren menge'},
+  {c:2, id:'symbole', q:'Was bedeuten das Personen-Symbol und das Aktualisieren-Symbol neben der Bestellmenge?',
+   a:`<ul><li><b>Personen-Symbol:</b> Die Bestellmenge wurde von Hand geändert.</li>
+      <li><b>Aktualisieren-Symbol:</b> Der Vorschlag wurde neu berechnet, z. B. nach einer Bestandskorrektur oder weil neue Daten eingetroffen sind.</li></ul>`,
+   k:'icon symbol männchen person pfeile kreis neu berechnet'},
+  {c:2, id:'reklamation-selber-morgen', q:'Was mache ich mit reklamierter oder schlechter Ware vom selben Morgen?',
+   a:`<p>Abschriften und Reklamationen kommen erst über Nacht in der App an. Von einer Reklamation am selben Morgen weiß das System also noch nichts.</p>
+      <p class="key">Pass in dem Fall den Bestand des Artikels von Hand an, bevor du die Bestellung abschließt.</p>`,
+   k:'reklamation schlechte ware abschrift qualität verdorben faul beschädigt'},
+  {c:2, id:'nicht-bestellen', q:'Was tun mit Artikeln, die ich gerade nicht bestellen will?',
+   a:`<p>Blende den Artikel aus oder setz den Regalhöchstbestand auf 0, bis er wieder bestellt werden soll. Dann wird er nicht mehr vorgeschlagen.</p>`,
+   k:'ausblenden nicht bestellen pausieren null 0 stoppen auslistung'},
+  {c:2, id:'feiertage', q:'Werden Feiertage und geschlossene Tage berücksichtigt?',
+   a:`<p>Ja. Feiertage fließen zusammen mit Wetter und Ferien in die Berechnung ein.</p>
+      <p>Abweichende Bestellfristen rund um Feiertage teilt das EDEKA-Lager mit. Verschiebt sich dadurch die Lieferung, prüf die Bestellung vor einem geschlossenen Tag bewusst und gib Freshflow die abweichenden Fristen durch.</p>`,
+   k:'feiertag ostern weihnachten pfingsten silvester geschlossen bestellfrist bestellschluss sonntag brückentag'},
+
+  // 4 Artikel und Ordersatz
+  {c:3, id:'ordersatz-schicken', imp:true, q:'Muss ich den Ordersatz jede Woche an Freshflow schicken?',
+   a:`<p class="key">Ja. Der Ordersatz kommt nicht automatisch bei Freshflow an.</p>
+      <p>Sobald der neue Ordersatz für die Folgewoche da ist (meist donnerstags oder freitags), leite ihn direkt per E-Mail an die Freshflow-Adresse eures Marktes weiter. Freshflow liest ihn ein und zeigt Artikel, Preise und Aktionen der Folgewoche in der App.</p>
+      <p>Ohne neuen Ordersatz fehlen in der App die Artikel der nächsten Woche, und die Bestellung kann nicht vorbereitet werden.</p>`,
+   k:'ordersatz email e-mail weiterleiten wöchentlich artikel fehlen preise donnerstag freitag'},
+  {c:3, id:'ausblenden', q:'Kann ich Artikel in der App ausblenden?',
+   a:`<p>Ja, über „Bestellung verwalten“. Ausgeblendete Artikel verschwinden aus dem täglichen Ablauf und werden nicht mehr vorgeschlagen, bis du sie wieder einblendest.</p>
+      <p>Ausnahme: Aktionsartikel werden automatisch wieder eingeblendet, sobald sie in Aktion sind. Im Hintergrund rechnet die App weiter, beim Einblenden ist die Zahl sofort aktuell.</p>`,
+   k:'verstecken einblenden sichtbarkeit entfernen löschen bestellung verwalten'},
+  {c:3, id:'artikelauswahl-pflegen', q:'Wie pflege ich die wöchentliche Artikelauswahl am besten?',
+   a:`<p>Gleich wenn der neue Ordersatz da ist, die Artikel ausblenden, die ihr in der kommenden Woche nicht braucht (z. B. außerhalb der Saison). Das hält die tägliche Liste übersichtlich.</p>
+      <p>Artikel, die nicht zur Obst- und Gemüseabteilung gehören (z. B. Eier, Blumen, Convenience), kannst du dauerhaft ausblenden.</p>`,
+   k:'sortiment saison liste aufräumen übersicht ausblenden eier blumen'},
+  {c:3, id:'neue-artikel', q:'Worauf muss ich bei neuen Artikeln achten?',
+   a:`<p>Neue Artikel aus dem Ordersatz erscheinen automatisch in der App. Für Artikel, die neu sind oder länger nicht im Sortiment waren (z. B. Saisonartikel), hat die App noch keine aktuelle Erfahrung. Sie tragen deshalb ein Ausrufezeichen. Behalte sie in den ersten Wochen besonders im Blick.</p>
+      <p class="key">Trag bei neuen Artikeln direkt den Regalhöchstbestand ein.</p>`,
+   k:'neuer artikel neuheit saisonartikel listung neulistung'},
+  {c:3, id:'filter', q:'Kann ich in der App nach bestimmten Artikeln filtern?',
+   a:`<p>Ja, zum Beispiel nach Aktionsartikeln, Bio-Artikeln, ausgeblendeten Artikeln oder Artikeln mit Ausrufezeichen. So gehst du gezielt nur diese Positionen durch, statt die ganze Liste.</p>`,
+   k:'filter suche bio werbung sortieren finden'},
+  {c:3, id:'artikel-details', q:'Was zeigt die App zu einem Artikel an, bevor ich bestelle?',
+   a:`<ul><li>Bestelleinheit, z. B. Stück oder kg pro Kiste</li>
+      <li>Einkaufs- und Verkaufspreis</li>
+      <li>ob und wann der Artikel in Aktion ist</li>
+      <li>den aktuellen Vorschlag</li></ul>
+      <p>Per Klick siehst du die letzten 7 Tage: Verkauf, Bestellung und Abschriften.</p>`,
+   k:'details verlauf historie preis ek vk kistengröße einheit letzte woche'},
+
+  // 5 Werbung und Aktionen
+  {c:4, id:'werbung-erkennen', q:'Woran erkenne ich, dass ein Artikel in der Werbung ist?',
+   a:`<p>Aktionsartikel kommen aus dem Ordersatz und sind in der App eigens gekennzeichnet, meist zusammen mit einem Ausrufezeichen.</p>
+      <p>Bei Aktionen ist das System unsicherer als bei Standardartikeln. Prüf die Menge deshalb bewusst.</p>`,
+   k:'aktion werbung angebot promo werb kennzeichnung prospekt'},
+  {c:4, id:'aktion-fehlt', q:'Ein Artikel ist in der Werbung, wird in der App aber nicht als Aktion angezeigt. Was tun?',
+   a:`<p>Die Aktionskennzeichnung kommt aus dem Ordersatz. Fehlt sie oder stimmt sie nicht (z. B. bei kurzfristigen Wochenendaktionen), melde das deinem Freshflow-Kontakt. Die Aktion wird dann von Hand hinterlegt und der Vorschlag neu berechnet.</p>
+      <p>Bis dahin die Menge für diesen Artikel selbst prüfen.</p>`,
+   k:'aktion fehlt falsch wochenendaktion nicht markiert'},
+  {c:4, id:'werbeware-eingreifen', q:'Was mache ich, wenn ich bei Werbeware eingreifen will?',
+   a:`<p>Pass die Bestellmenge einfach direkt in der App an. Bei Werbeware weißt du oft Dinge, die nicht in den Daten stehen: die Platzierung im Markt, einen Zweitaufbau oder wie attraktiv der Aktionspreis ist.</p>
+      <p>Darum tragen Aktionsartikel ein Ausrufezeichen, damit du sie vor dem Abschluss bewusst prüfst.</p>`,
+   k:'zweitplatzierung zweitaufbau platzierung aktionspreis menge ändern'},
+  {c:4, id:'vorbestellt', q:'Wie gehe ich mit Ware um, die ich für eine Aktion schon vorbestellt habe?',
+   a:`<p>Vorbestellte Aktionsware ist schon unterwegs und darf nicht zusätzlich über den normalen Vorschlag bestellt werden.</p>
+      <p>Melde solche Vorbestellungen (z. B. Vorverkaufsartikel) an Freshflow, damit sie als erwarteter Wareneingang berücksichtigt werden. Bis dahin den Vorschlag am Liefertag entsprechend reduzieren.</p>`,
+   k:'vorbestellung vororder vorverkauf doppelt bestellt'},
+  {c:4, id:'hausaktion', q:'Was ist mit eigenen Hausaktionen, um Ware abzuverkaufen?',
+   a:`<p>Eine Hausaktion mit gesenktem Preis kann in der App wie eine normale Aktion erscheinen. Melde Hausaktionen kurz an Freshflow und prüf die Bestellmenge in der Aktionszeit bewusst.</p>`,
+   k:'preisreduzierung abverkauf rabatt eigene aktion'},
+
+  // 6 Streckenlieferanten und lokale Lieferanten
+  {c:5, id:'strecke-waehlen', q:'Wie wähle ich für einen Artikel einen Streckenlieferanten statt des EDEKA-Lagers?',
+   a:`<p>In der App kannst du den Artikel auf den lokalen Lieferanten umschalten und dessen Kistengröße eintragen. Die App rechnet die vorgeschlagene Menge entsprechend um.</p>
+      <p>Die Bestellung beim Streckenlieferanten läuft getrennt von der Bestellung beim EDEKA-Lager.</p>`,
+   k:'strecke lokal regional lieferant wechseln umschalten kistengröße direktlieferant'},
+  {c:5, id:'strecke-sinnvoll', q:'Wann ist die Umstellung auf einen lokalen Lieferanten sinnvoll?',
+   a:`<p>Nur wenn ihr den Artikel wirklich lieber vor Ort bezieht (günstiger, frischer, saisonal, regional). In der App lohnt sich die Umstellung erfahrungsgemäß erst, wenn mehr als drei Artikel vom Streckenlieferanten kommen.</p>
+      <p>Bei einzelnen Artikeln, etwa Spargel vom Hof oder Kartoffeln vom Bauern aus der Region, ist es meist schneller, die Menge wie bisher direkt beim Lieferanten zu bestellen.</p>
+      <p class="key">Wenn du umstellst, trag die Kistengröße des Lieferanten korrekt ein, sonst passt die Menge nicht zur Liefereinheit.</p>`,
+   k:'lohnt sich hof bauer spargel kartoffeln regional lokal'},
+  {c:5, id:'strecke-uebermittlung', q:'Wie wird die Bestellung an den Streckenlieferanten übermittelt?',
+   a:`<p>Die App stellt die Bestellliste für den Streckenlieferanten als Liste bereit oder verschickt sie per E-Mail, so wie es beim Start mit eurem Markt eingerichtet wurde.</p>
+      <p>Alternativ bestellst du wie bisher per Telefon oder Nachricht.</p>`,
+   k:'email telefon übermittlung senden whatsapp liste'},
+  {c:5, id:'strecke-bestellfrist', q:'Was ist bei Streckenlieferanten mit anderer Bestellfrist zu beachten?',
+   a:`<p>Manche Streckenlieferanten haben eine spätere Bestellfrist als das EDEKA-Lager, z. B. abends statt vormittags. Bestellst du dort erst nach dem Wareneingang, pfleg den Bestand entsprechend, damit die App nichts doppelt einrechnet.</p>
+      <p>Solche Besonderheiten beim Start mit Freshflow abstimmen.</p>`,
+   k:'bestellschluss abends später frist doppelt'},
+  {c:5, id:'lieferantenwechsel', q:'Was passiert, wenn ein Artikel vom EDEKA-Lager auf einen Streckenlieferanten wechselt?',
+   a:`<p>Wird die Artikelnummer an der Kasse beim Wechsel nicht umgestellt, laufen die Verkäufe weiter unter der alten Nummer, obwohl dazu kein Wareneingang mehr kommt. Dann passen die Daten nicht mehr zusammen und die Vorschläge werden ungenau.</p>
+      <p class="key">Melde solche Wechsel an Freshflow, damit die Artikel richtig verknüpft werden.</p>`,
+   k:'plu artikelnummer kasse verknüpfung wechsel umstellung'},
+  {c:5, id:'strecke-infos', q:'Was muss Freshflow über meine Streckenlieferanten wissen?',
+   a:`<ul><li>welche Lieferanten es gibt</li>
+      <li>welche Artikel und Varianten sie liefern (das Sortiment wechselt oft mit der Saison)</li>
+      <li>ob ihr Wareneingang in den Daten auftaucht</li></ul>
+      <p>Fehlt der Wareneingang lokaler Ware in den Daten, passen Vorschläge und Kennzahlen nicht zum tatsächlichen Geschäft.</p>`,
+   k:'lieferantenliste sortiment wareneingang informationen'},
+
+  // 7 Daten und Technik
+  {c:6, id:'welche-daten', q:'Welche Daten bekommt Freshflow aus meinem Markt und wie?',
+   a:`<p>Abverkauf, Wareneingang, Abschriften und Inventur kommen täglich über automatische Berichte aus dem EDEKA-Berichtssystem per E-Mail an Freshflow. Den Ordersatz schickt ihr einmal pro Woche selbst per E-Mail.</p>
+      <p>Zum Start braucht Freshflow außerdem rund zwei Jahre Historie, damit jedes saisonale Muster zweimal drin ist.</p>`,
+   k:'datenquellen berichte reports historie kasse warenwirtschaft'},
+  {c:6, id:'bericht-fehlt', q:'Was passiert, wenn ein Bericht nicht ankommt?',
+   a:`<p>Freshflow überwacht die täglichen Berichte und meldet sich, wenn etwas fehlt.</p>
+      <p>Werden am Markt-PC oder im Berichtssystem Einstellungen geändert (z. B. nach einem IT-Ticket oder bei einem neuen Rechner), sag Freshflow Bescheid, damit die Berichte weiterlaufen.</p>`,
+   k:'report fehlt pc computer it rechner neu fehler daten fehlen'},
+  {c:6, id:'datenschutz', q:'Werden meine Daten mit anderen Märkten geteilt?',
+   a:`<p class="key">Nein.</p>
+      <p>Die Daten eines Marktes werden nur für diesen Markt genutzt, nicht mit anderen Märkten zusammengeführt und nicht zum Training für andere Kunden verwendet. Der Umgang mit Einkaufspreisen und anderen sensiblen Daten ist vertraglich geregelt.</p>`,
+   k:'datenschutz dsgvo sicherheit vertraulich teilen einkaufspreise'},
+  {c:6, id:'verzoegerung', q:'Mit welcher Verzögerung kommen die Daten in der App an?',
+   a:`<p>Abverkauf, Wareneingang und Abschriften kommen alle mit einem Tag Verzögerung. Die App kennt also immer den Stand bis einschließlich gestern.</p>
+      <p>Was heute passiert, z. B. ein Wareneingang am Morgen, siehst du erst morgen in der App.</p>`,
+   k:'aktuell gestern verzögerung wann aktualisiert heute'},
+  {c:6, id:'umlagerungen', q:'Wie behandle ich Umlagerungen an andere Abteilungen, Spenden oder Entnahmen?',
+   a:`<p>Was nicht über die Kasse geht, treibt die Bestellung nicht.</p>
+      <ul><li>Umlagerungen (z. B. an Theke oder Salatbar) täglich und artikelgenau buchen, sonst sieht die Ware in den Daten wie Schwund aus.</li>
+      <li>Regelmäßige Spenden oder Großabnahmen an Freshflow melden.</li>
+      <li>Artikel, die nie über die Kasse verkauft werden, bekommen keinen Regalhöchstbestand und werden weiter von Hand bestellt.</li></ul>`,
+   k:'tafel spende theke salatbar umbuchung schwund großkunde entnahme küche'},
+  {c:6, id:'selbstscankasse', q:'Warum können Selbstscankassen die Daten verzerren?',
+   a:`<p>An Selbstscankassen wählen Kunden bei ähnlichen Artikeln (z. B. Apfelsorten) oft das erstbeste Bild. Die Verkäufe landen dann auf dem falschen Artikel, und die Vorschläge für beide Artikel werden ungenau.</p>
+      <p>Fällt dir das bei bestimmten Artikeln regelmäßig auf, melde es Freshflow.</p>`,
+   k:'sco self checkout selbstbedienungskasse waage falscher artikel äpfel sorte'},
+];
+
+/* ---------------------------------------------------------------------------
+   Unscharfe Suche. Ohne Bibliothek, damit die Seite eigenstaendig bleibt.
+   - Umlaute und Gross/klein egal (ä = ae, ß = ss).
+   - Wortanfang reicht ("best" findet Bestand, Bestellung).
+   - Teilwort in Zusammensetzungen ("lieferant" findet Streckenlieferant).
+   - Tippfehler: 1 Fehler ab 4 Buchstaben, 2 ab 8 (Vertauschungen zaehlen als 1).
+   - Synonyme aus dem Marktalltag (Auslage -> Regalhoechstbestand, WLAN -> offline).
+   - Treffer in der Frage zaehlen mehr als in der Antwort; Fragen, die ALLE
+     Suchwoerter enthalten, stehen vor solchen, die nur einen Teil haben.
+   --------------------------------------------------------------------------- */
+const norm = s => s.toLowerCase()
+  .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+  .normalize('NFD').replace(/[̀-ͯ]/g,'');
+const tokens = s => norm(s).split(/[^a-z0-9]+/).filter(Boolean);
+const stem = w => w.length>4 ? w.replace(/(ern|en|er|es|em|e|n|s)$/,'') : w;
+const stripTags = h => h.replace(/<[^>]+>/g,' ');
+
+const STOP = new Set(tokens(`der die das den dem des ein eine einen einem einer und oder aber ich du er sie es wir ihr
+  mein meine meinen meinem dein deine wie was wo wann warum wieso weshalb wer welche welcher welches kann
+  ich muss soll sollte ist sind bin wird werden wurde mit von vom zu zum zur im in am an auf für bei aus
+  nicht kein keine noch schon auch nur mal denn dann da so mir mich sich man es gibt the a`));
+
+const SYN = [
+  'regalhoechstbestand auslage auslagegroesse auslagengroesse rhb regalgroesse praesentation mindestbestand',
+  'ausrufezeichen warnung hinweis markierung achtung unsicher',
+  'werbung aktion aktionsartikel angebot promo werbeware prospekt',
+  'streckenlieferant strecke lokal regional direktlieferant hof bauer',
+  'offline internet wlan wifi netz empfang verbindung kuehlraum',
+  'bestand inventur zaehlen zaehlung',
+  'ausblenden verstecken einblenden entfernen loeschen',
+  'abschrift abschriften verderb schwund muell wegwerfen',
+  'feiertag feiertage ostern weihnachten pfingsten geschlossen',
+  'video videos erklaervideo anleitung schulung tutorial',
+  'ansprechpartner kontakt support hilfe telefon hotline',
+  'datenschutz dsgvo sicherheit vertraulich',
+  'selbstscankasse sco selbstbedienungskasse',
+  'kiste kisten ki ko karton kolli gebinde',
+  'vorschlag bestellvorschlag empfehlung prognose',
+  'abverkauf verkauf verkaeufe umsatz',
+].map(g=>g.split(' '));
+
+function osa(a,b,max){            // Damerau (optimal string alignment), mit Abbruch
+  if(Math.abs(a.length-b.length)>max) return max+1;
+  const d=[]; for(let i=0;i<=a.length;i++){ d[i]=[i]; }
+  for(let j=0;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++){
+    let rowMin=Infinity;
+    for(let j=1;j<=b.length;j++){
+      const c=a[i-1]===b[j-1]?0:1;
+      let v=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+c);
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) v=Math.min(v,d[i-2][j-2]+1);
+      d[i][j]=v; if(v<rowMin) rowMin=v;
+    }
+    if(rowMin>max) return max+1;
+  }
+  return d[a.length][b.length];
+}
+
+/* Wie gut passt Suchwort qt auf Wort dt? 0..1 */
+function matchTok(qt, dt){
+  if(dt===qt) return 1;
+  const qs=stem(qt), ds=stem(dt);
+  if(qs.length>=3 && qs===ds) return .95;
+  if(qt.length>=2 && dt.startsWith(qt)) return qt.length>=4 ? .9 : .75;
+  if(qt.length>=4 && dt.includes(qt)) return .8;
+  if(qt.length>=4){
+    const max = qt.length>=8 ? 2 : 1;
+    const d=osa(qt, dt, max);                              if(d<=max) return .72-.08*d;
+    if(dt.length>qt.length){ const p=osa(qt, dt.slice(0,qt.length), max); if(p<=max) return .62-.08*p; }
+  }
+  return 0;
+}
+
+const FIELDS=[['q',3],['k',2.2],['c',1.3],['a',1]];
+const INDEX = FAQ.map(e=>({
+  q:[...new Set(tokens(e.q))],
+  k:[...new Set(tokens(e.k||''))],
+  c:[...new Set(tokens(CHAPTERS[e.c]))],
+  a:[...new Set(tokens(stripTags(e.a)))],
+  nq:norm(e.q),
+}));
+
+/* Ein Suchwort mit seinen Synonymen: [[wort, faktor], ...] */
+function expand(qt){
+  const out=[[qt,1]];
+  for(const g of SYN){
+    if(g.some(s=>s===qt || (qt.length>=4 && s.startsWith(qt)) || (qt.length>=6 && osa(qt,s,1)<=1)))
+      g.forEach(s=>{ if(s!==qt) out.push([s,.8]); });
+  }
+  return out;
+}
+
+function search(raw){
+  let qtoks = tokens(raw.replace(/!/g,' ausrufezeichen '));
+  const content = qtoks.filter(t=>!STOP.has(t));
+  if(content.length) qtoks=content;
+  qtoks=[...new Set(qtoks)];
+  if(!qtoks.length) return {qtoks, hits:[]};
+  const exp = qtoks.map(expand);
+  const phrase = norm(raw).trim();
+  const hits=[];
+  INDEX.forEach((ix,i)=>{
+    let score=0, covered=0; const hl=new Set();
+    exp.forEach(alts=>{
+      let best=0;
+      for(const [f,w] of FIELDS){
+        for(const dt of ix[f]){
+          for(const [qt,fac] of alts){
+            const m=matchTok(qt,dt)*fac;
+            if(m>0){
+              if(f!=='k' && f!=='c') hl.add(dt);
+              if(m*w>best) best=m*w;
+            }
+          }
+        }
+      }
+      if(best>0){ covered++; score+=best; }
+    });
+    if(!covered) return;
+    if(phrase.length>=4 && ix.nq.includes(phrase)) score+=3;
+    hits.push({i, score, cov:covered/qtoks.length, hl});
+  });
+  hits.sort((a,b)=> (b.cov-a.cov) || (b.score-a.score));
+  // Rauschen abschneiden: weit unter dem besten Treffer bleibt weg.
+  const top=hits[0];
+  const kept = top ? hits.filter(h=> h.cov===top.cov ? h.score>=top.score*.3 : h.cov>=.5 && h.score>=top.score*.45) : [];
+  return {qtoks, hits:kept, full: top && top.cov===1};
+}
+
+/* ---------------------------------------------------------------------------
+   Darstellung
+   --------------------------------------------------------------------------- */
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CHEV='<svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const SUGGEST=['Ordersatz','offline','Ausrufezeichen','Regalhöchstbestand','Werbung','Streckenlieferant','Feiertage'];
+let CHAP=-1;   // -1 = alle Kapitel
+
+function card(e, opts={}){
+  return `<details class="qa" id="${e.id}"${opts.open?' open':''}>
+    <summary><span class="q">${opts.tag?`<span class="tag">${esc(CHAPTERS[e.c])}</span>`:''}${esc(e.q)}${e.imp?'<span class="badge">Wichtig</span>':''}</span>${CHEV}</summary>
+    <div class="a">${e.a}</div></details>`;
+}
+
+function highlight(root, set){
+  if(!set.size) return;
+  const tw=document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes=[]; while(tw.nextNode()) nodes.push(tw.currentNode);
+  nodes.forEach(n=>{
+    if(n.parentNode.closest('.tag')) return;
+    const parts=n.nodeValue.split(/([\p{L}\p{N}]+)/u);
+    if(!parts.some((p,k)=>k%2 && set.has(norm(p)))) return;
+    const frag=document.createDocumentFragment();
+    parts.forEach((p,k)=>{
+      if(k%2 && set.has(norm(p))){ const m=document.createElement('mark'); m.textContent=p; frag.appendChild(m); }
+      else if(p) frag.appendChild(document.createTextNode(p));
+    });
+    n.parentNode.replaceChild(frag,n);
+  });
+}
+
+function renderChapters(counts){
+  const total = FAQ.length;
+  const side = [`<button class="chap${CHAP<0?' on':''}" data-c="-1" type="button"><span>Alle Fragen</span><i>${counts?counts.all:total}</i></button>`]
+    .concat(CHAPTERS.map((c,k)=>{
+      const n = counts ? (counts[k]||0) : FAQ.filter(e=>e.c===k).length;
+      return `<button class="chap${CHAP===k?' on':''}${counts&&!n?' dim':''}" data-c="${k}" type="button"><span>${esc(c)}</span><i>${n}</i></button>`;
+    }));
+  $('chapList').innerHTML = side.join('');
+  $('chapRow').innerHTML = `<button class="chip${CHAP<0?' on':''}" data-c="-1" type="button">Alle</button>` +
+    CHAPTERS.map((c,k)=>`<button class="chip${CHAP===k?' on':''}" data-c="${k}" type="button">${esc(c)}</button>`).join('');
+}
+
+function render(){
+  const raw=$('q').value;
+  $('clr').classList.toggle('on', !!raw);
+  const list=$('list');
+  if(!raw.trim()){
+    renderChapters(null);
+    $('meta').innerHTML='';
+    const chaps = CHAP<0 ? CHAPTERS.map((_,k)=>k) : [CHAP];
+    list.innerHTML = chaps.map(k=>`<div class="sec" id="kap-${k+1}">${esc(CHAPTERS[k])}</div>` +
+      FAQ.filter(e=>e.c===k).map(e=>card(e)).join('')).join('');
+    return;
+  }
+  const {hits, full} = search(raw);
+  const counts={all:hits.length}; hits.forEach(h=>{ const c=FAQ[h.i].c; counts[c]=(counts[c]||0)+1; });
+  renderChapters(counts);
+  const shown = CHAP<0 ? hits : hits.filter(h=>FAQ[h.i].c===CHAP);
+  if(!shown.length){
+    $('meta').innerHTML='';
+    list.innerHTML = `<div class="empty"><h3>Keine passende Frage gefunden</h3>
+      <p>Versuch es mit einem anderen Stichwort, oder frag deinen Freshflow-Ansprechpartner unter „Mein Markt“.</p>
+      <div class="sugg">${SUGGEST.map(s=>`<button class="chip" data-s="${esc(s)}" type="button">${esc(s)}</button>`).join('')}</div></div>`;
+    return;
+  }
+  $('meta').innerHTML = full
+    ? `<b>${shown.length}</b> ${shown.length===1?'Frage passt':'Fragen passen'} zu „${esc(raw.trim())}“`
+    : `Keine Frage enthält alle Wörter. Das hier kommt am nächsten:`;
+  list.innerHTML = shown.map((h,k)=>card(FAQ[h.i],{tag:true, open:k===0 && full})).join('');
+  [...list.querySelectorAll('.qa')].forEach((el,k)=>highlight(el, shown[k].hl));
+}
+
+$('sugg').innerHTML = '<b>Häufig gesucht:</b>' + SUGGEST.map(s=>`<button class="chip" data-s="${esc(s)}" type="button">${esc(s)}</button>`).join('');
+
+document.addEventListener('click', e=>{
+  const s=e.target.closest('[data-s]');
+  if(s){ $('q').value=s.dataset.s; CHAP=-1; render(); $('q').focus(); return; }
+  const c=e.target.closest('[data-c]');
+  if(c){
+    CHAP=+c.dataset.c; render();
+    window.scrollTo({top:0});
+  }
+});
+$('q').addEventListener('input', render);
+$('q').addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('q').value=''; render(); } });
+$('clr').addEventListener('click', ()=>{ $('q').value=''; render(); $('q').focus(); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='/' && document.activeElement!==$('q')){ e.preventDefault(); $('q').focus(); }
+});
+
+/* ?q=... fuellt die Suche vor, #frage-id oeffnet eine Frage direkt. */
+const params=new URLSearchParams(location.search);
+if(params.get('q')) $('q').value=params.get('q');
+render();
+function openHash(){
+  const id=decodeURIComponent(location.hash.slice(1)); if(!id) return;
+  const el=document.getElementById(id);
+  if(el && el.tagName==='DETAILS'){ el.open=true; el.scrollIntoView({block:'start'}); }
+}
+openHash(); window.addEventListener('hashchange', openHash);
+</script>
+</body>
+</html>
