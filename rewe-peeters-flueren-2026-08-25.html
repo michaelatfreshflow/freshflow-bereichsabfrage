@@ -3637,11 +3637,11 @@ const T={
     moveToNew:'Neues Regal',
     moveDoneTip:'Zuordnung zurücknehmen',
     moveRowBtn:'Hierher zuordnen',
-    moveAfterBtn:'Hinter letztem Scan zuordnen',
+    moveAfterBtn:'Dahinter zuordnen',
     scanShelfLb:'Regal',
     reorderLb:'Im Regal hinter',
-    lastScanTag:'Letzter Scan',
-    reorderBtn:'Hinter letztem Scan einsortieren',
+    lastScanTag:'Zuvor gescannt',
+    reorderBtn:'Dahinter einsortieren',
     reorderTip:'Den Artikel in der Regalreihenfolge direkt hinter den zuletzt gescannten stellen',
     reorderDoneLb:'Einsortiert hinter',
     reorderUndoTip:'Alte Reihenfolge wiederherstellen',
@@ -4060,12 +4060,12 @@ const T={
     moveToNew:'New shelf',
     moveDoneTip:'Undo the assignment',
     moveRowBtn:'Assign here',
-    moveAfterBtn:'Place after last scan',
+    moveAfterBtn:'Assign behind it',
     scanShelfLb:'Shelf',
     reorderLb:'On the shelf behind',
-    lastScanTag:'Last scan',
-    reorderBtn:'Move behind last scan',
-    reorderTip:'Put the item directly behind the last scanned one in the shelf order',
+    lastScanTag:'Previously scanned',
+    reorderBtn:'Move behind it',
+    reorderTip:'Put the item directly behind the previously scanned one in the shelf order',
     reorderDoneLb:'Moved behind',
     reorderUndoTip:'Restore the previous order',
     scanPickBtn:'Choose shelf',
@@ -4091,7 +4091,7 @@ const T={
     shownNote:'part of the order guide',
     shownTip:'Hide again',
     moveRowTip:'Assign the item to the open shelf',
-    moveAfterTip:'Assign the item to the open shelf, right after the last scanned item',
+    moveAfterTip:'Assign the item to the open shelf, right after the previously scanned item',
     confirmFinishFull:'Confirm and finish',
     legBangInv:'! Inventory',
     legBangOrder:'! Order',
@@ -4483,11 +4483,11 @@ const T={
     moveToNew:'Nouveau rayon',
     moveDoneTip:'Annuler l’affectation',
     moveRowBtn:'Affecter ici',
-    moveAfterBtn:'Placer après le dernier scan',
+    moveAfterBtn:'Attribuer juste derrière',
     scanShelfLb:'Rayon',
     reorderLb:'En rayon après',
-    lastScanTag:'Dernier scan',
-    reorderBtn:'Placer après le dernier scan',
+    lastScanTag:'Scanné juste avant',
+    reorderBtn:'Placer juste derrière',
     reorderTip:'Placer l’article juste après le dernier article scanné dans l’ordre du rayon',
     reorderDoneLb:'Placé après',
     reorderUndoTip:'Rétablir l’ordre précédent',
@@ -7767,7 +7767,7 @@ function doScan(digits){
     const tileId = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
     /* Eine offene Frage wurde uebergangen: man stand trotzdem an dem Artikel, er wird
        jetzt der Anker. Solange sie offen war, blieb der Anker (und das Kennzeichen
-       "Letzter Scan") beim Artikel davor -- sonst zeigte die Liste auf die Zeile, die
+       "Zuvor gescannt") beim Artikel davor -- sonst zeigte die Liste auf die Zeile, die
        gerade gefragt wird, hinter welchen Artikel sie gehoert. */
     if(SCAN_ASK) setScanLast(SCAN_ASK.tile, overrideKey(ITEMS[SCAN_ASK.ix]));
     const anchor = tileId ? scanLastIn(tileId) : null;   // vor autoFix, das den Anker verschiebt
@@ -7796,7 +7796,7 @@ function doScan(digits){
       if(tileId && !SCAN_ASK) setScanLast(tileId, overrideKey(ITEMS[SCAN.matches[SCAN.matches.length-1]]));
       render();   // Frage bzw. erledigt-Bloecke unter die Zeile
       markScanJump(true);
-    } else renderScanRes();
+    } else { renderScanRes(); scanShowPrev(); }
   }, 340);
 }
 function scanUndoShow(ix){
@@ -7827,6 +7827,20 @@ function scanJumpIfShown(ix){
 }
 /* Die Liste springt zur gescannten Zeile und hebt sie hervor. render() baut die
    Zeilen neu, darum setzt es die Hervorhebung danach wieder (scroll=false). */
+/* Steht der gescannte Artikel nicht im offenen Regal, liegt das Ergebnis als Blatt
+   unten ueber der Liste. Damit man trotzdem sieht, wo man im Regal steht, rollt die
+   Liste dahinter so, dass die Zeile "Zuvor gescannt" oberhalb des Blatts steht --
+   ohne Animation, das Blatt kommt ja gerade erst herein. */
+function scanShowPrev(){
+  const box=document.getElementById('list');
+  const r=box && box.querySelector('.row.lastScan');
+  if(!r) return;
+  const sheet=document.getElementById('scanResSheet');
+  const boxTop=box.getBoundingClientRect().top;
+  const free=(sheet && sheet.offsetHeight ? sheet.getBoundingClientRect().top : box.getBoundingClientRect().bottom) - boxTop;
+  const want = Math.max(8, Math.min(free - r.offsetHeight - 12, 24));   // knapp unter dem Listenkopf, sonst soweit Platz ist
+  box.scrollTop += (r.getBoundingClientRect().top - boxTop) - want;
+}
 function markScanJump(scroll){
   const box=document.getElementById('list');
   if(!box || !SCAN_JUMP) return;
