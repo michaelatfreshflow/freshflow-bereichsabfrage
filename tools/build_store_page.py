@@ -292,7 +292,54 @@ def deadline_of(store, day):
     return r[0]["hm"]
 
 
-def inject(page, items, day, store_label=None, lang="de", prototype=False, deadline=None):
+def prev_order_day(store, day):
+    """The order day before this one, from the guide itself (the header's green tick)."""
+    r = bq(f"""SELECT CAST(MAX(DATE(order_deadline_at,'Europe/Berlin')) AS STRING) d
+               FROM `{PROJECT}.{store}.prod_orders_output`
+               WHERE DATE(order_deadline_at,'Europe/Berlin') < DATE '{day}'""")
+    return r[0]["d"] if r and r[0].get("d") else None
+
+
+def set_span_dates(s, day, prev_day, page):
+    """The newer pages carry the order date in <span id="hdrOrderDate"> and once per language in
+    the string table (hdrOrderDate / hdrPrevDate), because the page switches language at runtime.
+    The previous-order date, the guide id and MI_TODAY travel with it. Each must be rewritten
+    exactly once, otherwise the page shows another day in one of its languages."""
+    def de_(x):
+        return "%s, %d. %s" % (WD_DE[x.weekday()], x.day, MON_DE[x.month - 1])
+    def en_(x):
+        return "%s, %d %s" % (WD[x.weekday()], x.day, MON[x.month - 1])
+    def fr_(x):
+        return "%s %d %s" % (WD_FR[x.weekday()], x.day, MON_FR[x.month - 1])
+    od, pd = date.fromisoformat(day), date.fromisoformat(prev_day)
+    subs = [
+        (r'(<span id="hdrOrderDate">)[^<]*(</span>)', lambda m: m.group(1) + de_(od) + m.group(2), 1),
+        (r'(<span id="hdrPrevDate">)[^<]*(</span>)', lambda m: m.group(1) + de_(pd) + m.group(2), 1),
+        (r"hdrOrderDate:'[^']*'", None, 3),
+        (r"hdrPrevDate:'[^']*'", None, 3),
+        (r"const GUIDE_ID = '[^']*';", lambda m: "const GUIDE_ID = '%s';"
+         % os.path.splitext(os.path.basename(page))[0], 1),
+        (r"const MI_TODAY = new Date\(\d+, \d+, \d+\);", lambda m: "const MI_TODAY = new Date(%d, %d, %d);"
+         % (od.year, od.month - 1, od.day), 1),
+        (r'(<span id="dbOverview">[^<]*</span> <span class="dt">)[^<]*(</span>)',
+         lambda m: m.group(1) + "%d. %s %d" % (od.day, MON_DE[od.month - 1], od.year) + m.group(2), 1),
+    ]
+    for pat, fn, want in subs:
+        if fn is None:   # one entry per language table, in the order de, en, fr
+            key = pat.split(":")[0]
+            vals = iter([de_(od), en_(od), fr_(od)] if key == "hdrOrderDate" else
+                        [de_(pd), en_(pd), fr_(pd)])
+            s, n = re.subn(pat, lambda m: "%s:'%s'" % (key, next(vals)), s)
+        else:
+            s, n = re.subn(pat, fn, s)
+        if n != want:
+            raise Refusal(f"{pat} rewritten {n} times, expected {want}. The page would show "
+                          f"another day somewhere.")
+    return s
+
+
+def inject(page, items, day, store_label=None, lang="de", prototype=False, deadline=None,
+           prev_day=None):
     s = open(page, encoding="utf-8").read()
     m = re.search(r'const ITEMS = (\[.*?\]);\n', s, re.S)
     if not m:
@@ -302,10 +349,18 @@ def inject(page, items, day, store_label=None, lang="de", prototype=False, deadl
     y, mo, d = (int(v) for v in day.split("-"))
     wi = date(y, mo, d).weekday()
     wd_names, mon_names = (WD_FR, MON_FR) if lang == "fr" else (WD_DE, MON_DE)
+    if 'id="hdrOrderDate"' in s:
+        if not prev_day:
+            raise Refusal("page carries hdrPrevDate but no previous order day was found")
+        s = set_span_dates(s, day, prev_day, page)
+        n = 1
+    else:
+        n = 0
     # ⛔ Match BOTH labels AND both date spellings. The header was renamed to the app's German
     # ("Ordersatz") once and the date silently stopped updating, so a sheet showed the wrong day in
     # a store. The newer pages then switched the date itself to German and broke it a second time.
-    s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{2,4}\., '
+    if n == 0:
+      s, n = re.subn(r'(Order Guide|Ordersatz) &nbsp;[A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{2,4}\., '
                    r'\d+\. [A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]{3,5}\.?',
                    lambda mm: '%s &nbsp;%s, %d. %s' % (mm.group(1), wd_names[wi], d, mon_names[mo - 1]), s)
     if n == 0:
@@ -328,7 +383,15 @@ def inject(page, items, day, store_label=None, lang="de", prototype=False, deadl
         if n_title != 1:
             raise Refusal(f"<title> rewritten {n_title} times, expected exactly 1. The browser "
                           f"tab would still show the old store's name.")
-    if deadline:
+    if deadline and "let DEADLINE=" not in s:
+        # Newer pages: the cut-off sits in the header label and once per language in the
+        # string table (deadlineToday), which the page swaps in at runtime.
+        s, n_dl = re.subn(r"(Bestellschluss heute |Order deadline today |Heure limite aujourd\u2019hui )"
+                          r"\d{1,2}:\d{2}", lambda mm: mm.group(1) + deadline, s)
+        if n_dl != 4:
+            raise Refusal(f"deadline rewritten {n_dl} times, expected 4 (header + de/en/fr). The "
+                          f"page would show another store's cut-off.")
+    elif deadline:
         s, n_dl = re.subn(r"let DEADLINE='[^']*';", "let DEADLINE='%s';" % deadline, s, count=1)
         if n_dl != 1:
             raise Refusal(f"DEADLINE rewritten {n_dl} times, expected exactly 1. The page would "
@@ -444,8 +507,10 @@ def main():
     self_check(items)
     dl = deadline_of(a.store, day)
     print(f"  Bestellschluss: {dl}")
+    pdays = prev_order_day(a.store, day)
+    print(f"  voriger Bestelltag: {pdays}")
     inject(a.page, items, day, a.label, lang=a.lang,
-           prototype=a.prototype and not a.no_stamp, deadline=dl)
+           prototype=a.prototype and not a.no_stamp, deadline=dl, prev_day=pdays)
     print(f"  Artikel geschrieben: {len(items)} | ohne Leiter: {len(no_lad)}")
     print(f"  Bestand und Bestellvorschlag == App: {len(items)} von {len(items)}")
     print(f"GESCHRIEBEN {a.page}")
