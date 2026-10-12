@@ -1170,7 +1170,17 @@ body.isFiltering{
   -webkit-mask-image:linear-gradient(to left,transparent 0,#000 8%);mask-image:linear-gradient(to left,transparent 0,#000 8%)}
 /* Im Blatt steht die Woche schon im Kopf der Tabelle und wandert beim Wischen mit. */
 .SalesHistory--lg .SalesHistory__date{display:none}
-.ItemSheet__kpi--chart{margin-top:16px}
+/* Iteration 1: eine Woche, fest -- kein Streifen, nichts zu wischen. */
+.SalesHistory.is-iter1 .SalesHistory__scroll{overflow:hidden;-webkit-mask-image:none;mask-image:none;cursor:default}
+.SalesHistory.is-iter1 .SalesHistory__wk{flex-basis:100%}
+.ItemSheet__chartsHd{gap:12px}
+/* Die Tabs: zwei Segmente, das aktive weiss auf grauer Spur -- man sieht auf einen
+   Blick, welche Ansicht offen ist. */
+.ItemSheet__seg{display:inline-flex;padding:3px;border-radius:var(--ff-radius-c8);background:var(--ff-grey-100)}
+.ItemSheet__segBtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:6px;background:none;cursor:pointer;
+  font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-medium);color:var(--ff-grey-600)}
+.ItemSheet__segBtn svg{display:block}
+.ItemSheet__segBtn.is-on{background:var(--ff-color-white);color:var(--ff-color-dark-green);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .SalesHistory__wk .is-nil{color:var(--ff-grey-300);font-weight:var(--ff-weight-regular)}
 
 /* ---------- Artikel-Detail: das Blatt der App ----------
@@ -3462,6 +3472,8 @@ const T={
     sdCharts:'Dashboards',                    // sdCharts
     sdKpis:'KPIs',                            // sdKpis
     sdDaily:'Tageswerte',                    // sdDaily
+    sdChart:'Diagramm',                        // sdChart
+    sdTable:'Tabelle',                        // sdTable
     sdPrevWeek:'Vorherige Woche',             // sdPrevWeek
     sdSales:'Verkauf',                        // sdSales
     sdShrink:'Abschriften',                   // sdShrink
@@ -3902,6 +3914,8 @@ const T={
     sdCharts:'Charts',                        // sdCharts
     sdKpis:'KPIs',                            // sdKpis
     sdDaily:'Daily values',                    // sdDaily
+    sdChart:'Chart',                        // sdChart
+    sdTable:'Table',                        // sdTable
     sdPrevWeek:'Previous Week',               // sdPrevWeek
     sdSales:'Sales',                          // sdSales
     sdShrink:'Shrink',                        // sdShrink
@@ -4334,6 +4348,8 @@ const T={
     sdCharts:'Graphiques',                    // sdCharts
     sdKpis:'KPIs',                            // sdKpis
     sdDaily:'Valeurs par jour',                    // sdDaily
+    sdChart:'Graphique',                        // sdChart
+    sdTable:'Tableau',                        // sdTable
     sdPrevWeek:'Semaine précédente',          // sdPrevWeek
     sdSales:'Ventes',                         // sdSales
     sdShrink:'Démarque',                      // sdShrink
@@ -5888,7 +5904,10 @@ function eyeIcon(off){
 /* ---------- Verkauf & Lieferung der letzten zwei Wochen ----------
    Beides in Kisten, wie die Bestellzahl darueber. Ohne Kistengroesse bleibt es
    bei Stueck/kg. Kein Datensatz und keine Lieferung sind ein Strich. */
-const HIST_PG = {};   // ix -> 0 (juengste Woche, Standard) oder 1 (Woche davor)
+const HIST_PG = {};
+/* ?iter=1 zeigt Iteration 1 des Tickets: nur die Daten, die die App heute schon hat
+   (die 7 Tage vor dem Bestelltag). Keine Vorwoche zum Wischen, keine Aktionstage. */
+const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';   // ix -> 0 (juengste Woche, Standard) oder 1 (Woche davor)
 const ICON_HIST_SALES='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 10.5 5 7l2.5 2.5L12 5"/><path d="M8.6 4.4H12.6V8.4"/></svg>';
 const ICON_HIST_DELIV='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 2h1.8l1.6 6.6h6.4l1.4-4.8H3.5"/><circle cx="5.2" cy="11.4" r=".6"/><circle cx="10" cy="11.4" r=".6"/></svg>';
 function histDay(i){ return new Date(HIST_FROM.getFullYear(), HIST_FROM.getMonth(), HIST_FROM.getDate()+i); }
@@ -5919,12 +5938,12 @@ function histHTML(ix, opt){
   const it=ITEMS[ix];
   if(it.plu==null || !HIST[it.plu]) return '';
   const rows=opt.rows||['sales'], S=sdSeries(it);   // unter der Bestellmenge nur der Verkauf
-  const L=t(), pg=HIST_PG[ix]||0;
+  const L=t(), pg=HIST_ITER1 ? 0 : (HIST_PG[ix]||0);
   const wk = w => {
     let hd='', body='';
     for(let d=w*7; d<w*7+7; d++){
       const wd=histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'}).replace('.','').slice(0,2);
-      const promo=(HIST_PROMO[it.plu]||[]).includes(d);
+      const promo=!HIST_ITER1 && (HIST_PROMO[it.plu]||[]).includes(d);
       hd+=`<span class="SalesHistory__wd${promo?' is-promo':''}"${promo?` title="${L.histPromo}"`:''}>${wd}${opt.lg?`<b>${histDay(d).getDate()}${LANG==='de'?'.':''}</b>`:''}</span>`;
     }
     rows.forEach(k=>{ const R=HIST_ROWS[k];
@@ -5939,10 +5958,10 @@ function histHTML(ix, opt){
     return `<span class="is-${k}" title="${L[R.lb]}" aria-label="${L[R.lb]}">${R.icon()}${opt.lg?`<em>${L[R.lb]}</em>`:''}</span>`; }).join('');
   /* Juengste Woche zuerst im DOM: die Leiste ist rtl, also steht sie rechts und
      ist ohne Zutun sichtbar; links daneben liegt die Woche davor. */
-  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''}${pg?' is-old':''}" data-ix="${ix}">
+  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''}${pg?' is-old':''}${HIST_ITER1?' is-iter1':''}" data-ix="${ix}">
     <div class="SalesHistory__card">
       <div class="SalesHistory__marks"><span></span>${marks}</div>
-      <div class="SalesHistory__scroll">${wk(1)}${wk(0)}</div>
+      <div class="SalesHistory__scroll">${wk(1)}${HIST_ITER1?'':wk(0)}</div>
     </div>
     <span class="SalesHistory__date">${histRange(1-pg)}</span>
   </div>`;
@@ -5999,6 +6018,8 @@ const SD_SHOW={sales:true, shrink:true, intake:true};
 const SD_SERIES=[['sales','--sd-sales','sdSales'],['shrink','--sd-shrink','sdShrink'],['intake','--sd-intake','sdIntake']];
 const ICON_SD_X='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l12 12M14 2 2 14"/></svg>';
 const ICON_SD_KPI='<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><rect x="1" y="1" width="20" height="20" rx="3" fill="currentColor"/><path d="M7 15v-3M11 15V7M15 15v-5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
+const ICON_SD_TAB_TBL='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 6.5v7"/></svg>';
+const ICON_SD_TAB_CHART='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 14.5h13"/><path d="M2.5 11 6 7l3 2.5L14 4"/></svg>';
 const ICON_SD_TBL='<svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 6.5v7"/></svg>';
 const ICON_SD_CHECK='<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2 5 8.6 9.6 3.6"/></svg>';
 
@@ -6021,7 +6042,8 @@ function sdPcs(v){ return (Math.round(v*10)/10).toLocaleString(dateLoc(),{maximu
 function sdRange(a,b){ const o={month:'short',day:'2-digit'}, l=dateLoc();
   return histDay(a).toLocaleDateString(l,o)+' - '+histDay(b).toLocaleDateString(l,o); }
 
-function openItemSheet(ix){ SD={ix}; renderItemSheet(); }
+let SD_TAB='table';                            // 'table' | 'chart'
+function openItemSheet(ix){ SD={ix}; SD_TAB='table'; renderItemSheet(); }
 function closeItemSheet(){ SD=null; const r=document.getElementById('itemSheet'); if(r) r.remove(); }
 
 function renderItemSheet(){
@@ -6072,16 +6094,21 @@ function renderItemSheet(){
           ${promoTxt?`<div class="ItemSheet__labels"><span class="ItemSheet__promo">${promoTxt}</span></div>`:''}
         </div>
         <div class="ItemSheet__card">
-          <div class="ItemSheet__chartsHd"><span class="ItemSheet__chartsTitle">${L.sdCharts}</span></div>
+          <div class="ItemSheet__chartsHd"><span class="ItemSheet__chartsTitle">${L.sdCharts}</span>
+            <!-- Zwei Tabs, die Tabelle zuerst: beide zeigen dieselben Tageswerte, nur
+                 anders. Jedes Oeffnen beginnt bei der Tabelle. -->
+            <div class="ItemSheet__seg" role="tablist">
+              <button type="button" role="tab" aria-selected="${SD_TAB==='table'}" class="ItemSheet__segBtn${SD_TAB==='table'?' is-on':''}" data-sdtab="table">${ICON_SD_TAB_TBL}${L.sdTable}</button>
+              <button type="button" role="tab" aria-selected="${SD_TAB==='chart'}" class="ItemSheet__segBtn${SD_TAB==='chart'?' is-on':''}" data-sdtab="chart">${ICON_SD_TAB_CHART}${L.sdChart}</button>
+            </div></div>
           <div class="ItemSheet__chartsIn">
-            <!-- Neu: die Tageswerte als Tabelle, zuerst und immer mit allen drei Zeilen;
-                 darunter das Diagramm der App. Dessen Haekchen gelten nur fuers Diagramm. -->
+            ${SD_TAB==='table' ? `
             <div class="ItemSheet__kpi ItemSheet__kpi--tbl">
               <div class="ItemSheet__kpiHd"><span class="ItemSheet__kpiIcon">${ICON_SD_TBL}</span>
                 <div class="ItemSheet__kpiWrap"><span class="ItemSheet__kpiT">${L.sdDaily}</span>
                   <span class="ItemSheet__kpiRange" id="sdRange">${histRange(1-(HIST_PG[ix]||0))}</span></div></div>
               ${histHTML(ix,{lg:true, rows:['sales','shrink','intake']})}
-            </div>
+            </div>` : `
             <div class="ItemSheet__kpi ItemSheet__kpi--chart">
               <div class="ItemSheet__kpiHd"><span class="ItemSheet__kpiIcon">${ICON_SD_KPI}</span>
                 <div class="ItemSheet__kpiWrap"><span class="ItemSheet__kpiT">${L.sdKpis}</span>
@@ -6090,7 +6117,7 @@ function renderItemSheet(){
                   ${it.plu!=null?`<span class="ItemSheet__chip"></span><span class="ItemSheet__tag">${L.sdSupergroup}: ${it.plu}</span>`:''}</div>
                 <div class="ItemSheet__legend">${legend}</div></div>
               <div class="ItemSheet__plot" id="sdPlot"></div>
-            </div>
+            </div>`}
           </div>
         </div>
       </div>
@@ -6100,7 +6127,7 @@ function renderItemSheet(){
   root=document.getElementById('itemSheet');
   root.querySelector('.ItemSheet__body').scrollTop=keep;
   if(keep) root.querySelector('.ItemSheet__panel').style.animation='none';
-  sdDrawChart(it); histRestore();
+  if(SD_TAB==='chart') sdDrawChart(it); else histRestore();
 }
 
 /* Das Diagramm wie graph_painter.dart: 8 Tage (Bestelltag und die 7 davor), 4 y-Stufen
@@ -6148,6 +6175,7 @@ document.addEventListener('click', e=>{
   if(SD && e.target.closest('#itemSheet')){
     const t_=e.target;
     if(t_.closest('[data-sdclose]')){ closeItemSheet(); return; }
+    const tb=t_.closest('[data-sdtab]'); if(tb){ SD_TAB=tb.dataset.sdtab; renderItemSheet(); return; }
     const s_=t_.closest('[data-sd]'); if(s_){ const k=s_.dataset.sd; SD_SHOW[k]=!SD_SHOW[k]; renderItemSheet(); return; }
     return;
   }
@@ -6158,7 +6186,7 @@ document.addEventListener('click', e=>{
   openItemSheet(+cell.closest('.row').dataset.ix);
 });
 document.addEventListener('keydown', e=>{ if(SD && e.key==='Escape') closeItemSheet(); });
-window.addEventListener('resize', ()=>{ if(SD) sdDrawChart(ITEMS[SD.ix]); });
+window.addEventListener('resize', ()=>{ if(SD && SD_TAB==='chart') sdDrawChart(ITEMS[SD.ix]); });
 
 function rowHTML(ix, extraCls, forceEye, backOnly){
   const it=ITEMS[ix], s=ST[ix], L=t();
