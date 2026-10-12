@@ -6598,8 +6598,9 @@ function showDashTab(i){
    ?retailer=edeka in der Adresse schaltet den Prototyp auf einen anderen Haendler. */
 const STORE_RETAILER = (new URLSearchParams(location.search).get('retailer') || 'rewe').toLowerCase();
 const RETAILER_NAME = {rewe:'REWE', edeka:'EDEKA', intermarche:'Intermarché'};
+/* Je Haendler eine Seite pro Sprache; fehlt die Sprache, kommt die deutsche. */
 const FAQ_URL = {
-  edeka: 'faq/edeka.html',     // wird durch die gehostete Adresse ersetzt
+  edeka: {de:'faq/edeka.html', en:'faq/edeka-en.html'},   // wird durch die gehostete Adresse ersetzt
 };
 const FAQ_FALLBACK = 'edeka'; // solange ein Haendler keine eigene Seite hat
 let MM_TAB = 'guides';
@@ -6699,7 +6700,8 @@ function sizeFaqFrame(){
 }
 function renderFaq(){
   const L=t();
-  const url = FAQ_URL[STORE_RETAILER] || FAQ_URL[FAQ_FALLBACK];
+  const pages = FAQ_URL[STORE_RETAILER] || FAQ_URL[FAQ_FALLBACK];
+  const url = pages && (pages[LANG] || pages.de);
   const f=document.getElementById('mmFaqFrame'), empty=document.getElementById('mmFaqEmpty');
   f.hidden=!url; empty.hidden=!!url;
   if(url){
