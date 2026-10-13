@@ -1258,7 +1258,7 @@ body.isFiltering{
 .whyBtn{
   all:unset; cursor:pointer;
   display:grid;place-items:center;
-  width:44px;height:44px;margin:-14px;
+  width:44px;height:44px;margin:-10px;
   border-radius:var(--ff-radius-pill);
   -webkit-tap-highlight-color:transparent;
 }
@@ -1267,24 +1267,28 @@ body.isFiltering{
    sagt, welcher Punkt gemeint ist. Zum Lesen und Wegtippen, kein Dialog. */
 .whyPop{
   position:fixed;z-index:9998;
-  max-width:260px;
-  background:var(--ff-color-white);
-  border:1px solid var(--ff-grey-200);
-  border-radius:var(--ff-radius-c15);
-  box-shadow:0 8px 28px rgba(0,0,0,.16);
-  padding:10px 12px;
+  width:max-content;max-width:300px;
+  background:#3F3F46;color:#fff;
+  border-radius:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.22);
+  padding:14px 16px;
 }
-.whyPop .whyRow{display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-900);line-height:1.35}
-.whyPop .whyRow+.whyRow{margin-top:7px}
-.whyPop .whyRow svg{flex:0 0 auto;width:12px;height:12px;display:block}
+/* MOB-1765: Kopf (Icon + Titel), ein Satz Erklaerung, optional ein Kasten mit den Gruenden.
+   Grundfarbe aus AppToolTip (AppColors.bgDimmedDark). */
+.whyPop .whyHd{display:flex;align-items:center;gap:9px;font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-bold)}
+.whyPop .whyHd svg{width:20px;height:20px;flex:0 0 auto;display:block}
+.whyPop .whyTx{margin-top:7px;font-size:var(--ff-text-primary-body-text-14);line-height:1.45;color:#EEF1EF}
+.whyPop .whyBox{margin-top:10px;background:#52525B;border-radius:10px;padding:9px 11px}
+.whyPop .whyRow{display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);color:#fff;line-height:1.35}
+.whyPop .whyRow+.whyRow{margin-top:6px}
+.whyPop .whyRow svg{flex:0 0 auto;width:16px;height:16px;display:block}
 .whyPop:after{
-  content:'';position:absolute;width:10px;height:10px;
-  background:var(--ff-color-white);
-  border-left:1px solid var(--ff-grey-200);border-top:1px solid var(--ff-grey-200);
-  transform:rotate(45deg);
+  content:'';position:absolute;width:12px;height:12px;
+  background:#3F3F46;
+  transform:rotate(45deg);border-radius:2px;
 }
-.whyPop.below:after{top:-6px;left:var(--arrow)}
-.whyPop.above:after{bottom:-6px;left:var(--arrow);transform:rotate(225deg)}
+.whyPop.below:after{top:-5px;left:var(--arrow)}
+.whyPop.above:after{bottom:-5px;left:var(--arrow)}
 .withbang>.stmt{flex:1}
 /* FieldStatusIcon -> AppStatusIcon -> AppIcon.asset(height/width: 16.w).
    The asset is assets/icons/warning_rounded.svg: a 16x16 circle filled
@@ -1311,7 +1315,7 @@ body.isFiltering{
   font-weight:var(--ff-weight-bold);
   line-height:1.4;
 }
-.invHint svg{flex:0 0 auto;margin-top:1px}
+.invHint svg{flex:0 0 auto;margin-top:1px;width:16px;height:16px}
 .invHint .hintTitle{display:block;margin-bottom:3px}
 .invHint span{font-weight:var(--ff-weight-medium)}
 .invHint .hintTitle{font-weight:var(--ff-weight-bold)}
@@ -3650,6 +3654,10 @@ const T={
     rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
+    tipInvTitle:'Bestand prüfen', tipInvText:'Bitte Bestand dieses Artikels überprüfen.',
+    tipOrdTitle:'Bestellmenge prüfen', tipOrdText:'Bitte Bestellmenge dieses Artikels überprüfen.',
+    tipEditTitle:'Von Ihnen geändert', tipEditText:'Sie haben diesen Wert von Hand geändert.',
+    tipInfoText:'Eine Zählung würde diese Bestellung nicht ändern. Geben Sie die gewünschte Bestellmenge ein.',
     rPlanAMismatch:'App-Bestand passt nicht zu Plan A',
     rOrderDetached:'Bestellung hängt nicht am Bestand',
     rShrinkRetail:'Abschriften im Verkaufspreis',
@@ -4084,6 +4092,10 @@ const T={
     rNewItem:'new item',
     rPromo:'Promotion',
     rManualWarning:'Manual warning',
+    tipInvTitle:'Check inventory', tipInvText:'Please review the inventory for this item.',
+    tipOrdTitle:'Check order quantity', tipOrdText:'Please review the order quantity for this item.',
+    tipEditTitle:'Edited by you', tipEditText:'You changed this value by hand.',
+    tipInfoText:'A count would not change this order. Enter the quantity you want to order.',
     rPlanAMismatch:'App inventory does not match Plan A',
     rOrderDetached:'Order not tied to inventory',
     rShrinkRetail:'Shrink at retail price',
@@ -4518,6 +4530,10 @@ const T={
     rNewItem:'nouvel article',
     rPromo:'Promotion',
     rManualWarning:'Alerte manuelle',
+    tipInvTitle:'Vérifier le stock', tipInvText:'Veuillez vérifier le stock pour cet article.',
+    tipOrdTitle:'Vérifier la quantité', tipOrdText:'Veuillez vérifier la quantité commandée pour cet article.',
+    tipEditTitle:'Modifié par vous', tipEditText:'Vous avez modifié cette valeur à la main.',
+    tipInfoText:'Un comptage ne modifierait pas cette commande. Saisissez la quantité que vous souhaitez commander.',
     rPlanAMismatch:'L’inventaire de l’app ne correspond pas au plan A',
     rOrderDetached:'Commande non liée à l’inventaire',
     rShrinkRetail:'Casse au prix de vente',
@@ -5626,8 +5642,13 @@ function rungOfKo(it,ko,planIdx){
    ist nicht bestaetigt). Die Bestellmenge ist der leisere Fall -- das Modell ist
    sich nur unsicher, die Zeile ist trotzdem bestellbar -- und bekommt darum einen
    orangenen Punkt ohne Ausrufezeichen. */
-const ICON_INV_BANG='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--ff-color-danger)"/><path d="M8 3C8.55 3 9 3.45 9 4V8C9 8.55 8.55 9 8 9C7.45 9 7 8.55 7 8V4C7 3.45 7.45 3 8 3ZM9 13H7V11H9V13Z" fill="white"/></svg>';
-const ICON_ORD_ASK='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#FF8502"/><path d="M5.9 5.8 A2.1 2.1 0 1 1 8 7.9 V9" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M9 13H7V11H9V13Z" fill="white"/></svg>';
+/* MOB-1765: ein Icon-Satz fuer alle Marker. 24px-Kreis, drei Stufen:
+   rot ! und amber ? (handeln), gelb/petrol (Signal), Umriss (gut zu wissen). */
+const ICON_INV_BANG='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#C8322B"/><path d="M12 6.5v7" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path d="M12 18h.01" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>';
+const ICON_ORD_ASK='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#F0A202"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1-1.3 1.9v.4" stroke="#2B1C00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18h.01" stroke="#2B1C00" stroke-width="3" stroke-linecap="round"/></svg>';
+const ICON_EDITED='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11.1" fill="#fff" stroke="#5B7FB2" stroke-width="1.75"/><path transform="translate(4 4) scale(.6667)" d="M12 3.2a4.2 4.2 0 0 0-2.6 7.5C6.6 11.8 4.8 14.4 4.8 17.6V20.5h14.4v-2.9c0-3.2-1.8-5.8-4.6-6.9A4.2 4.2 0 0 0 12 3.2z" fill="#5B7FB2"/></svg>';
+const ICON_TIP_INFO='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11.1" fill="#fff" stroke="#5B7FB2" stroke-width="1.75"/><g transform="translate(4 4) scale(.6667)" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7a4.3 4.3 0 0 0-2.6 7.7c.5.4.8 1 .8 1.6h3.6c0-.6.3-1.2.8-1.6A4.3 4.3 0 0 0 12 7z" fill="#5B7FB2"/><path d="M10.3 18.6h3.4"/><path d="M11 21h2"/><path d="M12 2.3v1.9" stroke-width="2"/><path d="M5.8 5l1.3 1.3" stroke-width="2"/><path d="M18.2 5l-1.3 1.3" stroke-width="2"/></g></svg>';
+const TIP_ICON={inv:()=>ICON_INV_BANG, ord:()=>ICON_ORD_ASK, edit:()=>ICON_EDITED, info:()=>ICON_TIP_INFO};
 const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.2983 0.710224C13.2058 0.61752 13.0959 0.543973 12.9749 0.493791C12.8539 0.44361 12.7242 0.417779 12.5933 0.417779C12.4623 0.417779 12.3326 0.44361 12.2116 0.493791C12.0907 0.543973 11.9808 0.61752 11.8883 0.710224L6.99827 5.59022L2.10827 0.700223C2.01569 0.607642 1.90578 0.534202 1.78481 0.484097C1.66385 0.433992 1.5342 0.408203 1.40327 0.408203C1.27234 0.408203 1.14269 0.433992 1.02173 0.484097C0.900763 0.534202 0.790852 0.607642 0.69827 0.700223C0.605688 0.792805 0.532248 0.902716 0.482143 1.02368C0.432038 1.14464 0.40625 1.27429 0.40625 1.40522C0.40625 1.53615 0.432038 1.6658 0.482143 1.78677C0.532248 1.90773 0.605688 2.01764 0.69827 2.11022L5.58827 7.00022L0.69827 11.8902C0.605688 11.9828 0.532248 12.0927 0.482143 12.2137C0.432038 12.3346 0.40625 12.4643 0.40625 12.5952C0.40625 12.7262 0.432038 12.8558 0.482143 12.9768C0.532248 13.0977 0.605688 13.2076 0.69827 13.3002C0.790852 13.3928 0.900763 13.4662 1.02173 13.5163C1.14269 13.5665 1.27234 13.5922 1.40327 13.5922C1.5342 13.5922 1.66385 13.5665 1.78481 13.5163C1.90578 13.4662 2.01569 13.3928 2.10827 13.3002L6.99827 8.41022L11.8883 13.3002C11.9809 13.3928 12.0908 13.4662 12.2117 13.5163C12.3327 13.5665 12.4623 13.5922 12.5933 13.5922C12.7242 13.5922 12.8538 13.5665 12.9748 13.5163C13.0958 13.4662 13.2057 13.3928 13.2983 13.3002C13.3909 13.2076 13.4643 13.0977 13.5144 12.9768C13.5645 12.8558 13.5903 12.7262 13.5903 12.5952C13.5903 12.4643 13.5645 12.3346 13.5144 12.2137C13.4643 12.0927 13.3909 11.9828 13.2983 11.8902L8.40827 7.00022L13.2983 2.11022C13.6783 1.73022 13.6783 1.09022 13.2983 0.710224Z" fill="currentColor"/></svg>';
 const ICON_INFO='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 12C7.56 12 7.2 11.64 7.2 11.2V8C7.2 7.56 7.56 7.2 8 7.2C8.44 7.2 8.8 7.56 8.8 8V11.2C8.8 11.64 8.44 12 8 12ZM7.2 4H8.8V5.6H7.2V4Z" fill="#6F78A5"/><rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#6F78A5"/></svg>';
 /* The value box splits the number from its unit -- value is primaryBodyText16.medium,
@@ -5727,6 +5748,11 @@ function bang(note,kind,ix){
        + ` data-i="${ix}" data-kind="${kind==='ord'?'ord':'inv'}"`
        + ` aria-label="${txt.replace(/"/g,'&quot;')}">${icon}</button></span>`;
 }
+/* Gut-zu-wissen-Marker (MOB-1765): gleicher Knopf, gleiches Tooltip, kein Grund-Text. */
+function mark(kind,ix){
+  const title = kind==='edit' ? t().tipEditTitle : t().noCountNeeded;
+  return `<span class="statusSlot"><button type="button" class="whyBtn" data-a="why" data-i="${ix}" data-kind="${kind}" aria-label="${title}">${TIP_ICON[kind]()}</button></span>`;
+}
 let WHY_POP=null;
 function closeWhy(){ if(WHY_POP){ WHY_POP.remove(); WHY_POP=null; } }
 /* Anker am Punkt, und wenn unten kein Platz mehr ist, klappt es nach oben -- sonst
@@ -5734,12 +5760,16 @@ function closeWhy(){ if(WHY_POP){ WHY_POP.remove(); WHY_POP=null; } }
    folgt dem Punkt, auch wenn das Fenster am Bildschirmrand einrastet. */
 function openWhy(btn, ix, kind){
   closeWhy();
-  const tags=whyTags(ix,kind);
-  if(!tags.length) return;
-  const icon = kind==='ord' ? ICON_ORD_ASK : ICON_INV_BANG;
+  const L=t();
+  const tags = (kind==='inv'||kind==='ord') ? whyTags(ix,kind) : [];
+  if((kind==='inv'||kind==='ord') && !tags.length) return;
+  const icon = TIP_ICON[kind]();
+  const title = {inv:L.tipInvTitle, ord:L.tipOrdTitle, edit:L.tipEditTitle, info:L.noCountNeeded}[kind];
+  const text  = {inv:L.tipInvText,  ord:L.tipOrdText,  edit:L.tipEditText,  info:L.tipInfoText}[kind];
   const p=document.createElement('div');
   p.className='whyPop';
-  p.innerHTML=tags.map(x=>`<div class="whyRow">${icon}<span>${x}</span></div>`).join('');
+  p.innerHTML=`<div class="whyHd">${icon}<b>${title}</b></div><div class="whyTx">${text}</div>`
+    + (tags.length ? `<div class="whyBox">${tags.map(x=>`<div class="whyRow">${icon}<span>${x}</span></div>`).join('')}</div>` : '');
   document.body.appendChild(p);
 
   const r=btn.getBoundingClientRect();
@@ -6374,7 +6404,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        Bestandsspalte keinerlei Zeichen truege. */
     let noteTxt = (invAnswered(s)||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     if(!noteTxt && askInv(it,s)) noteTxt = L.invAskLabel;
-    let cell = `<div class="invCell"><div class="withbang">${box}${bang(noteTxt,'inv',ix)}</div>`;
+    let cell = `<div class="invCell"><div class="withbang">${box}${noCount(s)?mark('info',ix):bang(noteTxt,'inv',ix)}</div>`;
     /* Der Regalhöchstbestand des Platzes, an dem der Kaufmann GERADE STEHT -- eine Zahl,
        wie eh und je. Welches Regal das ist, sagt schon das Kennzeichen an der
        Zeile ("Stammpl.: ..." bzw. "Zweitpl.: ..."); es hier zu wiederholen
@@ -6420,7 +6450,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         ${pendSub?`<span class="ColumnCounterField__label">${pendSub}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
-    </div>${bang(s.manual?null:it.ordNote,'ord',ix)}</div>
+    </div>${s.manual?mark('edit',ix):bang(it.ordNote,'ord',ix)}</div>
     ${backOnly?'':histHTML(ix)}`;
     /* Das Auge steht sonst nur in "Bestellung verwalten" und an ausgeblendeten
        Zeilen. Im Scan-Ergebnis steht es immer: dort kommt man auch an Artikel, die

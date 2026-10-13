@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order Guide Markers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F7F5; --card:#FFFFFF; --ink:#1E2622; --muted:#6B7670; --line:#E9ECEA; --cell:#F1F3F2;
+  --accent:#2E6A56;
+  --red:#C8322B; --amber:#F0A202; --yellow:#FFDD33; --petrol:#1F7A80; --blue:#5B7FB2;
+  --tip:#3F3F46; --tip2:#52525B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:48px 16px 96px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:40px;line-height:1.1;margin:8px 0 12px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:24px;margin:56px 0 4px;font-weight:800;letter-spacing:-.01em}
+h3{font-size:17px;margin:0 0 6px;font-weight:700}
+.lead{font-size:17px;color:#3C4641;max-width:760px;margin:0}
+.sub{color:var(--muted);margin:0 0 20px;max-width:760px}
+.num{display:inline-block;color:var(--accent);margin-right:8px}
+.card{background:var(--card);border-radius:16px;padding:24px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){.g2,.g3{grid-template-columns:1fr} h1{font-size:30px} .mockwrap{padding-right:0!important} .mock .tag{display:none}}
+.tier{display:flex;align-items:baseline;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
+.tier b{font-size:18px}
+.tier span{color:var(--muted);font-size:14px}
+.icard{display:flex;gap:16px;align-items:flex-start}
+.icard p{margin:0;color:#3C4641;font-size:14px}
+.icard .spec{color:var(--muted);font-size:13px;margin-top:6px}
+.big{transform:scale(1.9);transform-origin:center;margin:14px 18px 14px 10px;flex-shrink:0}
+
+/* icons */
+.ic{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.ic svg{width:16px;height:16px}
+.ic.red{background:var(--red)} .ic.amber{background:var(--amber)} .ic.yellow{background:var(--yellow)}
+.ic.petrol{background:var(--petrol)} .ic.outline{background:#fff;box-shadow:inset 0 0 0 1.75px var(--blue)}
+button.hit{all:unset;cursor:pointer;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+button.hit:focus-visible{outline:2px solid var(--accent);outline-offset:-6px}
+button.hit.open .ic{box-shadow:0 0 0 4px rgba(0,0,0,.12)}
+button.hit.open .ic.outline{box-shadow:inset 0 0 0 1.75px var(--blue),0 0 0 4px rgba(91,127,178,.25)}
+button.hit.open .ic.petrol{box-shadow:0 0 0 4px rgba(31,122,128,.28)}
+.stack{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-left:-2px}
+.stack button.hit{height:28px;width:44px}
+
+/* demo */
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.seg{display:inline-flex;background:var(--cell);border-radius:999px;padding:4px}
+.seg button{all:unset;cursor:pointer;padding:8px 16px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.hint{color:var(--muted);font-size:13px}
+.og{background:var(--card);border-radius:16px;overflow-x:auto}
+.og table{width:100%;border-collapse:collapse;min-width:760px}
+.og th:first-child,.og td:first-child{width:38%;min-width:280px}
+.og th{text-align:left;font-size:14px;font-weight:700;color:#3C4641;padding:16px 20px;border-bottom:2px solid var(--ink)}
+.og td{padding:14px 20px;border-bottom:1px solid var(--line);vertical-align:middle}
+.og tr:last-child td{border-bottom:0}
+.name{display:flex;align-items:flex-start;gap:0;font-weight:800;font-size:15px;line-height:1.3;letter-spacing:.01em}
+.name .t{padding-top:2px;max-width:280px}
+.name button.hit{margin:-10px -10px -10px -4px}
+.meta{color:var(--muted);font-size:13px;margin-top:2px;font-weight:500}
+.cellw{display:flex;align-items:center;min-height:48px}
+.val{min-width:88px;height:44px;padding:0 14px;border-radius:10px;background:var(--cell);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.val.small{font-size:12px;font-weight:700;color:var(--muted);padding:0 10px}
+.val.alert{background:#fff;box-shadow:inset 0 0 0 2px var(--red)}
+.slot{width:44px;flex-shrink:0}
+tr.removed td{background:#FAFBFA}
+tr.removed .t, tr.removed .meta, tr.removed .val{opacity:.45}
+tr.removed .val{background:var(--line)}
+tr.rowsep td{padding:6px 20px;background:var(--bg);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* tooltip */
+#tip{position:fixed;z-index:50;width:min(340px,calc(100vw - 32px));background:var(--tip);color:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 12px 32px rgba(0,0,0,.22);display:none}
+#tip.show{display:block}
+#tip .arrow{position:absolute;top:-7px;width:14px;height:14px;background:var(--tip);transform:rotate(45deg);border-radius:2px}
+#tip .hd{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+#tip .hd .ic{width:20px;height:20px} #tip .hd .ic svg{width:13px;height:13px}
+#tip .tx{margin:8px 0 0;font-size:14px;line-height:1.45;color:#EEF1EF}
+#tip .box{margin-top:12px;background:var(--tip2);border-radius:10px;padding:10px 12px;font-size:14px}
+#tip .box ul{margin:0;padding-left:18px}
+#tip .box li{margin:2px 0}
+#tip .box .rl{display:flex;align-items:center;gap:8px;margin:3px 0}
+#tip .box .rl .ic{width:16px;height:16px} #tip .box .rl .ic svg{width:11px;height:11px}
+#tip .box s{opacity:.7} #tip .box b{font-weight:800}
+
+/* rules */
+.rules{margin:0;padding-left:20px} .rules li{margin:6px 0}
+.anat{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.mock{position:relative;width:300px;background:var(--tip);color:#fff;border-radius:14px;padding:16px 18px;flex-shrink:0}
+.mock .tag{position:absolute;right:-12px;transform:translateX(100%);font-size:12px;color:var(--accent);font-weight:700;white-space:nowrap}
+.mock .tag:before{content:"";display:inline-block;width:16px;height:1.5px;background:var(--accent);vertical-align:middle;margin-right:6px}
+table.plain{width:100%;border-collapse:collapse;font-size:14px}
+table.plain th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700}
+table.plain td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.plain tr:last-child td{border-bottom:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--cell);padding:2px 6px;border-radius:6px}
+.on{color:var(--accent);font-weight:700} .off{color:var(--muted)}
+.scroll{overflow-x:auto}
+
+.tl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.tl{grid-template-columns:1fr 1fr}}
+.tl .step{background:var(--card);border-radius:14px;padding:16px}
+.tl .time{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.tl .what{font-weight:700;margin:6px 0}
+.tl .shows{display:flex;align-items:center;gap:8px;font-size:13px;color:#3C4641}
+.phase{display:flex;gap:16px;align-items:flex-start}
+.phase .n{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.phase p{margin:2px 0 0;color:#3C4641;font-size:14px}
+.note{border-left:3px solid var(--amber);padding:2px 0 2px 14px;color:#3C4641;margin:16px 0 0;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Order guide · Markers</div>
+  <h1>Seven icons, three tiers, one tooltip</h1>
+  <p class="lead">This page shows how every marker on an order guide line looks, where it sits, and what a tap opens. The same system works for every store. Store flags switch off the parts a store does not have. Section 7 lists what changes against the app as it is built today.</p>
+
+  <!-- 1 ICON SET -->
+  <h2><span class="num">1</span>The icon set</h2>
+  <p class="sub">Every icon is a 24 px circle with a 44 px tap target. The colour tells the user how urgent it is before they read anything.</p>
+
+  <div class="tier"><b>Act now</b><span>Solid fill · the user should look at this before sending the order</span></div>
+  <div class="grid g2">
+    <div class="card icard"><span class="big" data-icon="inv"></span><div><h3>Check inventory</h3><p>The inventory for this item needs attention. Sits right of the <b>Inventory</b> cell, and the cell gets a red outline.</p><div class="spec">Red #C8322B · white !</div></div></div>
+    <div class="card icard"><span class="big" data-icon="ord"></span><div><h3>Check order quantity</h3><p>The model is unsure about the order quantity and asks for a judgement call. Sits right of the <b>Order</b> cell.</p><div class="spec">Amber #F0A202 · dark ?</div></div></div>
+  </div>
+
+  <div class="tier"><b>Signal</b><span>Solid fill · something changed that the user did not do</span></div>
+  <div class="grid g2">
+    <div class="card icard"><span class="big" data-icon="rec"></span><div><h3>Recalculated</h3><p>The reco changed since the user first opened the guide today. Sits right of the changed cell.</p><div class="spec">Yellow #FFDD33 · dark arrow</div></div></div>
+    <div class="card icard"><span class="big" data-icon="og"></span><div><h3>Order guide changed</h3><p>The order guide changed or added this item today. Sits <b>behind the item name</b>, because it is about the whole line, not one cell. Only for logos whose order guide changes during the day.</p><div class="spec">Petrol #1F7A80 · white sheet</div></div></div>
+  </div>
+
+  <div class="tier"><b>Good to know</b><span>Outline circle · never blocks the order</span></div>
+  <div class="grid g3">
+    <div class="card icard"><span class="big" data-icon="edit"></span><div><h3>Edited by you</h3><p>The user changed this value by hand.</p></div></div>
+    <div class="card icard"><span class="big" data-icon="info"></span><div><h3>More info</h3><p>Extra context for the value, for example "No count needed".</p></div></div>
+    <div class="card icard"><span class="big" data-icon="lock"></span><div><h3>Locked</h3><p>This field cannot be edited.</p></div></div>
+  </div>
+
+  <!-- 2 DEMO -->
+  <h2><span class="num">2</span>In the order guide</h2>
+  <p class="sub">Tap any icon. Switch the store type to see what a store without a preorder column and without order guide changes during the day gets.</p>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Logo">
+      <button type="button" data-logo="cp" aria-pressed="true">C&amp;P</button>
+      <button type="button" data-logo="rewe" aria-pressed="false">REWE / EDEKA</button>
+    </div>
+    <span class="hint" id="logohint"></span>
+  </div>
+  <div class="og"><table id="demo"></table></div>
+
+  <!-- 3 PLACEMENT -->
+  <h2><span class="num">3</span>Placement and stacking</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Cell icons</h3>
+      <ul class="rules">
+        <li>8 px right of the cell they belong to.</li>
+        <li>At most <b>two</b> per cell, stacked vertically 4 px apart and centred on the cell.</li>
+        <li>Order from top, as built today: the field's own <b>!</b> / <b>?</b> or lock, then recalculated, then edited, then info. A locked field never shows <b>!</b> or <b>?</b>.</li>
+        <li>An icon only exists where its column exists. No preorder column means no preorder icons.</li>
+        <li>Column order as in the app: Item, Inventory, Order, Preorder.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Line icon</h3>
+      <ul class="rules">
+        <li>The order guide icon sits directly behind the item name, centred on its first line, also when the name wraps.</li>
+        <li>It also shows on lines the user edited and on locked lines: a case size change changes the volume behind the user's number.</li>
+        <li>A removed line is greyed and locked. It shows only the order guide icon, never <b>!</b> or <b>?</b>, because the user cannot act on it.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4 TOOLTIP -->
+  <h2><span class="num">4</span>The tooltip</h2>
+  <p class="sub">The same card for all seven icons. The detail box changes per icon.</p>
+  <div class="card">
+    <div class="anat">
+      <div class="mockwrap" style="padding-right:210px;flex-shrink:0"><div class="mock">
+        <div class="hd" style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px"><span data-icon="ord" data-sm></span>Check order quantity</div>
+        <div style="margin-top:8px;font-size:14px;color:#EEF1EF">Please review the order quantity for this item.</div>
+        <div style="margin-top:12px;background:var(--tip2);border-radius:10px;padding:10px 12px;font-size:14px"><div style="display:flex;gap:8px;align-items:center"><span data-icon="ord" data-xs></span>Promotion</div><div style="display:flex;gap:8px;align-items:center;margin-top:4px"><span data-icon="ord" data-xs></span>Too little history</div></div>
+        <span class="tag" style="top:18px">1 header: icon + title</span>
+        <span class="tag" style="top:58px">2 one line of explanation</span>
+        <span class="tag" style="top:118px">3 detail box (optional)</span>
+      </div></div>
+      <div style="flex:1;min-width:260px">
+        <table class="plain">
+          <tr><th>Icon</th><th>Detail box</th></tr>
+          <tr><td><span data-icon="inv" data-xs></span> <span data-icon="ord" data-xs></span></td><td>The reasons, one line each with their own icon, in data order, duplicates by display text removed. A <b>!</b> without a reason token shows the state text.</td></tr>
+          <tr><td><span data-icon="rec" data-xs></span></td><td>First <s>X CS</s> → Now <b>Y CS</b></td></tr>
+          <tr><td><span data-icon="og" data-xs></span></td><td>The changes, one per line. A single change has no bullet.</td></tr>
+          <tr><td><span data-icon="edit" data-xs></span> <span data-icon="info" data-xs></span> <span data-icon="lock" data-xs></span></td><td>None, text only.</td></tr>
+        </table>
+      </div>
+    </div>
+    <ul class="rules" style="margin-top:20px">
+      <li>The tooltip opens under the icon and points at it. One tooltip open at a time.</li>
+      <li>It closes on a tap outside, on scroll, and when the list re-renders. The icon is rebuilt on every render, so the tooltip must not outlive it.</li>
+      <li>It is not a bottom sheet. Reading why a line is flagged is not a task, and users tap several icons in a row while walking the shelf.</li>
+      <li>All texts in DE / EN / FR, reviewed by design before release. The "No count needed" text gets rewritten.</li>
+    </ul>
+  </div>
+
+  <!-- 5 OG CHANGES -->
+  <h2><span class="num">5</span>When the order guide changes during the day</h2>
+  <p class="sub">Only for logos that receive several order guide files per order day. One item over one order day:</p>
+  <div class="tl">
+    <div class="step"><div class="time">10:00 file</div><div class="what">Item arrives</div><div class="shows">No marker</div></div>
+    <div class="step"><div class="time">12:00 file</div><div class="what">Sales price changes</div><div class="shows"><span data-icon="og" data-xs></span>Sales price changed</div></div>
+    <div class="step"><div class="time">15:00 file</div><div class="what">Case size and price change</div><div class="shows"><span data-icon="og" data-xs></span>Case size changed, Sales price changed</div></div>
+    <div class="step"><div class="time">User edits the order</div><div class="what">Marker clears</div><div class="shows">No marker until the next change</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Rules</h3>
+      <ul class="rules">
+        <li>The backend sends the changed fields with the existing flag: sales price, promo start, promo end, case quantity, case unit, added.</li>
+        <li>Lines in this order, each once: <b>Case size changed</b> (quantity or unit), <b>Promo dates changed</b> (start or end), <b>Sales price changed</b>.</li>
+        <li>Changes collect from the moment the marker appears.</li>
+        <li>The marker stays until the user edits the order quantity on that line after the change, or a new order day starts.</li>
+        <li>The <b>recalculated</b> icon no longer lights up for order guide changes.</li>
+        <li>Filter and sort: "Order guide changed" next to "Recalculated", only when the toggle is on.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Added and removed items</h3>
+      <ul class="rules">
+        <li><b>Added:</b> in a later file of the day but not in an earlier one. Tooltip: "Added to today's order guide". This is deliberately not "New item", which stays the reason for an item that is new to the store.</li>
+        <li><b>Removed</b> (separate module, ships later): in an earlier file of the same day and missing from a later one, or case content quantity 0. The line stays, greyed and locked, all its quantities forced to 0, moved to the bottom (to be confirmed). Tooltip: "Removed from order guide".</li>
+        <li>Items that dropped out between days are not marked.</li>
+        <li>A removed item that comes back the same day becomes active again as "Added to today's order guide".</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 6 STORE CONFIG -->
+  <h2><span class="num">6</span>What each store gets</h2>
+  <p class="sub">The app switches markers per store, not per logo. Existing store flags are reused; one new flag is added.</p>
+  <div class="card scroll">
+    <table class="plain">
+      <tr><th></th><th>Store flag</th><th>REWE / EDEKA today</th><th>C&amp;P today</th></tr>
+      <tr><td>Preorder column (Prévision)</td><td><code>is_preorder_enabled</code></td><td class="off">off</td><td class="on">on</td></tr>
+      <tr><td><span data-icon="inv" data-xs></span> <span data-icon="ord" data-xs></span> reasons, <span data-icon="edit" data-xs></span> <span data-icon="info" data-xs></span> <span data-icon="lock" data-xs></span></td><td>none, always on</td><td class="on">on</td><td class="on">on</td></tr>
+      <tr><td><span data-icon="rec" data-xs></span> Recalculated</td><td><code>is_recalculation_warning_enabled</code> (default off)</td><td class="off">per store</td><td class="off">per store</td></tr>
+      <tr><td><span data-icon="og" data-xs></span> Order guide changed, removed items</td><td><b>new</b>, default off</td><td class="off">off (one order guide per day)</td><td class="on">on (several files per day)</td></tr>
+    </table>
+  </div>
+
+  <!-- 6b DELTA -->
+  <h2><span class="num">7</span>What changes against the app today</h2>
+  <p class="sub">Checked against the mobile app on main. Everything not listed here stays as it is.</p>
+  <div class="card scroll">
+    <table class="plain">
+      <tr><th>Topic</th><th>Today in the app</th><th>With this ticket</th></tr>
+      <tr><td>Needs-attention icons</td><td>One orange warning (#FF8502) for inventory and order quantity</td><td>Red <b>!</b> for inventory, amber <b>?</b> for order quantity</td></tr>
+      <tr><td>Recalculated</td><td>Grey-blue icon (#6F78A5); also lights up for order guide changes</td><td>Yellow, only for reco changes; order guide changes get the petrol icon</td></tr>
+      <tr><td>Edited / locked</td><td>Edited grey-blue, lock green (#2F6758), different shapes</td><td>Same outline style for edited, info and locked</td></tr>
+      <tr><td>Info</td><td>Insight icon: in the cell for "not balanced" and "refrain from ordering"; for "no count needed" only in the row footer. Not tappable</td><td>The same cases get the info icon in the cell, tappable</td></tr>
+      <tr><td>Icon size</td><td>16 px, no tap target</td><td>24 px circle, 44 px tap target</td></tr>
+      <tr><td>Tap on an icon</td><td>Nothing. Reasons appear as a footer under the row when a field is selected</td><td>Tooltip on the icon. Built on the existing app tooltip (dark grey, one at a time, tap anywhere closes), extended with a title and a detail box. Whether the row footer stays is open</td></tr>
+      <tr><td>Stacking</td><td>Already max 2, vertical, 4 px gap, warning/lock above recalculated, edited below</td><td>Unchanged</td></tr>
+      <tr><td>Reasons</td><td>Order reasons collapse into 3 fixed sentences. Inventory knows other reason values than the ones in section 8</td><td>One line per reason. The new inventory reason values need mapping in the app</td></tr>
+      <tr><td>Recalculated detail</td><td>Old and new value only in the team-only recalculation log</td><td>"First X CS → Now Y CS" in the tooltip, from the same recalculation history</td></tr>
+      <tr><td>Order guide changes</td><td>One true/false flag, no list of what changed</td><td>The list of changed fields from the backend (ENG-3353)</td></tr>
+      <tr><td>Filter</td><td>Warnings: inventory, order quantity, recalculated, display size</td><td>Adds "Order guide changed" to the same group</td></tr>
+      <tr><td>"NEW" tag</td><td>Grey outlined pill under the name for recently available items</td><td>Stays. "Added to today's order guide" is a different fact and lives in the order guide tooltip</td></tr>
+    </table>
+  </div>
+
+  <!-- 7 REASONS -->
+  <h2><span class="num">8</span>Reason labels</h2>
+  <p class="sub">What the <b>!</b> and <b>?</b> tooltips show, mapped from the two needs-attention reason fields.</p>
+  <div class="grid">
+    <div class="card scroll">
+      <h3><span data-icon="inv" data-xs></span>&nbsp; inventory_needs_attention</h3>
+      <table class="plain">
+        <tr><th>Reason</th><th>EN</th><th>DE</th></tr>
+        <tr><td><code>multiple_skus_in_a_group</code></td><td>Several items on one PLU</td><td>Mehrere Artikel auf einer PLU</td></tr>
+        <tr><td><code>rolling_recount</code></td><td>Sample count</td><td>Stichprobenzählung</td></tr>
+        <tr><td><code>not_balanced</code></td><td>Erratic</td><td>Sprunghaft</td></tr>
+        <tr><td><code>missing_sales</code></td><td>Sales missing</td><td>Abverkauf fehlt</td></tr>
+        <tr><td><code>missing_intake</code></td><td>Intake missing</td><td>Wareneingang fehlt</td></tr>
+        <tr><td><code>never_counted</code></td><td>Never counted</td><td>Noch nie gezählt</td></tr>
+      </table>
+    </div>
+    <div class="card scroll">
+      <h3><span data-icon="ord" data-xs></span>&nbsp; needs_attention</h3>
+      <table class="plain">
+        <tr><th>Reason</th><th>EN</th><th>DE</th></tr>
+        <tr><td><code>in_promotion</code></td><td>Promotion</td><td>Werbung</td></tr>
+        <tr><td><code>missing_recent_sales</code></td><td>No recent sales</td><td>Zuletzt kein Abverkauf</td></tr>
+        <tr><td><code>not_balanced</code></td><td>Inventory incorrect</td><td>Bestand inkorrekt</td></tr>
+        <tr><td><code>manual_warning</code></td><td>Manual warning</td><td>Manuelle Warnung</td></tr>
+        <tr><td><code>suppressed_warning_due_to_lack_of_history</code></td><td>Too little history</td><td>Zu wenig Historie</td></tr>
+        <tr><td><code>new_item</code></td><td>New item</td><td>Neuer Artikel</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8 RELEASE -->
+  <h2><span class="num">9</span>Release order</h2>
+  <div class="grid g3">
+    <div class="card phase"><span class="n">1</span><div><h3>Icon set and tooltip</h3><p>Sections 1 to 4 and 8, all stores.</p></div></div>
+    <div class="card phase"><span class="n">2</span><div><h3>Order guide changed</h3><p>Section 5 without removed items. Needs the backend to send the changed fields.</p></div></div>
+    <div class="card phase"><span class="n">3</span><div><h3>Removed items</h3><p>Separate module, built on step 2.</p></div></div>
+  </div>
+
+</div>
+
+<div id="tip" role="tooltip"><span class="arrow"></span><div id="tipbody"></div></div>
+
+<script>
+const SVG = {
+  inv:'<svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5v7"/><path d="M12 18h.01"/></svg>',
+  ord:'<svg viewBox="0 0 24 24" fill="none" stroke="#2B1C00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9.2a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1-1.3 1.9v.4"/><path d="M12 18h.01"/></svg>',
+  rec:'<svg viewBox="0 0 24 24" fill="none" stroke="#2B2300" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.34 14.96A7 7 0 1 1 16.95 7.05"/><path d="M19.5 9.6L14.8 9.2L19.1 4.9Z" fill="#2B2300" stroke="#2B2300" stroke-width="1"/></svg>',
+  og:'<svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7.5l4 4v12.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.6"/><path d="M14 3.5V7.5h4" stroke="#1F7A80" stroke-width="1.6"/><path d="M9 12.2h6" stroke="#1F7A80"/><path d="M9 15.8h6" stroke="#1F7A80"/></svg>',
+  edit:'<svg viewBox="0 0 24 24"><path d="M12 3.2a4.2 4.2 0 0 0-2.6 7.5C6.6 11.8 4.8 14.4 4.8 17.6V20.5h14.4v-2.9c0-3.2-1.8-5.8-4.6-6.9A4.2 4.2 0 0 0 12 3.2z" fill="#5B7FB2"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7a4.3 4.3 0 0 0-2.6 7.7c.5.4.8 1 .8 1.6h3.6c0-.6.3-1.2.8-1.6A4.3 4.3 0 0 0 12 7z" fill="#5B7FB2"/><path d="M10.3 18.6h3.4"/><path d="M11 21h2"/><path d="M12 2.3v1.9" stroke-width="2"/><path d="M5.8 5l1.3 1.3" stroke-width="2"/><path d="M18.2 5l-1.3 1.3" stroke-width="2"/><path d="M3.3 11.2h1.9" stroke-width="2"/><path d="M18.8 11.2h1.9" stroke-width="2"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="11" width="12" height="9" rx="1" fill="#5B7FB2"/><path d="M9 11V8.5a3 3 0 0 1 6 0V11"/></svg>'
+};
+const CLS = {inv:'red',ord:'amber',rec:'yellow',og:'petrol',edit:'outline',info:'outline',lock:'outline'};
+const TITLE = {inv:'Check inventory',ord:'Check order quantity',rec:'Recalculated',og:'Order guide changed',edit:'Edited by you',info:'More info',lock:'Locked'};
+const TEXT = {
+  inv:'Please review the inventory for this item.',
+  ord:'Please review the order quantity for this item.',
+  rec:'This order recommendation was recalculated.',
+  og:null,
+  edit:'You changed this value by hand.',
+  lock:'This field cannot be edited.'
+};
+function ic(k, size){
+  const s = size==='xs' ? 'width:16px;height:16px' : size==='sm' ? 'width:20px;height:20px' : '';
+  const inner = size==='xs' ? 'width:11px;height:11px' : size==='sm' ? 'width:13px;height:13px' : '';
+  return `<span class="ic ${CLS[k]}" style="${s}">${SVG[k].replace('<svg','<svg style="'+inner+'"')}</span>`;
+}
+document.querySelectorAll('[data-icon]').forEach(el=>{
+  const size = el.hasAttribute('data-xs') ? 'xs' : el.hasAttribute('data-sm') ? 'sm' : '';
+  el.outerHTML = el.classList.contains('big') ? `<span class="big">${ic(el.dataset.icon)}</span>` : ic(el.dataset.icon,size);
+});
+
+/* demo data: m = markers. cells: inv, pre, ord. each cell: {v, alert, icons:[{k, ...tip}]} */
+const U = {cp:'CS', rewe:'Ki'};
+const ROWS = [
+  {cp:'KART. FESTKOCHEND BIO 1,5KG', rewe:'KARTOFFELN FESTKOCHEND BIO 1,5KG', meta:'2550530 · 12 Piece',
+   inv:{v:'–',alert:true,icons:[{k:'inv',reasons:['Never counted','Intake missing']}]},
+   pre:{v:1}, ord:{v:0,icons:[{k:'ord',reasons:['Promotion','Too little history']}]}},
+  {cp:'PRUNE ROUGE', rewe:'PFLAUMEN ROT', meta:'1217 · 3,47 KG',
+   inv:{v:0}, pre:{v:1,icons:[{k:'rec',first:0,now:1}]}, ord:{v:2,icons:[{k:'rec',first:1,now:2},{k:'edit'}]}},
+  {cp:'KIWI', rewe:'KIWI GRÜN', meta:'2210 · 33 Piece', og:['Sales price changed'],
+   inv:{v:1}, pre:{v:0,icons:[{k:'lock'}]}, ord:{v:1}},
+  {cp:'TOMATE CERISE ALLONGEE ROUGE BARQUETTE 500G FRANCE', rewe:'CHERRYTOMATEN LÄNGLICH ROT SCHALE 500G', meta:'4518 · 12 Piece', og:['Case size changed','Sales price changed'],
+   inv:{v:'No count needed',small:true,icons:[{k:'info',text:'A count would not change this order. Enter the quantity you want to order.',title:'No count needed'}]}, pre:{v:1}, ord:{v:1,icons:[{k:'edit'}]}},
+  {cp:'NOIX FRAICHE', rewe:'WALNÜSSE FRISCH', meta:'1873 · 5 KG', og:['Added to today\'s order guide'], ogAdded:true,
+   inv:{v:'–'}, pre:{v:0}, ord:{v:1,icons:[{k:'ord',reasons:['New item']}]}},
+  {cp:'BOUQUET LAURIER SEC', rewe:'LORBEER GETROCKNET BUND', meta:'37351 · 25 Piece', og:['Removed from order guide'], removed:true,
+   inv:{v:'–'}, pre:{v:0}, ord:{v:0}}
+];
+let logo='cp', registry=[];
+function hitBtn(tipData){
+  const id = registry.push(tipData)-1;
+  return `<button type="button" class="hit" data-tip="${id}" aria-label="${(tipData.title||TITLE[tipData.k])}">${ic(tipData.k)}</button>`;
+}
+function cell(c, removed){
+  const unit = U[logo];
+  const v = c.small ? c.v : c.v==='–' ? (c.alert?'–':'– '+unit) : c.v+' '+unit;
+  let icons = removed ? [] : (c.icons||[]);
+  const order = ['inv','ord','lock','rec','edit','info'];
+  icons = icons.slice().sort((a,b)=>order.indexOf(a.k)-order.indexOf(b.k)).slice(0,2);
+  const iconHtml = icons.length===0 ? '<span class="slot"></span>'
+    : icons.length===1 ? hitBtn(icons[0])
+    : `<span class="stack">${icons.map(hitBtn).join('')}</span>`;
+  return `<div class="cellw"><span class="val${c.alert?' alert':''}${c.small?' small':''}">${v}</span><span style="width:4px"></span>${iconHtml}</div>`;
+}
+function render(){
+  closeTip();
+  registry=[];
+  const cp = logo==='cp';
+  let rows = ROWS.filter(r=> cp || !r.removed);
+  let h = `<tr><th>Item</th><th>Inventory</th><th>Order</th>${cp?'<th>Preorder</th>':''}</tr>`;
+  rows.forEach(r=>{
+    if(r.removed) h += `<tr class="rowsep"><td colspan="${cp?4:3}">Removed from today's order guide</td></tr>`;
+    const showOg = cp && r.og;
+    const ogBtn = showOg ? hitBtn({k:'og',changes:r.og}) : '';
+    h += `<tr class="${r.removed?'removed':''}"><td><div class="name"><span class="t">${cp?r.cp:r.rewe}</span>${ogBtn}</div><div class="meta">${r.meta}</div></td>`
+      + `<td>${cell(r.inv,r.removed)}</td><td>${cell(r.ord,r.removed)}</td>` + (cp?`<td>${cell(r.pre,r.removed)}</td>`:'') + `</tr>`;
+  });
+  document.getElementById('demo').innerHTML = h;
+  document.getElementById('logohint').textContent = cp
+    ? 'Preorder column on, order guide changes during the day on.'
+    : 'No preorder column, one order guide per day: no order guide icon, no removed lines.';
+}
+const tip = document.getElementById('tip'), tipbody = document.getElementById('tipbody');
+let openBtn=null;
+function closeTip(){ tip.classList.remove('show'); if(openBtn) openBtn.classList.remove('open'); openBtn=null; }
+function openTip(btn){
+  const d = registry[+btn.dataset.tip];
+  const title = d.title || TITLE[d.k];
+  let text = d.text || TEXT[d.k];
+  let box = '';
+  if(d.reasons){
+    const uniq = [...new Set(d.reasons)];
+    box = uniq.map(r=>`<div class="rl">${ic(d.k,'xs')}${r}</div>`).join('');
+  } else if(d.k==='rec'){
+    box = `First <s>${d.first} ${U[logo]}</s> &rarr; Now <b>${d.now} ${U[logo]}</b>`;
+  } else if(d.changes){
+    box = d.changes.length===1 ? d.changes[0] : '<ul>'+d.changes.map(c=>`<li>${c}</li>`).join('')+'</ul>';
+  }
+  tipbody.innerHTML = `<div class="hd">${ic(d.k,'sm')}${title}</div>` + (text?`<p class="tx">${text}</p>`:'') + (box?`<div class="box">${box}</div>`:'');
+  tip.classList.add('show');
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth;
+  let left = r.left + r.width/2 - w/2;
+  left = Math.max(16, Math.min(left, window.innerWidth - w - 16));
+  tip.style.left = left+'px';
+  tip.style.top = (r.bottom + 6)+'px';
+  tip.querySelector('.arrow').style.left = (r.left + r.width/2 - left - 7)+'px';
+  if(openBtn) openBtn.classList.remove('open');
+  openBtn = btn; btn.classList.add('open');
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('button.hit');
+  if(b){ if(b===openBtn) closeTip(); else openTip(b); return; }
+  if(!e.target.closest('#tip')) closeTip();
+});
+window.addEventListener('scroll', closeTip, {passive:true});
+document.querySelector('.og').addEventListener('scroll', closeTip, {passive:true});
+window.addEventListener('resize', closeTip);
+document.querySelectorAll('[data-logo]').forEach(b=>b.addEventListener('click', ()=>{
+  logo = b.dataset.logo;
+  document.querySelectorAll('[data-logo]').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  render();
+}));
+render();
+</script>
+</body>
+</html>

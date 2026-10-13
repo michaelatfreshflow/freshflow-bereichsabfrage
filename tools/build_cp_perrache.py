@@ -1,0 +1,345 @@
+#!/usr/bin/env python3
+"""Build the C&P Perrache prototype from the current REWE prototype.
+
+Adds what only C&P has: the Prévision (preorder) column after Commande, the
+order guide changed marker behind the item name, recalculated markers, and
+removed lines. Logic follows freshflowai/mobile main (see MOB-1765):
+
+  * column order Item | Inventory | Order | Preorder
+  * a preorder edit never changes the commande
+  * netting runs the other way: a commande change moves the preorder reco of
+    machine lines (not user-edited, not locked); the user sees only the new
+    preorder value plus the recalculated marker
+  * locked preorder lines come from the backend, show the lock, are not editable
+  * no preorder line -> an em dash
+  * footer totals exclude the preorder
+
+Usage:
+  python3 tools/build_cp_perrache.py --base rewe-peeters-flueren-2026-08-25.html \
+      --items-from intermarche-hyper-dole-2026-09-03.html \
+      --out cerise-perrache-2026-10-13.html [--cp-json cp.json]
+
+Without --cp-json the C&P fields are seeded deterministically (dummy data) and
+the page is stamped as such. With --cp-json (keyed by item index, same fields
+as CP_DEMO below) nothing is invented.
+"""
+import argparse, json, re, sys
+
+ap = argparse.ArgumentParser()
+ap.add_argument('--base', required=True)
+ap.add_argument('--items-from', required=True)
+ap.add_argument('--out', required=True)
+ap.add_argument('--cp-json')
+ap.add_argument('--store-name', default='Cerise &amp; Potiron Perrache')
+ap.add_argument('--guide-id', default='cerise-perrache-2026-10-13')
+args = ap.parse_args()
+
+s = open(args.base, encoding='utf-8').read()
+src = open(args.items_from, encoding='utf-8').read()
+
+
+def rep(a, b, cnt=1):
+    global s
+    n = s.count(a)
+    if n != cnt:
+        sys.exit(f'anchor x{n} (want {cnt}): {a[:90]!r}')
+    s = s.replace(a, b)
+
+
+def block(text, start, end_pat):
+    i = text.index(start)
+    j = text.index(end_pat, i) + len(end_pat)
+    return i, j
+
+
+# ---- items + shelves -------------------------------------------------------
+m_dst = re.search(r'const ITEMS = \[.*?\];\n', s, re.S)
+m_src = re.search(r'const ITEMS = \[.*?\];\n', src, re.S)
+s = s[:m_dst.start()] + m_src.group(0) + s[m_dst.end():]
+items = json.loads(m_src.group(0)[len('const ITEMS = '):-2])
+
+for name in ('HIST_PROMO', 'HIST_SHRINK', 'HIST'):
+    m = re.search(r'const %s = \{.*?\};\n' % name, s, re.S)
+    s = s[:m.start()] + 'const %s = {};\n' % name + s[m.end():]
+
+i, j = block(s, 'const TILES = [', '\n];')
+k, l = block(src, 'const TILES = [', '\n];')
+s = s[:i] + src[k:l] + s[j:]
+
+# ---- store identity --------------------------------------------------------
+rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
+rep('REWE Peeters Flüren', args.store_name, 3)
+rep("const GUIDE_ID = 'rewe-peeters-flueren-2026-08-25';", f"const GUIDE_ID = '{args.guide_id}';")
+rep("let LANG='de';", "let LANG='fr';")
+rep("const MI_TODAY = new Date(2026, 7, 25);", "const MI_TODAY = new Date(2026, 9, 13);")
+for a, b in (("hdrOrderDate:'Di., 25. Aug.'", "hdrOrderDate:'Di., 13. Okt.'"),
+             ("hdrOrderDate:'Tue, 25 Aug'", "hdrOrderDate:'Tue, 13 Oct'"),
+             ("hdrOrderDate:'mar. 25 août'", "hdrOrderDate:'mar. 13 oct.'"),
+             ("hdrPrevDate:'Mo., 24. Aug.'", "hdrPrevDate:'Mo., 12. Okt.'"),
+             ("hdrPrevDate:'Mon, 24 Aug'", "hdrPrevDate:'Mon, 12 Oct'"),
+             ("hdrPrevDate:'lun. 24 août'", "hdrPrevDate:'lun. 12 oct.'")):
+    rep(a, b)
+rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
+    "(new URLSearchParams(location.search).get('retailer') || 'cp')")
+
+# ---- locale keys (same keys in all three, parity) --------------------------
+LOC = {
+    'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
+               tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
+               tipRecFirst='Zuerst', tipRecNow='Jetzt',
+               tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
+               ogPrice='Verkaufspreis geändert', ogAdded='Heute zum Ordersatz hinzugefügt',
+               ogRemoved='Aus dem Ordersatz entfernt',
+               tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
+               cpDummy='Demodaten · noch nicht Perrache'),
+    'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
+               tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
+               tipRecFirst='First', tipRecNow='Now',
+               tipOgTitle='Order guide changed', ogCase='Case size changed', ogPromo='Promo dates changed',
+               ogPrice='Sales price changed', ogAdded="Added to today's order guide",
+               ogRemoved='Removed from order guide',
+               tipLockTitle='Locked', tipLockText='This field cannot be edited.',
+               cpDummy='Demo data · not Perrache yet'),
+    'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
+               tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
+               tipRecFirst='Initial', tipRecNow='Maintenant',
+               tipOgTitle='Guide de commande modifié', ogCase='Colisage modifié', ogPromo='Dates de promo modifiées',
+               ogPrice='Prix de vente modifié', ogAdded='Ajouté au guide de commande du jour',
+               ogRemoved='Retiré du guide de commande',
+               tipLockTitle='Verrouillé', tipLockText='Ce champ ne peut pas être modifié.',
+               cpDummy='Données fictives · pas encore Perrache'),
+}
+ANCH = {'de': "    rManualWarning:'Manuelle Warnung',",
+        'en': "    rManualWarning:'Manual warning',",
+        'fr': "    rManualWarning:'Alerte manuelle',"}
+for lg, kv in LOC.items():
+    add = ''.join(f"\n    {k}:{json.dumps(v, ensure_ascii=False)}," for k, v in kv.items())
+    rep(ANCH[lg], ANCH[lg] + add)
+
+# ---- C&P data --------------------------------------------------------------
+if args.cp_json:
+    cp = json.load(open(args.cp_json, encoding='utf-8'))
+    dummy = False
+else:
+    dummy = True
+    cp = {}
+    for ix, it in enumerate(items):
+        plan = next((r for r in it['rungs'] if r.get('plan')), it['rungs'][0]) if it['rungs'] else {}
+        d = {}
+        if ix % 10 < 7:
+            d['pre'] = {'sys': (ix * 7) % 3, 'locked': ix % 13 == 0}
+        if ix % 6 == 0:
+            d['preOrdered'] = 1 + ix % 2
+        if ix % 9 == 4:
+            d['preLabel'] = {'date': '16.10', 'qty': 2}
+        if ix % 11 == 3:
+            d['recFirst'] = (plan.get('order') or 0) + 1
+        if ix % 17 == 2:
+            d['og'] = ['price']
+        elif ix % 17 == 5:
+            d['og'] = ['case', 'price']
+        elif ix % 23 == 7:
+            d['og'] = ['added']
+        if ix % 41 == 9:
+            d['og'] = ['removed']
+        if d:
+            cp[str(ix)] = d
+
+# ---- CSS -------------------------------------------------------------------
+CSS = r"""
+/* ===== C&P: Prévision column (Item | Inventory | Order | Preorder, as in the app) ===== */
+body.hasPre .colh, body.hasPre #list > .row{
+  grid-template-columns:minmax(0, 1fr)
+    minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%))
+    minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%))
+    minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%));}
+body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
+  grid-template-columns:minmax(0, 1fr)
+    minmax(var(--inv-cell-min), calc(var(--pvt-col-1) * 100%))
+    minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%))
+    minmax(var(--ord-cell-min), calc(var(--pvt-col-2) * 100%)) 52px}
+.row > *:nth-child(4) .statusSlot{flex:0 0 auto;width:24px;display:flex;align-items:center;justify-content:center}
+.statusSlot.stack{flex-direction:column;gap:4px}
+.statusSlot.stack .whyBtn{width:44px;height:26px;margin:0 -10px}
+.preDash{display:flex;align-items:center;justify-content:center;height:48px;width:72px;margin-left:42px;
+  color:var(--ff-grey-800);font-weight:var(--ff-weight-medium);font-size:var(--ff-text-primary-body-text-14)}
+.ColumnCounterField--locked .ColumnCounterField__box{background:var(--ff-grey-100);color:var(--ff-grey-500)}
+.lineTag{display:inline-block;margin:0 0 5px 42px;padding:1px 8px;border-radius:var(--ff-radius-c15);
+  border:1px solid var(--ff-grey-300);font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600)}
+.preLabelTag{display:inline-block;padding:1px 8px;border-radius:var(--ff-radius-c15);border:1px solid #FF8502;color:#FF8502;
+  font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
+.nm .nmTxt{display:inline}
+.nm .ogBtn{display:inline-grid;vertical-align:middle;margin:-12px -8px -10px -4px}
+.row.cpRemoved{background:#FAFBFA}
+.row.cpRemoved > div:not(.itemcell), .row.cpRemoved .itemtext .meta, .row.cpRemoved .itemtext .pills{opacity:.45;pointer-events:none}
+.row.cpRemoved .nm > span.nmTxt{opacity:.45}
+.cpDummy{position:fixed;left:12px;bottom:84px;z-index:50;background:#FFF4D6;color:#7A5A00;border:1px solid #F0C64A;
+  border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;pointer-events:none}
+"""
+rep('</style>', CSS + '</style>', 1) if s.count('</style>') == 1 else None
+if s.count('</style>') != 1:
+    idx = s.index('</style>')
+    s = s[:idx] + CSS + s[idx:]
+
+# ---- header column ---------------------------------------------------------
+hdr_old = '</svg></span></div><div></div></div>'
+i = s.index('<div class="colh" id="colh">')
+j = s.index(hdr_old, i)
+s = s[:j] + '</svg></span></div><div><span id="hdrPre">Prévision</span></div><div></div></div>' + s[j + len(hdr_old):]
+
+# ---- JS --------------------------------------------------------------------
+JS = r"""
+/* ===== C&P layer (MOB-1765 + preorder as built in the app) ===== */
+const CP = __CP__;
+const CP_DUMMY = __DUMMY__;
+const cpOf = ix => CP[String(ix)] || {};
+const cpRemoved = ix => (cpOf(ix).og||[]).includes('removed');
+document.body.classList.add('hasPre');
+const ICON_REC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#FFDD33"/><g transform="translate(4 4) scale(.6667)" stroke="#2B2300" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.34 14.96A7 7 0 1 1 16.95 7.05"/><path d="M19.5 9.6L14.8 9.2L19.1 4.9Z" fill="#2B2300" stroke-width="1"/></g></svg>';
+const ICON_OG='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1F7A80"/><g transform="translate(4 4) scale(.6667)" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7.5l4 4v12.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" fill="#fff" stroke="#fff" stroke-width="1.6"/><path d="M14 3.5V7.5h4" stroke="#1F7A80" stroke-width="1.6"/><path d="M9 12.2h6" stroke="#1F7A80" stroke-width="2"/><path d="M9 15.8h6" stroke="#1F7A80" stroke-width="2"/></g></svg>';
+const ICON_LOCKED='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11.1" fill="#fff" stroke="#5B7FB2" stroke-width="1.75"/><g transform="translate(4 4) scale(.6667)" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="11" width="12" height="9" rx="1" fill="#5B7FB2"/><path d="M9 11V8.5a3 3 0 0 1 6 0V11"/></g></svg>';
+Object.assign(TIP_ICON,{rec:()=>ICON_REC, prerec:()=>ICON_REC, og:()=>ICON_OG, lock:()=>ICON_LOCKED, preedit:()=>ICON_EDITED});
+
+/* Planned commande of the line without any user action -- the base the netting compares against. */
+function cpBaseOrder(ix){ const it=ITEMS[ix], s=ST[ix]; return it.rungs[s.plan].order??0; }
+/* Netting, commande -> Prévision only (preorder_reference_inventory_sync): more cases on the
+   commande now means fewer needed on the later delivery. Machine lines only. */
+function preApp(ix){
+  const p=cpOf(ix).pre; if(!p) return null;
+  if(p.locked) return p.sys;
+  /* what actually gets ordered, not a pending (unconfirmed) value */
+  return Math.max(0, p.sys - (ordCommitted(ix) - cpBaseOrder(ix)));
+}
+function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
+function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
+function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
+
+function cpSlot(btns){
+  if(!btns.length) return '<span class="statusSlot"></span>';
+  return `<span class="statusSlot${btns.length>1?' stack':''}">${btns.slice(0,2).join('')}</span>`;
+}
+function cpBtn(kind,ix,label){
+  return `<button type="button" class="whyBtn" data-a="why" data-i="${ix}" data-kind="${kind}" aria-label="${label}">${TIP_ICON[kind]()}</button>`;
+}
+function preCellHTML(ix){
+  const p=cpOf(ix).pre, L=t();
+  if(cpRemoved(ix)) return `<div class="withbang"><div class="ColumnCounterField ColumnCounterField--locked"><button class="ColumnCounterField__button" disabled>${ICON_MINUS}</button><div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>0</b><i>${L.caseUnit}</i></span></div><button class="ColumnCounterField__button" disabled>${ICON_PLUS}</button></div><span class="statusSlot"></span></div>`;
+  if(!p) return `<div class="preDash">—</div>`;
+  const v=preShown(ix), locked=!!p.locked, s=ST[ix];
+  const icons=[];
+  if(locked) icons.push(cpBtn('lock',ix,L.tipLockTitle));
+  if(preRecalc(ix)) icons.push(cpBtn('prerec',ix,L.tipRecTitle));
+  if(!locked && s.preUser!=null && s.preUser!==preApp(ix)) icons.push(cpBtn('preedit',ix,L.tipEditTitle));
+  const it=ITEMS[ix];
+  return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}">
+      <button class="ColumnCounterField__button" data-a="predec" data-i="${ix}"${locked||v<=0?' disabled':''} aria-label="${L.less}">${ICON_MINUS}</button>
+      <div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>${v}</b><i>${L.caseUnit}</i></span>
+        ${it.case!=null?`<span class="ColumnCounterField__label">${Math.round(v*it.case)} ${uw(it)}</span>`:''}</div>
+      <button class="ColumnCounterField__button" data-a="preinc" data-i="${ix}"${locked?' disabled':''} aria-label="${L.more}">${ICON_PLUS}</button>
+    </div>${cpSlot(icons)}</div>`;
+}
+
+/* Hook into the row: OG marker behind the name, recalculated + stacking on the commande,
+   the Pre-ordered line tag above the commande, the Pré-commande label in the pills, the
+   Prévision cell as the fourth column, removed lines greyed and locked. */
+const _rowHTML_cp = rowHTML;
+rowHTML = function(ix, ...rest){
+  let h = _rowHTML_cp(ix, ...rest);
+  if(h.indexOf('class="row row--back')>=0) return h;
+  const L=t(), c=cpOf(ix);
+  // name + OG marker
+  h = h.replace(/<div class="nm">([\s\S]*?)<\/div>/, (m,nm)=>`<div class="nm"><span class="nmTxt">${nm}</span>${ogOn(ix)?cpBtn('og',ix,L.tipOgTitle).replace('class="whyBtn"','class="whyBtn ogBtn"'):''}</div>`);
+  if(cpRemoved(ix)) h = h.replace('<div class="row', '<div class="row cpRemoved');
+  // Pré-commande label
+  if(c.preLabel) h = h.replace('<div class="pills">', `<div class="pills"><span class="preLabelTag">${L.preLabel}: ${c.preLabel.date}, ${c.preLabel.qty} ${L.caseUnit}</span> `);
+  return h;
+};
+/* The commande status slot and the Prévision cell are rebuilt after render(), from the
+   DOM the base row produced -- the base keeps owning everything else. */
+function cpDecorate(){
+  document.querySelectorAll('#list > .row[data-ix]').forEach(row=>{
+    const ix=+row.dataset.ix, s=ST[ix], it=ITEMS[ix], L=t();
+    const cells=row.children;
+    if(!cells[2] || row.querySelector('.cpPre')) return;
+    // removed: no ! / ? / info in the inventory cell -- the user cannot act on the line
+    if(cpRemoved(ix)){ const sl=cells[1].querySelector('.statusSlot'); if(sl) sl.innerHTML=''; }
+    // commande: removed -> 0 and nothing else
+    const ordWrap=cells[2].querySelector('.withbang');
+    if(ordWrap){
+      const slot=ordWrap.querySelector(':scope > .statusSlot');
+      const btns=[];
+      if(!cpRemoved(ix)){
+        const own=slot && slot.querySelector('button');
+        const ownKind=own && own.dataset.kind;
+        if(ownKind==='ord') btns.push(own.outerHTML);
+        if(ordRecalc(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));
+        if(ownKind==='edit') btns.push(own.outerHTML);
+      }
+      if(slot) slot.outerHTML=cpSlot(btns);
+      if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
+      const cc=cpOf(ix);
+      if(cc.preOrdered!=null && !cpRemoved(ix)) ordWrap.insertAdjacentHTML('beforebegin', `<div class="lineTag">${L.preOrdered} ${cc.preOrdered} ${L.caseUnit}</div>`);
+    }
+    const pre=document.createElement('div'); pre.className='cpPre'; pre.innerHTML=preCellHTML(ix);
+    cells[2].after(pre);
+  });
+  const hp=document.getElementById('hdrPre'); if(hp) hp.textContent=t().hdrPre;
+}
+/* Removed lines go to the bottom of the list (MOB-1765 section 7, to be confirmed). */
+const _sortIdx_cp = sortIdx;
+sortIdx = function(list){ const r=_sortIdx_cp(list); return r.filter(ix=>!cpRemoved(ix)).concat(r.filter(cpRemoved)); };
+const _render_cp = render;
+render = function(...a){ const r=_render_cp(...a); cpDecorate(); return r; };
+const _orderVal_cp = orderVal;
+orderVal = function(ix){ return cpRemoved(ix) ? 0 : _orderVal_cp(ix); };
+
+/* Tooltip content for the C&P kinds; the base openWhy keeps inv/ord/edit/info. */
+const _openWhy_cp = openWhy;
+openWhy = function(btn, ix, kind){
+  const L=t();
+  if(!['rec','prerec','og','lock','preedit'].includes(kind)) return _openWhy_cp(btn, ix, kind);
+  closeWhy();
+  let title, text='', box='';
+  if(kind==='rec'||kind==='prerec'){
+    title=L.tipRecTitle; text=L.tipRecText;
+    const first = kind==='rec' ? cpOf(ix).recFirst : cpOf(ix).pre.sys;
+    const now = kind==='rec' ? orderVal(ix) : preShown(ix);
+    box=`<div class="whyRow"><span>${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></span></div>`;
+  } else if(kind==='og'){
+    title=L.tipOgTitle;
+    const og=cpOf(ix).og, order=['added','removed','case','promo','price'];
+    const lines=order.filter(k=>og.includes(k)).map(k=>({added:L.ogAdded,removed:L.ogRemoved,case:L.ogCase,promo:L.ogPromo,price:L.ogPrice}[k]));
+    box=lines.length===1 ? `<div class="whyRow"><span>${lines[0]}</span></div>` : lines.map(x=>`<div class="whyRow"><span>• ${x}</span></div>`).join('');
+  } else if(kind==='lock'){ title=L.tipLockTitle; text=L.tipLockText; }
+  else { title=L.tipEditTitle; text=L.tipEditText; }
+  const p=document.createElement('div'); p.className='whyPop';
+  p.innerHTML=`<div class="whyHd">${TIP_ICON[kind]()}<b>${title}</b></div>`+(text?`<div class="whyTx">${text}</div>`:'')+(box?`<div class="whyBox">${box}</div>`:'');
+  document.body.appendChild(p);
+  const r=btn.getBoundingClientRect(), pw=p.offsetWidth, ph=p.offsetHeight, GAP=8, M=10;
+  let top=r.bottom+GAP, cls='below';
+  if(top+ph > window.innerHeight-M && r.top-GAP-ph > M){ top=r.top-GAP-ph; cls='above'; }
+  const cx=r.left+r.width/2, left=Math.max(M, Math.min(cx-pw/2, window.innerWidth-pw-M));
+  p.style.top=top+'px'; p.style.left=left+'px';
+  p.style.setProperty('--arrow', Math.max(10, Math.min(cx-left-6, pw-22))+'px');
+  p.classList.add(cls); WHY_POP=p;
+};
+/* Prévision -/+ : writes the user layer of the preorder line only. */
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="predec"],[data-a="preinc"]'); if(!b) return;
+  e.stopPropagation();
+  const ix=+b.dataset.i, s=ST[ix];
+  const v=preShown(ix) + (b.dataset.a==='preinc'?1:-1);
+  s.preUser=Math.max(0,v);
+  if(s.preUser===preApp(ix)) s.preUser=null;
+  render();
+}, true);
+if(CP_DUMMY){ const d=document.createElement('div'); d.className='cpDummy'; d.textContent=t().cpDummy; document.body.appendChild(d); }
+render();
+"""
+JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__', 'true' if dummy else 'false')
+idx = s.rindex('</script>')
+s = s[:idx] + JS + s[idx:]
+
+open(args.out, 'w', encoding='utf-8').write(s)
+print(f'wrote {args.out}: {len(items)} items, {len(cp)} with C&P fields, dummy={dummy}')
