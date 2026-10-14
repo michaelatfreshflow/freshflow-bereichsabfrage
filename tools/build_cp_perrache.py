@@ -30,6 +30,14 @@ ap.add_argument('--base', required=True)
 ap.add_argument('--items-from', required=True)
 ap.add_argument('--out', required=True)
 ap.add_argument('--cp-json')
+ap.add_argument('--hide-purchase-price-and-margin', action='store_true', help="set when the store doc has hide_purchase_price_and_margin = true (Perrache: true)")
+ap.add_argument('--tiles-from', help='page whose TILES (shelf keywords) to use; default --items-from')
+ap.add_argument('--deadline', default=None, help='HH:MM order deadline shown in the header')
+ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (see cp_lines_*.json)')
+ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
+ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
+ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
+ap.add_argument('--clock', help='HH:MM the page opens on when no ?now= is given (see cp_orders_overview.py)')
 ap.add_argument('--store-name', default='Cerise &amp; Potiron Perrache')
 ap.add_argument('--guide-id', default='cerise-perrache-2026-10-13')
 args = ap.parse_args()
@@ -44,6 +52,14 @@ def rep(a, b, cnt=1):
     if n != cnt:
         sys.exit(f'anchor x{n} (want {cnt}): {a[:90]!r}')
     s = s.replace(a, b)
+
+
+def rep_set(a, b):
+    """Like rep(), but a page where build_store_page.py already set the value passes."""
+    global s
+    if s.count(a) == 0 and s.count(b) >= 1:
+        return
+    rep(a, b)
 
 
 def block(text, start, end_pat):
@@ -63,22 +79,49 @@ for name in ('HIST_PROMO', 'HIST_SHRINK', 'HIST'):
     s = s[:m.start()] + 'const %s = {};\n' % name + s[m.end():]
 
 i, j = block(s, 'const TILES = [', '\n];')
-k, l = block(src, 'const TILES = [', '\n];')
-s = s[:i] + src[k:l] + s[j:]
+tsrc = open(args.tiles_from, encoding='utf-8').read() if args.tiles_from else src
+k, l = block(tsrc, 'const TILES = [', '\n];')
+s = s[:i] + tsrc[k:l] + s[j:]
+# Perrache produce names the Dole keywords miss. First match wins, so the specific
+# bagged-salad terms go into the chilled tile and only the head salads into salate-kohl.
+EXTRA_KW = {
+    'kartoffeln-zwiebeln': ['ail violet', 'ail blanc', 'ail rose'],
+    'wurzelgemuese': ['igname', 'manioc'],
+    'salate-kohl': ['feuille de chene', 'cresson', 'celeri vert', 'scarole', 'frisee'],
+    'fruchtgemuese': ['chayotte', 'christophine'],
+    'gekuehltes-gemuese': ['jeune pousse', 'roquette sachet', 'pousse epinard'],
+    'bananen-exoten': ['kaki', 'persimon'],
+}
+for tid, kws in EXTRA_KW.items():
+    m = re.search(r"\['%s','[^']*','[^']*',\[" % re.escape(tid), s)
+    if not m:
+        sys.exit(f'tile {tid} not found')
+    s = s[:m.end()] + ''.join(f"'{k}'," for k in kws) + s[m.end():]
+if args.deadline:
+    for a, b in (('Bestellschluss heute 13:00 Uhr', f'Bestellschluss heute {args.deadline} Uhr'),
+                 ('Order deadline today 13:00', f'Order deadline today {args.deadline}'),
+                 ('Heure limite aujourd’hui 13:00', f'Heure limite aujourd’hui {args.deadline}')):
+        s = s.replace(a, b)
+
+# The REWE base page hides a few rows for its own demo. A clone shows only what the store's app
+# shows: hidden comes from hidden_state in the data (build_store_page.py), nothing is inherited.
+m = re.search(r'const DEMO_HIDDEN_IDS = new Set\(\[[^\]]*\]\);', s)
+if m:
+    s = s[:m.start()] + 'const DEMO_HIDDEN_IDS = new Set([]);   /* C&P clone: no demo-hidden rows */' + s[m.end():]
 
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
 rep('REWE Peeters Flüren', args.store_name, 3)
 rep("const GUIDE_ID = 'rewe-peeters-flueren-2026-08-25';", f"const GUIDE_ID = '{args.guide_id}';")
-rep("let LANG='de';", "let LANG='fr';")
-rep("const MI_TODAY = new Date(2026, 7, 25);", "const MI_TODAY = new Date(2026, 9, 13);")
+rep_set("let LANG='de';", "let LANG='fr';")
+rep_set("const MI_TODAY = new Date(2026, 7, 25);", "const MI_TODAY = new Date(2026, 9, 13);")
 for a, b in (("hdrOrderDate:'Di., 25. Aug.'", "hdrOrderDate:'Di., 13. Okt.'"),
              ("hdrOrderDate:'Tue, 25 Aug'", "hdrOrderDate:'Tue, 13 Oct'"),
              ("hdrOrderDate:'mar. 25 août'", "hdrOrderDate:'mar. 13 oct.'"),
              ("hdrPrevDate:'Mo., 24. Aug.'", "hdrPrevDate:'Mo., 12. Okt.'"),
              ("hdrPrevDate:'Mon, 24 Aug'", "hdrPrevDate:'Mon, 12 Oct'"),
              ("hdrPrevDate:'lun. 24 août'", "hdrPrevDate:'lun. 12 oct.'")):
-    rep(a, b)
+    rep_set(a, b)
 rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
     "(new URLSearchParams(location.search).get('retailer') || 'cp')")
 
@@ -91,7 +134,7 @@ LOC = {
                ogPrice='Verkaufspreis geändert', ogAdded='Heute zum Ordersatz hinzugefügt',
                ogRemoved='Aus dem Ordersatz entfernt',
                tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
-               cpDummy='Demodaten · noch nicht Perrache'),
+               cpDummy='Demodaten · noch nicht Perrache', cpDemo='Beispiel', labelNew='Neu'),
     'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
                tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
                tipRecFirst='First', tipRecNow='Now',
@@ -99,7 +142,7 @@ LOC = {
                ogPrice='Sales price changed', ogAdded="Added to today's order guide",
                ogRemoved='Removed from order guide',
                tipLockTitle='Locked', tipLockText='This field cannot be edited.',
-               cpDummy='Demo data · not Perrache yet'),
+               cpDummy='Demo data · not Perrache yet', cpDemo='Example', labelNew='New'),
     'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
                tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
                tipRecFirst='Initial', tipRecNow='Maintenant',
@@ -107,7 +150,7 @@ LOC = {
                ogPrice='Prix de vente modifié', ogAdded='Ajouté au guide de commande du jour',
                ogRemoved='Retiré du guide de commande',
                tipLockTitle='Verrouillé', tipLockText='Ce champ ne peut pas être modifié.',
-               cpDummy='Données fictives · pas encore Perrache'),
+               cpDummy='Données fictives · pas encore Perrache', cpDemo='Exemple', labelNew='Nouveau'),
 }
 ANCH = {'de': "    rManualWarning:'Manuelle Warnung',",
         'en': "    rManualWarning:'Manual warning',",
@@ -120,6 +163,40 @@ for lg, kv in LOC.items():
 if args.cp_json:
     cp = json.load(open(args.cp_json, encoding='utf-8'))
     dummy = False
+elif args.cp_lines:
+    dummy = False
+    src_lines = json.load(open(args.cp_lines, encoding='utf-8'))
+    by_name = {l['name'].strip().upper(): l for l in src_lines['lines']}
+    by_id = {l['id']: l for l in src_lines['lines']}
+    cp, unmatched = {}, []
+    for ix, it in enumerate(items):
+        l = by_id.get(it.get('plu')) or by_name.get(it['name'].strip().upper())
+        if not l:
+            unmatched.append(it['name']); continue
+        d = {'itemId': l['id']}
+        if l.get('pre') is not None:
+            d['pre'] = {'sys': l['pre'], 'locked': bool(l.get('preLocked'))}
+        if l.get('preY') is not None:
+            d['preOrdered'] = l['preY']          # the app shows the tag at 0 too
+        if l.get('ordLocked'):
+            d['ordLocked'] = True
+        labs = [k for k, ids in src_lines.get('labels', {}).items() if l['id'] in ids and k != 'core_assortment']
+        if labs:
+            d['labels'] = labs
+        cp[str(ix)] = d
+    if unmatched:
+        sys.exit(f'{len(unmatched)} page items without a real line: {unmatched[:8]}')
+    if len(cp) != len(src_lines['lines']):
+        print(f'warning: {len(src_lines["lines"])} real lines, {len(cp)} on the page')
+    # labelled examples for the order guide marker -- Perrache had no change during the day
+    if args.demo_og:
+        pool = [ix for ix in range(len(items)) if 'ordLocked' not in cp[str(ix)]]
+        kinds = [['price'], ['case', 'price'], ['promo'], ['added'], ['removed']]
+        step = max(1, len(pool) // (args.demo_og + 1))
+        for n in range(args.demo_og):
+            ix = pool[(n + 1) * step]
+            cp[str(ix)]['og'] = kinds[n % len(kinds)]
+            cp[str(ix)]['demo'] = True
 else:
     dummy = True
     cp = {}
@@ -144,6 +221,42 @@ else:
             d['og'] = ['removed']
         if d:
             cp[str(ix)] = d
+
+# The counting self-test assumes its row has no order warning; on real C&P data the first
+# range row may carry one, and then "counted = done" is rightly false. Pick a row without.
+rep("const ixQ=ITEMS.findIndex((it,ix)=>ST[ix].home==='range' && it.rungs.length>1);",
+    "const ixQ=ITEMS.findIndex((it,ix)=>ST[ix].home==='range' && it.rungs.length>1 && !it.ordNote);")
+
+# ---- store settings the app reads (Perrache: hide_purchase_price_and_margin = true) ----
+ap_hide = args.hide_purchase_price_and_margin   # copy the store doc's hide_purchase_price_and_margin
+if ap_hide:
+    rep("      + `<span class=\"metarow\">${it.ek!=null?eur(it.ek):'?'}`\n"
+        "      + `${marginPct!=null?' '+marginPct.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %':''}`\n"
+        "      + ` ${it.vk!=null?eur(it.vk):'?'}</span>`;",
+        "      + `<span class=\"metarow\">${it.vk!=null?eur(it.vk):'?'}</span>`;   /* hide_purchase_price_and_margin: retail price only */")
+    rep("          ${it.ek!=null?col(eur(it.ek), L.sdPurchase):''}\n"
+        "          ${margin!=null?col(margin.toLocaleString(dateLoc(),{minimumFractionDigits:2,maximumFractionDigits:2})+'%', L.sdMargin):''}\n",
+        "")
+    rep('    <div class="m"><span id="lblEk">EK</span><b id="fcost">0,00 €</b></div>\n',
+        '    <div class="m" hidden><span id="lblEk">EK</span><b id="fcost">0,00 €</b></div>\n')
+    rep('    <div class="m"><span id="lblMargin">Spanne</span><b id="fmar">0,00 %</b></div>\n',
+        '    <div class="m" hidden><span id="lblMargin">Spanne</span><b id="fmar">0,00 %</b></div>\n')
+# core tag only where the data carries a core_assortment label (Perrache: none)
+core_ids = []
+if args.cp_lines:
+    core = set(src_lines.get('labels', {}).get('core_assortment', []))
+    core_ids = [ix for ix, d in cp.items() if d.get('itemId') in core]
+# The app draws a promotion pill only from a 'promotion' label with dates; the order guide's
+# is_in_promotion alone does not make one. No such label in the data -> no promo pill.
+if args.cp_lines and not src_lines.get('labels', {}).get('promotion'):
+    rep("    if(pl) pills+=`<span class=\"pill promo\">${pl}</span>`;",
+        "    if(true){ /* no 'promotion' label at this store: the app shows no promo pill (an in_promotion\n       reason is a needs-attention reason and stays in the ? tooltip) */ }")
+if not core_ids:
+    # no core items at this store: no core filter either (it would read "Base 0")
+    rep("        + chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern))",
+        "        + (ITEMS.some(it=>it.kern) ? chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern)) : '')")
+m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
+s = s[:m.start()] + 'const KERN_IDS = new Set([%s]);' % ','.join(core_ids) + s[m.end():]
 
 # ---- CSS -------------------------------------------------------------------
 CSS = r"""
@@ -173,9 +286,16 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .row.cpRemoved{background:#FAFBFA}
 .row.cpRemoved > div:not(.itemcell), .row.cpRemoved .itemtext .meta, .row.cpRemoved .itemtext .pills{opacity:.45;pointer-events:none}
 .row.cpRemoved .nm > span.nmTxt{opacity:.45}
+.demoTag{display:inline-block;padding:1px 8px;border-radius:var(--ff-radius-c15);border:1px dashed #1F7A80;color:#1F7A80;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
 .cpDummy{position:fixed;left:12px;bottom:84px;z-index:50;background:#FFF4D6;color:#7A5A00;border:1px solid #F0C64A;
   border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;pointer-events:none}
 """
+CSS_NOSCAN = """
+/* ===== C&P: no scanning ===== */
+#scanFab, #scanCam, #scanRes, #bsCam, #invRev, #catScanBtn, .backBand, #panelInv,
+.dash-navitem:has(#dbNav3){display:none !important}
+"""
+CSS += CSS_NOSCAN
 rep('</style>', CSS + '</style>', 1) if s.count('</style>') == 1 else None
 if s.count('</style>') != 1:
     idx = s.index('</style>')
@@ -252,6 +372,10 @@ rowHTML = function(ix, ...rest){
   h = h.replace(/<div class="nm">([\s\S]*?)<\/div>/, (m,nm)=>`<div class="nm"><span class="nmTxt">${nm}</span>${ogOn(ix)?cpBtn('og',ix,L.tipOgTitle).replace('class="whyBtn"','class="whyBtn ogBtn"'):''}</div>`);
   if(cpRemoved(ix)) h = h.replace('<div class="row', '<div class="row cpRemoved');
   // Pré-commande label
+  /* order item labels as the app draws them: grey outlined pills. 'new' is translated,
+     anything without a string (on_sale) is the type in title case, as _simpleText does. */
+  if(c.labels) h = h.replace('<div class="pills">', `<div class="pills">${c.labels.map(k=>`<span class="pill">${k==='new'?L.labelNew:k.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')}</span>`).join(' ')} `);
+  if(c.demo) h = h.replace('<div class="pills">', `<div class="pills"><span class="demoTag">${L.cpDemo}</span> `);
   if(c.preLabel) h = h.replace('<div class="pills">', `<div class="pills"><span class="preLabelTag">${L.preLabel}: ${c.preLabel.date}, ${c.preLabel.qty} ${L.caseUnit}</span> `);
   return h;
 };
@@ -278,6 +402,12 @@ function cpDecorate(){
       }
       if(slot) slot.outerHTML=cpSlot(btns);
       if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
+      if(cpOf(ix).ordLocked){
+        const f=cells[2].querySelector('.ColumnCounterField');
+        if(f){ f.classList.add('ColumnCounterField--locked'); f.querySelectorAll('button').forEach(x=>{x.disabled=true; x.removeAttribute('data-a');});
+          const bx=f.querySelector('.ColumnCounterField__box'); if(bx){ bx.removeAttribute('data-a'); bx.innerHTML=`<span class="ColumnCounterField__value"><b>–</b></span>`; } }
+        const sl=ordWrap.querySelector(':scope > .statusSlot'); if(sl) sl.outerHTML=cpSlot([cpBtn('lock',ix,L.tipLockTitle)]);
+      }
       const cc=cpOf(ix);
       if(cc.preOrdered!=null && !cpRemoved(ix)) ordWrap.insertAdjacentHTML('beforebegin', `<div class="lineTag">${L.preOrdered} ${cc.preOrdered} ${L.caseUnit}</div>`);
     }
@@ -292,7 +422,7 @@ sortIdx = function(list){ const r=_sortIdx_cp(list); return r.filter(ix=>!cpRemo
 const _render_cp = render;
 render = function(...a){ const r=_render_cp(...a); cpDecorate(); return r; };
 const _orderVal_cp = orderVal;
-orderVal = function(ix){ return cpRemoved(ix) ? 0 : _orderVal_cp(ix); };
+orderVal = function(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _orderVal_cp(ix); };
 
 /* Tooltip content for the C&P kinds; the base openWhy keeps inv/ord/edit/info. */
 const _openWhy_cp = openWhy;
@@ -337,9 +467,34 @@ document.addEventListener('click', e=>{
 if(CP_DUMMY){ const d=document.createElement('div'); d.className='cpDummy'; d.textContent=t().cpDummy; document.body.appendChild(d); }
 render();
 """
+
+# ---- C&P: no scanning ---------------------------------------------------------
+# C&P has neither the back-storage scan (Bestand tab, "Lager scannen" band on the shelves,
+# Fläche bestätigen) nor the barcode scan. Every way in is removed; the scan code stays
+# in the page unused (the page's ?selftest=1 still exercises it).
+# The inventory keypad's typed Lager / Fläche split is not a scan and stays.
+JS += r"""
+/* ===== C&P: no scanning ===== */
+backBandHTML = function(){ return ''; };
+openScanCam = function(){};
+bsOpen = function(){};
+bsOpenFromShelves = function(){};
+(function(){
+  const nav=document.getElementById('dbNav3'); if(nav && nav.closest('.dash-navitem')) nav.closest('.dash-navitem').style.display='none';
+  ['scanFab','invFab'].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
+})();
+"""
 JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__', 'true' if dummy else 'false')
 idx = s.rindex('</script>')
 s = s[:idx] + JS + s[idx:]
+
+if args.orders:
+    sys.path.insert(0, __import__('os').path.dirname(__file__))
+    from cp_orders_overview import inject, inject_lock
+    oc = json.load(open(args.orders, encoding='utf-8')); oc.pop('_source', None)
+    s = inject(s, oc, args.clock)
+    if args.opens_at:
+        s = inject_lock(s, args.opens_at)
 
 open(args.out, 'w', encoding='utf-8').write(s)
 print(f'wrote {args.out}: {len(items)} items, {len(cp)} with C&P fields, dummy={dummy}')
