@@ -463,6 +463,17 @@ function cpSimKo(it,s){
 }
 function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
 function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
+/* Promo days inside the 7-day sales window (HIST_PROMO index 7..13), as "8–12 oct." */
+function cpPromoDays(ix){
+  const it=ITEMS[ix];
+  const ds=(HIST_PROMO[it.plu]||[]).filter(d=>d>=7).sort((a,b)=>a-b);
+  if(!ds.length) return null;
+  const f=(d,o)=>histDay(d).toLocaleDateString(dateLoc(),o);
+  const a=ds[0], b=ds[ds.length-1];
+  const short = a===b ? f(a,{day:'numeric',month:'short'})
+              : `${f(a,{day:'numeric'})}–${f(b,{day:'numeric',month:'short'})}`;
+  return {short, long: ds.map(d=>f(d,{weekday:'short',day:'numeric',month:'short'})).join(', ')};
+}
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
@@ -505,6 +516,10 @@ rowHTML = function(ix, ...rest){
   // Pré-commande label
   /* order item labels as the app draws them: grey outlined pills. 'new' is translated,
      anything without a string (on_sale) is the type in title case, as _simpleText does. */
+  /* Promo in the last 7 days (the days the product sheet's table marks light red): a promo
+     tag with the dates, so the list shows which items were on promo. */
+  const pd=cpPromoDays(ix);
+  if(pd && !/class="pill promo"/.test(h)) h = h.replace('<div class="pills">', `<div class="pills"><span class="pill promo" title="${pd.long}">${L.sale} ${pd.short}</span> `);
   if(c.labels) h = h.replace('<div class="pills">', `<div class="pills">${c.labels.map(k=>`<span class="pill">${k==='new'?L.labelNew:k.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')}</span>`).join(' ')} `);
   if(c.demo) h = h.replace('<div class="pills">', `<div class="pills"><span class="demoTag">${L.cpDemo}</span> `);
   if(c.preLabel) h = h.replace('<div class="pills">', `<div class="pills"><span class="preLabelTag">${L.preLabel}: ${c.preLabel.date}, ${c.preLabel.qty} ${L.caseUnit}</span> `);
