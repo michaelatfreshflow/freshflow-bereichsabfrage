@@ -38,6 +38,7 @@ ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (s
 ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
+ap.add_argument('--sales-json', help='past.sales per PLU for the order day (tools/data/cp_<store>_sales_<date>.json): the 7-day strip under the commande')
 ap.add_argument('--city', default='Lyon', help='city shown on the dashboard weather card')
 ap.add_argument('--order-date', default='2026-10-13', help='YYYY-MM-DD order day: dashboard date and the 30-day chart window')
 ap.add_argument('--clock', help='HH:MM the page opens on when no ?now= is given (see cp_orders_overview.py)')
@@ -80,6 +81,26 @@ items = json.loads(m_src.group(0)[len('const ITEMS = '):-2])
 for name in ('HIST_PROMO', 'HIST_SHRINK', 'HIST'):
     m = re.search(r'const %s = \{.*?\};\n' % name, s, re.S)
     s = s[:m.start()] + 'const %s = {};\n' % name + s[m.end():]
+# Sales of the 7 days before the order day, per PLU, from the order line's past.sales (what
+# the app shows). HIST keeps the base layout: 14 days from HIST_FROM, [sales, intake]; only the
+# last 7 are filled, and the strip runs in the app's 7-day mode (HIST_ITER1).
+if args.sales_json:
+    from datetime import date as _d0, timedelta as _t0
+    _sj = json.load(open(args.sales_json, encoding='utf-8'))
+    _from = _d0.fromisoformat(_sj['order_date']) - _t0(days=14)
+    _hist = {}
+    for plu, byday in _sj['sales'].items():
+        sales = [None] * 14
+        for d, q in byday.items():
+            i = (_d0.fromisoformat(d) - _from).days
+            if 0 <= i < 14:
+                sales[i] = q
+        _hist[plu] = [sales, [None] * 14]
+    rep('const HIST = {};\n', 'const HIST = %s;\n' % json.dumps(_hist, separators=(',', ':')))
+    m = re.search(r'const HIST_FROM = new Date\(\d+, \d+, \d+\);', s)
+    s = s[:m.start()] + 'const HIST_FROM = new Date(%d, %d, %d);' % (_from.year, _from.month - 1, _from.day) + s[m.end():]
+    rep("const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';",
+        "const HIST_ITER1 = true;   /* C&P: the app's 7 days, no swipe to the week before */")
 
 i, j = block(s, 'const TILES = [', '\n];')
 tsrc = open(args.tiles_from, encoding='utf-8').read() if args.tiles_from else src
@@ -547,6 +568,40 @@ bsOpenFromShelves = function(){};
   ['scanFab','invFab'].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
 })();
 """
+JS += r"""
+/* ===== C&P: running total since Tuesday, under the 7-day sales =====
+   The week starts on Tuesday. Wednesday shows Tuesday, Thursday Tuesday+Wednesday, ...
+   Monday Tuesday..Sunday; on Tuesday the full previous week (Tuesday..Monday).
+   Same unit as the strip (cases where the item has a case size). */
+const CP_WTD = {
+  de:{sum:'Summe', week:'Vorwoche'}, en:{sum:'Total', week:'Last week'}, fr:{sum:'Cumul', week:'Semaine préc.'}};
+function cpWtdHTML(ix){
+  const it=ITEMS[ix]; if(it.plu==null || !HIST[it.plu]) return '';
+  const today=histDay(14), k=((today.getDay()-2+7)%7)||7;      // days since Tuesday, 7 on a Tuesday
+  const S=sdSeries(it).sales; let sum=0, any=false;
+  for(let d=14-k; d<14; d++){ if(S[d]!=null){ sum+=S[d]; any=true; } }
+  const L=t(), W=CP_WTD[LANG]||CP_WTD.en;
+  const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
+  const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
+  const label = k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`;
+  const v = any ? histNum(sum, it, false) : null;
+  return `<div class="cpWtd" title="${label}">${label} <b>${v==null?'–':v}${v!=null&&it.case?' '+L.caseUnit:''}</b></div>`;
+}
+const _histHTML_wtd = histHTML;
+histHTML = function(ix, opt){
+  const h=_histHTML_wtd(ix, opt);
+  return (!h || (opt && opt.lg)) ? h : h + cpWtdHTML(ix);
+};
+render();
+"""
+CSS_WTD = """
+/* ===== C&P: running total since Tuesday ===== */
+.cpWtd{width:180px;margin-top:3px;text-align:right;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.cpWtd b{color:var(--ff-grey-900);font-weight:var(--ff-weight-semibold)}
+"""
+idx = s.rindex('</style>')
+s = s[:idx] + CSS_WTD + s[idx:]
 JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__', 'true' if dummy else 'false')
 idx = s.rindex('</script>')
 s = s[:idx] + JS + s[idx:]
