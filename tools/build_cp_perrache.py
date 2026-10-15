@@ -527,6 +527,10 @@ if(CP_DUMMY){ const d=document.createElement('div'); d.className='cpDummy'; d.te
 render();
 """
 
+# The page's ?selftest=1 is the back-storage scan test; C&P has no scanning, so it is skipped.
+rep("if(/[?&]selftest=1/.test(location.search)) setTimeout(bsSelfTest, 0);",
+    "if(/[?&]selftest=1/.test(location.search)) console.log('C&P: no scanning on this page, the scan self-test is skipped');")
+
 # ---- C&P: no scanning ---------------------------------------------------------
 # C&P has neither the back-storage scan (Bestand tab, "Lager scannen" band on the shelves,
 # Fläche bestätigen) nor the barcode scan. Every way in is removed; the scan code stays
