@@ -355,6 +355,20 @@ rep("|| (CATFILT.rhb0 && rhbZero(it.id)) ||",
 rep("        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}",
     "        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))\n"
     "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}")
+# Inventory as ONE number: the app's simulated inventory (it.app, always inside the plan rung)
+# instead of the plan rung's range ("1,7 - 2,7 CS", "min. 0,2 CS"). -/+ step from that number;
+# landing back on it restores the untouched state. The order ladder behind it is unchanged.
+rep("    minusOff=r.lo==null||r.lo<=0; plusOff=r.hi==null;\n    big=koText(r,it); small=stText(r,it);",
+    "    const sv=cpSimKo(it,s); minusOff=sv<=0; plusOff=false;\n    big=cpSimTxt(sv); small=cpSimSub(it,sv);")
+rep("if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = stepKo(it, d<0 ? (r.lo??0) : r.hi, d); }",
+    "if(s.step==='range'){ newKo = stepKo(it, cpSimKo(it,s), d); }")
+rep("  if(s.home==='range' && rungOfKo(it,ko,s.plan)===s.plan){",
+    "  if(s.home==='range' && Math.abs(ko-cpSimKo(it,s))<1e-6){")
+rep("      const assume=koText(it.rungs[s.plan],it);",
+    "      const assume=cpSimTxt(cpSimKo(it,s));")
+# keypad: no range total and no "inside the range" hint
+rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
+    "       rLoKO: null, rHiKO: null,")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
 s = s[:m.start()] + 'const KERN_IDS = new Set([%s]);' % ','.join(core_ids) + s[m.end():]
 
@@ -436,6 +450,19 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+/* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
+   land on whole pieces so the case figure and the piece figure agree. */
+function cpSimKo(it,s){
+  const r=it.rungs[s.plan]||{};
+  let v=it.app!=null ? it.app : (r.lo||0);
+  if(r.lo!=null) v=Math.max(v, r.lo);
+  if(r.hi!=null) v=Math.min(v, r.hi);
+  v=Math.max(0, v);
+  if(it.unit==='piece' && it.case>1){ const pcs=Math.round(v*it.case); return koOfPieces(pcs,it.case) ?? pcs/it.case; }
+  return Math.round(v*10)/10;
+}
+function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
+function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 

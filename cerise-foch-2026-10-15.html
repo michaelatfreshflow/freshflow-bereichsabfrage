@@ -5517,7 +5517,7 @@ function applyKo(it,s,ko){
      uebernommen war sie ohnehin nie. Es bleibt nichts davon stehen: die Zeile ist
      beantwortet, und wer die Menge doch anders haben will, tippt sie danach. */
   s.pendOrder=null;
-  if(s.home==='range' && rungOfKo(it,ko,s.plan)===s.plan){
+  if(s.home==='range' && Math.abs(ko-cpSimKo(it,s))<1e-6){
     s.step=s.home; s.ko=0; s.manual=false;
     s.chosen=s.pre.chosen; s.order=s.pre.order; s.answered=s.pre.answered; s.auto=s.pre.auto;
   } else {
@@ -5920,8 +5920,8 @@ function stepHTML(it,s,ix){
     const r=it.rungs[s.plan];
     /* lo<=0 heisst: die Plan-Sprosse faengt schon bei 0 an, unter ihr liegt nichts mehr.
        − landete dort per applyKo() wieder in derselben Sprosse und tat sichtbar nichts. */
-    minusOff=r.lo==null||r.lo<=0; plusOff=r.hi==null;
-    big=koText(r,it); small=stText(r,it);
+    const sv=cpSimKo(it,s); minusOff=sv<=0; plusOff=false;
+    big=cpSimTxt(sv); small=cpSimSub(it,sv);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
     big=koNum(s.ko)+(' '+t().caseUnit); small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
@@ -6601,7 +6601,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       /* Nur die Kistenzahl. Die Stueckzahl in Klammern dahinter sagte dasselbe ein
          zweites Mal in einer anderen Einheit und machte aus einem Satz eine Rechnung --
          der Stepper darueber zeigt sie ohnehin. */
-      const assume=koText(it.rungs[s.plan],it);
+      const assume=cpSimTxt(cpSimKo(it,s));
       return `<div class="invask">
         <div class="invask__mv">
           <span class="lb">${L.invAskLabel}</span>
@@ -8018,7 +8018,7 @@ function rowClick(e){
        nahm + Math.ceil(r.hi) und sprang dabei ueber das Raster hinweg (hi 0,54 → 1 statt
        0,57 bei einer 14er Kiste). stepKo() liefert immer einen Wert echt oberhalb von
        r.hi bzw. echt unterhalb von r.lo, die Sprosse wird also sicher verlassen. */
-    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = stepKo(it, d<0 ? (r.lo??0) : r.hi, d); }
+    if(s.step==='range'){ newKo = stepKo(it, cpSimKo(it,s), d); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
     else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
@@ -8754,7 +8754,7 @@ function openInvPad(ix, backOnly){
   /* Wie im normalen Tastenfeld wird NICHT vorbelegt: der Kaufmann tippt die Zahl,
      die er zaehlt, nicht eine, die schon dasteht. */
   INV={ix, back:'0', floor:'0', act: backOnly?'back':'floor', unit:'cs', backOnly:!!backOnly,
-       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,
+       rLoKO: null, rHiKO: null,
        rPlo: r ? r.plo : null, rPhi: r ? r.phi : null,
        suppressHint: !!(it.invNote && it.invNote.includes('turnusmässige Zählung'))};
   const us=document.getElementById('invUnitSeg');
@@ -10630,6 +10630,19 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+/* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
+   land on whole pieces so the case figure and the piece figure agree. */
+function cpSimKo(it,s){
+  const r=it.rungs[s.plan]||{};
+  let v=it.app!=null ? it.app : (r.lo||0);
+  if(r.lo!=null) v=Math.max(v, r.lo);
+  if(r.hi!=null) v=Math.min(v, r.hi);
+  v=Math.max(0, v);
+  if(it.unit==='piece' && it.case>1){ const pcs=Math.round(v*it.case); return koOfPieces(pcs,it.case) ?? pcs/it.case; }
+  return Math.round(v*10)/10;
+}
+function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
+function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
