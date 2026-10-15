@@ -99,6 +99,9 @@ if args.sales_json:
     rep('const HIST = {};\n', 'const HIST = %s;\n' % json.dumps(_hist, separators=(',', ':')))
     m = re.search(r'const HIST_FROM = new Date\(\d+, \d+, \d+\);', s)
     s = s[:m.start()] + 'const HIST_FROM = new Date(%d, %d, %d);' % (_from.year, _from.month - 1, _from.day) + s[m.end():]
+    _promo = {plu: sorted((_d0.fromisoformat(d) - _from).days for d in days if 0 <= (_d0.fromisoformat(d) - _from).days < 14)
+              for plu, days in (_sj.get('promo') or {}).items()}
+    rep('const HIST_PROMO = {};\n', 'const HIST_PROMO = %s;\n' % json.dumps(_promo, separators=(',', ':')))
     rep("const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';",
         "const HIST_ITER1 = true;   /* C&P: the app's 7 days, no swipe to the week before */")
 
@@ -612,7 +615,13 @@ histHTML = function(ix, opt){
   const val = w.v==null ? '–' : w.v;
   const sumH = `<span class="SalesHistory__wd cpSum cpSumH" title="${w.label}">Σ</span>`;
   const sumV = `<span class="SalesHistory__s cpSum cpSumV${w.v==null?' is-nil':''}" title="${w.label}${w.v!=null&&it.case?': '+w.v+' '+L.caseUnit:''}">${val}</span>`;
-  return h.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
+  /* promo days: the 7 columns are days 7..13 of HIST; light red in the header and the value */
+  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
+  let nh=0, nv=0;
+  const mark=(cls, n)=>promo.has(n) ? cls+' cpPromo' : cls;
+  const h2=h.replace(/<span class="(SalesHistory__wd[^"]*)"/g, (m,c)=>`<span class="${mark(c, nh++)}"${promo.has(nh-1)?` title="${L.histPromo}"`:''}`)
+            .replace(/<span class="(SalesHistory__s[^"]*)"/g, (m,c)=>`<span class="${mark(c, nv++)}"`);
+  return h2.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
           .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
           .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
 };
@@ -625,6 +634,8 @@ CSS_WTD = """
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
+.cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
+.cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
 .cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
 """

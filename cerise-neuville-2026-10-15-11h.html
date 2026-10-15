@@ -2285,6 +2285,8 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
+.cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
+.cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
 .cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
 
@@ -2864,7 +2866,7 @@ const HIST_FROM = new Date(2026, 9, 1);
 /* Aktionstage je PLU, Index wie HIST. Aus core_promotions (direkt oder ueber
    int_plu_map auf die PLU gemappt) -- das Aktionskennzeichen in den Verkaufsdaten
    ist bei diesem Markt nie gesetzt. */
-const HIST_PROMO = {};
+const HIST_PROMO = {"1202":[7,8,9,10,11],"1203":[12,13],"1921":[12,13],"20825":[7,8,9,10],"37282":[13],"37298":[13],"37312":[13]};
 /* Abschriften je PLU als {Tagesindex: Menge}, Index wie HIST, positiv (die Quelle
    prod_recorded_waste_with_plu fuehrt sie negativ). Ohne Eintrag: keine Abschrift. */
 const HIST_SHRINK = {};
@@ -10817,7 +10819,13 @@ histHTML = function(ix, opt){
   const val = w.v==null ? '–' : w.v;
   const sumH = `<span class="SalesHistory__wd cpSum cpSumH" title="${w.label}">Σ</span>`;
   const sumV = `<span class="SalesHistory__s cpSum cpSumV${w.v==null?' is-nil':''}" title="${w.label}${w.v!=null&&it.case?': '+w.v+' '+L.caseUnit:''}">${val}</span>`;
-  return h.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
+  /* promo days: the 7 columns are days 7..13 of HIST; light red in the header and the value */
+  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
+  let nh=0, nv=0;
+  const mark=(cls, n)=>promo.has(n) ? cls+' cpPromo' : cls;
+  const h2=h.replace(/<span class="(SalesHistory__wd[^"]*)"/g, (m,c)=>`<span class="${mark(c, nh++)}"${promo.has(nh-1)?` title="${L.histPromo}"`:''}`)
+            .replace(/<span class="(SalesHistory__s[^"]*)"/g, (m,c)=>`<span class="${mark(c, nv++)}"`);
+  return h2.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
           .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
           .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
 };
