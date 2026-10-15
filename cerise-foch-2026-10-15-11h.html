@@ -2288,6 +2288,8 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
 .cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStripLg .cpPromo{background:#FDECEC}
+.cpSumDays{width:180px;margin-top:2px;text-align:right;font-size:var(--ff-text-secondary-caption-10);color:var(--ff-grey-500);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
   border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
 .cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
@@ -10812,12 +10814,15 @@ function cpWtd(ix){
   const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
   const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
   const dd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric', month:'short'});
+  const dn=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric'});
   const dated = k===1 ? dd(13) : `${dd(14-k)} – ${dd(13)}`;
+  const sameMonth = histDay(14-k).getMonth()===histDay(13).getMonth();
+  const shortDated = k===1 ? dd(13) : `${sameMonth ? dn(14-k) : dd(14-k)} – ${dd(13)}`;
   return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null,
-          longLabel: `${k===7 ? W.week : W.sum} ${dated}`};
+          longLabel: `${k===7 ? W.week : W.sum} ${dated}`, days: shortDated};
 }
-/* Product sheet: promo days as light red columns (every row), and the running total as one
-   line underneath, naming the days it adds up. No Σ column there. */
+/* Product sheet: promo days as light red columns (every row). The running total is shown
+   under the commande only. */
 function cpSheetStrip(ix, h){
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
   const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
@@ -10826,8 +10831,7 @@ function cpSheetStrip(ix, h){
     const i=(n[k]=(n[k]||0)+1)-1;
     return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
   }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
-  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
-  return h2 + `<div class="cpWtdLg"><span>${w.longLabel}</span><b>${val}</b></div>`;
+  return h2;
 }
 const _histHTML_wtd = histHTML;
 /* Under the commande: no row icon on the left, and the running total as an eighth column
@@ -10848,7 +10852,8 @@ histHTML = function(ix, opt){
             .replace(/<span class="(SalesHistory__s[^"]*)"/g, (m,c)=>`<span class="${mark(c, nv++)}"`);
   return h2.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
           .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
-          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
+          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`)
+          + `<div class="cpSumDays" title="${w.label}">Σ ${w.days}</div>`;
 };
 render();
 /* ===== C&P: orders overview ===== */
