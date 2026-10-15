@@ -10891,7 +10891,6 @@ document.getElementById('ocBody').addEventListener('keydown', e=>{
 });
 /* Dashboard "today's order" card: supplier, status chip text, time left to the deadline. */
 function ocPaintCard(){
-  if(OC.opensAt){ const [h,m]=OC.opensAt.split(':').map(Number); if(ocNowMin() < h*60+m) return; }   // the 11:00 lock paints the closed card
   const L=t(), card=document.querySelector('.dash-ordercard'); if(!card) return;
   const nm=card.querySelector('.nm'); if(nm) nm.textContent=OC.supplier;
   const pill=document.getElementById('dbOpenPill'), cd=document.getElementById('dbCountdown');

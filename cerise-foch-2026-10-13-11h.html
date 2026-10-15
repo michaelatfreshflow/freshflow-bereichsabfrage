@@ -2312,21 +2312,12 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .oc-scroll > div{min-width:900px}
 
 /* ===== C&P: order opening time (MOB-1730) ===== */
-.oc-chip.lock{color:#52525B;background:#F4F4F5}
-.oc-row.locked{cursor:default}
-.oc-row.locked.open{background:#fff;border-style:dashed;border-color:#D4D4D8}
-.oc-row.locked .oc-num{color:#A1A1AA}
-.dash-fab.locked, .invFab.locked{background:var(--ff-grey-400);box-shadow:none}
-.dash-fab .lkBadge, .invFab .lkBadge{position:absolute;right:-4px;top:-4px;width:20px;height:20px;border-radius:50%;
-  background:var(--ff-color-white);color:var(--ff-grey-600);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.invFab{position:relative}
-.dash-ordercard.locked{background:var(--ff-grey-100);border-color:var(--ff-grey-200)}
-.dash-ordercard.locked .dash-pill-open{background:var(--ff-grey-500);display:inline-flex;align-items:center;gap:5px}
-.lkMsg{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);z-index:400;max-width:calc(100vw - 32px);
-  background:var(--ink);color:var(--ff-color-white);border-radius:12px;padding:12px 18px;font-size:var(--ff-text-primary-body-text-14);
-  display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .15s, transform .15s}
-.lkMsg.on{opacity:1;transform:translateX(-50%)}
-.lkMsg small{opacity:.7}
+#ovLock{z-index:10000}
+#ovLock .sheet{max-width:420px;border-radius:var(--ff-radius-c15);align-self:center;padding-bottom:18px}
+#ovLock .lkHd{display:flex;align-items:center;gap:10px;padding:20px 22px 6px}
+#ovLock .lkHd h3{margin:0;font-size:var(--ff-text-primary-title-17);font-weight:var(--ff-weight-bold);color:var(--ink)}
+#ovLock .lkHd svg{color:var(--ff-color-primary);flex:0 0 auto}
+#ovLock .lkBody{padding:4px 22px 18px;font-size:var(--ff-text-primary-body-text-14);color:#5d6b64;line-height:1.5}
 </style>
 </head>
 <body>
@@ -3743,12 +3734,10 @@ const T={
     rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
-    lkOpensAt:"Öffnet um",
+    lkTitle:"Bestellung noch nicht offen",
     lkMsg:"Die Bestellung öffnet um {t} Uhr.",
-    lkIn:"noch {d}",
-    lkCountMsg:"Zählen ist ab {t} Uhr möglich, zusammen mit der Bestellung.",
-    lkNowOpen:"Die Bestellung ist jetzt offen.",
-    lkLeft:"verbleibend",
+    lkIn:"Noch {d}.",
+    lkOk:"OK",
     ocProtoOnly:"Prototyp: nur die heutige Bestellung lässt sich hier öffnen.",
     ocLeft:"verbleibend",
     ordersListOrderDateColumn:"Bestelldatum",  // [arb] ordersListOrderDateColumn
@@ -4227,12 +4216,10 @@ const T={
     rNewItem:'new item',
     rPromo:'Promotion',
     rManualWarning:'Manual warning',
-    lkOpensAt:"Opens at",
+    lkTitle:"Order not open yet",
     lkMsg:"The order opens at {t}.",
-    lkIn:"in {d}",
-    lkCountMsg:"Counting opens at {t}, together with the order.",
-    lkNowOpen:"The order is now open.",
-    lkLeft:"left",
+    lkIn:"In {d}.",
+    lkOk:"OK",
     ocProtoOnly:"Prototype: only today's order opens here.",
     ocLeft:"left",
     ordersListOrderDateColumn:"Order Date",  // [arb] ordersListOrderDateColumn
@@ -4711,12 +4698,10 @@ const T={
     rNewItem:'nouvel article',
     rPromo:'Promotion',
     rManualWarning:'Alerte manuelle',
-    lkOpensAt:"Ouvre à",
+    lkTitle:"Commande pas encore ouverte",
     lkMsg:"La commande ouvre à {t}.",
-    lkIn:"dans {d}",
-    lkCountMsg:"Le comptage ouvre à {t}, en même temps que la commande.",
-    lkNowOpen:"La commande est maintenant ouverte.",
-    lkLeft:"restantes",
+    lkIn:"Dans {d}.",
+    lkOk:"OK",
     ocProtoOnly:"Prototype : seule la commande du jour s'ouvre ici.",
     ocLeft:"restantes",
     ordersListOrderDateColumn:"Date",  // [arb] ordersListOrderDateColumn
@@ -10926,7 +10911,6 @@ document.getElementById('ocBody').addEventListener('keydown', e=>{
 });
 /* Dashboard "today's order" card: supplier, status chip text, time left to the deadline. */
 function ocPaintCard(){
-  if(OC.opensAt){ const [h,m]=OC.opensAt.split(':').map(Number); if(ocNowMin() < h*60+m) return; }   // the 11:00 lock paints the closed card
   const L=t(), card=document.querySelector('.dash-ordercard'); if(!card) return;
   const nm=card.querySelector('.nm'); if(nm) nm.textContent=OC.supplier;
   const pill=document.getElementById('dbOpenPill'), cd=document.getElementById('dbCountdown');
@@ -10949,88 +10933,41 @@ setInterval(ocPaintCard, 30000);
 setInterval(()=>{ if(DASH_TAB===1 && document.body.classList.contains('dash-active')) renderOrdersPanel(); }, 30000);
 /* ===== C&P: order opening time (MOB-1730) ===== */
 const OC_OPENS = OC.opensAt || null;          // 'HH:MM' store time; null = no lock (every other store)
-const LK_ICON = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+document.body.insertAdjacentHTML('beforeend', "\n<!-- C&P: order opening time (MOB-1730). One pop-up, nothing else changes on screen. -->\n<div class=\"ov\" id=\"ovLock\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"lkTitle\">\n  <div class=\"sheet\">\n    <div class=\"lkHd\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg><h3 id=\"lkTitle\"></h3></div>\n    <div class=\"lkBody\" id=\"lkBody\"></div>\n    <div class=\"sfoot\"><span class=\"sp\" style=\"flex:1\"></span><button class=\"cta\" id=\"lkOk\" type=\"button\"></button></div>\n  </div>\n</div>\n");
 const lkMin = hhmm => { const [h,m]=hhmm.split(':').map(Number); return h*60+m; };
-/* The one check. Before the opening time, nothing from today on opens. */
+/* The one check. Before the opening time, today's order and future orders do not open. */
 function orderLocked(){ return !!OC_OPENS && ocNowMin() < lkMin(OC_OPENS); }
 function lkDur(min){ min=Math.max(1, Math.ceil(min)); const h=Math.floor(min/60), m=min%60;
   return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
-function lkLeft(){ return lkDur(lkMin(OC_OPENS) - ocNowMin()); }
-let LK_MSG_T=null;
-function lkSay(text){
-  let el=document.getElementById('lkMsg');
-  if(!el){ el=document.createElement('div'); el.id='lkMsg'; el.className='lkMsg'; el.setAttribute('role','status'); document.body.appendChild(el); }
-  el.innerHTML = text; el.classList.add('on');
-  clearTimeout(LK_MSG_T); LK_MSG_T=setTimeout(()=>el.classList.remove('on'), 2600);
+function lkShow(){
+  const L=t();
+  document.getElementById('lkTitle').textContent=L.lkTitle;
+  document.getElementById('lkBody').textContent=`${L.lkMsg.replace('{t}', OC_OPENS)} ${L.lkIn.replace('{d}', lkDur(lkMin(OC_OPENS)-ocNowMin()))}`;
+  document.getElementById('lkOk').textContent=L.lkOk;
+  document.getElementById('ovLock').classList.add('on');
 }
-function lkSayLocked(kind){
-  const L=t(), msg=(kind==='count'?L.lkCountMsg:L.lkMsg).replace('{t}', OC_OPENS);
-  lkSay(`${LK_ICON(16)}<span>${msg} <small>${L.lkIn.replace('{d}', lkLeft())}</small></span>`);
-}
+function lkHide(){ document.getElementById('ovLock').classList.remove('on'); }
+document.getElementById('lkOk').addEventListener('click', lkHide);
+document.getElementById('ovLock').addEventListener('click', e=>{ if(e.target.id==='ovLock') lkHide(); });
 
 /* The order screen itself refuses to show -- whatever led there. */
 const _showApp_lk = showApp;
 showApp = function(...a){
-  if(orderLocked()){ showDash(); lkSayLocked('order'); return; }
+  if(orderLocked()){ showDash(); lkShow(); return; }
   return _showApp_lk(...a);
 };
 const _enterApp_lk = enterApp;
-enterApp = function(...a){ if(orderLocked()){ lkSayLocked('order'); return; } return _enterApp_lk(...a); };
-const _bsOpen_lk = bsOpen;
-bsOpen = function(...a){ if(orderLocked()){ lkSayLocked('count'); return; } return _bsOpen_lk(...a); };
-['dashFab','invFab'].forEach(id=>{
-  const el=document.getElementById(id); if(!el) return;
-  el.addEventListener('click', e=>{
-    if(!orderLocked()) return;
-    e.stopImmediatePropagation(); e.preventDefault();
-    lkSayLocked(id==='invFab'?'count':'order');
-  }, true);
-});
-
-/* Overview: today's and future rows show the opening time instead of their status chip. */
-const _ocRow_lk = ocRow;
-ocRow = function(o, kind, now){
-  let h=_ocRow_lk(o, kind, now);
-  if(!orderLocked() || kind==='past') return h;
-  return h.replace(/<span class="oc-chip [a-zA-Z]+">[^<]*<\/span>/, `<span class="oc-chip lock">${LK_ICON(12)}${OC_OPENS}</span>`)
-          .replace('class="oc-grid oc-row', 'class="oc-grid oc-row locked')
-          .replace('data-oc="row"', 'data-oc="locked"');
-};
+enterApp = function(...a){ if(orderLocked()){ lkShow(); return; } return _enterApp_lk(...a); };
+document.getElementById('dashFab').addEventListener('click', e=>{
+  if(!orderLocked()) return;
+  e.stopImmediatePropagation(); e.preventDefault(); lkShow();
+}, true);
+/* Orders overview: today's and future rows look as usual; tapping one shows the pop-up. */
 document.getElementById('ocBody').addEventListener('click', e=>{
-  if(e.target.closest('[data-oc="locked"]')) lkSayLocked('order');
-});
-
-/* Dashboard card + buttons follow the clock. */
-function lkPaint(){
-  const L=t(), locked=orderLocked();
-  const card=document.querySelector('.dash-ordercard');
-  if(card){
-    card.classList.toggle('locked', locked);
-    if(locked){
-      const pill=document.getElementById('dbOpenPill'), cd=document.getElementById('dbCountdown');
-      const nm=card.querySelector('.nm'); if(nm) nm.textContent=OC.supplier;
-      if(pill) pill.innerHTML=`${LK_ICON(12)}${OC_OPENS}`;
-      if(cd) cd.textContent=`${L.lkOpensAt} ${OC_OPENS} · ${L.lkIn.replace('{d}', lkLeft())}`;
-    } else ocPaintCard();
-  }
-  ['dashFab','invFab'].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    el.classList.toggle('locked', locked);
-    let b=el.querySelector('.lkBadge');
-    if(locked && !b){ el.insertAdjacentHTML('beforeend', `<span class="lkBadge">${LK_ICON(12)}</span>`); }
-    if(!locked && b) b.remove();
-  });
-  if(DASH_TAB===1) renderOrdersPanel();
-}
-let LK_WAS = orderLocked();
-setInterval(()=>{
-  const now=orderLocked();
-  if(now!==LK_WAS){ LK_WAS=now; lkPaint(); if(!now) lkSay(`${t().lkNowOpen}`); }
-  else lkPaint();
-}, 15000);
-const _applyLang_lk = applyLang;
-applyLang = function(...a){ const r=_applyLang_lk(...a); lkPaint(); return r; };
-lkPaint();
+  const r=e.target.closest('[data-oc="row"]');
+  if(!r || r.dataset.kind==='past' || !orderLocked()) return;
+  e.stopImmediatePropagation(); lkShow();
+}, true);
 </script>
 </body>
 </html>
