@@ -328,8 +328,9 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .preDash{display:flex;align-items:center;justify-content:center;height:48px;width:72px;margin-left:42px;
   color:var(--ff-grey-800);font-weight:var(--ff-weight-medium);font-size:var(--ff-text-primary-body-text-14)}
 .ColumnCounterField--locked .ColumnCounterField__box{background:var(--ff-grey-100);color:var(--ff-grey-500)}
-.withbang.hasLineTag{flex-wrap:wrap}
-.lineTag{flex:0 0 100%;order:-1;box-sizing:border-box;margin:0 0 6px;padding-right:24px;text-align:center;white-space:nowrap;
+.withbang.hasLineTag{position:relative}
+#list > .row:has(.lineTag){padding-top:28px}
+.lineTag{position:absolute;left:0;right:24px;bottom:100%;margin-bottom:3px;text-align:center;white-space:nowrap;line-height:1.2;
   font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-500);font-weight:var(--ff-weight-regular, 400)}
 .lineTag b{font-weight:var(--ff-weight-medium);color:var(--ff-grey-600);margin-left:6px}
 .preLabelTag{display:inline-block;padding:1px 8px;border-radius:var(--ff-radius-c15);border:1px solid #FF8502;color:#FF8502;
