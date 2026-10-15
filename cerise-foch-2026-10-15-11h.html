@@ -2259,8 +2259,10 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .preDash{display:flex;align-items:center;justify-content:center;height:48px;width:72px;margin-left:42px;
   color:var(--ff-grey-800);font-weight:var(--ff-weight-medium);font-size:var(--ff-text-primary-body-text-14)}
 .ColumnCounterField--locked .ColumnCounterField__box{background:var(--ff-grey-100);color:var(--ff-grey-500)}
-.lineTag{display:inline-block;margin:0 0 5px 42px;padding:1px 8px;border-radius:var(--ff-radius-c15);
-  border:1px solid var(--ff-grey-300);font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600)}
+.withbang.hasLineTag{flex-wrap:wrap}
+.lineTag{flex:0 0 100%;order:-1;box-sizing:border-box;margin:0 0 6px;padding-right:24px;text-align:center;white-space:nowrap;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-500);font-weight:var(--ff-weight-regular, 400)}
+.lineTag b{font-weight:var(--ff-weight-medium);color:var(--ff-grey-600);margin-left:6px}
 .preLabelTag{display:inline-block;padding:1px 8px;border-radius:var(--ff-radius-c15);border:1px solid #FF8502;color:#FF8502;
   font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
 .nm .nmTxt{display:inline}
@@ -10592,7 +10594,7 @@ function bsSelfTest(){
   document.body.appendChild(box);
   return out;
 }
-if(/[?&]selftest=1/.test(location.search)) setTimeout(bsSelfTest, 0);
+if(/[?&]selftest=1/.test(location.search)) console.log('C&P: no scanning on this page, the scan self-test is skipped');
 
 renderSortUI();
 render();
@@ -10703,7 +10705,7 @@ function cpDecorate(){
         const sl=ordWrap.querySelector(':scope > .statusSlot'); if(sl) sl.outerHTML=cpSlot([cpBtn('lock',ix,L.tipLockTitle)]);
       }
       const cc=cpOf(ix);
-      if(cc.preOrdered!=null && !cpRemoved(ix)) ordWrap.insertAdjacentHTML('beforebegin', `<div class="lineTag">${L.preOrdered} ${cc.preOrdered} ${L.caseUnit}</div>`);
+      if(cc.preOrdered!=null && !cpRemoved(ix)) { ordWrap.classList.add('hasLineTag'); ordWrap.insertAdjacentHTML('afterbegin', `<div class="lineTag">${L.preOrdered}<b>${cc.preOrdered} ${L.caseUnit}</b></div>`); };
     }
     const pre=document.createElement('div'); pre.className='cpPre'; pre.innerHTML=preCellHTML(ix);
     cells[2].after(pre);
