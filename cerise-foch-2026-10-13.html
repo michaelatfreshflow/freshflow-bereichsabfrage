@@ -2387,23 +2387,23 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
     <div class="dash-row2">
       <div class="dash-card dash-mini">
         <div class="lb" id="dbWeather">Wetter</div>
-        <div class="dash-city">Berlin</div>
-        <div class="dash-temp">14°C | 23°C
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a94c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 15a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.6A3.5 3.5 0 0 0 7 15h10z"/><line x1="9" y1="19" x2="9" y2="21"/><line x1="13" y1="19" x2="13" y2="21"/><line x1="17" y1="19" x2="17" y2="21"/></svg>
+        <div class="dash-city">Lyon</div>
+        <div class="dash-temp">15°C | 20°C
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
         </div>
-        <span class="dash-rainpill">Regen</span>
+        <span class="dash-rainpill" style="background:#FDF1DC;color:#9A6512">Ensoleillé</span>
         <div class="dash-mini-more" id="dbSeeWeather">Siehe Wetter ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbUpcoming">Zukünftige Ereignisse</div>
-        <div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>
-        <div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>
+        <div class="dash-evrow"><div class="nm">Toussaint</div><div class="dt">nov. 01<br>2026</div></div>
+        <div class="dash-evrow"><div class="nm">Armistice 1918</div><div class="dt">nov. 11<br>2026</div></div>
         <div class="dash-mini-more" id="dbAllEvents">Alle Ereignisse ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbTutorials">Tutorial Videos</div>
-        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Einführung in die Bestellvorbereitungen</div>
-        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Wie kann man Elemente ausblenden?</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Présentation de l'application</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Vérification de la commande</div>
         <div class="dash-mini-more" id="dbAllVideos">Alle Videos ›</div>
       </div>
     </div>
@@ -5121,8 +5121,7 @@ const MI = {
     { key:'shrink',    lbl:()=>t().shrink,     level:'ok',  days:[] },
     { key:'ordersatz', lbl:()=>t().ordersatz,  level:'ok',  days:[] },
     { key:'sales',     lbl:()=>t().miCatSales, level:'ok',  days:[] },
-    { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
-      days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }
+    { key:'intake',    lbl:()=>t().miCatIntake, level:'ok',  days:[] }
   ],
   /* null = noch nicht angestossen, sonst der Zeitpunkt des Drucks. */
   intakeStartedAt: null,

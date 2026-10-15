@@ -109,6 +109,29 @@ m = re.search(r'const DEMO_HIDDEN_IDS = new Set\(\[[^\]]*\]\);', s)
 if m:
     s = s[:m.start()] + 'const DEMO_HIDDEN_IDS = new Set([]);   /* C&P clone: no demo-hidden rows */' + s[m.end():]
 
+# ---- C&P dashboard: all data in, Lyon weather, French holidays, French tutorials ----
+# Missing data: every category up to date, so the header shows the app's success badge
+# (green check, no text) and the status sheet no longer opens on its own.
+rep("""    { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
+      days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }""",
+    """    { key:'intake',    lbl:()=>t().miCatIntake, level:'ok',  days:[] }""")
+# Weather: Lyon, 15-20 °C, sunny.
+rep('<div class="dash-city">Berlin</div>', '<div class="dash-city">Lyon</div>')
+i = s.index('<div class="dash-temp">14°C | 23°C'); j = s.index('</div>', i) + len('</div>')
+s = s[:i] + ('<div class="dash-temp">15°C | 20°C\n'
+             '          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>\n'
+             '        </div>') + s[j:]
+rep('<span class="dash-rainpill">Regen</span>',
+    '<span class="dash-rainpill" style="background:#FDF1DC;color:#9A6512">Ensoleillé</span>')
+# Upcoming French public holidays after the order day (13 Oct 2026).
+rep('<div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>',
+    '<div class="dash-evrow"><div class="nm">Toussaint</div><div class="dt">nov. 01<br>2026</div></div>')
+rep('<div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>',
+    '<div class="dash-evrow"><div class="nm">Armistice 1918</div><div class="dt">nov. 11<br>2026</div></div>')
+# Tutorials: the French versions of the standard set (no C&P-specific videos exist yet).
+rep('</span>Einführung in die Bestellvorbereitungen</div>', "</span>Présentation de l'application</div>")
+rep('</span>Wie kann man Elemente ausblenden?</div>', '</span>Vérification de la commande</div>')
+
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
 rep('REWE Peeters Flüren', args.store_name, 3)
