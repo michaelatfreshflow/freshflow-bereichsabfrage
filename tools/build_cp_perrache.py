@@ -644,7 +644,7 @@ CSS_WTD = """
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
 .cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStripLg .cpPromo{background:#FDECEC}
-.cpSumPill{box-sizing:border-box;width:max-content;max-width:180px;margin-top:4px;display:flex;align-items:center;gap:6px;
+.cpSumPill{box-sizing:border-box;width:max-content;max-width:180px;margin:4px auto 0;position:relative;left:-10px;display:flex;align-items:center;gap:6px;
   padding:1px 7px;border-radius:var(--ff-radius-pill);background:var(--ff-grey-100);font-variant-numeric:tabular-nums;line-height:1.5}
 .cpSumPill__l{display:flex;align-items:center;gap:4px;min-width:0;font-size:var(--ff-text-secondary-caption-10);color:var(--ff-grey-500);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
