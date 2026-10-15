@@ -8598,7 +8598,6 @@ function renderFiltPanel(){
           pills('rhb',[['all',L.filtAll],['set',L.filtSet],['empty',L.filtEmpty]]))}
       ${sec('vis',FICON.vis,L.filtVis,
           pills('vis',[['all',L.filtAll],['visible',L.filtVisible],['hidden',L.filtHidden]]))}
-      ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}
       ${sec('tag',FICON.tag,L.filtTags,
           chk('bio',`<span class="pill b">Bio</span>`,count(it=>it.bio))
         + (ITEMS.some(it=>it.kern) ? chk('kern',`<span class="pill kern">${L.kernTag}</span>`,count(it=>it.kern)) : '')
