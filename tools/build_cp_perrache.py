@@ -175,6 +175,20 @@ for k, old in enumerate(('>26 So<', '>30 Do<', '>3 Mo<', '>7 Fr<', '>11 Di<', '>
     d = _start + _td(days=4 * k)
     rep(old, f'>{d.day} {_WD_FR[d.weekday()]}<', 2)
 
+# The REWE base page still counts extra shelves (placedOn) on the "change shelf" pill in
+# "Gérer la commande", but the second-shelf feature and that variable were removed on
+# 16 Sep (f782b96). The pill then throws and the manage view never draws. C&P has one shelf.
+s = s.replace("${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} \u270e</button>`;",
+              "${tileLabel(tileOf(it))} \u270e</button>`;")
+
+# The "change shelf" sheet has its subtitle hard-coded in German in the base page.
+rep('<div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>', '<div class="sub">${L.shelfPermanent}</div>')
+for _lg, _txt in (('de', 'Gilt ab sofort dauerhaft für diesen Artikel.'), ('en', 'Applies from now on to this item.'),
+                  ('fr', "S'applique dès maintenant à cet article.")):
+    _a = {'de': "    rManualWarning:'Manuelle Warnung',", 'en': "    rManualWarning:'Manual warning',",
+          'fr': "    rManualWarning:'Alerte manuelle',"}[_lg]
+    rep(_a, _a + "\n    shelfPermanent:" + json.dumps(_txt, ensure_ascii=False) + ",")
+
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
 rep('REWE Peeters Flüren', args.store_name, 3)
@@ -349,8 +363,11 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .preDash{display:flex;align-items:center;justify-content:center;height:48px;width:72px;margin-left:42px;
   color:var(--ff-grey-800);font-weight:var(--ff-weight-medium);font-size:var(--ff-text-primary-body-text-14)}
 .ColumnCounterField--locked .ColumnCounterField__box{background:var(--ff-grey-100);color:var(--ff-grey-500)}
-.lineTag{display:inline-block;margin:0 0 5px 42px;padding:1px 8px;border-radius:var(--ff-radius-c15);
-  border:1px solid var(--ff-grey-300);font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600)}
+.withbang.hasLineTag{position:relative}
+#list > .row:has(.lineTag){padding-top:28px}
+.lineTag{position:absolute;left:0;right:24px;bottom:100%;margin-bottom:3px;text-align:center;white-space:nowrap;line-height:1.2;
+  font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-500);font-weight:var(--ff-weight-regular, 400)}
+.lineTag b{font-weight:var(--ff-weight-medium);color:var(--ff-grey-600);margin-left:6px}
 .preLabelTag{display:inline-block;padding:1px 8px;border-radius:var(--ff-radius-c15);border:1px solid #FF8502;color:#FF8502;
   font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
 .nm .nmTxt{display:inline}
@@ -484,7 +501,7 @@ function cpDecorate(){
         const sl=ordWrap.querySelector(':scope > .statusSlot'); if(sl) sl.outerHTML=cpSlot([cpBtn('lock',ix,L.tipLockTitle)]);
       }
       const cc=cpOf(ix);
-      if(cc.preOrdered!=null && !cpRemoved(ix)) ordWrap.insertAdjacentHTML('beforebegin', `<div class="lineTag">${L.preOrdered} ${cc.preOrdered} ${L.caseUnit}</div>`);
+      if(cc.preOrdered!=null && !cpRemoved(ix)) { ordWrap.classList.add('hasLineTag'); ordWrap.insertAdjacentHTML('afterbegin', `<div class="lineTag">${L.preOrdered}<b>${cc.preOrdered} ${L.caseUnit}</b></div>`); };
     }
     const pre=document.createElement('div'); pre.className='cpPre'; pre.innerHTML=preCellHTML(ix);
     cells[2].after(pre);

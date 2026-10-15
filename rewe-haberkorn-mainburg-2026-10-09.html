@@ -6339,7 +6339,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         </div>
         <button class="invask__go" type="button" data-a="dsone" data-i="${ix}">${L.dsAskBtn.replace('{u}',L.caseUnit)}</button>
       </div>`;
-    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} ✎</button>`;
+    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
