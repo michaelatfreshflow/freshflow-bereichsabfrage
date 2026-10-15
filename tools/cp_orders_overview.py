@@ -350,11 +350,11 @@ def inject(s, orders, clock=None):
 
 LOCK_LOC = {
     'de': dict(lkTitle='Bestellung noch nicht offen', lkMsg='Die Bestellung öffnet um {t} Uhr.',
-               lkIn='Noch {d}.', lkOk='OK'),
+               lkIn='Noch {d}.', lkMsgDay='Diese Bestellung öffnet am {d} um {t} Uhr.', lkOk='OK'),
     'en': dict(lkTitle='Order not open yet', lkMsg='The order opens at {t}.',
-               lkIn='In {d}.', lkOk='OK'),
+               lkIn='In {d}.', lkMsgDay='This order opens on {d} at {t}.', lkOk='OK'),
     'fr': dict(lkTitle='Commande pas encore ouverte', lkMsg='La commande ouvre à {t}.',
-               lkIn='Dans {d}.', lkOk='OK'),
+               lkIn='Dans {d}.', lkMsgDay='Cette commande ouvre le {d} à {t}.', lkOk='OK'),
 }
 
 # Decided 2026-10-15: the screens stay exactly as the app shows them today (no lock chips,
@@ -385,14 +385,23 @@ LOCK_JS = r"""
 const OC_OPENS = OC.opensAt || null;          // 'HH:MM' store time; null = no lock (every other store)
 document.body.insertAdjacentHTML('beforeend', __LOCK_HTML__);
 const lkMin = hhmm => { const [h,m]=hhmm.split(':').map(Number); return h*60+m; };
-/* The one check. Before the opening time, today's order and future orders do not open. */
-function orderLocked(){ return !!OC_OPENS && ocNowMin() < lkMin(OC_OPENS); }
+/* Each order opens at the opening time on its own order day (the backend would write this
+   per order, like the deadline). A future order is therefore closed until its day, also
+   across a weekend: Saturday evening, Monday's order says "opens on Monday at 11:00". */
+function orderOpensAt(o){ return ocDt(o.deadline.slice(0,10)+'T'+OC_OPENS); }
+function isOrderClosed(o){ return !!OC_OPENS && !!o && ocNow() < orderOpensAt(o); }
+function todaysOrder(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
+/* Today's order: the one the round button and the order screen open. */
+function orderLocked(){ return isOrderClosed(todaysOrder()); }
 function lkDur(min){ min=Math.max(1, Math.ceil(min)); const h=Math.floor(min/60), m=min%60;
   return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
-function lkShow(){
-  const L=t();
+function lkShow(o){
+  const L=t(); o=o||todaysOrder();
+  const at=orderOpensAt(o), sameDay=ocSameDay(at, ocNow());
   document.getElementById('lkTitle').textContent=L.lkTitle;
-  document.getElementById('lkBody').textContent=`${L.lkMsg.replace('{t}', OC_OPENS)} ${L.lkIn.replace('{d}', lkDur(lkMin(OC_OPENS)-ocNowMin()))}`;
+  document.getElementById('lkBody').textContent = sameDay
+    ? `${L.lkMsg.replace('{t}', OC_OPENS)} ${L.lkIn.replace('{d}', lkDur((at-ocNow())/60000))}`
+    : L.lkMsgDay.replace('{d}', ocMMMEd(at)).replace('{t}', ocTime(at));
   document.getElementById('lkOk').textContent=L.lkOk;
   document.getElementById('ovLock').classList.add('on');
 }
@@ -414,9 +423,10 @@ document.getElementById('dashFab').addEventListener('click', e=>{
 }, true);
 /* Orders overview: today's and future rows look as usual; tapping one shows the pop-up. */
 document.getElementById('ocBody').addEventListener('click', e=>{
-  const r=e.target.closest('[data-oc="row"]');
-  if(!r || r.dataset.kind==='past' || !orderLocked()) return;
-  e.stopImmediatePropagation(); lkShow();
+  const r=e.target.closest('[data-oc="row"]'); if(!r || r.dataset.kind==='past') return;
+  const o=OC.orders.find(x=>x.id===r.dataset.id);
+  if(!isOrderClosed(o)) return;
+  e.stopImmediatePropagation(); lkShow(o);
 }, true);
 """
 
