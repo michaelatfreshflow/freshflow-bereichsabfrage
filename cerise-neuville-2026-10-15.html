@@ -2279,6 +2279,28 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 #scanFab, #scanCam, #scanRes, #bsCam, #invRev, #catScanBtn, .backBand, #panelInv,
 .dash-navitem:has(#dbNav3){display:none !important}
 
+/* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
+.cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
+.cpStrip .SalesHistory__marks{display:none}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
+  border-left:1px solid var(--ff-grey-300)}
+.cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
+.cpStrip .cpSum{background:var(--ff-grey-100)}
+.cpStripLg .cpPromo{background:#FDECEC}
+.cpSumPill{box-sizing:border-box;width:max-content;max-width:180px;margin:4px auto 0;position:relative;left:-10px;display:flex;align-items:center;gap:6px;
+  padding:1px 7px;border-radius:var(--ff-radius-pill);background:var(--ff-grey-100);font-variant-numeric:tabular-nums;line-height:1.5}
+.cpSumPill__l{display:flex;align-items:center;gap:4px;min-width:0;font-size:var(--ff-text-secondary-caption-10);color:var(--ff-grey-500);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpSumPill__l b{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.cpSumPill__v{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800);white-space:nowrap}
+.cpSumPill__v.is-nil{color:var(--ff-grey-400)}
+.cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
+  border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
+.cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
+.cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
+
 /* ===== C&P: orders overview (order_list_page.dart / order_list_table.dart) ===== */
 .oc-sec{margin:0 0 24px}
 .oc-hd{display:flex;align-items:center;gap:24px;height:40px;padding:0 40px}
@@ -2843,15 +2865,15 @@ const ITEMS = [{"id": 0, "plu": 1436, "bio": false, "promo": null, "name": "ANAN
    Aus BigQuery (rewe_peeters_flueren.prod_sales_with_plu und
    prod_order_intake_with_plu_and_app_order), 11.-24.08.2026. null = kein
    Datensatz an dem Tag (Sonntag zu, oder schlicht nichts gemeldet). */
-const HIST_FROM = new Date(2026, 7, 11);
+const HIST_FROM = new Date(2026, 9, 1);
 /* Aktionstage je PLU, Index wie HIST. Aus core_promotions (direkt oder ueber
    int_plu_map auf die PLU gemappt) -- das Aktionskennzeichen in den Verkaufsdaten
    ist bei diesem Markt nie gesetzt. */
-const HIST_PROMO = {};
+const HIST_PROMO = {"1202":[7,8,9,10,11],"1203":[12,13],"1921":[12,13],"20825":[7,8,9,10],"37282":[13],"37298":[13],"37312":[13]};
 /* Abschriften je PLU als {Tagesindex: Menge}, Index wie HIST, positiv (die Quelle
    prod_recorded_waste_with_plu fuehrt sie negativ). Ohne Eintrag: keine Abschrift. */
 const HIST_SHRINK = {};
-const HIST = {};
+const HIST = {"1217":[[null,null,null,null,null,null,null,4.614,3.308,8.969999999999999,3.9859999999999998,2.178,5.926,6.311999999999999],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1124":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21061":[[null,null,null,null,null,null,null,1.4,1.512,0.852,0,3.0220000000000002,2.3040000000000003,2.342],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1019":[[null,null,null,null,null,null,null,0.91,2.1479999999999997,2.94,1.3679999999999999,null,1.366,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1428":[[null,null,null,null,null,null,null,0,11,14,5,3,6,4],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21094":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1064":[[null,null,null,null,null,null,null,0,0,2,0,0,0,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20015":[[null,null,null,null,null,null,null,2,2,11,7,2,1,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1471":[[null,null,null,null,null,null,null,null,2.974,4.15,null,0.8679999999999999,null,0.546],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1875":[[null,null,null,null,null,null,null,0.486,0,4.982,0,0.768,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1816":[[null,null,null,null,null,null,null,0,0,3,0,0,0,2],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1092":[[null,null,null,null,null,null,null,4.534,5.778,11.121999999999998,2.582,3.4320000000000004,0,6.608],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1533":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1294":[[null,null,null,null,null,null,null,1,0,2,1,2,1,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1021":[[null,null,null,null,null,null,null,1.9480000000000002,0.48,0.584,0,0,0.946,1.174],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1068":[[null,null,null,null,null,null,null,0.146,0.398,0.53,0.692,0,0.36,1.482],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1121":[[null,null,null,null,null,null,null,0,0,0,0,0,1,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21140":[[null,null,null,null,null,null,null,1.376,0.544,0.514,0.442,null,null,0.522],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1044":[[null,null,null,null,null,null,null,2,2,2,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20224":[[null,null,null,null,null,null,null,3,3,7,5,2,4,5],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37188":[[null,null,null,null,null,null,null,4.686000000000001,4.562,12.325999999999999,2.636,0.276,3.412000000000001,2.552],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20709":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37236":[[null,null,null,null,null,null,null,3.3739999999999997,1.6920000000000002,4.19,3.92,0.108,1.9060000000000001,3.8400000000000003],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21095":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1905":[[null,null,null,null,null,null,null,1,null,null,null,3,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20712":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37312":[[null,null,null,null,null,null,null,0,0,0,0,0,0,5.666],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1810":[[null,null,null,null,null,null,null,4,1,6,1,2,0,2],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1320":[[null,null,null,null,null,null,null,0.45,0,0,0,0,0,0.216],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1035":[[null,null,null,null,null,null,null,0.47600000000000003,1.394,3.536,0.72,0.304,1.44,0.44000000000000006],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1532":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20494":[[null,null,null,null,null,null,null,null,1,null,null,null,null,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1902":[[null,null,null,null,null,null,null,null,0.68,0.63,null,0.206,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20164":[[null,null,null,null,null,null,null,4.992,6.8919999999999995,13.33,4.664,4.428,6.539999999999999,2.152],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1797":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1441":[[null,null,null,null,null,null,null,11.886,7.556,17.764,5.282,0,8.06,3.246],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20007":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1063":[[null,null,null,null,null,null,null,1,1,3,0,2,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1004":[[null,null,null,null,null,null,null,0.132,0.28400000000000003,0.8740000000000001,0,0,0.274,0.23399999999999999],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1482":[[null,null,null,null,null,null,null,0.634,0.298,2.592,0.8320000000000001,0,0.092,0.9460000000000001],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1921":[[null,null,null,null,null,null,null,2.95,1.066,10.967999999999998,1.358,0.796,3.114,3.998],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1880":[[null,null,null,null,null,null,null,null,2.972,1.604,0.432,null,null,0.71],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1103":[[null,null,null,null,null,null,null,3,3,14,2,4,2,11],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1821":[[null,null,null,null,null,null,null,0,0,3,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1967":[[null,null,null,null,null,null,null,null,null,0.994,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1203":[[null,null,null,null,null,null,null,5,3,5,6,2,15,23],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20046":[[null,null,null,null,null,null,null,1.3820000000000001,2.164,5.9399999999999995,0,0,4.442,3.978],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37352":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1453":[[null,null,null,null,null,null,null,3,4,14,4,2,8,11],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1995":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1114":[[null,null,null,null,null,null,null,0,0.43400000000000005,2,0.148,0.396,0,1.5899999999999999],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37379":[[null,null,null,null,null,null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1098":[[null,null,null,null,null,null,null,0.842,1.952,3.582,0,1.24,0.75,2.564],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1208":[[null,null,null,null,null,null,null,2,2,8,1,1,2,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1201":[[null,null,null,null,null,null,null,6,6,14,5,5,7,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1516":[[null,null,null,null,null,null,null,2,3,7,2,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1116":[[null,null,null,null,null,null,null,1.924,3.49,11.318,4.724,1.42,2.7640000000000002,1.482],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1106":[[null,null,null,null,null,null,null,0,0,1.72,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1450":[[null,null,null,null,null,null,null,null,0.448,null,null,null,0.508,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1038":[[null,null,null,null,null,null,null,1,0,5,0,1,2,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1220":[[null,null,null,null,null,null,null,0.44,0.23,0.32999999999999996,0,0.6000000000000001,0.108,0.45999999999999996],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1159":[[null,null,null,null,null,null,null,null,2,2,null,null,2,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1130":[[null,null,null,null,null,null,null,0,0,3.164,0,0,1.27,0.874],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1529":[[null,null,null,null,null,null,null,14,32,43,11,15,16,31],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1045":[[null,null,null,null,null,null,null,0.074,0.366,1.116,0,0,0.06,0.07],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1753":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1928":[[null,null,null,null,null,null,null,0.47400000000000003,0.786,1.4180000000000001,0.366,0.17,0.148,0.246],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37298":[[null,null,null,null,null,null,null,0,1.164,2.794,0.978,3.212,2.428,5.198],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20095":[[null,null,null,null,null,null,null,2,6,10,5,6,4,6],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1127":[[null,null,null,null,null,null,null,1,3,4,0,1,2,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37351":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20711":[[null,null,null,null,null,null,null,0,0,3,0,0,0,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20312":[[null,null,null,null,null,null,null,null,null,3.044,0.856,null,null,1.284],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1277":[[null,null,null,null,null,null,null,1,0,4,0,0,1,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20749":[[null,null,null,null,null,null,null,1,1,1,1,1,2,4],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20345":[[null,null,null,null,null,null,null,0,1,1,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1710":[[null,null,null,null,null,null,null,0.37,3.194,2.466,0.422,1.6,1.976,2.606],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1079":[[null,null,null,null,null,null,null,0.96,1.952,4.934,3.73,2.574,3.732,0.926],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1284":[[null,null,null,null,null,null,null,0,1.3780000000000001,2.838,3.21,0.742,0,0.084],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1922":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20045":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1078":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1851":[[null,null,null,null,null,null,null,18.688000000000002,20.52,48.08599999999999,16.474,20.529999999999998,17.616000000000003,22.226],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1231":[[null,null,null,null,null,null,null,2,6,12,1,3,3,4],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21068":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21064":[[null,null,null,null,null,null,null,null,null,null,0.596,2.012,null,0.714],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1640":[[null,null,null,null,null,null,null,2.574,2.666,4.714,1.826,0.316,4.02,7.100000000000001],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1225":[[null,null,null,null,null,null,null,0.526,1.262,0.782,0.222,0,0.422,1.164],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1741":[[null,null,null,null,null,null,null,3,1,5,3,0,5,6],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1822":[[null,null,null,null,null,null,null,2,3,1,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1223":[[null,null,null,null,null,null,null,0,4,14,2,1,4,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1173":[[null,null,null,null,null,null,null,1,0,2,0,0,0,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20405":[[null,null,null,null,null,null,null,0.564,4.228,8.736,1.754,4.268000000000001,1.252,1.052],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1041":[[null,null,null,null,null,null,null,0.276,0.41800000000000004,1.2719999999999998,0,0,0.39,1.054],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1843":[[null,null,null,null,null,null,null,3.9819999999999998,5.69,15.060000000000002,3.6079999999999997,1.7360000000000002,4.779999999999999,4.878],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1704":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1048":[[null,null,null,null,null,null,null,2,2,4,1,0,1,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1117":[[null,null,null,null,null,null,null,0.374,2.492,2.372,0,0.388,2.1980000000000004,0.486],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1090":[[null,null,null,null,null,null,null,null,2,1,6,3,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1927":[[null,null,null,null,null,null,null,null,null,null,null,0.972,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1204":[[null,null,null,null,null,null,null,0,0,5,2,3,1,6],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1065":[[null,null,null,null,null,null,null,1,3,8,1,1,2,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20501":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1348":[[null,null,null,null,null,null,null,33.526,41.989999999999995,71.716,19.23,23.442,31.348000000000006,56.938000000000024],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1782":[[null,null,null,null,null,null,null,0,2.764,7.021999999999999,1.03,2.134,1.062,5.528],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1540":[[null,null,null,null,null,null,null,0,0,6,0,2,3,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1898":[[null,null,null,null,null,null,null,null,0.64,null,null,0.456,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20395":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20057":[[null,null,null,null,null,null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20710":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1191":[[null,null,null,null,null,null,null,0,0,0,0,0.142,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1005":[[null,null,null,null,null,null,null,1.046,0.32999999999999996,1.314,0.518,0,0.334,0.536],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1200":[[null,null,null,null,null,null,null,10,12,18,8,4,7,13],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20499":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1025":[[null,null,null,null,null,null,null,12.661999999999999,7.284,28.910000000000007,6.9719999999999995,10.182,11.860000000000003,8.610000000000001],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1611":[[null,null,null,null,null,null,null,5.532,10.942,11.628,4.236,6.628,13,4.194],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20518":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1136":[[null,null,null,null,null,null,null,1,0,0,2,0,1,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20497":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20498":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1818":[[null,null,null,null,null,null,null,0,0,2,1,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1274":[[null,null,null,null,null,null,null,null,null,4,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20134":[[null,null,null,null,null,null,null,1.06,0.204,1.8159999999999998,0.434,0.43400000000000005,1.074,1.3439999999999999],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20039":[[null,null,null,null,null,null,null,6,7,14,4,0,0,4],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1891":[[null,null,null,null,null,null,null,4.496,8.932,11.049999999999999,3.2060000000000004,3.332,5.886,4.880000000000001],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20825":[[null,null,null,null,null,null,null,4.066,2.8920000000000003,7.818,4.626,1.098,1.7880000000000003,6.978],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1436":[[null,null,null,null,null,null,null,0,1.768,0,0,0,0,0.782],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1154":[[null,null,null,null,null,null,null,null,2,null,1,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1455":[[null,null,null,null,null,null,null,0,0,0,1,0,1,9],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1230":[[null,null,null,null,null,null,null,2,4,9,1,7,1,2],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1160":[[null,null,null,null,null,null,null,4.502,5.308,15.977999999999998,2.33,5.182,9.11,7.476],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1913":[[null,null,null,null,null,null,null,2,5,3,6,3,0,9],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"40737":[[null,null,null,null,null,null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1539":[[null,null,null,null,null,null,null,2.16,5.642,6.024000000000001,1.776,1.33,1.036,2.558],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1018":[[null,null,null,null,null,null,null,0,0,0.672,0,0,0,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1813":[[null,null,null,null,null,null,null,0,1,6,2,1,2,6],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20519":[[null,null,null,null,null,null,null,0.4,0.72,2.124,0.74,0.158,1.8319999999999999,0.19],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21365":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1342":[[null,null,null,null,null,null,null,5.7700000000000005,6.862,15.386000000000001,1.234,4.3,6.55,3.9200000000000004],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1197":[[null,null,null,null,null,null,null,1.202,1.224,2.9960000000000004,0.304,0.8840000000000001,0.8780000000000001,0.272],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1062":[[null,null,null,null,null,null,null,2.49,2.096,9.48,2.858,3.774,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20935":[[null,null,null,null,null,null,null,0,2.728,4.276,1.8559999999999999,0.752,1.166,0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1933":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1774":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21353":[[null,null,null,null,null,null,null,2,6,7,3,0,4,3],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21352":[[null,null,null,null,null,null,null,1,1,1,2,0,1,2],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1448":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1095":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1070":[[null,null,null,null,null,null,null,9,7,20,2,6,4,10],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1256":[[null,null,null,null,null,null,null,2.5060000000000002,10.96,23.567999999999998,8.588000000000001,5.128,5.686,2.782],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20332":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1060":[[null,null,null,null,null,null,null,0,1,8,1,3,5,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1111":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1899":[[null,null,null,null,null,null,null,0,0.45,0.974,0,0,0.81,0.446],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1145":[[null,null,null,null,null,null,null,4,4,4,4,0,1,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1523":[[null,null,null,null,null,null,null,0,9,15,4,0,3,9],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21106":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37201":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1080":[[null,null,null,null,null,null,null,0.16,1.8559999999999999,3.518,0.968,0.556,0.5,3.052],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1202":[[null,null,null,null,null,null,null,25,28,27,12,16,16,13],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37385":[[null,null,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1128":[[null,null,null,null,null,null,null,1,0,3,5,0,3,1],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"21133":[[null,null,null,null,null,null,null,null,null,null,null,0.616,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"20223":[[null,null,null,null,null,null,null,2,2,14,6,2,1,7],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"1119":[[null,null,null,null,null,null,null,3.414,0.654,2.134,0.194,null,0.302,0.718],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"37282":[[null,null,null,null,null,null,null,1.43,1.18,5.8740000000000006,1.234,3.104,4.252,6.143999999999999],[null,null,null,null,null,null,null,null,null,null,null,null,null,null]]};
 /* Kernsortiment: Artikel, die mindestens einmal pro Woche bestellt werden muessen.
    Es gibt dafuer (noch) kein Feld im Ordersatz und keine Spalte in BigQuery -- fuer
    den Prototyp sind 30 Artikel zufaellig markiert (fester Seed, damit es bei jedem
@@ -3729,7 +3751,6 @@ const T={
     rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
-    shelfPermanent:"Gilt ab sofort dauerhaft für diesen Artikel.",
     ocProtoOnly:"Prototyp: nur die heutige Bestellung lässt sich hier öffnen.",
     ocLeft:"verbleibend",
     ordersListOrderDateColumn:"Bestelldatum",  // [arb] ordersListOrderDateColumn
@@ -3770,6 +3791,7 @@ const T={
     cpDummy:"Demodaten · noch nicht Perrache",
     cpDemo:"Beispiel",
     labelNew:"Neu",
+    shelfPermanent:"Gilt ab sofort dauerhaft für diesen Artikel.",
     tipInvTitle:'Bestand prüfen', tipInvText:'Bitte Bestand dieses Artikels überprüfen.',
     tipOrdTitle:'Bestellmenge prüfen', tipOrdText:'Bitte Bestellmenge dieses Artikels überprüfen.',
     tipEditTitle:'Von Ihnen geändert', tipEditText:'Sie haben diesen Wert von Hand geändert.',
@@ -4210,7 +4232,6 @@ const T={
     rNewItem:'new item',
     rPromo:'Promotion',
     rManualWarning:'Manual warning',
-    shelfPermanent:"Applies from now on to this item.",
     ocProtoOnly:"Prototype: only today's order opens here.",
     ocLeft:"left",
     ordersListOrderDateColumn:"Order Date",  // [arb] ordersListOrderDateColumn
@@ -4251,6 +4272,7 @@ const T={
     cpDummy:"Demo data · not Perrache yet",
     cpDemo:"Example",
     labelNew:"New",
+    shelfPermanent:"Applies from now on to this item.",
     tipInvTitle:'Check inventory', tipInvText:'Please review the inventory for this item.',
     tipOrdTitle:'Check order quantity', tipOrdText:'Please review the order quantity for this item.',
     tipEditTitle:'Edited by you', tipEditText:'You changed this value by hand.',
@@ -4691,7 +4713,6 @@ const T={
     rNewItem:'nouvel article',
     rPromo:'Promotion',
     rManualWarning:'Alerte manuelle',
-    shelfPermanent:"S'applique dès maintenant à cet article.",
     ocProtoOnly:"Prototype : seule la commande du jour s'ouvre ici.",
     ocLeft:"restantes",
     ordersListOrderDateColumn:"Date",  // [arb] ordersListOrderDateColumn
@@ -4732,6 +4753,7 @@ const T={
     cpDummy:"Données fictives · pas encore Perrache",
     cpDemo:"Exemple",
     labelNew:"Nouveau",
+    shelfPermanent:"S'applique dès maintenant à cet article.",
     tipInvTitle:'Vérifier le stock', tipInvText:'Veuillez vérifier le stock pour cet article.',
     tipOrdTitle:'Vérifier la quantité', tipOrdText:'Veuillez vérifier la quantité commandée pour cet article.',
     tipEditTitle:'Modifié par vous', tipEditText:'Vous avez modifié cette valeur à la main.',
@@ -5495,7 +5517,7 @@ function applyKo(it,s,ko){
      uebernommen war sie ohnehin nie. Es bleibt nichts davon stehen: die Zeile ist
      beantwortet, und wer die Menge doch anders haben will, tippt sie danach. */
   s.pendOrder=null;
-  if(s.home==='range' && rungOfKo(it,ko,s.plan)===s.plan){
+  if(s.home==='range' && Math.abs(ko-cpSimKo(it,s))<1e-6){
     s.step=s.home; s.ko=0; s.manual=false;
     s.chosen=s.pre.chosen; s.order=s.pre.order; s.answered=s.pre.answered; s.auto=s.pre.auto;
   } else {
@@ -5898,8 +5920,8 @@ function stepHTML(it,s,ix){
     const r=it.rungs[s.plan];
     /* lo<=0 heisst: die Plan-Sprosse faengt schon bei 0 an, unter ihr liegt nichts mehr.
        − landete dort per applyKo() wieder in derselben Sprosse und tat sichtbar nichts. */
-    minusOff=r.lo==null||r.lo<=0; plusOff=r.hi==null;
-    big=koText(r,it); small=stText(r,it);
+    const sv=cpSimKo(it,s); minusOff=sv<=0; plusOff=false;
+    big=cpSimTxt(sv); small=cpSimSub(it,sv);
   } else {
     minusOff=s.ko<=0; plusOff=s.ko>=99;
     big=koNum(s.ko)+(' '+t().caseUnit); small=(it.case!=null?Math.round(s.ko*it.case):s.ko)+' '+uw(it);
@@ -6067,7 +6089,7 @@ function rowClear(it,s){
 function filtMatch(it,s){
   const hasInvBang = bangInv(it,s); /* dieselbe Regel wie in rowClear(), nicht mehr nachgebaut */
   return (CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
-      || (CATFILT.rhb0 && rhbZero(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
+      || (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
       || (CATFILT.bio && it.bio) || (CATFILT.kern && it.kern) || (CATFILT.promo && isPromo(it));
 }
 /* Der !-Haken ist ein bewegliches Ziel: sobald der Kaufmann den Bestand eintraegt,
@@ -6150,7 +6172,7 @@ function eyeIcon(off){
 const HIST_PG = {};
 /* ?iter=1 zeigt Iteration 1 des Tickets: nur die Daten, die die App heute schon hat
    (die 7 Tage vor dem Bestelltag). Keine Vorwoche zum Wischen, keine Aktionstage. */
-const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';   // ix -> 0 (juengste Woche, Standard) oder 1 (Woche davor)
+const HIST_ITER1 = true;   /* C&P: the app's 7 days, no swipe to the week before */   // ix -> 0 (juengste Woche, Standard) oder 1 (Woche davor)
 const ICON_HIST_SALES='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 10.5 5 7l2.5 2.5L12 5"/><path d="M8.6 4.4H12.6V8.4"/></svg>';
 const ICON_HIST_DELIV='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 2h1.8l1.6 6.6h6.4l1.4-4.8H3.5"/><circle cx="5.2" cy="11.4" r=".6"/><circle cx="10" cy="11.4" r=".6"/></svg>';
 function histDay(i){ return new Date(HIST_FROM.getFullYear(), HIST_FROM.getMonth(), HIST_FROM.getDate()+i); }
@@ -6579,7 +6601,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       /* Nur die Kistenzahl. Die Stueckzahl in Klammern dahinter sagte dasselbe ein
          zweites Mal in einer anderen Einheit und machte aus einem Satz eine Rechnung --
          der Stepper darueber zeigt sie ohnehin. */
-      const assume=koText(it.rungs[s.plan],it);
+      const assume=cpSimTxt(cpSimKo(it,s));
       return `<div class="invask">
         <div class="invask__mv">
           <span class="lb">${L.invAskLabel}</span>
@@ -7996,7 +8018,7 @@ function rowClick(e){
        nahm + Math.ceil(r.hi) und sprang dabei ueber das Raster hinweg (hi 0,54 → 1 statt
        0,57 bei einer 14er Kiste). stepKo() liefert immer einen Wert echt oberhalb von
        r.hi bzw. echt unterhalb von r.lo, die Sprosse wird also sicher verlassen. */
-    if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = stepKo(it, d<0 ? (r.lo??0) : r.hi, d); }
+    if(s.step==='range'){ newKo = stepKo(it, cpSimKo(it,s), d); }
     else if(s.step==='need'){ newKo = d<0 ? 0 : 1; }
     else { newKo = stepKo(it, s.ko, d); }
     newKo = Math.max(0, Math.min(99, newKo));
@@ -8517,13 +8539,13 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
 });
 /* ---------- category filter (Bestand / Bestellmenge / Bio / Werb.) ---------- */
 /* Haken sind ein ODER (Warnungen, Lieferant, Stichworte). */
-const CATFILT = {invNote:false, ordNote:false, rhb0:false, rewe:false, bio:false, kern:false, promo:false};
+const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rewe:false, bio:false, kern:false, promo:false};
 /* Regalhoechstbestand Alle / Gesetzt / Leer ist dagegen eine Aufteilung (UND):
    Leer heisst RHB 0 -- jemand hat eingetragen, dass der Artikel heute nicht im Regal steht. */
 let RHB_FILT='all';   // 'all' | 'set' | 'empty'
 function rhbZero(ix){ return !homeEmpty(ITEMS[ix]) && dsHome(ITEMS[ix])===0; }
 function filtActive(){
-  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
+  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
 }
 /* Bestellvorschlag: gemeint ist der Vorschlag des Systems (recoOf), nicht die
    Menge, die gerade in der Zeile steht -- "was bestelle ich nicht" heisst: was
@@ -8568,7 +8590,8 @@ function renderFiltPanel(){
       ${sec('warn',FICON.warn,L.filtWarnings,
           chk('invNote',L.inventory,count((it,ix)=>ST[ix].mode==='unsure'||it.invNote))
         + chk('ordNote',L.orderQuantity,count(it=>it.ordNote))
-        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}
+        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))
+        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}
       ${sec('reco',FICON.reco,L.filtReco,
           pills('reco',[['all',L.filtAll],['pos',L.filtRecoPos],['zero',L.filtRecoZero]]))}
       ${sec('rhb',FICON.rhb,L.displaySize,
@@ -8731,7 +8754,7 @@ function openInvPad(ix, backOnly){
   /* Wie im normalen Tastenfeld wird NICHT vorbelegt: der Kaufmann tippt die Zahl,
      die er zaehlt, nicht eine, die schon dasteht. */
   INV={ix, back:'0', floor:'0', act: backOnly?'back':'floor', unit:'cs', backOnly:!!backOnly,
-       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,
+       rLoKO: null, rHiKO: null,
        rPlo: r ? r.plo : null, rPhi: r ? r.phi : null,
        suppressHint: !!(it.invNote && it.invNote.includes('turnusmässige Zählung'))};
   const us=document.getElementById('invUnitSeg');
@@ -10607,6 +10630,20 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+/* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
+   land on whole pieces so the case figure and the piece figure agree. */
+function cpSimKo(it,s){
+  const r=it.rungs[s.plan]||{};
+  let v=it.app!=null ? it.app : (r.lo||0);
+  if(r.lo!=null) v=Math.max(v, r.lo);
+  if(r.hi!=null) v=Math.min(v, r.hi);
+  v=Math.max(0, v);
+  if(it.unit==='piece' && it.case>1){ const pcs=Math.round(v*it.case); return koOfPieces(pcs,it.case) ?? pcs/it.case; }
+  return Math.round(v*10)/10;
+}
+function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
+function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
+function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
 function cpSlot(btns){
@@ -10758,6 +10795,51 @@ bsOpenFromShelves = function(){};
   const nav=document.getElementById('dbNav3'); if(nav && nav.closest('.dash-navitem')) nav.closest('.dash-navitem').style.display='none';
   ['scanFab','invFab'].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
 })();
+
+/* ===== C&P: running total since Tuesday, under the 7-day sales =====
+   The week starts on Tuesday. Wednesday shows Tuesday, Thursday Tuesday+Wednesday, ...
+   Monday Tuesday..Sunday; on Tuesday the full previous week (Tuesday..Monday).
+   Same unit as the strip (cases where the item has a case size). */
+const CP_WTD = {
+  de:{sum:'Summe', week:'Vorwoche'}, en:{sum:'Total', week:'Last week'}, fr:{sum:'Cumul', week:'Semaine préc.'}};
+function cpWtd(ix){
+  const it=ITEMS[ix];
+  const today=histDay(14), k=((today.getDay()-2+7)%7)||7;      // days since Tuesday, 7 on a Tuesday
+  const S=sdSeries(it).sales; let sum=0, any=false;
+  for(let d=14-k; d<14; d++){ if(S[d]!=null){ sum+=S[d]; any=true; } }
+  const W=CP_WTD[LANG]||CP_WTD.en;
+  const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
+  const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
+  const dd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric', month:'short'});
+  const dated = k===1 ? dd(13) : `${dd(14-k)} – ${dd(13)}`;
+  const shortDated = span;   // weekdays only under the commande ("mar.–mer."); the full dates are in the hover text
+  return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null,
+          longLabel: `${k===7 ? W.week : W.sum} ${dated}`, days: shortDated};
+}
+/* Product sheet: promo days as light red columns (every row). The running total is shown
+   under the commande only. */
+function cpSheetStrip(ix, h){
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
+  const n={};
+  const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
+    const i=(n[k]=(n[k]||0)+1)-1;
+    return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
+  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  return h2;
+}
+const _histHTML_wtd = histHTML;
+histHTML = function(ix, opt){
+  const h=_histHTML_wtd(ix, opt);
+  if(!h) return h;
+  if(opt && opt.lg) return cpSheetStrip(ix, h);
+  /* Under the commande: only the running total since Tuesday, with the days it covers.
+     The 7 days themselves are in the product sheet. */
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
+  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
+};
+render();
 /* ===== C&P: orders overview ===== */
 const OC = {"store": "Cerise et Potiron Neuville", "today": "2026-10-15", "supplier": "C&P", "allowAfterDeadline": true, "futureEditing": false, "orders": [{"id": "2026-10-01-regular", "deadline": "2026-10-01T16:00", "delivery": "2026-10-03T05:00", "ord": [188, 4591.67], "pre": [152, 3777.03], "status": [["2026-10-01T11:21", "closed"], ["2026-10-01T11:22", "open"], ["2026-10-01T11:22", "closed"], ["2026-10-01T11:22", "open"], ["2026-10-01T11:29", "closed"], ["2026-10-01T11:29", "open"], ["2026-10-01T11:30", "closed"], ["2026-10-01T11:30", "open"], ["2026-10-01T11:32", "closed"], ["2026-10-01T11:32", "open"], ["2026-10-01T11:44", "closed"], ["2026-10-02T11:39", "open"], ["2026-10-02T14:01", "past_due"]]}, {"id": "2026-10-02-regular", "deadline": "2026-10-02T16:00", "delivery": "2026-10-05T05:00", "ord": [0, 0], "pre": [0, 0], "status": []}, {"id": "2026-10-03-regular", "deadline": "2026-10-03T19:00", "delivery": "2026-10-06T05:00", "ord": [122, 3219.68], "pre": [115, 3419.44], "status": [["2026-10-03T19:01", "past_due"]]}, {"id": "2026-10-05-regular", "deadline": "2026-10-05T16:00", "delivery": "2026-10-07T05:00", "ord": [120, 3392.52], "pre": [131, 3317.57], "status": [["2026-10-05T12:13", "closed"]]}, {"id": "2026-10-06-regular", "deadline": "2026-10-06T16:00", "delivery": "2026-10-08T05:00", "ord": [107, 2580.56], "pre": [209, 5092.48], "status": [["2026-10-06T12:21", "closed"]]}, {"id": "2026-10-07-regular", "deadline": "2026-10-07T16:00", "delivery": "2026-10-09T05:00", "ord": [204, 5442.59], "pre": [215, 5250.91], "status": [["2026-10-07T16:01", "past_due"]]}, {"id": "2026-10-08-regular", "deadline": "2026-10-08T16:00", "delivery": "2026-10-10T05:00", "ord": [218, 5330.6], "pre": [130, 3168.21], "status": [["2026-10-08T16:02", "past_due"]]}, {"id": "2026-10-10-regular", "deadline": "2026-10-10T19:00", "delivery": "2026-10-13T05:00", "ord": [105, 2694.1], "pre": [70, 1507.55], "status": [["2026-10-10T19:00", "past_due"]]}, {"id": "2026-10-12-regular", "deadline": "2026-10-12T16:00", "delivery": "2026-10-14T05:00", "ord": [103, 2565.48], "pre": [83, 1832.77], "status": [["2026-10-12T16:02", "past_due"]]}, {"id": "2026-10-13-regular", "deadline": "2026-10-13T16:00", "delivery": "2026-10-15T05:00", "ord": [134, 3758.98], "pre": [139, 4044.02], "status": [["2026-10-13T16:01", "past_due"]]}, {"id": "2026-10-14-regular", "deadline": "2026-10-14T16:00", "delivery": "2026-10-16T05:00", "ord": [137, 3921.62], "pre": [218, 5165.88], "status": [["2026-10-14T16:01", "past_due"]]}, {"id": "2026-10-15-regular", "deadline": "2026-10-15T16:00", "delivery": "2026-10-17T05:00", "ord": [253, 5880.98], "pre": [88, 2431.9], "status": []}, {"id": "2026-10-17-regular", "deadline": "2026-10-17T19:00", "delivery": "2026-10-20T05:00", "ord": [102, 2872.23], "pre": [110, 3139.23], "status": []}, {"id": "2026-10-19-regular", "deadline": "2026-10-19T16:00", "delivery": "2026-10-21T05:00", "ord": [117, 3214.07], "pre": [59, 1984.73], "status": []}, {"id": "2026-10-20-regular", "deadline": "2026-10-20T16:00", "delivery": "2026-10-22T05:00", "ord": [62, 2005.17], "pre": [31, 1102.12], "status": []}, {"id": "2026-10-21-regular", "deadline": "2026-10-21T16:00", "delivery": "2026-10-23T05:00", "ord": [36, 1243.33], "pre": [74, 2319.4], "status": []}, {"id": "2026-10-22-regular", "deadline": "2026-10-22T16:00", "delivery": "2026-10-24T05:00", "ord": [0, 0], "pre": [0, 0], "status": []}, {"id": "2026-10-24-regular", "deadline": "2026-10-24T19:00", "delivery": "2026-10-27T05:00", "ord": [0, 0], "pre": [0, 0], "status": []}], "clock": "15:00"};
 /* ---- clock: the page's order day, at the real time of day or ?now=HH:MM (then running on) ---- */

@@ -38,6 +38,7 @@ ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (s
 ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
+ap.add_argument('--sales-json', help='past.sales per PLU for the order day (tools/data/cp_<store>_sales_<date>.json): the 7-day strip under the commande')
 ap.add_argument('--city', default='Lyon', help='city shown on the dashboard weather card')
 ap.add_argument('--order-date', default='2026-10-13', help='YYYY-MM-DD order day: dashboard date and the 30-day chart window')
 ap.add_argument('--clock', help='HH:MM the page opens on when no ?now= is given (see cp_orders_overview.py)')
@@ -80,6 +81,29 @@ items = json.loads(m_src.group(0)[len('const ITEMS = '):-2])
 for name in ('HIST_PROMO', 'HIST_SHRINK', 'HIST'):
     m = re.search(r'const %s = \{.*?\};\n' % name, s, re.S)
     s = s[:m.start()] + 'const %s = {};\n' % name + s[m.end():]
+# Sales of the 7 days before the order day, per PLU, from the order line's past.sales (what
+# the app shows). HIST keeps the base layout: 14 days from HIST_FROM, [sales, intake]; only the
+# last 7 are filled, and the strip runs in the app's 7-day mode (HIST_ITER1).
+if args.sales_json:
+    from datetime import date as _d0, timedelta as _t0
+    _sj = json.load(open(args.sales_json, encoding='utf-8'))
+    _from = _d0.fromisoformat(_sj['order_date']) - _t0(days=14)
+    _hist = {}
+    for plu, byday in _sj['sales'].items():
+        sales = [None] * 14
+        for d, q in byday.items():
+            i = (_d0.fromisoformat(d) - _from).days
+            if 0 <= i < 14:
+                sales[i] = q
+        _hist[plu] = [sales, [None] * 14]
+    rep('const HIST = {};\n', 'const HIST = %s;\n' % json.dumps(_hist, separators=(',', ':')))
+    m = re.search(r'const HIST_FROM = new Date\(\d+, \d+, \d+\);', s)
+    s = s[:m.start()] + 'const HIST_FROM = new Date(%d, %d, %d);' % (_from.year, _from.month - 1, _from.day) + s[m.end():]
+    _promo = {plu: sorted((_d0.fromisoformat(d) - _from).days for d in days if 0 <= (_d0.fromisoformat(d) - _from).days < 14)
+              for plu, days in (_sj.get('promo') or {}).items()}
+    rep('const HIST_PROMO = {};\n', 'const HIST_PROMO = %s;\n' % json.dumps(_promo, separators=(',', ':')))
+    rep("const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';",
+        "const HIST_ITER1 = true;   /* C&P: the app's 7 days, no swipe to the week before */")
 
 i, j = block(s, 'const TILES = [', '\n];')
 tsrc = open(args.tiles_from, encoding='utf-8').read() if args.tiles_from else src
@@ -320,6 +344,31 @@ if not core_ids:
     # no core items at this store: no core filter either (it would read "Base 0")
     rep("        + chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern))",
         "        + (ITEMS.some(it=>it.kern) ? chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern)) : '')")
+# Filter "order guide changed": only the items where HQ changed something (cpOf(ix).og), so the
+# user can check exactly those. Sits with the warnings; the set does not shrink when the user edits.
+rep("const CATFILT = {invNote:false, ordNote:false, rhb0:false,",
+    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false,")
+rep("return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||",
+    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||")
+rep("|| (CATFILT.rhb0 && rhbZero(it.id)) ||",
+    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) ||")
+rep("        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}",
+    "        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))\n"
+    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}")
+# Inventory as ONE number: the app's simulated inventory (it.app, always inside the plan rung)
+# instead of the plan rung's range ("1,7 - 2,7 CS", "min. 0,2 CS"). -/+ step from that number;
+# landing back on it restores the untouched state. The order ladder behind it is unchanged.
+rep("    minusOff=r.lo==null||r.lo<=0; plusOff=r.hi==null;\n    big=koText(r,it); small=stText(r,it);",
+    "    const sv=cpSimKo(it,s); minusOff=sv<=0; plusOff=false;\n    big=cpSimTxt(sv); small=cpSimSub(it,sv);")
+rep("if(s.step==='range'){ const r=it.rungs[s.plan]; newKo = stepKo(it, d<0 ? (r.lo??0) : r.hi, d); }",
+    "if(s.step==='range'){ newKo = stepKo(it, cpSimKo(it,s), d); }")
+rep("  if(s.home==='range' && rungOfKo(it,ko,s.plan)===s.plan){",
+    "  if(s.home==='range' && Math.abs(ko-cpSimKo(it,s))<1e-6){")
+rep("      const assume=koText(it.rungs[s.plan],it);",
+    "      const assume=cpSimTxt(cpSimKo(it,s));")
+# keypad: no range total and no "inside the range" hint
+rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
+    "       rLoKO: null, rHiKO: null,")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
 s = s[:m.start()] + 'const KERN_IDS = new Set([%s]);' % ','.join(core_ids) + s[m.end():]
 
@@ -401,6 +450,20 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+/* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
+   land on whole pieces so the case figure and the piece figure agree. */
+function cpSimKo(it,s){
+  const r=it.rungs[s.plan]||{};
+  let v=it.app!=null ? it.app : (r.lo||0);
+  if(r.lo!=null) v=Math.max(v, r.lo);
+  if(r.hi!=null) v=Math.min(v, r.hi);
+  v=Math.max(0, v);
+  if(it.unit==='piece' && it.case>1){ const pcs=Math.round(v*it.case); return koOfPieces(pcs,it.case) ?? pcs/it.case; }
+  return Math.round(v*10)/10;
+}
+function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
+function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
+function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
 function cpSlot(btns){
@@ -564,6 +627,77 @@ bsOpenFromShelves = function(){};
   ['scanFab','invFab'].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
 })();
 """
+JS += r"""
+/* ===== C&P: running total since Tuesday, under the 7-day sales =====
+   The week starts on Tuesday. Wednesday shows Tuesday, Thursday Tuesday+Wednesday, ...
+   Monday Tuesday..Sunday; on Tuesday the full previous week (Tuesday..Monday).
+   Same unit as the strip (cases where the item has a case size). */
+const CP_WTD = {
+  de:{sum:'Summe', week:'Vorwoche'}, en:{sum:'Total', week:'Last week'}, fr:{sum:'Cumul', week:'Semaine préc.'}};
+function cpWtd(ix){
+  const it=ITEMS[ix];
+  const today=histDay(14), k=((today.getDay()-2+7)%7)||7;      // days since Tuesday, 7 on a Tuesday
+  const S=sdSeries(it).sales; let sum=0, any=false;
+  for(let d=14-k; d<14; d++){ if(S[d]!=null){ sum+=S[d]; any=true; } }
+  const W=CP_WTD[LANG]||CP_WTD.en;
+  const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
+  const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
+  const dd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric', month:'short'});
+  const dated = k===1 ? dd(13) : `${dd(14-k)} – ${dd(13)}`;
+  const shortDated = span;   // weekdays only under the commande ("mar.–mer."); the full dates are in the hover text
+  return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null,
+          longLabel: `${k===7 ? W.week : W.sum} ${dated}`, days: shortDated};
+}
+/* Product sheet: promo days as light red columns (every row). The running total is shown
+   under the commande only. */
+function cpSheetStrip(ix, h){
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
+  const n={};
+  const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
+    const i=(n[k]=(n[k]||0)+1)-1;
+    return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
+  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  return h2;
+}
+const _histHTML_wtd = histHTML;
+histHTML = function(ix, opt){
+  const h=_histHTML_wtd(ix, opt);
+  if(!h) return h;
+  if(opt && opt.lg) return cpSheetStrip(ix, h);
+  /* Under the commande: only the running total since Tuesday, with the days it covers.
+     The 7 days themselves are in the product sheet. */
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
+  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
+};
+render();
+"""
+CSS_WTD = """
+/* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
+.cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
+.cpStrip .SalesHistory__marks{display:none}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
+  border-left:1px solid var(--ff-grey-300)}
+.cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
+.cpStrip .cpSum{background:var(--ff-grey-100)}
+.cpStripLg .cpPromo{background:#FDECEC}
+.cpSumPill{box-sizing:border-box;width:max-content;max-width:180px;margin:4px auto 0;position:relative;left:-10px;display:flex;align-items:center;gap:6px;
+  padding:1px 7px;border-radius:var(--ff-radius-pill);background:var(--ff-grey-100);font-variant-numeric:tabular-nums;line-height:1.5}
+.cpSumPill__l{display:flex;align-items:center;gap:4px;min-width:0;font-size:var(--ff-text-secondary-caption-10);color:var(--ff-grey-500);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpSumPill__l b{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.cpSumPill__v{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800);white-space:nowrap}
+.cpSumPill__v.is-nil{color:var(--ff-grey-400)}
+.cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
+  border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
+.cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
+.cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
+"""
+idx = s.rindex('</style>')
+s = s[:idx] + CSS_WTD + s[idx:]
 JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__', 'true' if dummy else 'false')
 idx = s.rindex('</script>')
 s = s[:idx] + JS + s[idx:]
