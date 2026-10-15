@@ -6112,7 +6112,7 @@ function rowClear(it,s){
 function filtMatch(it,s){
   const hasInvBang = bangInv(it,s); /* dieselbe Regel wie in rowClear(), nicht mehr nachgebaut */
   return (CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
-      || (CATFILT.rhb0 && rhbZero(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
+      || (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
       || (CATFILT.bio && it.bio) || (CATFILT.kern && it.kern) || (CATFILT.promo && isPromo(it));
 }
 /* Der !-Haken ist ein bewegliches Ziel: sobald der Kaufmann den Bestand eintraegt,
@@ -8562,13 +8562,13 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
 });
 /* ---------- category filter (Bestand / Bestellmenge / Bio / Werb.) ---------- */
 /* Haken sind ein ODER (Warnungen, Lieferant, Stichworte). */
-const CATFILT = {invNote:false, ordNote:false, rhb0:false, rewe:false, bio:false, kern:false, promo:false};
+const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rewe:false, bio:false, kern:false, promo:false};
 /* Regalhoechstbestand Alle / Gesetzt / Leer ist dagegen eine Aufteilung (UND):
    Leer heisst RHB 0 -- jemand hat eingetragen, dass der Artikel heute nicht im Regal steht. */
 let RHB_FILT='all';   // 'all' | 'set' | 'empty'
 function rhbZero(ix){ return !homeEmpty(ITEMS[ix]) && dsHome(ITEMS[ix])===0; }
 function filtActive(){
-  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
+  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
 }
 /* Bestellvorschlag: gemeint ist der Vorschlag des Systems (recoOf), nicht die
    Menge, die gerade in der Zeile steht -- "was bestelle ich nicht" heisst: was
@@ -8613,7 +8613,8 @@ function renderFiltPanel(){
       ${sec('warn',FICON.warn,L.filtWarnings,
           chk('invNote',L.inventory,count((it,ix)=>ST[ix].mode==='unsure'||it.invNote))
         + chk('ordNote',L.orderQuantity,count(it=>it.ordNote))
-        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}
+        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))
+        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}
       ${sec('reco',FICON.reco,L.filtReco,
           pills('reco',[['all',L.filtAll],['pos',L.filtRecoPos],['zero',L.filtRecoZero]]))}
       ${sec('rhb',FICON.rhb,L.displaySize,
@@ -10652,6 +10653,7 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
 function cpSlot(btns){

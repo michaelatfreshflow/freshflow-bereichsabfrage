@@ -344,6 +344,17 @@ if not core_ids:
     # no core items at this store: no core filter either (it would read "Base 0")
     rep("        + chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern))",
         "        + (ITEMS.some(it=>it.kern) ? chk('kern',`<span class=\"pill kern\">${L.kernTag}</span>`,count(it=>it.kern)) : '')")
+# Filter "order guide changed": only the items where HQ changed something (cpOf(ix).og), so the
+# user can check exactly those. Sits with the warnings; the set does not shrink when the user edits.
+rep("const CATFILT = {invNote:false, ordNote:false, rhb0:false,",
+    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false,")
+rep("return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||",
+    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||")
+rep("|| (CATFILT.rhb0 && rhbZero(it.id)) ||",
+    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) ||")
+rep("        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}",
+    "        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))\n"
+    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
 s = s[:m.start()] + 'const KERN_IDS = new Set([%s]);' % ','.join(core_ids) + s[m.end():]
 
@@ -425,6 +436,7 @@ function preApp(ix){
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
 function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
 function cpSlot(btns){
