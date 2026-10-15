@@ -132,6 +132,18 @@ rep('<div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">
 rep('</span>Einführung in die Bestellvorbereitungen</div>', "</span>Présentation de l'application</div>")
 rep('</span>Wie kann man Elemente ausblenden?</div>', '</span>Vérification de la commande</div>')
 
+# ---- C&P dashboard in French (the store's language), on the order day's window ------
+# The chart window moves from the REWE demo's 26 Jul - 25 Aug to the 30 days up to 13 Oct.
+s = s.replace('<span class="dt">13. Okt. 2026</span>', '<span class="dt">13 oct. 2026</span>')
+for a, b, n in (('Juli 26 - Aug. 25', '14 sept. - 13 oct.', 4),
+                ('<span class="nm">Umsatz</span>', '<span class="nm">Chiffre d\'affaires</span>', 1),
+                ('<span class="nm">Abschriften im Verkaufspreis</span>', '<span class="nm">Casse en prix de vente</span>', 1),
+                ('*Vor 52 Wochen', '*Il y a 52 semaines', 2)):
+    rep(a, b, n)
+for a, b in (('>26 So<', '>14 lun<'), ('>30 Do<', '>18 ven<'), ('>3 Mo<', '>22 mar<'), ('>7 Fr<', '>26 sam<'),
+             ('>11 Di<', '>30 mer<'), ('>15 Sa<', '>4 dim<'), ('>19 Mi<', '>8 jeu<'), ('>23 So<', '>12 lun<')):
+    rep(a, b, 2)
+
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
 rep('REWE Peeters Flüren', args.store_name, 3)
