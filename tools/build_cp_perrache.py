@@ -154,6 +154,20 @@ for k, old in enumerate(('>26 So<', '>30 Do<', '>3 Mo<', '>7 Fr<', '>11 Di<', '>
     d = _start + _td(days=4 * k)
     rep(old, f'>{d.day} {_WD_FR[d.weekday()]}<', 2)
 
+# The REWE base page still counts extra shelves (placedOn) on the "change shelf" pill in
+# "Gérer la commande", but the second-shelf feature and that variable were removed on
+# 16 Sep (f782b96). The pill then throws and the manage view never draws. C&P has one shelf.
+s = s.replace("${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} \u270e</button>`;",
+              "${tileLabel(tileOf(it))} \u270e</button>`;")
+
+# The "change shelf" sheet has its subtitle hard-coded in German in the base page.
+rep('<div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>', '<div class="sub">${L.shelfPermanent}</div>')
+for _lg, _txt in (('de', 'Gilt ab sofort dauerhaft für diesen Artikel.'), ('en', 'Applies from now on to this item.'),
+                  ('fr', "S'applique dès maintenant à cet article.")):
+    _a = {'de': "    rManualWarning:'Manuelle Warnung',", 'en': "    rManualWarning:'Manual warning',",
+          'fr': "    rManualWarning:'Alerte manuelle',"}[_lg]
+    rep(_a, _a + "\n    shelfPermanent:" + json.dumps(_txt, ensure_ascii=False) + ",")
+
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
 rep('REWE Peeters Flüren', args.store_name, 3)
