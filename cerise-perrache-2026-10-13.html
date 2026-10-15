@@ -3686,6 +3686,7 @@ const T={
     rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
+    shelfPermanent:"Gilt ab sofort dauerhaft für diesen Artikel.",
     hdrPre:"Vorbestellung",
     preOrdered:"Vorbestellt",
     preLabel:"Vorbestellung",
@@ -4140,6 +4141,7 @@ const T={
     rNewItem:'new item',
     rPromo:'Promotion',
     rManualWarning:'Manual warning',
+    shelfPermanent:"Applies from now on to this item.",
     hdrPre:"Preorder",
     preOrdered:"Pre-ordered",
     preLabel:"Preorder",
@@ -4594,6 +4596,7 @@ const T={
     rNewItem:'nouvel article',
     rPromo:'Promotion',
     rManualWarning:'Alerte manuelle',
+    shelfPermanent:"S'applique dès maintenant à cet article.",
     hdrPre:"Prévision",
     preOrdered:"Prévision",
     preLabel:"Pré-commande",
@@ -6473,7 +6476,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         </div>
         <button class="invask__go" type="button" data-a="dsone" data-i="${ix}">${L.dsAskBtn.replace('{u}',L.caseUnit)}</button>
       </div>`;
-    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))}${placedOn.length?' +'+placedOn.length:''} ✎</button>`;
+    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
@@ -7513,7 +7516,7 @@ function renderCatItemPicker(){
         <div style="flex:1">
           <div class="eyebrow">${L.changeShelf}</div>
           <h2>${it.name}</h2>
-          <div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>
+          <div class="sub">${L.shelfPermanent}</div>
         </div>
         <button class="x" id="catItemPickClose" type="button" title="${L.close}">✕</button>
       </div>
