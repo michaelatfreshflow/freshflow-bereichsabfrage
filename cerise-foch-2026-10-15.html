@@ -2288,8 +2288,6 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
 .cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStripLg .cpPromo{background:#FDECEC}
-.cpSumDays{width:180px;margin-top:2px;text-align:right;font-size:var(--ff-text-secondary-caption-10);color:var(--ff-grey-500);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
   border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
 .cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
@@ -10829,8 +10827,7 @@ histHTML = function(ix, opt){
             .replace(/<span class="(SalesHistory__s[^"]*)"/g, (m,c)=>`<span class="${mark(c, nv++)}"`);
   return h2.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
           .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
-          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`)
-          + `<div class="cpSumDays" title="${w.label}">Σ ${w.days}</div>`;
+          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
 };
 render();
 /* ===== C&P: orders overview ===== */
