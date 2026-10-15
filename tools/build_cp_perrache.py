@@ -603,14 +603,31 @@ function cpWtd(ix){
   const W=CP_WTD[LANG]||CP_WTD.en;
   const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
   const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
-  return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null};
+  const dd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric', month:'short'});
+  const dated = k===1 ? dd(13) : `${dd(14-k)} – ${dd(13)}`;
+  return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null,
+          longLabel: `${k===7 ? W.week : W.sum} ${dated}`};
+}
+/* Product sheet: promo days as light red columns (every row), and the running total as one
+   line underneath, naming the days it adds up. No Σ column there. */
+function cpSheetStrip(ix, h){
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
+  const n={};
+  const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
+    const i=(n[k]=(n[k]||0)+1)-1;
+    return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
+  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
+  return h2 + `<div class="cpWtdLg"><span>${w.longLabel}</span><b>${val}</b></div>`;
 }
 const _histHTML_wtd = histHTML;
 /* Under the commande: no row icon on the left, and the running total as an eighth column
    ("Σ") after a divider. The item sheet (opt.lg) keeps its own full strip. */
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
-  if(!h || (opt && opt.lg)) return h;
+  if(!h) return h;
+  if(opt && opt.lg) return cpSheetStrip(ix, h);
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
   const val = w.v==null ? '–' : w.v;
   const sumH = `<span class="SalesHistory__wd cpSum cpSumH" title="${w.label}">Σ</span>`;
@@ -636,6 +653,10 @@ CSS_WTD = """
   border-left:1px solid var(--ff-grey-300)}
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
 .cpStrip .cpSum{background:var(--ff-grey-100)}
+.cpStripLg .cpPromo{background:#FDECEC}
+.cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
+  border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
+.cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
 .cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
 .cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
 """
