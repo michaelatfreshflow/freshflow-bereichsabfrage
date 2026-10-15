@@ -2312,21 +2312,12 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .oc-scroll > div{min-width:900px}
 
 /* ===== C&P: order opening time (MOB-1730) ===== */
-.oc-chip.lock{color:#52525B;background:#F4F4F5}
-.oc-row.locked{cursor:default}
-.oc-row.locked.open{background:#fff;border-style:dashed;border-color:#D4D4D8}
-.oc-row.locked .oc-num{color:#A1A1AA}
-.dash-fab.locked, .invFab.locked{background:var(--ff-grey-400);box-shadow:none}
-.dash-fab .lkBadge, .invFab .lkBadge{position:absolute;right:-4px;top:-4px;width:20px;height:20px;border-radius:50%;
-  background:var(--ff-color-white);color:var(--ff-grey-600);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.invFab{position:relative}
-.dash-ordercard.locked{background:var(--ff-grey-100);border-color:var(--ff-grey-200)}
-.dash-ordercard.locked .dash-pill-open{background:var(--ff-grey-500);display:inline-flex;align-items:center;gap:5px}
-.lkMsg{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);z-index:400;max-width:calc(100vw - 32px);
-  background:var(--ink);color:var(--ff-color-white);border-radius:12px;padding:12px 18px;font-size:var(--ff-text-primary-body-text-14);
-  display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .15s, transform .15s}
-.lkMsg.on{opacity:1;transform:translateX(-50%)}
-.lkMsg small{opacity:.7}
+#ovLock{z-index:10000}
+#ovLock .sheet{max-width:420px;border-radius:var(--ff-radius-c15);align-self:center;padding-bottom:18px}
+#ovLock .lkHd{display:flex;align-items:center;gap:10px;padding:20px 22px 6px}
+#ovLock .lkHd h3{margin:0;font-size:var(--ff-text-primary-title-17);font-weight:var(--ff-weight-bold);color:var(--ink)}
+#ovLock .lkHd svg{color:var(--ff-color-primary);flex:0 0 auto}
+#ovLock .lkBody{padding:4px 22px 18px;font-size:var(--ff-text-primary-body-text-14);color:#5d6b64;line-height:1.5}
 </style>
 </head>
 <body>
@@ -2383,19 +2374,19 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
         <div class="dash-more" id="dbMoreOrders">Mehr Bestellungen ›</div>
       </div>
       <div class="dash-row1-right">
-        <div class="dash-sec-lb"><span id="dbOverview">Heutige Übersicht</span> <span class="dt">13. Okt. 2026</span></div>
+        <div class="dash-sec-lb"><span id="dbOverview">Heutige Übersicht</span> <span class="dt">13 oct. 2026</span></div>
         <div class="dash-kpis">
           <div class="dash-kpi">
             <div class="lb" id="dbRevenue">Umsatz</div>
             <div class="val">129.085 €</div>
             <div class="chg">▲ +3,4 %</div>
-            <div class="rng">Juli 26 - Aug. 25</div>
+            <div class="rng">14 sept. - 13 oct.</div>
           </div>
           <div class="dash-kpi">
             <div class="lb" id="dbShrink">Abschriften</div>
             <div class="val">1.886 €</div>
             <div class="chg">▼ -28,9 %</div>
-            <div class="rng">Juli 26 - Aug. 25</div>
+            <div class="rng">14 sept. - 13 oct.</div>
           </div>
         </div>
       </div>
@@ -2404,23 +2395,23 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
     <div class="dash-row2">
       <div class="dash-card dash-mini">
         <div class="lb" id="dbWeather">Wetter</div>
-        <div class="dash-city">Berlin</div>
-        <div class="dash-temp">14°C | 23°C
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a94c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 15a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.6 1.6A3.5 3.5 0 0 0 7 15h10z"/><line x1="9" y1="19" x2="9" y2="21"/><line x1="13" y1="19" x2="13" y2="21"/><line x1="17" y1="19" x2="17" y2="21"/></svg>
+        <div class="dash-city">Lyon</div>
+        <div class="dash-temp">15°C | 20°C
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
         </div>
-        <span class="dash-rainpill">Regen</span>
+        <span class="dash-rainpill" style="background:#FDF1DC;color:#9A6512">Ensoleillé</span>
         <div class="dash-mini-more" id="dbSeeWeather">Siehe Wetter ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbUpcoming">Zukünftige Ereignisse</div>
-        <div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>
-        <div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>
+        <div class="dash-evrow"><div class="nm">Toussaint</div><div class="dt">nov. 01<br>2026</div></div>
+        <div class="dash-evrow"><div class="nm">Armistice 1918</div><div class="dt">nov. 11<br>2026</div></div>
         <div class="dash-mini-more" id="dbAllEvents">Alle Ereignisse ›</div>
       </div>
       <div class="dash-card dash-mini">
         <div class="lb" id="dbTutorials">Tutorial Videos</div>
-        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Einführung in die Bestellvorbereitungen</div>
-        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Wie kann man Elemente ausblenden?</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Présentation de l'application</div>
+        <div class="dash-vidrow"><span class="dash-play"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg></span>Vérification de la commande</div>
         <div class="dash-mini-more" id="dbAllVideos">Alle Videos ›</div>
       </div>
     </div>
@@ -2431,11 +2422,11 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
       <div class="dash-chart-hd">
         <div class="dash-chart-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"/><polyline points="14 6 21 6 21 13"/></svg>
-          <span class="nm">Umsatz</span>
+          <span class="nm">Chiffre d'affaires</span>
           <span class="val">129.085 €</span>
           <span class="chg">▲ +3,4 %</span>
         </div>
-        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>Juli 26 - Aug. 25</div>
+        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>14 sept. - 13 oct.</div>
       </div>
       <svg viewBox="0 0 860 210" preserveAspectRatio="none">
         <line x1="0" y1="20" x2="860" y2="20" stroke="#e7e6e6"/>
@@ -2449,27 +2440,27 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
         <polygon fill="#dee0fa" opacity=".6" points="0,170 26,130 54,95 80,70 108,55 133,75 161,35 187,20 215,170 241,130 269,95 295,70 323,55 348,75 376,35 402,20 430,170 456,130 484,95 510,70 538,55 563,75 591,35 617,20 645,170 671,130 699,95 725,70 753,55 778,75 806,35 832,20 860,150 860,200 0,200"/>
         <polyline fill="none" stroke="#9CB7DE" stroke-width="2" stroke-dasharray="4 4" points="0,178 26,148 54,118 80,95 108,80 133,95 161,60 187,45 215,178 241,148 269,118 295,95 323,80 348,95 376,60 402,45 430,178 456,148 484,118 510,95 538,80 563,95 591,60 617,45 645,178 671,148 699,118 725,95 753,80 778,95 806,60 832,45 860,165"/>
         <polyline fill="none" stroke="#3D7EEA" stroke-width="2.4" points="0,170 26,130 54,95 80,70 108,55 133,75 161,35 187,20 215,170 241,130 269,95 295,70 323,55 348,75 376,35 402,20 430,170 456,130 484,95 510,70 538,55 563,75 591,35 617,20 645,170 671,130 699,95 725,70 753,55 778,75 806,35 832,20 860,150"/>
-        <text x="0" y="205" font-size="11" fill="#a1a1aa">26 So</text>
-        <text x="180" y="205" font-size="11" fill="#a1a1aa">30 Do</text>
-        <text x="330" y="205" font-size="11" fill="#a1a1aa">3 Mo</text>
-        <text x="410" y="205" font-size="11" fill="#a1a1aa">7 Fr</text>
-        <text x="540" y="205" font-size="11" fill="#a1a1aa">11 Di</text>
-        <text x="620" y="205" font-size="11" fill="#a1a1aa">15 Sa</text>
-        <text x="740" y="205" font-size="11" fill="#a1a1aa">19 Mi</text>
-        <text x="800" y="205" font-size="11" fill="#a1a1aa">23 So</text>
+        <text x="0" y="205" font-size="11" fill="#a1a1aa">14 lun</text>
+        <text x="180" y="205" font-size="11" fill="#a1a1aa">18 ven</text>
+        <text x="330" y="205" font-size="11" fill="#a1a1aa">22 mar</text>
+        <text x="410" y="205" font-size="11" fill="#a1a1aa">26 sam</text>
+        <text x="540" y="205" font-size="11" fill="#a1a1aa">30 mer</text>
+        <text x="620" y="205" font-size="11" fill="#a1a1aa">4 dim</text>
+        <text x="740" y="205" font-size="11" fill="#a1a1aa">8 jeu</text>
+        <text x="800" y="205" font-size="11" fill="#a1a1aa">12 lun</text>
       </svg>
-      <div class="dash-chart-foot">*Vor 52 Wochen</div>
+      <div class="dash-chart-foot">*Il y a 52 semaines</div>
     </div>
 
     <div class="dash-card dash-chart">
       <div class="dash-chart-hd">
         <div class="dash-chart-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 21 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          <span class="nm">Abschriften im Verkaufspreis</span>
+          <span class="nm">Casse en prix de vente</span>
           <span class="val">1.886 €</span>
           <span class="chg">▼ -28,9 %</span>
         </div>
-        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>Juli 26 - Aug. 25</div>
+        <div class="dash-chart-legend"><span class="k1">┄┄ 2025*</span> &nbsp; <span class="k2">— 2026</span><br>14 sept. - 13 oct.</div>
       </div>
       <svg viewBox="0 0 860 150" preserveAspectRatio="none">
         <line x1="0" y1="15" x2="860" y2="15" stroke="#e7e6e6"/>
@@ -2480,16 +2471,16 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
         <text x="0" y="91" font-size="11" fill="#a1a1aa">63 €</text>
         <polyline fill="none" stroke="#9CB7DE" stroke-width="2" stroke-dasharray="4 4" points="0,40 26,25 54,15 80,20 108,30 133,20 161,10 187,20 215,45 241,30 269,18 295,22 323,32 348,22 376,12 402,22 430,50 456,33 484,20 510,25 538,35 563,25 591,14 617,24 645,55 671,38 699,24 725,28 753,38 778,28 806,16 832,26 860,50"/>
         <polyline fill="none" stroke="#3D7EEA" stroke-width="2.4" points="0,60 26,45 54,38 80,42 108,50 133,42 161,35 187,42 215,68 241,52 269,42 295,45 323,52 348,45 376,38 402,45 430,75 456,58 484,48 510,50 538,58 563,50 591,42 617,48 645,85 671,68 699,55 725,58 753,66 778,58 806,48 832,55 860,72"/>
-        <text x="0" y="145" font-size="11" fill="#a1a1aa">26 So</text>
-        <text x="180" y="145" font-size="11" fill="#a1a1aa">30 Do</text>
-        <text x="330" y="145" font-size="11" fill="#a1a1aa">3 Mo</text>
-        <text x="410" y="145" font-size="11" fill="#a1a1aa">7 Fr</text>
-        <text x="540" y="145" font-size="11" fill="#a1a1aa">11 Di</text>
-        <text x="620" y="145" font-size="11" fill="#a1a1aa">15 Sa</text>
-        <text x="740" y="145" font-size="11" fill="#a1a1aa">19 Mi</text>
-        <text x="800" y="145" font-size="11" fill="#a1a1aa">23 So</text>
+        <text x="0" y="145" font-size="11" fill="#a1a1aa">14 lun</text>
+        <text x="180" y="145" font-size="11" fill="#a1a1aa">18 ven</text>
+        <text x="330" y="145" font-size="11" fill="#a1a1aa">22 mar</text>
+        <text x="410" y="145" font-size="11" fill="#a1a1aa">26 sam</text>
+        <text x="540" y="145" font-size="11" fill="#a1a1aa">30 mer</text>
+        <text x="620" y="145" font-size="11" fill="#a1a1aa">4 dim</text>
+        <text x="740" y="145" font-size="11" fill="#a1a1aa">8 jeu</text>
+        <text x="800" y="145" font-size="11" fill="#a1a1aa">12 lun</text>
       </svg>
-      <div class="dash-chart-foot">*Vor 52 Wochen</div>
+      <div class="dash-chart-foot">*Il y a 52 semaines</div>
     </div>
     </div><!-- /panelDash -->
 
@@ -3743,12 +3734,11 @@ const T={
     rNewItem:'Neuer Artikel',
     rPromo:'Werbung',
     rManualWarning:'Manuelle Warnung',
-    lkOpensAt:"Öffnet um",
+    lkTitle:"Bestellung noch nicht offen",
     lkMsg:"Die Bestellung öffnet um {t} Uhr.",
-    lkIn:"noch {d}",
-    lkCountMsg:"Zählen ist ab {t} Uhr möglich, zusammen mit der Bestellung.",
-    lkNowOpen:"Die Bestellung ist jetzt offen.",
-    lkLeft:"verbleibend",
+    lkIn:"Noch {d}.",
+    lkMsgDay:"Diese Bestellung öffnet am {d} um {t} Uhr.",
+    lkOk:"OK",
     ocProtoOnly:"Prototyp: nur die heutige Bestellung lässt sich hier öffnen.",
     ocLeft:"verbleibend",
     ordersListOrderDateColumn:"Bestelldatum",  // [arb] ordersListOrderDateColumn
@@ -4227,12 +4217,11 @@ const T={
     rNewItem:'new item',
     rPromo:'Promotion',
     rManualWarning:'Manual warning',
-    lkOpensAt:"Opens at",
+    lkTitle:"Order not open yet",
     lkMsg:"The order opens at {t}.",
-    lkIn:"in {d}",
-    lkCountMsg:"Counting opens at {t}, together with the order.",
-    lkNowOpen:"The order is now open.",
-    lkLeft:"left",
+    lkIn:"In {d}.",
+    lkMsgDay:"This order opens on {d} at {t}.",
+    lkOk:"OK",
     ocProtoOnly:"Prototype: only today's order opens here.",
     ocLeft:"left",
     ordersListOrderDateColumn:"Order Date",  // [arb] ordersListOrderDateColumn
@@ -4711,12 +4700,11 @@ const T={
     rNewItem:'nouvel article',
     rPromo:'Promotion',
     rManualWarning:'Alerte manuelle',
-    lkOpensAt:"Ouvre à",
+    lkTitle:"Commande pas encore ouverte",
     lkMsg:"La commande ouvre à {t}.",
-    lkIn:"dans {d}",
-    lkCountMsg:"Le comptage ouvre à {t}, en même temps que la commande.",
-    lkNowOpen:"La commande est maintenant ouverte.",
-    lkLeft:"restantes",
+    lkIn:"Dans {d}.",
+    lkMsgDay:"Cette commande ouvre le {d} à {t}.",
+    lkOk:"OK",
     ocProtoOnly:"Prototype : seule la commande du jour s'ouvre ici.",
     ocLeft:"restantes",
     ordersListOrderDateColumn:"Date",  // [arb] ordersListOrderDateColumn
@@ -5156,8 +5144,7 @@ const MI = {
     { key:'shrink',    lbl:()=>t().shrink,     level:'ok',  days:[] },
     { key:'ordersatz', lbl:()=>t().ordersatz,  level:'ok',  days:[] },
     { key:'sales',     lbl:()=>t().miCatSales, level:'ok',  days:[] },
-    { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
-      days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }
+    { key:'intake',    lbl:()=>t().miCatIntake, level:'ok',  days:[] }
   ],
   /* null = noch nicht angestossen, sonst der Zeitpunkt des Drucks. */
   intakeStartedAt: null,
@@ -10926,7 +10913,6 @@ document.getElementById('ocBody').addEventListener('keydown', e=>{
 });
 /* Dashboard "today's order" card: supplier, status chip text, time left to the deadline. */
 function ocPaintCard(){
-  if(OC.opensAt){ const [h,m]=OC.opensAt.split(':').map(Number); if(ocNowMin() < h*60+m) return; }   // the 11:00 lock paints the closed card
   const L=t(), card=document.querySelector('.dash-ordercard'); if(!card) return;
   const nm=card.querySelector('.nm'); if(nm) nm.textContent=OC.supplier;
   const pill=document.getElementById('dbOpenPill'), cd=document.getElementById('dbCountdown');
@@ -10949,88 +10935,51 @@ setInterval(ocPaintCard, 30000);
 setInterval(()=>{ if(DASH_TAB===1 && document.body.classList.contains('dash-active')) renderOrdersPanel(); }, 30000);
 /* ===== C&P: order opening time (MOB-1730) ===== */
 const OC_OPENS = OC.opensAt || null;          // 'HH:MM' store time; null = no lock (every other store)
-const LK_ICON = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+document.body.insertAdjacentHTML('beforeend', "\n<!-- C&P: order opening time (MOB-1730). One pop-up, nothing else changes on screen. -->\n<div class=\"ov\" id=\"ovLock\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"lkTitle\">\n  <div class=\"sheet\">\n    <div class=\"lkHd\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg><h3 id=\"lkTitle\"></h3></div>\n    <div class=\"lkBody\" id=\"lkBody\"></div>\n    <div class=\"sfoot\"><span class=\"sp\" style=\"flex:1\"></span><button class=\"cta\" id=\"lkOk\" type=\"button\"></button></div>\n  </div>\n</div>\n");
 const lkMin = hhmm => { const [h,m]=hhmm.split(':').map(Number); return h*60+m; };
-/* The one check. Before the opening time, nothing from today on opens. */
-function orderLocked(){ return !!OC_OPENS && ocNowMin() < lkMin(OC_OPENS); }
+/* Each order opens at the opening time on its own order day (the backend would write this
+   per order, like the deadline). A future order is therefore closed until its day, also
+   across a weekend: Saturday evening, Monday's order says "opens on Monday at 11:00". */
+function orderOpensAt(o){ return ocDt(o.deadline.slice(0,10)+'T'+OC_OPENS); }
+function isOrderClosed(o){ return !!OC_OPENS && !!o && ocNow() < orderOpensAt(o); }
+function todaysOrder(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
+/* Today's order: the one the round button and the order screen open. */
+function orderLocked(){ return isOrderClosed(todaysOrder()); }
 function lkDur(min){ min=Math.max(1, Math.ceil(min)); const h=Math.floor(min/60), m=min%60;
   return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
-function lkLeft(){ return lkDur(lkMin(OC_OPENS) - ocNowMin()); }
-let LK_MSG_T=null;
-function lkSay(text){
-  let el=document.getElementById('lkMsg');
-  if(!el){ el=document.createElement('div'); el.id='lkMsg'; el.className='lkMsg'; el.setAttribute('role','status'); document.body.appendChild(el); }
-  el.innerHTML = text; el.classList.add('on');
-  clearTimeout(LK_MSG_T); LK_MSG_T=setTimeout(()=>el.classList.remove('on'), 2600);
+function lkShow(o){
+  const L=t(); o=o||todaysOrder();
+  const at=orderOpensAt(o), sameDay=ocSameDay(at, ocNow());
+  document.getElementById('lkTitle').textContent=L.lkTitle;
+  document.getElementById('lkBody').textContent = sameDay
+    ? `${L.lkMsg.replace('{t}', OC_OPENS)} ${L.lkIn.replace('{d}', lkDur((at-ocNow())/60000))}`
+    : L.lkMsgDay.replace('{d}', ocMMMEd(at)).replace('{t}', ocTime(at));
+  document.getElementById('lkOk').textContent=L.lkOk;
+  document.getElementById('ovLock').classList.add('on');
 }
-function lkSayLocked(kind){
-  const L=t(), msg=(kind==='count'?L.lkCountMsg:L.lkMsg).replace('{t}', OC_OPENS);
-  lkSay(`${LK_ICON(16)}<span>${msg} <small>${L.lkIn.replace('{d}', lkLeft())}</small></span>`);
-}
+function lkHide(){ document.getElementById('ovLock').classList.remove('on'); }
+document.getElementById('lkOk').addEventListener('click', lkHide);
+document.getElementById('ovLock').addEventListener('click', e=>{ if(e.target.id==='ovLock') lkHide(); });
 
 /* The order screen itself refuses to show -- whatever led there. */
 const _showApp_lk = showApp;
 showApp = function(...a){
-  if(orderLocked()){ showDash(); lkSayLocked('order'); return; }
+  if(orderLocked()){ showDash(); lkShow(); return; }
   return _showApp_lk(...a);
 };
 const _enterApp_lk = enterApp;
-enterApp = function(...a){ if(orderLocked()){ lkSayLocked('order'); return; } return _enterApp_lk(...a); };
-const _bsOpen_lk = bsOpen;
-bsOpen = function(...a){ if(orderLocked()){ lkSayLocked('count'); return; } return _bsOpen_lk(...a); };
-['dashFab','invFab'].forEach(id=>{
-  const el=document.getElementById(id); if(!el) return;
-  el.addEventListener('click', e=>{
-    if(!orderLocked()) return;
-    e.stopImmediatePropagation(); e.preventDefault();
-    lkSayLocked(id==='invFab'?'count':'order');
-  }, true);
-});
-
-/* Overview: today's and future rows show the opening time instead of their status chip. */
-const _ocRow_lk = ocRow;
-ocRow = function(o, kind, now){
-  let h=_ocRow_lk(o, kind, now);
-  if(!orderLocked() || kind==='past') return h;
-  return h.replace(/<span class="oc-chip [a-zA-Z]+">[^<]*<\/span>/, `<span class="oc-chip lock">${LK_ICON(12)}${OC_OPENS}</span>`)
-          .replace('class="oc-grid oc-row', 'class="oc-grid oc-row locked')
-          .replace('data-oc="row"', 'data-oc="locked"');
-};
+enterApp = function(...a){ if(orderLocked()){ lkShow(); return; } return _enterApp_lk(...a); };
+document.getElementById('dashFab').addEventListener('click', e=>{
+  if(!orderLocked()) return;
+  e.stopImmediatePropagation(); e.preventDefault(); lkShow();
+}, true);
+/* Orders overview: today's and future rows look as usual; tapping one shows the pop-up. */
 document.getElementById('ocBody').addEventListener('click', e=>{
-  if(e.target.closest('[data-oc="locked"]')) lkSayLocked('order');
-});
-
-/* Dashboard card + buttons follow the clock. */
-function lkPaint(){
-  const L=t(), locked=orderLocked();
-  const card=document.querySelector('.dash-ordercard');
-  if(card){
-    card.classList.toggle('locked', locked);
-    if(locked){
-      const pill=document.getElementById('dbOpenPill'), cd=document.getElementById('dbCountdown');
-      const nm=card.querySelector('.nm'); if(nm) nm.textContent=OC.supplier;
-      if(pill) pill.innerHTML=`${LK_ICON(12)}${OC_OPENS}`;
-      if(cd) cd.textContent=`${L.lkOpensAt} ${OC_OPENS} · ${L.lkIn.replace('{d}', lkLeft())}`;
-    } else ocPaintCard();
-  }
-  ['dashFab','invFab'].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    el.classList.toggle('locked', locked);
-    let b=el.querySelector('.lkBadge');
-    if(locked && !b){ el.insertAdjacentHTML('beforeend', `<span class="lkBadge">${LK_ICON(12)}</span>`); }
-    if(!locked && b) b.remove();
-  });
-  if(DASH_TAB===1) renderOrdersPanel();
-}
-let LK_WAS = orderLocked();
-setInterval(()=>{
-  const now=orderLocked();
-  if(now!==LK_WAS){ LK_WAS=now; lkPaint(); if(!now) lkSay(`${t().lkNowOpen}`); }
-  else lkPaint();
-}, 15000);
-const _applyLang_lk = applyLang;
-applyLang = function(...a){ const r=_applyLang_lk(...a); lkPaint(); return r; };
-lkPaint();
+  const r=e.target.closest('[data-oc="row"]'); if(!r || r.dataset.kind==='past') return;
+  const o=OC.orders.find(x=>x.id===r.dataset.id);
+  if(!isOrderClosed(o)) return;
+  e.stopImmediatePropagation(); lkShow(o);
+}, true);
 </script>
 </body>
 </html>
