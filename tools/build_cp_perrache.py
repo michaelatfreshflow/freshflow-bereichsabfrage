@@ -604,10 +604,8 @@ function cpWtd(ix){
   const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
   const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
   const dd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric', month:'short'});
-  const dn=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short', day:'numeric'});
   const dated = k===1 ? dd(13) : `${dd(14-k)} – ${dd(13)}`;
-  const sameMonth = histDay(14-k).getMonth()===histDay(13).getMonth();
-  const shortDated = k===1 ? dd(13) : `${sameMonth ? dn(14-k) : dd(14-k)} – ${dd(13)}`;
+  const shortDated = span;   // weekdays only under the commande ("mar.–mer."); the full dates are in the hover text
   return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null,
           longLabel: `${k===7 ? W.week : W.sum} ${dated}`, days: shortDated};
 }
@@ -624,25 +622,15 @@ function cpSheetStrip(ix, h){
   return h2;
 }
 const _histHTML_wtd = histHTML;
-/* Under the commande: no row icon on the left, and the running total as an eighth column
-   ("Σ") after a divider. The item sheet (opt.lg) keeps its own full strip. */
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
   if(!h) return h;
   if(opt && opt.lg) return cpSheetStrip(ix, h);
+  /* Under the commande: only the running total since Tuesday, with the days it covers.
+     The 7 days themselves are in the product sheet. */
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
-  const val = w.v==null ? '–' : w.v;
-  const sumH = `<span class="SalesHistory__wd cpSum cpSumH" title="${w.label}">Σ</span>`;
-  const sumV = `<span class="SalesHistory__s cpSum cpSumV${w.v==null?' is-nil':''}" title="${w.label}${w.v!=null&&it.case?': '+w.v+' '+L.caseUnit:''}">${val}</span>`;
-  /* promo days: the 7 columns are days 7..13 of HIST; light red in the header and the value */
-  const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
-  let nh=0, nv=0;
-  const mark=(cls, n)=>promo.has(n) ? cls+' cpPromo' : cls;
-  const h2=h.replace(/<span class="(SalesHistory__wd[^"]*)"/g, (m,c)=>`<span class="${mark(c, nh++)}"${promo.has(nh-1)?` title="${L.histPromo}"`:''}`)
-            .replace(/<span class="(SalesHistory__s[^"]*)"/g, (m,c)=>`<span class="${mark(c, nv++)}"`);
-  return h2.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
-          .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
-          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
+  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
+  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
 };
 render();
 """
@@ -656,6 +644,13 @@ CSS_WTD = """
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
 .cpStrip .cpSum{background:var(--ff-grey-100)}
 .cpStripLg .cpPromo{background:#FDECEC}
+.cpSumPill{box-sizing:border-box;width:180px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:5px 10px;border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-variant-numeric:tabular-nums}
+.cpSumPill__l{display:flex;align-items:center;gap:6px;min-width:0;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpSumPill__l b{font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-700)}
+.cpSumPill__v{font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
+.cpSumPill__v.is-nil{color:var(--ff-grey-400)}
 .cpWtdLg{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding:9px 12px;
   border-radius:var(--ff-radius-c8);background:var(--ff-grey-100);font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-600)}
 .cpWtdLg b{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);white-space:nowrap}
