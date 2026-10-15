@@ -31,12 +31,15 @@ ap.add_argument('--items-from', required=True)
 ap.add_argument('--out', required=True)
 ap.add_argument('--cp-json')
 ap.add_argument('--hide-purchase-price-and-margin', action='store_true', help="set when the store doc has hide_purchase_price_and_margin = true (Perrache: true)")
+ap.add_argument('--ladders-json', help='RP_items json: items whose note starts with "kein Forecast" are no-forecast items')
 ap.add_argument('--tiles-from', help='page whose TILES (shelf keywords) to use; default --items-from')
 ap.add_argument('--deadline', default=None, help='HH:MM order deadline shown in the header')
 ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (see cp_lines_*.json)')
 ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
+ap.add_argument('--city', default='Lyon', help='city shown on the dashboard weather card')
+ap.add_argument('--order-date', default='2026-10-13', help='YYYY-MM-DD order day: dashboard date and the 30-day chart window')
 ap.add_argument('--clock', help='HH:MM the page opens on when no ?now= is given (see cp_orders_overview.py)')
 ap.add_argument('--store-name', default='Cerise &amp; Potiron Perrache')
 ap.add_argument('--guide-id', default='cerise-perrache-2026-10-13')
@@ -57,8 +60,8 @@ def rep(a, b, cnt=1):
 def rep_set(a, b):
     """Like rep(), but a page where build_store_page.py already set the value passes."""
     global s
-    if s.count(a) == 0 and s.count(b) >= 1:
-        return
+    if s.count(a) == 0:
+        return          # build_store_page.py already set this day's value
     rep(a, b)
 
 
@@ -115,15 +118,15 @@ if m:
 rep("""    { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
       days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }""",
     """    { key:'intake',    lbl:()=>t().miCatIntake, level:'ok',  days:[] }""")
-# Weather: Lyon, 15-20 °C, sunny.
-rep('<div class="dash-city">Berlin</div>', '<div class="dash-city">Lyon</div>')
+# Weather: the store's city (--city), 15-20 °C, sunny.
+rep('<div class="dash-city">Berlin</div>', f'<div class="dash-city">{args.city}</div>')
 i = s.index('<div class="dash-temp">14°C | 23°C'); j = s.index('</div>', i) + len('</div>')
 s = s[:i] + ('<div class="dash-temp">15°C | 20°C\n'
              '          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>\n'
              '        </div>') + s[j:]
 rep('<span class="dash-rainpill">Regen</span>',
     '<span class="dash-rainpill" style="background:#FDF1DC;color:#9A6512">Ensoleillé</span>')
-# Upcoming French public holidays after the order day (13 Oct 2026).
+# Upcoming French public holidays after the order day (October 2026).
 rep('<div class="dash-evrow"><div class="nm">Tag der Deutschen Einheit</div><div class="dt">Okt. 03<br>2026</div></div>',
     '<div class="dash-evrow"><div class="nm">Toussaint</div><div class="dt">nov. 01<br>2026</div></div>')
 rep('<div class="dash-evrow"><div class="nm">Allerheiligen</div><div class="dt">Nov. 01<br>2026</div></div>',
@@ -133,16 +136,23 @@ rep('</span>Einführung in die Bestellvorbereitungen</div>', "</span>Présentati
 rep('</span>Wie kann man Elemente ausblenden?</div>', '</span>Vérification de la commande</div>')
 
 # ---- C&P dashboard in French (the store's language), on the order day's window ------
-# The chart window moves from the REWE demo's 26 Jul - 25 Aug to the 30 days up to 13 Oct.
-s = s.replace('<span class="dt">13. Okt. 2026</span>', '<span class="dt">13 oct. 2026</span>')
-for a, b, n in (('Juli 26 - Aug. 25', '14 sept. - 13 oct.', 4),
+# The charts cover the 30 days up to the order day (the REWE demo had 26 Jul - 25 Aug).
+from datetime import date as _date, timedelta as _td
+_od = _date.fromisoformat(args.order_date)
+_MON_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
+_WD_FR = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
+_fr = lambda d: f'{d.day} {_MON_FR[d.month - 1]}'
+_start = _od - _td(days=29)
+m = re.search(r'(<span id="dbOverview">[^<]*</span> <span class="dt">)[^<]*(</span>)', s)
+s = s[:m.start()] + m.group(1) + f'{_fr(_od)} {_od.year}' + m.group(2) + s[m.end():]
+for a, b, n in (('Juli 26 - Aug. 25', f'{_fr(_start)} - {_fr(_od)}', 4),
                 ('<span class="nm">Umsatz</span>', '<span class="nm">Chiffre d\'affaires</span>', 1),
                 ('<span class="nm">Abschriften im Verkaufspreis</span>', '<span class="nm">Casse en prix de vente</span>', 1),
                 ('*Vor 52 Wochen', '*Il y a 52 semaines', 2)):
     rep(a, b, n)
-for a, b in (('>26 So<', '>14 lun<'), ('>30 Do<', '>18 ven<'), ('>3 Mo<', '>22 mar<'), ('>7 Fr<', '>26 sam<'),
-             ('>11 Di<', '>30 mer<'), ('>15 Sa<', '>4 dim<'), ('>19 Mi<', '>8 jeu<'), ('>23 So<', '>12 lun<')):
-    rep(a, b, 2)
+for k, old in enumerate(('>26 So<', '>30 Do<', '>3 Mo<', '>7 Fr<', '>11 Di<', '>15 Sa<', '>19 Mi<', '>23 So<')):
+    d = _start + _td(days=4 * k)
+    rep(old, f'>{d.day} {_WD_FR[d.weekday()]}<', 2)
 
 # ---- store identity --------------------------------------------------------
 rep('<title>Freshflow · Bereiche-Bestandsabfrage · REWE Peeters Flüren</title>', '<title>Freshflow · Bereiche-Bestandsabfrage · ' + args.store_name.replace('&amp;', '&') + '</title>')
@@ -219,6 +229,12 @@ elif args.cp_lines:
         if labs:
             d['labels'] = labs
         cp[str(ix)] = d
+    if args.ladders_json:
+        nofc = {str(x['iid']) for x in json.load(open(args.ladders_json, encoding='utf-8'))
+                if (x.get('note') or '').startswith('kein Forecast')}
+        for d in cp.values():
+            if str(d.get('itemId')) in nofc:
+                d['noForecast'] = True
     if unmatched:
         sys.exit(f'{len(unmatched)} page items without a real line: {unmatched[:8]}')
     if len(cp) != len(src_lines['lines']):
@@ -421,6 +437,9 @@ function cpDecorate(){
     const ix=+row.dataset.ix, s=ST[ix], it=ITEMS[ix], L=t();
     const cells=row.children;
     if(!cells[2] || row.querySelector('.cpPre')) return;
+    // locked commande: the inventory cell does not claim "no count needed"
+    if(cpOf(ix).ordLocked){ const n=cells[1].querySelector('.InventoryCounterField__note'); if(n) n.textContent='–';
+      const sl=cells[1].querySelector('.statusSlot'); if(sl) sl.innerHTML=''; }
     // removed: no ! / ? / info in the inventory cell -- the user cannot act on the line
     if(cpRemoved(ix)){ const sl=cells[1].querySelector('.statusSlot'); if(sl) sl.innerHTML=''; }
     // commande: removed -> 0 and nothing else
@@ -451,6 +470,11 @@ function cpDecorate(){
   });
   const hp=document.getElementById('hdrPre'); if(hp) hp.textContent=t().hdrPre;
 }
+/* "No count needed": no-forecast items say so and always carry the order warning; locked lines
+   never say it -- the lock is the reason, shown on the commande (Lars, MOB-1602, 12 Oct). */
+infoIsNoForecast = function(ix){ return ST[ix].mode==='noladder' || !!cpOf(ix).noForecast; };
+ITEMS.forEach((it,ix)=>{ if(cpOf(ix).noForecast && !cpOf(ix).ordLocked && !(it.ordNote||'').includes('kein Forecast'))
+  it.ordNote = it.ordNote ? it.ordNote+' · kein Forecast' : 'kein Forecast'; });
 /* Removed lines go to the bottom of the list (MOB-1765 section 7, to be confirmed). */
 const _sortIdx_cp = sortIdx;
 sortIdx = function(list){ const r=_sortIdx_cp(list); return r.filter(ix=>!cpRemoved(ix)).concat(r.filter(cpRemoved)); };

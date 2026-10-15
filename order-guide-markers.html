@@ -207,7 +207,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;ba
       <li>The tooltip opens under the icon and points at it. One tooltip open at a time.</li>
       <li>It closes on a tap outside, on scroll, and when the list re-renders. The icon is rebuilt on every render, so the tooltip must not outlive it.</li>
       <li>It is not a bottom sheet. Reading why a line is flagged is not a task, and users tap several icons in a row while walking the shelf.</li>
-      <li>All texts in DE / EN / FR, reviewed by design before release. The "No count needed" text gets rewritten.</li>
+      <li>All texts in DE / EN / FR, reviewed by design before release.</li>
+      <li><b>No count needed</b> shows only where no count changes the order, and names the case: "Whatever you count, the order stays at N CS", or for items without a forecast "No forecast for this item yet. Enter the quantity you want to order." together with the order quantity warning. Locked lines never say it.</li>
     </ul>
   </div>
 
@@ -360,7 +361,7 @@ const ROWS = [
   {cp:'KIWI', rewe:'KIWI GRÜN', meta:'2210 · 33 Piece', og:['Sales price changed'],
    inv:{v:1}, pre:{v:0,icons:[{k:'lock'}]}, ord:{v:1}},
   {cp:'TOMATE CERISE ALLONGEE ROUGE BARQUETTE 500G FRANCE', rewe:'CHERRYTOMATEN LÄNGLICH ROT SCHALE 500G', meta:'4518 · 12 Piece', og:['Case size changed','Sales price changed'],
-   inv:{v:'No count needed',small:true,icons:[{k:'info',text:'A count would not change this order. Enter the quantity you want to order.',title:'No count needed'}]}, pre:{v:1}, ord:{v:1,icons:[{k:'edit'}]}},
+   inv:{v:'No count needed',small:true,icons:[{k:'info',text:'Whatever you count, the order stays at 1 CS.',title:'No count needed'}]}, pre:{v:1}, ord:{v:1,icons:[{k:'edit'}]}},
   {cp:'NOIX FRAICHE', rewe:'WALNÜSSE FRISCH', meta:'1873 · 5 KG', og:['Added to today\'s order guide'], ogAdded:true,
    inv:{v:'–'}, pre:{v:0}, ord:{v:1,icons:[{k:'ord',reasons:['New item']}]}},
   {cp:'BOUQUET LAURIER SEC', rewe:'LORBEER GETROCKNET BUND', meta:'37351 · 25 Piece', og:['Removed from order guide'], removed:true,

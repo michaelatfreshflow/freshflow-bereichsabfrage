@@ -3657,7 +3657,9 @@ const T={
     tipInvTitle:'Bestand prüfen', tipInvText:'Bitte Bestand dieses Artikels überprüfen.',
     tipOrdTitle:'Bestellmenge prüfen', tipOrdText:'Bitte Bestellmenge dieses Artikels überprüfen.',
     tipEditTitle:'Von Ihnen geändert', tipEditText:'Sie haben diesen Wert von Hand geändert.',
-    tipInfoText:'Eine Zählung würde diese Bestellung nicht ändern. Geben Sie die gewünschte Bestellmenge ein.',
+    tipInfoAny:'Egal, was Sie zählen: die Bestellung bleibt bei {n} {u}.',
+    tipInfoNoFc:'Für diesen Artikel gibt es noch keinen Forecast. Geben Sie die gewünschte Bestellmenge ein.',
+    rNoForecast:'Kein Forecast',
     rPlanAMismatch:'App-Bestand passt nicht zu Plan A',
     rOrderDetached:'Bestellung hängt nicht am Bestand',
     rShrinkRetail:'Abschriften im Verkaufspreis',
@@ -4095,7 +4097,9 @@ const T={
     tipInvTitle:'Check inventory', tipInvText:'Please review the inventory for this item.',
     tipOrdTitle:'Check order quantity', tipOrdText:'Please review the order quantity for this item.',
     tipEditTitle:'Edited by you', tipEditText:'You changed this value by hand.',
-    tipInfoText:'A count would not change this order. Enter the quantity you want to order.',
+    tipInfoAny:'Whatever you count, the order stays at {n} {u}.',
+    tipInfoNoFc:'No forecast for this item yet. Enter the quantity you want to order.',
+    rNoForecast:'No forecast',
     rPlanAMismatch:'App inventory does not match Plan A',
     rOrderDetached:'Order not tied to inventory',
     rShrinkRetail:'Shrink at retail price',
@@ -4533,7 +4537,9 @@ const T={
     tipInvTitle:'Vérifier le stock', tipInvText:'Veuillez vérifier le stock pour cet article.',
     tipOrdTitle:'Vérifier la quantité', tipOrdText:'Veuillez vérifier la quantité commandée pour cet article.',
     tipEditTitle:'Modifié par vous', tipEditText:'Vous avez modifié cette valeur à la main.',
-    tipInfoText:'Un comptage ne modifierait pas cette commande. Saisissez la quantité que vous souhaitez commander.',
+    tipInfoAny:'Quoi que vous comptiez, la commande reste à {n} {u}.',
+    tipInfoNoFc:'Pas encore de prévision de ventes pour cet article. Saisissez la quantité que vous souhaitez commander.',
+    rNoForecast:'Pas de prévision de ventes',
     rPlanAMismatch:'L’inventaire de l’app ne correspond pas au plan A',
     rOrderDetached:'Commande non liée à l’inventaire',
     rShrinkRetail:'Casse au prix de vente',
@@ -5303,6 +5309,8 @@ function applyKo(it,s,ko){
   s.touched=true;
 }
 const ST=ITEMS.map(initState);
+ST.forEach((s,ix)=>{ if(s.mode==='noladder'){ const it=ITEMS[ix];
+  if(!(it.ordNote||'').includes('kein Forecast')) it.ordNote = it.ordNote ? it.ordNote+' · kein Forecast' : 'kein Forecast'; } });
 let TAPS=0;
 let MANAGE_MODE=false;
 /* ---------- Sortierung ----------
@@ -5732,7 +5740,7 @@ const NOTE_TOKENS = {
   'mehrere Artikel auf einer PLU':'rSharedPlu', 'noch nie gezählt':'rNeverCounted',
   'turnusmässige Zählung, echte Zahl':'rPeriodicReal', 'turnusmässige Zählung':'rPeriodic',
   'zu wenig Historie':'rThinHistory', 'neuer Artikel':'rNewItem', 'Aktion':'rPromo',
-  'manual_warning':'rManualWarning',
+  'manual_warning':'rManualWarning', 'kein Forecast':'rNoForecast',
 };
 function noteText(raw){
   if(!raw) return raw;
@@ -5753,6 +5761,14 @@ function mark(kind,ix){
   const title = kind==='edit' ? t().tipEditTitle : t().noCountNeeded;
   return `<span class="statusSlot"><button type="button" class="whyBtn" data-a="why" data-i="${ix}" data-kind="${kind}" aria-label="${title}">${TIP_ICON[kind]()}</button></span>`;
 }
+/* "No count needed" covers two different cases and says which one it is (Lars, MOB-1602):
+   the order is the same at any count, or there is no forecast at all and the user decides. */
+function infoIsNoForecast(ix){ return ST[ix].mode==='noladder'; }
+function infoText(ix){
+  const L=t();
+  return infoIsNoForecast(ix) ? L.tipInfoNoFc
+       : L.tipInfoAny.replace('{n}', orderVal(ix)).replace('{u}', L.caseUnit);
+}
 let WHY_POP=null;
 function closeWhy(){ if(WHY_POP){ WHY_POP.remove(); WHY_POP=null; } }
 /* Anker am Punkt, und wenn unten kein Platz mehr ist, klappt es nach oben -- sonst
@@ -5765,7 +5781,7 @@ function openWhy(btn, ix, kind){
   if((kind==='inv'||kind==='ord') && !tags.length) return;
   const icon = TIP_ICON[kind]();
   const title = {inv:L.tipInvTitle, ord:L.tipOrdTitle, edit:L.tipEditTitle, info:L.noCountNeeded}[kind];
-  const text  = {inv:L.tipInvText,  ord:L.tipOrdText,  edit:L.tipEditText,  info:L.tipInfoText}[kind];
+  const text  = {inv:L.tipInvText,  ord:L.tipOrdText,  edit:L.tipEditText,  info:infoText(ix)}[kind];
   const p=document.createElement('div');
   p.className='whyPop';
   p.innerHTML=`<div class="whyHd">${icon}<b>${title}</b></div><div class="whyTx">${text}</div>`
