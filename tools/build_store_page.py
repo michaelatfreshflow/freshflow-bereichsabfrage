@@ -100,6 +100,13 @@ def note(js):
 
 
 # --------------------------------------------------------------------- data
+ORDER_TYPE = None   # set by --order-type; C&P carries regular + preorder rows per item
+
+
+def _ot(alias=''):
+    return f" AND {alias}order_type = '{ORDER_TYPE}'" if ORDER_TYPE else ''
+
+
 def pull(store: str, day: str):
     """Everything the page needs, from the ONLY table that carries the current order day.
 
@@ -118,14 +125,14 @@ def pull(store: str, day: str):
                TO_JSON_STRING(inventory_needs_attention_reason) inv_r
         FROM `{PROJECT}.{store}.prod_orders_output`
         WHERE DATE(order_deadline_at,'Europe/Berlin') = DATE '{day}'
-          AND display.system.quantity > 0 AND NOT hidden_state.system.is_hidden),
+          AND display.system.quantity > 0 AND NOT hidden_state.system.is_hidden{_ot()}),
       n AS (
         SELECT CAST(item_id AS STRING) iid, ANY_VALUE(orderset_item_name) nm,
                ANY_VALUE(original_index) oi, ANY_VALUE(CAST(is_organic AS STRING)) bio,
                ANY_VALUE(CAST(is_in_promotion AS STRING)) promo,
                ANY_VALUE(case_content_unit) unit, ANY_VALUE(item_categories) cat
         FROM `{PROJECT}.{store}.core_orderset`
-        WHERE DATE(order_deadline_at,'Europe/Berlin') = DATE '{day}' GROUP BY iid)
+        WHERE DATE(order_deadline_at,'Europe/Berlin') = DATE '{day}'{_ot()} GROUP BY iid)
       SELECT o.*, n.nm, n.oi, n.bio, n.promo, n.unit, n.cat FROM o LEFT JOIN n USING(iid)""")
     if not rows:
         raise Refusal(f"no active order-guide rows for {store} on {day}. The pipeline writes "
@@ -285,7 +292,7 @@ def deadline_of(store, day):
     SELECT FORMAT_TIMESTAMP('%H:%M', order_deadline_at, 'Europe/Paris') AS hm, COUNT(*) n
     FROM `{PROJECT}.{store}.prod_orders_output`
     WHERE DATE(order_deadline_at) = "{day}"
-      AND hidden_state.system.is_hidden = FALSE AND display.system.quantity > 0
+      AND hidden_state.system.is_hidden = FALSE AND display.system.quantity > 0{_ot()}
     GROUP BY 1 ORDER BY n DESC LIMIT 1""")
     if not r:
         raise Refusal(f"no order deadline for {store} on {day}")
@@ -434,7 +441,11 @@ def main():
     ap.add_argument("--drop-reasons", default=None,
                     help="comma-separated needs-attention reasons to leave out of the notes, or "
                          "'informational' for " + ",".join(INFORMATIONAL_REASONS))
+    ap.add_argument("--order-type", default=None,
+                    help="keep only this order_type (C&P: 'regular' for the commande; the preorder is a second row per item)")
     a = ap.parse_args()
+    global ORDER_TYPE
+    ORDER_TYPE = a.order_type
     day = a.date or date.today().isoformat()     # resolved FRESH, never carried in
     print(f"Laden {a.store} | Algorithmus {a.algo} | Tag {day}")
 

@@ -1,0 +1,339 @@
+{
+ "_source": "BigQuery freshflow-prod.cerise_foch, pulled 2026-10-14. One row per regular order (the app's list excludes preorder documents); Prévision = the preorder document with the same deadline. Deadline, delivery and status changes: order_changes. Totals as the app sums them (casePriceSum): per item the later of user/app quantity, else system (user_order), else prod_orders_output system; sales value = cases x case content x (retail price ?? sales_price_suggestion). Orders after 2026-10-13 (the prototype's day) use the backend's system quantities, without user edits made after that day. Store doc (firestore_export.store_configs_raw_latest): allow_order_editing_after_deadline=true, user_can_edit_future_orders=false, hide_purchase_price_and_margin=true, timezone Europe/Berlin. The order supplier is not in BigQuery; 'C&P' as in the app screenshot.",
+ "store": "Cerise et Potiron Foch",
+ "today": "2026-10-13",
+ "supplier": "C&P",
+ "allowAfterDeadline": true,
+ "futureEditing": false,
+ "orders": [
+  {
+   "id": "2026-10-01-regular",
+   "deadline": "2026-10-01T16:00",
+   "delivery": "2026-10-03T05:00",
+   "ord": [
+    325,
+    8284.29
+   ],
+   "pre": [
+    207,
+    4894.91
+   ],
+   "status": [
+    [
+     "2026-10-01T16:01",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-02-regular",
+   "deadline": "2026-10-02T16:00",
+   "delivery": "2026-10-05T05:00",
+   "ord": [
+    0,
+    0
+   ],
+   "pre": [
+    0,
+    0
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-03-regular",
+   "deadline": "2026-10-03T19:00",
+   "delivery": "2026-10-06T05:00",
+   "ord": [
+    216,
+    5198.47
+   ],
+   "pre": [
+    173,
+    5196.18
+   ],
+   "status": [
+    [
+     "2026-10-03T16:35",
+     "closed"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-05-regular",
+   "deadline": "2026-10-05T16:00",
+   "delivery": "2026-10-07T05:00",
+   "ord": [
+    144,
+    3683.02
+   ],
+   "pre": [
+    157,
+    3989.92
+   ],
+   "status": [
+    [
+     "2026-10-05T14:55",
+     "closed"
+    ],
+    [
+     "2026-10-05T15:07",
+     "open"
+    ],
+    [
+     "2026-10-05T15:18",
+     "closed"
+    ],
+    [
+     "2026-10-05T15:26",
+     "open"
+    ],
+    [
+     "2026-10-05T15:26",
+     "closed"
+    ],
+    [
+     "2026-10-05T15:44",
+     "open"
+    ],
+    [
+     "2026-10-05T15:45",
+     "closed"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-06-regular",
+   "deadline": "2026-10-06T16:00",
+   "delivery": "2026-10-08T05:00",
+   "ord": [
+    201,
+    5164.23
+   ],
+   "pre": [
+    326,
+    9172.66
+   ],
+   "status": [
+    [
+     "2026-10-06T15:30",
+     "closed"
+    ],
+    [
+     "2026-10-06T15:30",
+     "open"
+    ],
+    [
+     "2026-10-06T16:01",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-07-regular",
+   "deadline": "2026-10-07T16:00",
+   "delivery": "2026-10-09T05:00",
+   "ord": [
+    274,
+    7905.5
+   ],
+   "pre": [
+    349,
+    8970.2
+   ],
+   "status": [
+    [
+     "2026-10-07T16:01",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-08-regular",
+   "deadline": "2026-10-08T16:00",
+   "delivery": "2026-10-10T05:00",
+   "ord": [
+    332,
+    8039.56
+   ],
+   "pre": [
+    172,
+    4193.06
+   ],
+   "status": [
+    [
+     "2026-10-08T16:02",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-10-regular",
+   "deadline": "2026-10-10T19:00",
+   "delivery": "2026-10-13T05:00",
+   "ord": [
+    143,
+    3059.78
+   ],
+   "pre": [
+    141,
+    3695.87
+   ],
+   "status": [
+    [
+     "2026-10-10T19:00",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-12-regular",
+   "deadline": "2026-10-12T16:00",
+   "delivery": "2026-10-14T05:00",
+   "ord": [
+    144,
+    3714.72
+   ],
+   "pre": [
+    152,
+    3585.45
+   ],
+   "status": [
+    [
+     "2026-10-12T16:01",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-13-regular",
+   "deadline": "2026-10-13T16:00",
+   "delivery": "2026-10-15T05:00",
+   "ord": [
+    147,
+    3370.8
+   ],
+   "pre": [
+    143,
+    3843.63
+   ],
+   "status": [
+    [
+     "2026-10-13T16:01",
+     "past_due"
+    ]
+   ]
+  },
+  {
+   "id": "2026-10-14-regular",
+   "deadline": "2026-10-14T16:00",
+   "delivery": "2026-10-16T05:00",
+   "ord": [
+    134,
+    3387.61
+   ],
+   "pre": [
+    350,
+    9257.61
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-15-regular",
+   "deadline": "2026-10-15T16:00",
+   "delivery": "2026-10-17T05:00",
+   "ord": [
+    405,
+    10493.39
+   ],
+   "pre": [
+    139,
+    3765.43
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-17-regular",
+   "deadline": "2026-10-17T19:00",
+   "delivery": "2026-10-20T05:00",
+   "ord": [
+    147,
+    3975.45
+   ],
+   "pre": [
+    154,
+    4257.33
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-19-regular",
+   "deadline": "2026-10-19T16:00",
+   "delivery": "2026-10-21T05:00",
+   "ord": [
+    157,
+    4314.2
+   ],
+   "pre": [
+    63,
+    2210.21
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-20-regular",
+   "deadline": "2026-10-20T16:00",
+   "delivery": "2026-10-22T05:00",
+   "ord": [
+    68,
+    2467.3
+   ],
+   "pre": [
+    32,
+    1224.16
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-21-regular",
+   "deadline": "2026-10-21T16:00",
+   "delivery": "2026-10-23T05:00",
+   "ord": [
+    35,
+    1309.54
+   ],
+   "pre": [
+    54,
+    2007.7
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-22-regular",
+   "deadline": "2026-10-22T16:00",
+   "delivery": "2026-10-24T05:00",
+   "ord": [
+    0,
+    0
+   ],
+   "pre": [
+    0,
+    0
+   ],
+   "status": []
+  },
+  {
+   "id": "2026-10-24-regular",
+   "deadline": "2026-10-24T19:00",
+   "delivery": "2026-10-27T05:00",
+   "ord": [
+    0,
+    0
+   ],
+   "pre": [
+    0,
+    0
+   ],
+   "status": []
+  }
+ ]
+}
