@@ -463,15 +463,14 @@ function cpSimKo(it,s){
 }
 function cpSimTxt(v){ return koNum(v)+' '+t().caseUnit; }
 function cpSimSub(it,v){ return (it.case!=null ? Math.round(v*it.case) : v)+' '+uw(it); }
-/* Promo days inside the 7-day sales window (HIST_PROMO index 7..13), as "8–12 oct." */
+/* Promo days inside the 7-day sales window (HIST_PROMO index 7..13), as "mar.–mer." (dates in the hover text) */
 function cpPromoDays(ix){
   const it=ITEMS[ix];
   const ds=(HIST_PROMO[it.plu]||[]).filter(d=>d>=7).sort((a,b)=>a-b);
   if(!ds.length) return null;
   const f=(d,o)=>histDay(d).toLocaleDateString(dateLoc(),o);
   const a=ds[0], b=ds[ds.length-1];
-  const short = a===b ? f(a,{day:'numeric',month:'short'})
-              : `${f(a,{day:'numeric'})}–${f(b,{day:'numeric',month:'short'})}`;
+  const short = a===b ? f(a,{weekday:'short'}) : `${f(a,{weekday:'short'})}–${f(b,{weekday:'short'})}`;
   return {short, long: ds.map(d=>f(d,{weekday:'short',day:'numeric',month:'short'})).join(', ')};
 }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
