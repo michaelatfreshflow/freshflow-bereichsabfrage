@@ -592,30 +592,41 @@ JS += r"""
    Same unit as the strip (cases where the item has a case size). */
 const CP_WTD = {
   de:{sum:'Summe', week:'Vorwoche'}, en:{sum:'Total', week:'Last week'}, fr:{sum:'Cumul', week:'Semaine préc.'}};
-function cpWtdHTML(ix){
-  const it=ITEMS[ix]; if(it.plu==null || !HIST[it.plu]) return '';
+function cpWtd(ix){
+  const it=ITEMS[ix];
   const today=histDay(14), k=((today.getDay()-2+7)%7)||7;      // days since Tuesday, 7 on a Tuesday
   const S=sdSeries(it).sales; let sum=0, any=false;
   for(let d=14-k; d<14; d++){ if(S[d]!=null){ sum+=S[d]; any=true; } }
-  const L=t(), W=CP_WTD[LANG]||CP_WTD.en;
+  const W=CP_WTD[LANG]||CP_WTD.en;
   const wd=d=>histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'});
   const span = k===1 ? wd(13) : `${wd(14-k)}–${wd(13)}`;
-  const label = k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`;
-  const v = any ? histNum(sum, it, false) : null;
-  return `<div class="cpWtd" title="${label}">${label} <b>${v==null?'–':v}${v!=null&&it.case?' '+L.caseUnit:''}</b></div>`;
+  return {label: k===7 ? `${W.week} (${span})` : `${W.sum} ${span}`, v: any ? histNum(sum, it, false) : null};
 }
 const _histHTML_wtd = histHTML;
+/* Under the commande: no row icon on the left, and the running total as an eighth column
+   ("Σ") after a divider. The item sheet (opt.lg) keeps its own full strip. */
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
-  return (!h || (opt && opt.lg)) ? h : h + cpWtdHTML(ix);
+  if(!h || (opt && opt.lg)) return h;
+  const it=ITEMS[ix], w=cpWtd(ix), L=t();
+  const val = w.v==null ? '–' : w.v;
+  const sumH = `<span class="SalesHistory__wd cpSum cpSumH" title="${w.label}">Σ</span>`;
+  const sumV = `<span class="SalesHistory__s cpSum cpSumV${w.v==null?' is-nil':''}" title="${w.label}${w.v!=null&&it.case?': '+w.v+' '+L.caseUnit:''}">${val}</span>`;
+  return h.replace('class="SalesHistory', 'class="cpStrip SalesHistory')
+          .replace(/(<div class="SalesHistory__wk"[^>]*>)((?:<span class="SalesHistory__wd[^"]*"[^>]*>[\s\S]*?<\/span>){7})/, `$1$2${sumH}`)
+          .replace(/((?:<span class="SalesHistory__s[^"]*">[^<]*<\/span>){7})(<\/div>)/, `$1${sumV}$2`);
 };
 render();
 """
 CSS_WTD = """
-/* ===== C&P: running total since Tuesday ===== */
-.cpWtd{width:180px;margin-top:3px;text-align:right;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.cpWtd b{color:var(--ff-grey-900);font-weight:var(--ff-weight-semibold)}
+/* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
+.cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
+.cpStrip .SalesHistory__marks{display:none}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
+  border-left:1px solid var(--ff-grey-300)}
+.cpStrip .cpSumH{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-600)}
+.cpStrip .cpSumV{font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
 """
 idx = s.rindex('</style>')
 s = s[:idx] + CSS_WTD + s[idx:]
