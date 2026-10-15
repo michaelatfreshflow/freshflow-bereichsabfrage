@@ -9,8 +9,9 @@ import sys
 
 OLD_CSS = """.lineTag{display:inline-block;margin:0 0 5px 42px;padding:1px 8px;border-radius:var(--ff-radius-c15);
   border:1px solid var(--ff-grey-300);font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600)}"""
-NEW_CSS = """.withbang.hasLineTag{flex-wrap:wrap}
-.lineTag{flex:0 0 100%;order:-1;box-sizing:border-box;margin:0 0 6px;padding-right:24px;text-align:center;white-space:nowrap;
+NEW_CSS = """.withbang.hasLineTag{position:relative}
+#list > .row:has(.lineTag){padding-top:28px}
+.lineTag{position:absolute;left:0;right:24px;bottom:100%;margin-bottom:3px;text-align:center;white-space:nowrap;line-height:1.2;
   font-size:var(--ff-text-primary-body-text-14);color:var(--ff-grey-500);font-weight:var(--ff-weight-regular, 400)}
 .lineTag b{font-weight:var(--ff-weight-medium);color:var(--ff-grey-600);margin-left:6px}"""
 OLD_TAG = '`<div class="lineTag">${L.preOrdered} ${cc.preOrdered} ${L.caseUnit}</div>`'
@@ -19,8 +20,17 @@ OLD_INSERT = "ordWrap.insertAdjacentHTML('beforebegin', " + NEW_TAG + ")"
 NEW_INSERT = "{ ordWrap.classList.add('hasLineTag'); ordWrap.insertAdjacentHTML('afterbegin', " + NEW_TAG + "); }"
 
 
+# The first plain-text version stacked the line in the stepper's row and pushed the stepper
+# down, out of line with the inventory and Prévision steppers. It now floats above.
+FLEX_CSS = """.withbang.hasLineTag{flex-wrap:wrap}
+.lineTag{flex:0 0 100%;order:-1;box-sizing:border-box;margin:0 0 6px;padding-right:24px;text-align:center;white-space:nowrap;"""
+ABS_CSS = NEW_CSS.split('font-size')[0].rstrip()
+
+
 def convert(s):
     if NEW_INSERT in s:
+        if FLEX_CSS in s:
+            return s.replace(FLEX_CSS, ABS_CSS), True
         return s, False
     for a in (OLD_CSS, OLD_TAG):
         if s.count(a) != 1:
