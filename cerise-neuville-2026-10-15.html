@@ -10781,7 +10781,7 @@ rowHTML = function(ix, ...rest){
   const pd=cpPromoDays(ix);
   if(pd && !/class="pill promo"/.test(h)) h = h.replace('<div class="pills">', `<div class="pills"><span class="pill promo" title="${pd.long}">${L.sale} ${pd.short}</span> `);
   if(c.labels) h = h.replace('<div class="pills">', `<div class="pills">${c.labels.map(k=>`<span class="pill">${k==='new'?L.labelNew:k.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')}</span>`).join(' ')} `);
-  if(c.demo) h = h.replace('<div class="pills">', `<div class="pills"><span class="demoTag">${L.cpDemo}</span> `);
+  /* no "Exemple" tag on the demo lines (asked 16 Oct); they stay marked in CP (demo:true) */
   if(c.preLabel) h = h.replace('<div class="pills">', `<div class="pills"><span class="preLabelTag">${L.preLabel}: ${c.preLabel.date}, ${c.preLabel.qty} ${L.caseUnit}</span> `);
   return h;
 };
