@@ -212,7 +212,7 @@ rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
 # ---- locale keys (same keys in all three, parity) --------------------------
 LOC = {
     'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
-               filtRecalc='Bestellung neu berechnet', recPopTitle='Geänderte Artikel', recPopText='Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
+               filtRecalc='Bestellung neu berechnet', recAccept='Übernehmen', recAccepted='Neuberechnung übernommen', recChanged='Menge selbst geändert', recAskTip='Erst nach Übernehmen wird die neue Menge bestellt.', recProposal='Neu berechnet', recPopTitle='Geänderte Artikel', recPopText='Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Übernimm die neu berechnete Menge oder ändere sie – sonst bleibt die Bestellmenge, wie sie war. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
                tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
                tipRecFirst='Zuerst', tipRecNow='Jetzt',
                tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
@@ -221,7 +221,7 @@ LOC = {
                tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
                cpDummy='Demodaten · noch nicht Perrache', cpDemo='Beispiel', labelNew='Neu'),
     'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
-               filtRecalc='Order recalculated', recPopTitle='Changed items', recPopText='There are new recalculated items and order guide changes that need your attention. We set the filters so that you see only those. Reset the filters to see everything again.', recPopOk='Got it', recPopAll='Show all', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
+               filtRecalc='Order recalculated', recAccept='Accept', recAccepted='Recalculation accepted', recChanged='Quantity changed by you', recAskTip='The new quantity is only ordered once you accept it.', recProposal='Recalculated', recPopTitle='Changed items', recPopText='There are new recalculated items and order guide changes that need your attention. Accept the recalculated quantity or change it – otherwise the order quantity stays as it was. We set the filters so that you see only those. Reset the filters to see everything again.', recPopOk='Got it', recPopAll='Show all', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
                tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
                tipRecFirst='First', tipRecNow='Now',
                tipOgTitle='Order guide changed', ogCase='Case size changed', ogPromo='Promo dates changed',
@@ -230,7 +230,7 @@ LOC = {
                tipLockTitle='Locked', tipLockText='This field cannot be edited.',
                cpDummy='Demo data · not Perrache yet', cpDemo='Example', labelNew='New'),
     'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
-               filtRecalc='Commande recalculée', recPopTitle='Articles modifiés', recPopText='Il y a de nouveaux articles recalculés et des modifications du guide de commande qui demandent votre attention. Nous avons réglé les filtres pour que vous ne voyiez que ceux-là. Réinitialisez les filtres pour tout revoir.', recPopOk='Compris', recPopAll='Tout afficher', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
+               filtRecalc='Commande recalculée', recAccept='Accepter', recAccepted='Recalcul accepté', recChanged='Quantité modifiée par vous', recAskTip='La nouvelle quantité n’est commandée qu’une fois acceptée.', recProposal='Recalculé', recPopTitle='Articles modifiés', recPopText='Il y a de nouveaux articles recalculés et des modifications du guide de commande qui demandent votre attention. Acceptez la quantité recalculée ou modifiez-la – sinon la quantité commandée reste inchangée. Nous avons réglé les filtres pour que vous ne voyiez que ceux-là. Réinitialisez les filtres pour tout revoir.', recPopOk='Compris', recPopAll='Tout afficher', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
                tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
                tipRecFirst='Initial', tipRecNow='Maintenant',
                tipOgTitle='Guide de commande modifié', ogCase='Colisage modifié', ogPromo='Dates de promo modifiées',
@@ -389,6 +389,9 @@ rep("      const assume=koText(it.rungs[s.plan],it);",
 rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
     "       rLoKO: null, rHiKO: null,")
 # No shelf walk: the order opens on the full list, sorted like the order guide.
+rep("    const o=s.answered?s.order:(it.rungs[s.plan].order??0);",
+    "    const o=!window.CP_READY ? (s.answered?s.order:(it.rungs[s.plan].order??0))\n"
+    "          : (cpRemoved(ix)||cpOf(ix).ordLocked) ? 0 : ordCommitted(ix);   /* C&P: what is really ordered */")
 rep("let SORT={key:'shelf', dir:1};", "let SORT={key:'guide', dir:1};")
 rep("  {key:'shelf',     lbl:'sortShelfSeq'},\n", "")
 rep("let CATOPEN=true;", "let CATOPEN=false;")
@@ -466,6 +469,8 @@ document.body.classList.add('hasPre');
 const ICON_REC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#FFDD33"/><g transform="translate(4 4) scale(.6667)" stroke="#2B2300" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.34 14.96A7 7 0 1 1 16.95 7.05"/><path d="M19.5 9.6L14.8 9.2L19.1 4.9Z" fill="#2B2300" stroke-width="1"/></g></svg>';
 const ICON_OG='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1F7A80"/><g transform="translate(4 4) scale(.6667)" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7.5l4 4v12.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" fill="#fff" stroke="#fff" stroke-width="1.6"/><path d="M14 3.5V7.5h4" stroke="#1F7A80" stroke-width="1.6"/><path d="M9 12.2h6" stroke="#1F7A80" stroke-width="2"/><path d="M9 15.8h6" stroke="#1F7A80" stroke-width="2"/></g></svg>';
 const ICON_LOCKED='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11.1" fill="#fff" stroke="#5B7FB2" stroke-width="1.75"/><g transform="translate(4 4) scale(.6667)" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="11" width="12" height="9" rx="1" fill="#5B7FB2"/><path d="M9 11V8.5a3 3 0 0 1 6 0V11"/></g></svg>';
+/* recalculation decided (accepted or changed): same icon, grey */
+const ICON_REC_OK = ICON_REC.replace('#FFDD33','#D4D4D8').replace(/#2B2300/g,'#52525B');
 Object.assign(TIP_ICON,{rec:()=>ICON_REC, prerec:()=>ICON_REC, og:()=>ICON_OG, lock:()=>ICON_LOCKED, preedit:()=>ICON_EDITED});
 
 /* Planned commande of the line without any user action -- the base the netting compares against. */
@@ -480,7 +485,7 @@ function preApp(ix){
 }
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
-function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+function ordRecalc(ix){ return cpRecalcd(ix) && !cpRemoved(ix); }
 /* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
    land on whole pieces so the case figure and the piece figure agree. */
 function cpSimKo(it,s){
@@ -515,7 +520,8 @@ function cpSlot(btns){
   return `<span class="statusSlot${btns.length>1?' stack':''}">${btns.slice(0,2).join('')}</span>`;
 }
 function cpBtn(kind,ix,label){
-  return `<button type="button" class="whyBtn" data-a="why" data-i="${ix}" data-kind="${kind}" aria-label="${label}">${TIP_ICON[kind]()}</button>`;
+  const ic = (kind==='rec' && !cpRecPending(ix)) ? ICON_REC_OK : TIP_ICON[kind]();
+  return `<button type="button" class="whyBtn" data-a="why" data-i="${ix}" data-kind="${kind}" aria-label="${label}">${ic}</button>`;
 }
 function preCellHTML(ix){
   const p=cpOf(ix).pre, L=t();
@@ -610,6 +616,26 @@ const _render_cp = render;
 render = function(...a){ const r=_render_cp(...a); cpDecorate(); return r; };
 const _orderVal_cp = orderVal;
 orderVal = function(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _orderVal_cp(ix); };
+/* A recalculation needs a human action (C&P feedback, 16 Oct): the user accepts the recalculated
+   quantity or changes it, and only then is it ordered (sent with the completed order). Until then
+   the order keeps the quantity it had before the recalculation (recFirst). The decision is made in
+   the recalculated icon's tooltip ("Accepter"); once decided the icon turns green. Counting
+   inventory moves the proposal, not the order. */
+window.CP_READY = true;
+const _ordCommitted_rec = ordCommitted, _orderVal_rec = orderVal;
+function cpRecNew(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _ordCommitted_rec(ix); }
+function cpRecPending(ix){ const s=ST[ix];
+  return cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked && !s.recAcc && !s.manual; }
+/* A typed quantity that is only pending (inventory not confirmed yet, the "Ça correspond ?"
+   strip) is no decision: until it is confirmed the order stays on the old quantity, not on the
+   recalculated one. The field shows the pending number as everywhere else. */
+ordCommitted = function(ix){ return cpRecPending(ix) ? cpOf(ix).recFirst : _ordCommitted_rec(ix); };
+orderVal = function(ix){ return (ST[ix].pendOrder==null && cpRecPending(ix)) ? cpOf(ix).recFirst : _orderVal_rec(ix); };
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="recok"]'); if(!b) return;
+  e.stopPropagation(); e.preventDefault();
+  ST[+b.dataset.i].recAcc=true; if(typeof closeWhy==='function') closeWhy(); render();
+}, true);
 
 /* Tooltip content for the C&P kinds; the base openWhy keeps inv/ord/edit/info. */
 const _openWhy_cp = openWhy;
@@ -621,8 +647,12 @@ openWhy = function(btn, ix, kind){
   if(kind==='rec'||kind==='prerec'){
     title=L.tipRecTitle; text=L.tipRecText;
     const first = kind==='rec' ? cpOf(ix).recFirst : cpOf(ix).pre.sys;
-    const now = kind==='rec' ? orderVal(ix) : preShown(ix);
+    const now = kind==='rec' ? cpRecNew(ix) : preShown(ix);
     box=`<div class="whyRow"><span>${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></span></div>`;
+    /* the decision lives here: accept the recalculated quantity, or it is not ordered */
+    if(kind==='rec') box += cpRecPending(ix)
+      ? `<div class="cpRecTip"><button type="button" class="cpRecTip__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`
+      : `<div class="cpRecTip"><span class="cpRecTip__done">✓ ${ST[ix].recAcc && !ST[ix].manual ? L.recAccepted : L.recChanged}</span></div>`;
   } else if(kind==='og'){
     title=L.tipOgTitle;
     const og=cpOf(ix).og, order=['added','removed','case','promo','price'];
@@ -631,7 +661,7 @@ openWhy = function(btn, ix, kind){
   } else if(kind==='lock'){ title=L.tipLockTitle; text=L.tipLockText; }
   else { title=L.tipEditTitle; text=L.tipEditText; }
   const p=document.createElement('div'); p.className='whyPop';
-  p.innerHTML=`<div class="whyHd">${TIP_ICON[kind]()}<b>${title}</b></div>`+(text?`<div class="whyTx">${text}</div>`:'')+(box?`<div class="whyBox">${box}</div>`:'');
+  p.innerHTML=`<div class="whyHd">${kind==='rec' && !cpRecPending(ix) ? ICON_REC_OK : TIP_ICON[kind]()}<b>${title}</b></div>`+(text?`<div class="whyTx">${text}</div>`:'')+(box?`<div class="whyBox">${box}</div>`:'');
   document.body.appendChild(p);
   const r=btn.getBoundingClientRect(), pw=p.offsetWidth, ph=p.offsetHeight, GAP=8, M=10;
   let top=r.bottom+GAP, cls='below';
@@ -723,6 +753,10 @@ CSS_WTD = """
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+.cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
+.cpRecTip .cpRecTip__ok{align-self:flex-end}
+.cpRecTip__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
+.cpRecTip__done{font-weight:600}
 /* no kg/piece vs CS switch on the inventory keypad;
    no shelf chip (no shelf walk at C&P) */
 #invUnitSeg{display:none!important}
