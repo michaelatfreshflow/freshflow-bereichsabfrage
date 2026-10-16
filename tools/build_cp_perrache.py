@@ -723,9 +723,8 @@ CSS_WTD = """
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
-/* no CS in the commande and Prévision boxes; no kg/piece vs CS switch on the inventory keypad;
+/* no kg/piece vs CS switch on the inventory keypad;
    no shelf chip (no shelf walk at C&P) */
-.ColumnCounterField__value i{display:none}
 #invUnitSeg{display:none!important}
 #catChipWrap{display:none}
 /* no reset button next to the filter (asked 16 Oct) */
