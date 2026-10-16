@@ -6035,7 +6035,6 @@ function stepHTML(it,s,ix){
     <button class="InventoryCounterField__button" data-a="bstep" data-d="-1" data-i="${ix}"${minusOff?' disabled':''} aria-label="${t().less}">${ICON_MINUS}</button>
     <div class="InventoryCounterField__box" data-a="invpad" data-i="${ix}">
       <span class="InventoryCounterField__value"><b>${v}</b>${u?`<i>${u}</i>`:''}</span>
-      ${small?`<span class="InventoryCounterField__label">${small}</span>`:''}
     </div>
     <button class="InventoryCounterField__button" data-a="bstep" data-d="1" data-i="${ix}"${plusOff?' disabled':''} aria-label="${t().more}">${ICON_PLUS}</button>
   </div>`;
@@ -6782,7 +6781,6 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       <button class="ColumnCounterField__button" data-a="dec" data-i="${ix}" aria-label="${t().less}">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box" data-a="ordpad" data-i="${ix}" title="${t().adjustOrder}">
         <span class="ColumnCounterField__value"><b>${shown}</b><i>${t().caseUnit}</i></span>
-        ${shownPcs!=null?`<span class="ColumnCounterField__label">${shownPcs} ${uw(it)}</span>`:''}
         ${pendSub?`<span class="ColumnCounterField__label">${pendSub}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
@@ -10783,7 +10781,7 @@ function preCellHTML(ix){
   return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}">
       <button class="ColumnCounterField__button" data-a="predec" data-i="${ix}"${locked||v<=0?' disabled':''} aria-label="${L.less}">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>${v}</b><i>${L.caseUnit}</i></span>
-        ${it.case!=null?`<span class="ColumnCounterField__label">${Math.round(v*it.case)} ${uw(it)}</span>`:''}</div>
+        </div>
       <button class="ColumnCounterField__button" data-a="preinc" data-i="${ix}"${locked?' disabled':''} aria-label="${L.more}">${ICON_PLUS}</button>
     </div>${cpSlot(icons)}</div>`;
 }

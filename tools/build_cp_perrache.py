@@ -395,6 +395,9 @@ rep("let CATOPEN=true;", "let CATOPEN=false;")
 # No item code (PLU) in the row's meta line, only the case content (asked 16 Oct).
 rep("      `<span class=\"metarow\"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?",
     "      `<span class=\"metarow\">${it.case!=null?")
+# Fields show the number only: no pieces/kg line under inventory, commande and Prévision (16 Oct).
+rep("        ${shownPcs!=null?`<span class=\"ColumnCounterField__label\">${shownPcs} ${uw(it)}</span>`:''}\n", "")
+rep("      ${small?`<span class=\"InventoryCounterField__label\">${small}</span>`:''}\n", "")
 # No supplier filter at C&P: the "Fournisseurs / Rewe" section is inherited from the REWE page.
 rep("      ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}\n", "")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
@@ -527,7 +530,7 @@ function preCellHTML(ix){
   return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}">
       <button class="ColumnCounterField__button" data-a="predec" data-i="${ix}"${locked||v<=0?' disabled':''} aria-label="${L.less}">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>${v}</b><i>${L.caseUnit}</i></span>
-        ${it.case!=null?`<span class="ColumnCounterField__label">${Math.round(v*it.case)} ${uw(it)}</span>`:''}</div>
+        </div>
       <button class="ColumnCounterField__button" data-a="preinc" data-i="${ix}"${locked?' disabled':''} aria-label="${L.more}">${ICON_PLUS}</button>
     </div>${cpSlot(icons)}</div>`;
 }
