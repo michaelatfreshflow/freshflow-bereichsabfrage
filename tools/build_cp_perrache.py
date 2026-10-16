@@ -469,8 +469,8 @@ document.body.classList.add('hasPre');
 const ICON_REC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#FFDD33"/><g transform="translate(4 4) scale(.6667)" stroke="#2B2300" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.34 14.96A7 7 0 1 1 16.95 7.05"/><path d="M19.5 9.6L14.8 9.2L19.1 4.9Z" fill="#2B2300" stroke-width="1"/></g></svg>';
 const ICON_OG='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1F7A80"/><g transform="translate(4 4) scale(.6667)" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7.5l4 4v12.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" fill="#fff" stroke="#fff" stroke-width="1.6"/><path d="M14 3.5V7.5h4" stroke="#1F7A80" stroke-width="1.6"/><path d="M9 12.2h6" stroke="#1F7A80" stroke-width="2"/><path d="M9 15.8h6" stroke="#1F7A80" stroke-width="2"/></g></svg>';
 const ICON_LOCKED='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11.1" fill="#fff" stroke="#5B7FB2" stroke-width="1.75"/><g transform="translate(4 4) scale(.6667)" stroke="#5B7FB2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="11" width="12" height="9" rx="1" fill="#5B7FB2"/><path d="M9 11V8.5a3 3 0 0 1 6 0V11"/></g></svg>';
-/* recalculation decided (accepted or changed): same icon, green */
-const ICON_REC_OK = ICON_REC.replace('#FFDD33','#6EA050').replace(/#2B2300/g,'#FFFFFF');
+/* recalculation decided (accepted or changed): same icon, grey */
+const ICON_REC_OK = ICON_REC.replace('#FFDD33','#D4D4D8').replace(/#2B2300/g,'#52525B');
 Object.assign(TIP_ICON,{rec:()=>ICON_REC, prerec:()=>ICON_REC, og:()=>ICON_OG, lock:()=>ICON_LOCKED, preedit:()=>ICON_EDITED});
 
 /* Planned commande of the line without any user action -- the base the netting compares against. */
@@ -753,7 +753,7 @@ CSS_WTD = """
 .cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
 .cpRecTip .cpRecTip__ok{align-self:flex-end}
 .cpRecTip__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
-.cpRecTip__done{color:#3f7a3a;font-weight:600}
+.cpRecTip__done{font-weight:600}
 /* no kg/piece vs CS switch on the inventory keypad;
    no shelf chip (no shelf walk at C&P) */
 #invUnitSeg{display:none!important}
