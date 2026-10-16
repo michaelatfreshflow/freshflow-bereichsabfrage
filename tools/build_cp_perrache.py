@@ -35,6 +35,7 @@ ap.add_argument('--ladders-json', help='RP_items json: items whose note starts w
 ap.add_argument('--tiles-from', help='page whose TILES (shelf keywords) to use; default --items-from')
 ap.add_argument('--deadline', default=None, help='HH:MM order deadline shown in the header')
 ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (see cp_lines_*.json)')
+ap.add_argument('--demo-recalc', type=int, default=0, help='add N labelled example lines whose order reco was recalculated (new order guide during the day)')
 ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
@@ -211,6 +212,7 @@ rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
 # ---- locale keys (same keys in all three, parity) --------------------------
 LOC = {
     'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
+               filtRecalc='Bestellung neu berechnet', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
                tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
                tipRecFirst='Zuerst', tipRecNow='Jetzt',
                tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
@@ -219,6 +221,7 @@ LOC = {
                tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
                cpDummy='Demodaten · noch nicht Perrache', cpDemo='Beispiel', labelNew='Neu'),
     'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
+               filtRecalc='Order recalculated', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
                tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
                tipRecFirst='First', tipRecNow='Now',
                tipOgTitle='Order guide changed', ogCase='Case size changed', ogPromo='Promo dates changed',
@@ -227,6 +230,7 @@ LOC = {
                tipLockTitle='Locked', tipLockText='This field cannot be edited.',
                cpDummy='Demo data · not Perrache yet', cpDemo='Example', labelNew='New'),
     'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
+               filtRecalc='Commande recalculée', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
                tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
                tipRecFirst='Initial', tipRecNow='Maintenant',
                tipOgTitle='Guide de commande modifié', ogCase='Colisage modifié', ogPromo='Dates de promo modifiées',
@@ -285,6 +289,20 @@ elif args.cp_lines:
         for n in range(args.demo_og):
             ix = pool[(n + 1) * step]
             cp[str(ix)]['og'] = kinds[n % len(kinds)]
+            cp[str(ix)]['demo'] = True
+    # labelled examples for "order recalculated": the reco moved after a new order guide came in
+    # (app: orderguide_data_changed / isInitialResultShifted). Picked at random, seeded, so a
+    # rebuild picks the same items.
+    if args.demo_recalc:
+        import random
+        rng = random.Random(1015)
+        pool = [ix for ix in range(len(items))
+                if not any(k in cp[str(ix)] for k in ('ordLocked', 'og', 'noForecast')) and not items[ix].get('hidden')
+                and any(r.get('plan') for r in items[ix]['rungs'])]
+        for ix in sorted(rng.sample(pool, min(args.demo_recalc, len(pool)))):
+            plan = next(r for r in items[ix]['rungs'] if r.get('plan'))
+            o = plan.get('order') or 0
+            cp[str(ix)]['recFirst'] = o + 1 if (o == 0 or ix % 2) else o - 1
             cp[str(ix)]['demo'] = True
 else:
     dummy = True
@@ -347,14 +365,15 @@ if not core_ids:
 # Filter "order guide changed": only the items where HQ changed something (cpOf(ix).og), so the
 # user can check exactly those. Sits with the warnings; the set does not shrink when the user edits.
 rep("const CATFILT = {invNote:false, ordNote:false, rhb0:false,",
-    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false,")
+    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rec:false,")
 rep("return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||",
-    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||")
+    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rec||")
 rep("|| (CATFILT.rhb0 && rhbZero(it.id)) ||",
-    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) ||")
+    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || (CATFILT.rec && cpRecalcd(it.id)) ||")
 rep("        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}",
     "        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))\n"
-    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}")
+    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix)))\n"
+    "        + (ITEMS.some((it,ix)=>cpRecalcd(ix)) ? chk('rec',L.filtRecalc,count((it,ix)=>cpRecalcd(ix))) : ''))}")
 # Inventory as ONE number: the app's simulated inventory (it.app, always inside the plan rung)
 # instead of the plan rung's range ("1,7 - 2,7 CS", "min. 0,2 CS"). -/+ step from that number;
 # landing back on it restores the untouched state. The order ladder behind it is unchanged.
@@ -369,6 +388,10 @@ rep("      const assume=koText(it.rungs[s.plan],it);",
 # keypad: no range total and no "inside the range" hint
 rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
     "       rLoKO: null, rHiKO: null,")
+# No shelf walk: the order opens on the full list, sorted like the order guide.
+rep("let SORT={key:'shelf', dir:1};", "let SORT={key:'guide', dir:1};")
+rep("  {key:'shelf',     lbl:'sortShelfSeq'},\n", "")
+rep("let CATOPEN=true;", "let CATOPEN=false;")
 # No supplier filter at C&P: the "Fournisseurs / Rewe" section is inherited from the REWE page.
 rep("      ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}\n", "")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
@@ -475,6 +498,9 @@ function cpPromoDays(ix){
   const short = a===b ? f(a,{weekday:'short'}) : `${f(a,{weekday:'short'})}–${f(b,{weekday:'short'})}`;
   return {short, long: ds.map(d=>f(d,{weekday:'short',day:'numeric',month:'short'})).join(', ')};
 }
+/* No shelf walk at C&P: entering the order lands on the full list (order guide order). */
+applyCatPage = function(){ CATFILTER=null; CATOPEN=false; CATQUERY=''; render(); };
+function cpRecalcd(ix){ return cpOf(ix).recFirst!=null; }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
@@ -666,26 +692,23 @@ function cpWtd(ix){
 }
 /* Product sheet: promo days as light red columns (every row). The running total is shown
    under the commande only. */
-function cpSheetStrip(ix, h){
+function cpSheetStrip(ix, h, cls){
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
   const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
   const n={};
   const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
     const i=(n[k]=(n[k]||0)+1)-1;
     return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
-  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  }).replace('class="SalesHistory', `class="${cls||'cpStripLg'} SalesHistory`);
   return h2;
 }
 const _histHTML_wtd = histHTML;
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
   if(!h) return h;
-  if(opt && opt.lg) return cpSheetStrip(ix, h);
-  /* Under the commande: only the running total since Tuesday, with the days it covers.
-     The 7 days themselves are in the product sheet. */
-  const it=ITEMS[ix], w=cpWtd(ix), L=t();
-  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
-  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
+  /* Under the commande the last 7 days of sales (promo days light red), no running total
+     (decided 16 Oct); the product sheet shows the same days with intake and shrink. */
+  return cpSheetStrip(ix, h, opt && opt.lg ? 'cpStripLg' : 'cpStrip');
 };
 render();
 """
@@ -693,7 +716,12 @@ CSS_WTD = """
 /* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
-.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+/* no CS in the commande and Prévision boxes; no kg/piece vs CS switch on the inventory keypad;
+   no shelf chip (no shelf walk at C&P) */
+.ColumnCounterField__value i{display:none}
+#invUnitSeg{display:none!important}
+#catChipWrap{display:none}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
@@ -718,11 +746,74 @@ JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__
 idx = s.rindex('</script>')
 s = s[:idx] + JS + s[idx:]
 
+REOPEN_JS = r"""
+/* ===== C&P: complete the order, reopen it (askReOpenOrderConfirmation), see what was recalculated =====
+   "Confirmer et clôturer" completes today's order: back on the orders list it reads Complétée.
+   Opening it again asks first, as the app does; after "Réouvrir la commande" the list opens with
+   the filter "Commande recalculée" already on, i.e. only the items whose reco moved since.
+   ?closed=1 opens the page with today's order already completed. */
+function cpToday(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
+const _ocStatusAt_cp = ocStatusAt;
+ocStatusAt = function(o, now){ return o._cpSt || _ocStatusAt_cp(o, now); };
+function cpRepaint(){ ocPaintCard(); if(DASH_TAB===1) renderOrdersPanel(); }
+if(new URLSearchParams(location.search).get('closed')==='1'){ const o=cpToday(); if(o){ o._cpSt='closed'; cpRepaint(); } }
+const _s2Go_cp = document.getElementById('s2Go').onclick;
+document.getElementById('s2Go').onclick = function(e){
+  const r=_s2Go_cp.call(this, e);
+  const o=cpToday();
+  if(o){
+    o._cpSt='closed';
+    history.replaceState({page:'dash'}, '', location.href);
+    showDash(); showDashTab(1); cpRepaint();
+  }
+  toast(t().ordClosedToast);
+  return r;
+};
+function cpAskReopen(go){
+  let root=document.getElementById('cpReopenRoot');
+  if(!root){ root=document.createElement('div'); root.id='cpReopenRoot'; document.body.appendChild(root); }
+  const L=t();
+  root.innerHTML = `<div class="ov on" style="z-index:9999">
+    <div class="AppFormDialog">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">${L.reopenOrdTitle}</div>
+        <button type="button" class="AppFormDialog__close" data-r="no" aria-label="${L.close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">${L.reopenOrdText}</div>
+      <div class="AppFormDialog__actions"><div class="AppFormDialog__actionsEnd">
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" data-r="no">${L.cancel}</button>
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" data-r="yes">${L.reopenOrdYes}</button>
+      </div></div>
+    </div></div>`;
+  root.onclick = e=>{
+    const b=e.target.closest('[data-r]'); if(!b) return;
+    root.innerHTML='';
+    if(b.dataset.r!=='yes') return;
+    const o=cpToday(); if(o) o._cpSt='open';
+    cpRepaint();
+    go();
+    /* only the recalculated items, the filter already applied */
+    clearFilt();
+    if(ITEMS.some((it,ix)=>cpRecalcd(ix))) CATFILT.rec=true;
+    syncFiltUI();
+    goToList(null);
+  };
+}
+const _enterApp_cp = enterApp;
+enterApp = function(...a){
+  const o=cpToday();
+  if(o && ocState(o, ocNow())==='completed'){ cpAskReopen(()=>_enterApp_cp(...a)); return; }
+  return _enterApp_cp(...a);
+};
+"""
+
 if args.orders:
     sys.path.insert(0, __import__('os').path.dirname(__file__))
     from cp_orders_overview import inject, inject_lock
     oc = json.load(open(args.orders, encoding='utf-8')); oc.pop('_source', None)
     s = inject(s, oc, args.clock)
+    idx = s.rindex('</script>')
+    s = s[:idx] + REOPEN_JS + s[idx:]
     if args.opens_at:
         s = inject_lock(s, args.opens_at)
 
