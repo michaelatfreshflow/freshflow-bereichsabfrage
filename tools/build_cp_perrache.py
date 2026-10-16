@@ -725,6 +725,8 @@ CSS_WTD = """
 .ColumnCounterField__value i{display:none}
 #invUnitSeg{display:none!important}
 #catChipWrap{display:none}
+/* no reset button next to the filter (asked 16 Oct) */
+#resetBtn{display:none!important}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
