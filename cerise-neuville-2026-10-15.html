@@ -10902,7 +10902,7 @@ openWhy = function(btn, ix, kind){
   } else if(kind==='lock'){ title=L.tipLockTitle; text=L.tipLockText; }
   else { title=L.tipEditTitle; text=L.tipEditText; }
   const p=document.createElement('div'); p.className='whyPop';
-  p.innerHTML=`<div class="whyHd">${TIP_ICON[kind]()}<b>${title}</b></div>`+(text?`<div class="whyTx">${text}</div>`:'')+(box?`<div class="whyBox">${box}</div>`:'');
+  p.innerHTML=`<div class="whyHd">${kind==='rec' && !cpRecPending(ix) ? ICON_REC_OK : TIP_ICON[kind]()}<b>${title}</b></div>`+(text?`<div class="whyTx">${text}</div>`:'')+(box?`<div class="whyBox">${box}</div>`:'');
   document.body.appendChild(p);
   const r=btn.getBoundingClientRect(), pw=p.offsetWidth, ph=p.offsetHeight, GAP=8, M=10;
   let top=r.bottom+GAP, cls='below';
