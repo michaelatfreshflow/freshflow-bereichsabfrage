@@ -1170,6 +1170,14 @@ body.isFiltering{
   -webkit-mask-image:linear-gradient(to left,transparent 0,#000 8%);mask-image:linear-gradient(to left,transparent 0,#000 8%)}
 /* Im Blatt steht die Woche schon im Kopf der Tabelle und wandert beim Wischen mit. */
 .SalesHistory--lg .SalesHistory__date{display:none}
+/* Fest statt zum Wischen: unter der Bestellmenge eine Woche ohne Symbol, im Blatt
+   beide Wochen nebeneinander (14 Spalten). */
+.SalesHistory.is-fixed .SalesHistory__scroll{overflow:hidden;-webkit-mask-image:none;mask-image:none;cursor:default}
+.SalesHistory.is-fixed .SalesHistory__wk{flex-basis:100%}
+.SalesHistory.is-bare .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:0}
+.SalesHistory.is-14 .SalesHistory__wk{grid-template-columns:repeat(14,minmax(0,1fr))}
+.SalesHistory--lg.is-14 .SalesHistory__wk span:nth-child(-n+14){border-top:0}
+.SalesHistory--lg.is-14 .SalesHistory__wd.is-promo{width:34px}
 .ItemSheet__kpi--chart{margin-top:16px}
 .SalesHistory__wk .is-nil{color:var(--ff-grey-300);font-weight:var(--ff-weight-regular)}
 
@@ -5923,33 +5931,37 @@ function histHTML(ix, opt){
   const it=ITEMS[ix];
   if(it.plu==null || !HIST[it.plu]) return '';
   const rows=opt.rows||['sales'], S=sdSeries(it);   // unter der Bestellmenge nur der Verkauf
-  const L=t(), pg=HIST_PG[ix]||0;
-  const wk = w => {
-    let hd='', body='';
-    for(let d=w*7; d<w*7+7; d++){
-      const wd=histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'}).replace('.','').slice(0,2);
-      const promo=(HIST_PROMO[it.plu]||[]).includes(d);
-      hd+=`<span class="SalesHistory__wd${promo?' is-promo':''}"${promo?` title="${L.histPromo}"`:''}>${wd}${opt.lg?`<b>${histDay(d).getDate()}${LANG==='de'?'.':''}</b>`:''}</span>`;
+  const L=t();
+  /* Unter der Bestellmenge die 7 Tage vor dem Bestelltag, fest: nichts zu wischen,
+     kein Symbol davor. Im Artikel-Blatt beide Wochen nebeneinander, mit Aktionstagen
+     und den Symbolen der Zeilen. */
+  const full=opt.lg && !false, d0=full ? 0 : 7;
+  let hd='', body='';
+  for(let d=d0; d<14; d++){
+    const wd=histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'}).replace('.','').slice(0,2);
+    const promo=full && (HIST_PROMO[it.plu]||[]).includes(d);
+    hd+=`<span class="SalesHistory__wd${promo?' is-promo':''}"${promo?` title="${L.histPromo}"`:''}>${wd}${opt.lg?`<b>${histDay(d).getDate()}${LANG==='de'?'.':''}</b>`:''}</span>`;
+  }
+  rows.forEach(k=>{ const R=HIST_ROWS[k];
+    for(let d=d0; d<14; d++){
+      const v=histNum(S[k][d],it,R.nilZero);
+      body+=`<span class="${R.cls}${v==null?' is-nil':''}">${v==null?'–':v}</span>`;
     }
-    rows.forEach(k=>{ const R=HIST_ROWS[k];
-      for(let d=w*7; d<w*7+7; d++){
-        const v=histNum(S[k][d],it,R.nilZero);
-        body+=`<span class="${R.cls}${v==null?' is-nil':''}">${v==null?'–':v}</span>`;
-      }
-    });
-    return `<div class="SalesHistory__wk" data-wk="${w}">${hd}${body}</div>`;
-  };
-  const marks=rows.map(k=>{ const R=HIST_ROWS[k];
-    return `<span class="is-${k}" title="${L[R.lb]}" aria-label="${L[R.lb]}">${R.icon()}${opt.lg?`<em>${L[R.lb]}</em>`:''}</span>`; }).join('');
-  /* Juengste Woche zuerst im DOM: die Leiste ist rtl, also steht sie rechts und
-     ist ohne Zutun sichtbar; links daneben liegt die Woche davor. */
-  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''}${pg?' is-old':''}" data-ix="${ix}">
+  });
+  const marks=(opt.lg||false) ? rows.map(k=>{ const R=HIST_ROWS[k];
+    return `<span class="is-${k}" title="${L[R.lb]}" aria-label="${L[R.lb]}">${R.icon()}${opt.lg?`<em>${L[R.lb]}</em>`:''}</span>`; }).join('') : '';
+  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''} is-fixed${marks?'':' is-bare'}${full?' is-14':''}" data-ix="${ix}">
     <div class="SalesHistory__card">
-      <div class="SalesHistory__marks"><span></span>${marks}</div>
-      <div class="SalesHistory__scroll">${wk(1)}${wk(0)}</div>
+      ${marks?`<div class="SalesHistory__marks"><span></span>${marks}</div>`:''}
+      <div class="SalesHistory__scroll"><div class="SalesHistory__wk">${hd}${body}</div></div>
     </div>
-    <span class="SalesHistory__date">${histRange(1-pg)}</span>
   </div>`;
+}
+/* Erster bis letzter Tag (Index in HIST), fuer den Kopf der Tabelle im Blatt. */
+function histSpan(a0,b0){
+  const a=histDay(a0), b=histDay(b0), loc=dateLoc();
+  try{ return new Intl.DateTimeFormat(loc,{day:'numeric',month:'short'}).formatRange(a,b); }
+  catch(e){ return a.toLocaleDateString(loc,{day:'numeric',month:'numeric'})+'–'+b.toLocaleDateString(loc,{day:'numeric',month:'short'}); }
 }
 /* rtl: scrollLeft ist 0 ganz rechts und wird nach links negativ. */
 function histMax(sc){ return sc.scrollWidth - sc.clientWidth; }
@@ -6083,7 +6095,7 @@ function renderItemSheet(){
             <div class="ItemSheet__kpi ItemSheet__kpi--tbl">
               <div class="ItemSheet__kpiHd"><span class="ItemSheet__kpiIcon">${ICON_SD_TBL}</span>
                 <div class="ItemSheet__kpiWrap"><span class="ItemSheet__kpiT">${L.sdDaily}</span>
-                  <span class="ItemSheet__kpiRange" id="sdRange">${histRange(1-(HIST_PG[ix]||0))}</span></div></div>
+                  <span class="ItemSheet__kpiRange" id="sdRange">${histSpan(0,13)}</span></div></div>
               ${histHTML(ix,{lg:true, rows:['sales','shrink','intake']})}
             </div>
             <div class="ItemSheet__kpi ItemSheet__kpi--chart">
