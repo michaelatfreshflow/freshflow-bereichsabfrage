@@ -2283,6 +2283,11 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+.cpRecBar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px auto 0;position:relative;left:-10px;padding:3px 4px 3px 9px;border-radius:var(--ff-radius-pill);
+  background:#FFF8D6;border:1px solid #F2DC6B;font-size:var(--ff-text-primary-caption-12);color:#5c4a00;white-space:nowrap;width:max-content;max-width:100%}
+.cpRecBar b{color:#2b2300}
+.cpRecBar__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:3px 10px;cursor:pointer}
+.cpRecBar.is-ok{background:var(--ff-grey-100);border-color:var(--ff-grey-200);color:var(--ff-grey-600);padding-right:9px}
 /* no kg/piece vs CS switch on the inventory keypad;
    no shelf chip (no shelf walk at C&P) */
 #invUnitSeg{display:none!important}
@@ -3831,8 +3836,11 @@ const T={
     preOrdered:"Vorbestellt",
     preLabel:"Vorbestellung",
     filtRecalc:"Bestellung neu berechnet",
+    recAccept:"Übernehmen",
+    recAccepted:"Neuberechnung übernommen",
+    recProposal:"Neu berechnet",
     recPopTitle:"Geänderte Artikel",
-    recPopText:"Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.",
+    recPopText:"Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Übernimm die neu berechnete Menge oder ändere sie – sonst bleibt die Bestellmenge, wie sie war. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.",
     recPopOk:"Verstanden",
     recPopAll:"Alles anzeigen",
     reopenOrdTitle:"Diese Bestellung wurde bereits abgeschlossen",
@@ -4321,8 +4329,11 @@ const T={
     preOrdered:"Pre-ordered",
     preLabel:"Preorder",
     filtRecalc:"Order recalculated",
+    recAccept:"Accept",
+    recAccepted:"Recalculation accepted",
+    recProposal:"Recalculated",
     recPopTitle:"Changed items",
-    recPopText:"There are new recalculated items and order guide changes that need your attention. We set the filters so that you see only those. Reset the filters to see everything again.",
+    recPopText:"There are new recalculated items and order guide changes that need your attention. Accept the recalculated quantity or change it – otherwise the order quantity stays as it was. We set the filters so that you see only those. Reset the filters to see everything again.",
     recPopOk:"Got it",
     recPopAll:"Show all",
     reopenOrdTitle:"This order has been already completed",
@@ -4811,8 +4822,11 @@ const T={
     preOrdered:"Prévision",
     preLabel:"Pré-commande",
     filtRecalc:"Commande recalculée",
+    recAccept:"Accepter",
+    recAccepted:"Recalcul accepté",
+    recProposal:"Recalculé",
     recPopTitle:"Articles modifiés",
-    recPopText:"Il y a de nouveaux articles recalculés et des modifications du guide de commande qui demandent votre attention. Nous avons réglé les filtres pour que vous ne voyiez que ceux-là. Réinitialisez les filtres pour tout revoir.",
+    recPopText:"Il y a de nouveaux articles recalculés et des modifications du guide de commande qui demandent votre attention. Acceptez la quantité recalculée ou modifiez-la – sinon la quantité commandée reste inchangée. Nous avons réglé les filtres pour que vous ne voyiez que ceux-là. Réinitialisez les filtres pour tout revoir.",
     recPopOk:"Compris",
     recPopAll:"Tout afficher",
     reopenOrdTitle:"Cette commande a déjà été complétée",
@@ -6888,7 +6902,8 @@ function stats(shown){
   scope.forEach(ix=>{
     const it=ITEMS[ix], s=ST[ix];
     if(s.hidden) return;
-    const o=s.answered?s.order:(it.rungs[s.plan].order??0);
+    const o=!window.CP_READY ? (s.answered?s.order:(it.rungs[s.plan].order??0))
+          : (cpRemoved(ix)||cpOf(ix).ordLocked) ? 0 : ordCommitted(ix);   /* C&P: what is really ordered */
     cases+=o; if(it.case){cost+=o*it.case*(it.ek||0); ret+=o*it.case*(it.vk||0);}
     if(!s.manual) kept++;   // Uebernahme: the system's number still stands
     visible++;
@@ -10707,7 +10722,7 @@ function preApp(ix){
 }
 function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
 function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
-function ordRecalc(ix){ const f=cpOf(ix).recFirst; return f!=null && !ST[ix].manual && f!==orderVal(ix); }
+function ordRecalc(ix){ return cpRecalcd(ix) && !cpRemoved(ix); }
 /* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
    land on whole pieces so the case figure and the piece figure agree. */
 function cpSimKo(it,s){
@@ -10810,6 +10825,12 @@ function cpDecorate(){
         if(ownKind==='edit') btns.push(own.outerHTML);
       }
       if(slot) slot.outerHTML=cpSlot(btns);
+      if(cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked){
+        const f=ordWrap;
+        if(f && cpRecPending(ix)) f.insertAdjacentHTML('afterend',
+          `<div class="cpRecBar"><span>${L.recProposal} <b>${cpRecNew(ix)} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
+        else if(f && ST[ix].recAcc && !ST[ix].manual) f.insertAdjacentHTML('afterend', `<div class="cpRecBar is-ok">✓ ${L.recAccepted}</div>`);
+      }
       if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
       if(cpOf(ix).ordLocked){
         const f=cells[2].querySelector('.ColumnCounterField');
@@ -10837,6 +10858,22 @@ const _render_cp = render;
 render = function(...a){ const r=_render_cp(...a); cpDecorate(); return r; };
 const _orderVal_cp = orderVal;
 orderVal = function(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _orderVal_cp(ix); };
+/* A recalculation needs a human action (C&P feedback, 16 Oct): the user accepts the recalculated
+   quantity or changes it, and only then is it ordered (sent with the completed order). Until then
+   the order keeps the quantity it had before the recalculation (recFirst); the new one is shown
+   under the field with "Accepter". Counting inventory moves the proposal, not the order. */
+window.CP_READY = true;
+const _ordCommitted_rec = ordCommitted, _orderVal_rec = orderVal;
+function cpRecNew(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _ordCommitted_rec(ix); }
+function cpRecPending(ix){ const s=ST[ix];
+  return cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked && !s.recAcc && !s.manual && s.pendOrder==null; }
+ordCommitted = function(ix){ return cpRecPending(ix) ? cpOf(ix).recFirst : _ordCommitted_rec(ix); };
+orderVal = function(ix){ return cpRecPending(ix) ? cpOf(ix).recFirst : _orderVal_rec(ix); };
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="recok"]'); if(!b) return;
+  e.stopPropagation(); e.preventDefault();
+  ST[+b.dataset.i].recAcc=true; render();
+}, true);
 
 /* Tooltip content for the C&P kinds; the base openWhy keeps inv/ord/edit/info. */
 const _openWhy_cp = openWhy;
@@ -10848,7 +10885,7 @@ openWhy = function(btn, ix, kind){
   if(kind==='rec'||kind==='prerec'){
     title=L.tipRecTitle; text=L.tipRecText;
     const first = kind==='rec' ? cpOf(ix).recFirst : cpOf(ix).pre.sys;
-    const now = kind==='rec' ? orderVal(ix) : preShown(ix);
+    const now = kind==='rec' ? cpRecNew(ix) : preShown(ix);
     box=`<div class="whyRow"><span>${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></span></div>`;
   } else if(kind==='og'){
     title=L.tipOgTitle;
