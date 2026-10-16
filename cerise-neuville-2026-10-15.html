@@ -2282,7 +2282,12 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 /* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
-.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+/* no CS in the commande and Prévision boxes; no kg/piece vs CS switch on the inventory keypad;
+   no shelf chip (no shelf walk at C&P) */
+.ColumnCounterField__value i{display:none}
+#invUnitSeg{display:none!important}
+#catChipWrap{display:none}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
@@ -2335,6 +2340,54 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .oc-empty{padding:24px 40px;color:#A1A1AA;text-align:center}
 .oc-scroll{overflow-x:auto}
 .oc-scroll > div{min-width:900px}
+
+/* ===== C&P: barcode screen of a completed order (from order-guide-barcodes.html) ===== */
+.bcs{position:fixed;inset:0;z-index:9000;background:var(--ff-color-white);overflow-y:auto;display:flex;flex-direction:column;color:var(--ff-grey-800)}
+.bcs-hdr{background:var(--green);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:3}
+.bcs-back{background:none;border:0;color:inherit;font:inherit;font-weight:600;font-size:15px;cursor:pointer;padding:0}
+.bcs-tt{flex:1;min-width:0}.bcs-t1{font-weight:700;font-size:15px}.bcs-t2{font-size:12.5px;color:#c9dbd3}.bcs-t2 b{color:#c1ce5d;font-weight:600}
+.bcs-done{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-weight:700}
+.bcs-save{display:flex;gap:12px;align-items:center;background:#fff4e7;border-bottom:1px solid #f5d7ac;padding:10px 18px;position:sticky;top:60px;z-index:2}
+.bcs-ico{width:22px;height:22px;border-radius:50%;background:#ff8502;color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.bcs-msg{flex:1;font-size:12.5px;line-height:1.45;color:#6b4a19}.bcs-msg b{display:block;font-size:13px;color:#4a3410}
+.bcs-act{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:10.5px;color:#8a6a35;white-space:nowrap}
+.bcs-apply{border:0;border-radius:8px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;background:var(--green);color:#fff;cursor:pointer}
+.bcs-apply:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
+.bcs-tool{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--ff-grey-200);font-size:13px;color:var(--ff-grey-600)}
+.bcs-sw{width:36px;height:20px;border-radius:12px;background:var(--ff-grey-300);position:relative;border:0;cursor:pointer;padding:0}
+.bcs-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.bcs-sw.on{background:#ff8502}.bcs-sw.on::after{left:18px}
+.bcs-row{display:grid;grid-template-columns:1fr 120px minmax(150px,200px);gap:14px;padding:12px 18px;border-bottom:1px solid var(--ff-grey-200);align-items:center}
+.bcs-head{font-size:13px;font-weight:600;color:var(--ff-grey-600);padding-top:10px;padding-bottom:10px}
+.bcs-rows{flex:1}
+.bcs-nm{font-weight:700;font-size:14.5px;line-height:1.25;margin-bottom:4px}
+.bcs-meta{font-size:12.5px;color:var(--ff-grey-500)}
+.bcs-qty{border:1px solid var(--ff-grey-200);border-radius:7px;padding:6px 10px;min-width:70px;background:#fff;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center}
+.bcs-qty b{font-size:15px;color:var(--ff-grey-900)}.bcs-qty span{font-size:10px;color:var(--ff-grey-500)}
+.bcs-qty.is-ed{border-color:#ff8502}.bcs-qty.is-ed b{color:#ff8502}
+.bcs-bcw{cursor:pointer}.bcs-bcw.is-sc{opacity:.3}
+.bcs-bc{display:block;width:100%;height:58px}
+.bcs-bcn{font-size:9.5px;color:var(--ff-grey-500);text-align:center;letter-spacing:.06em;margin-top:3px}
+.bcs-pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;font-size:13px;color:var(--ff-grey-600)}
+.bcs-arr{width:34px;height:34px;border-radius:50%;border:1px solid var(--ff-grey-200);background:#fff;cursor:pointer;font-size:16px}
+.bcs-arr:disabled{opacity:.35;cursor:not-allowed}
+.bcs-stats{display:flex;align-items:center;gap:6px;padding:10px 18px;border-top:1px solid var(--ff-grey-200);background:#fff;position:sticky;bottom:0}
+.bcs-stats>div{flex:1;text-align:center;display:flex;flex-direction:column;font-size:10px;color:var(--ff-grey-500)}
+.bcs-stats>div b{font-size:13px;color:var(--ff-grey-900)}
+.bcs-cont{background:none;border:0;color:var(--green);font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.bcs-pad{z-index:10000;align-items:flex-end;padding:0}
+.bcs-sheet{background:#fff;width:100%;max-width:705px;border-radius:15px 15px 0 0;padding-bottom:18px}
+.bcs-sh{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--ff-grey-200);font-size:17px}
+.bcs-sh button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--ff-grey-500)}
+.bcs-sb{display:grid;grid-template-columns:1fr 240px;gap:22px;padding:18px 22px}
+.bcs-kf{display:flex;align-items:center;gap:14px;margin-top:14px;font-weight:700}.bcs-kf label{width:90px}
+.bcs-kbox{border:1.5px solid #ff8502;border-radius:8px;padding:8px 14px;min-width:92px;text-align:right}
+.bcs-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bcs-keys button{background:var(--ff-grey-100);border:0;border-radius:8px;padding:15px 0;font:inherit;font-size:17px;font-weight:700;cursor:pointer}
+.bcs-sf{display:flex;justify-content:space-between;align-items:center;padding:0 22px}
+.bcs-lnk{border:0;background:none;color:var(--green);font:inherit;font-weight:700;cursor:pointer}
+.bcs-cta{background:var(--green);color:#fff;border:0;border-radius:999px;padding:13px 30px;font:inherit;font-weight:700;cursor:pointer}
+@media(max-width:620px){ .bcs-row{grid-template-columns:1fr 90px} .bcs-bcw{grid-column:1/-1} .bcs-head>div:last-child{display:none} .bcs-sb{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -3776,6 +3829,11 @@ const T={
     hdrPre:"Vorbestellung",
     preOrdered:"Vorbestellt",
     preLabel:"Vorbestellung",
+    filtRecalc:"Bestellung neu berechnet",
+    reopenOrdTitle:"Diese Bestellung wurde bereits abgeschlossen",
+    reopenOrdText:"Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.",
+    reopenOrdYes:"Bestellung wieder öffnen",
+    ordClosedToast:"Bestellung abgeschlossen",
     tipRecTitle:"Neu berechnet",
     tipRecText:"Dieser Bestellvorschlag wurde neu berechnet.",
     tipRecFirst:"Zuerst",
@@ -4257,6 +4315,11 @@ const T={
     hdrPre:"Preorder",
     preOrdered:"Pre-ordered",
     preLabel:"Preorder",
+    filtRecalc:"Order recalculated",
+    reopenOrdTitle:"This order has been already completed",
+    reopenOrdText:"You are reopening a completed order. Please make sure to complete it before leaving the app.",
+    reopenOrdYes:"Reopen the order",
+    ordClosedToast:"Order completed",
     tipRecTitle:"Recalculated",
     tipRecText:"This order recommendation was recalculated.",
     tipRecFirst:"First",
@@ -4738,6 +4801,11 @@ const T={
     hdrPre:"Prévision",
     preOrdered:"Prévision",
     preLabel:"Pré-commande",
+    filtRecalc:"Commande recalculée",
+    reopenOrdTitle:"Cette commande a déjà été complétée",
+    reopenOrdText:"Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.",
+    reopenOrdYes:"Réouvrir la commande",
+    ordClosedToast:"Commande complétée",
     tipRecTitle:"Recalculé",
     tipRecText:"Cette recommandation de commande a été recalculée.",
     tipRecFirst:"Initial",
@@ -5544,11 +5612,10 @@ let MANAGE_MODE=false;
    in der sich die Reihenfolge von Hand aendern laesst -- alle anderen leiten
    sich aus Zahlen ab, an einer abgeleiteten Reihenfolge gaebe es nichts zu
    schieben. Siehe seqEditable(). */
-let SORT={key:'shelf', dir:1};
+let SORT={key:'guide', dir:1};
 /* key, Textschluessel, und ob die Richtung umkehrbar ist. Reihenfolge = Reihenfolge
    im Menue; 'shelf' steht bewusst ganz oben. */
 const SORT_DEFS=[
-  {key:'shelf',     lbl:'sortShelfSeq'},
   {key:'urgent',    lbl:'sortUrgent'},
   {key:'guide',     lbl:'ordersatz'},
   {key:'inv',       lbl:'inventory'},
@@ -5728,7 +5795,7 @@ function moveItemSeq(ix, dir){
 
 /* ---------- Regale overlay state (separate from CATFILT/SORT above,
    which stay exactly as they were) ---------- */
-let CATOPEN=true;          // overlay visible; starts open like the design
+let CATOPEN=false;          // overlay visible; starts open like the design
 let CATQUERY='';           // the overlay's own search field, not #q
 let CAT_EDIT=false;        // Regale overlay is in "adjust order" mode
 let RENAME_TILE_ID=null;   // tile id currently shown with a rename input, or null
@@ -6089,7 +6156,7 @@ function rowClear(it,s){
 function filtMatch(it,s){
   const hasInvBang = bangInv(it,s); /* dieselbe Regel wie in rowClear(), nicht mehr nachgebaut */
   return (CATFILT.invNote && hasInvBang) || (CATFILT.ordNote && it.ordNote)
-      || (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
+      || (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || (CATFILT.rec && cpRecalcd(it.id)) || CATFILT.rewe   // alle Artikel kommen von Rewe
       || (CATFILT.bio && it.bio) || (CATFILT.kern && it.kern) || (CATFILT.promo && isPromo(it));
 }
 /* Der !-Haken ist ein bewegliches Ziel: sobald der Kaufmann den Bestand eintraegt,
@@ -6460,7 +6527,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const unitName = it.unit==='kg' ? 'kg' : t().piece;
     const marginPct = (it.ek!=null && it.vk) ? ((it.vk-it.ek)/it.vk*100) : null;
     const meta =
-      `<span class="metarow"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:'?'}</span>`
+      `<span class="metarow">${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:'?'}</span>`
       + `<span class="metarow">${it.vk!=null?eur(it.vk):'?'}</span>`;   /* hide_purchase_price_and_margin: retail price only */
     /* Das Zeichen steht vor den Merkmalen, immer an derselben Stelle -- so findet
        das Auge beim Durchgehen der Liste sofort, was schon in der Hand war. */
@@ -8539,13 +8606,13 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
 });
 /* ---------- category filter (Bestand / Bestellmenge / Bio / Werb.) ---------- */
 /* Haken sind ein ODER (Warnungen, Lieferant, Stichworte). */
-const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rewe:false, bio:false, kern:false, promo:false};
+const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rec:false, rewe:false, bio:false, kern:false, promo:false};
 /* Regalhoechstbestand Alle / Gesetzt / Leer ist dagegen eine Aufteilung (UND):
    Leer heisst RHB 0 -- jemand hat eingetragen, dass der Artikel heute nicht im Regal steht. */
 let RHB_FILT='all';   // 'all' | 'set' | 'empty'
 function rhbZero(ix){ return !homeEmpty(ITEMS[ix]) && dsHome(ITEMS[ix])===0; }
 function filtActive(){
-  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
+  return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rec||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
 }
 /* Bestellvorschlag: gemeint ist der Vorschlag des Systems (recoOf), nicht die
    Menge, die gerade in der Zeile steht -- "was bestelle ich nicht" heisst: was
@@ -8591,7 +8658,8 @@ function renderFiltPanel(){
           chk('invNote',L.inventory,count((it,ix)=>ST[ix].mode==='unsure'||it.invNote))
         + chk('ordNote',L.orderQuantity,count(it=>it.ordNote))
         + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))
-        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}
+        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix)))
+        + (ITEMS.some((it,ix)=>cpRecalcd(ix)) ? chk('rec',L.filtRecalc,count((it,ix)=>cpRecalcd(ix))) : ''))}
       ${sec('reco',FICON.reco,L.filtReco,
           pills('reco',[['all',L.filtAll],['pos',L.filtRecoPos],['zero',L.filtRecoZero]]))}
       ${sec('rhb',FICON.rhb,L.displaySize,
@@ -10606,7 +10674,7 @@ render();
 applyLang();
 
 /* ===== C&P layer (MOB-1765 + preorder as built in the app) ===== */
-const CP = {"0": {"itemId": 1436, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "1": {"itemId": 1448, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "2": {"itemId": 1455, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "3": {"itemId": 1453, "pre": {"sys": 0, "locked": false}, "preOrdered": 5}, "4": {"itemId": 1450, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "5": {"itemId": 1348, "pre": {"sys": 1, "locked": false}, "preOrdered": 8}, "6": {"itemId": 37385, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "7": {"itemId": 1471, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "8": {"itemId": 20007, "pre": {"sys": 0, "locked": true}, "noForecast": true}, "9": {"itemId": 37188, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "10": {"itemId": 1482, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "11": {"itemId": 20345, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "12": {"itemId": 1875, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "13": {"itemId": 1516, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "14": {"itemId": 20015, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "15": {"itemId": 1523, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "16": {"itemId": 1913, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "17": {"itemId": 1928, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "18": {"itemId": 1540, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "19": {"itemId": 1539, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "20": {"itemId": 1532, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "21": {"itemId": 1529, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "22": {"itemId": 1899, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "23": {"itemId": 1533, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "24": {"itemId": 1880, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "25": {"itemId": 20095, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "26": {"itemId": 1898, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "27": {"itemId": 20395, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "28": {"itemId": 1905, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "29": {"itemId": 1640, "pre": {"sys": 1, "locked": false}, "preOrdered": 0, "og": ["price"], "demo": true}, "30": {"itemId": 1611, "pre": {"sys": 2, "locked": false}, "preOrdered": 4}, "31": {"itemId": 21133, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "32": {"itemId": 1902, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "33": {"itemId": 1710, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "34": {"itemId": 20405, "pre": {"sys": 2, "locked": false}, "preOrdered": 1}, "35": {"itemId": 1704, "pre": {"sys": 2, "locked": false}, "preOrdered": 10}, "36": {"itemId": 1741, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "37": {"itemId": 1774, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "38": {"itemId": 1782, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "39": {"itemId": 20046, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "40": {"itemId": 1753, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "41": {"itemId": 20312, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "42": {"itemId": 20825, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "43": {"itemId": 1797, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "44": {"itemId": 20332, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "45": {"itemId": 21061, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "46": {"itemId": 1217, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "47": {"itemId": 1851, "pre": {"sys": 1, "locked": false}, "preOrdered": 15}, "48": {"itemId": 1843, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "49": {"itemId": 1891, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "50": {"itemId": 1933, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "51": {"itemId": 1005, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "52": {"itemId": 1004, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "53": {"itemId": 20518, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "54": {"itemId": 20045, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "55": {"itemId": 1320, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "56": {"itemId": 1294, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "og": ["case", "price"], "demo": true}, "57": {"itemId": 1019, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "58": {"itemId": 1018, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "59": {"itemId": 1021, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "60": {"itemId": 1810, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "61": {"itemId": 20498, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "62": {"itemId": 1813, "pre": {"sys": 2, "locked": false}, "preOrdered": 10}, "63": {"itemId": 20501, "pre": {"sys": 2, "locked": false}, "preOrdered": 6}, "64": {"itemId": 20497, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "65": {"itemId": 1816, "pre": {"sys": 2, "locked": false}, "preOrdered": 2}, "66": {"itemId": 37351, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "67": {"itemId": 20499, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "68": {"itemId": 21106, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "69": {"itemId": 20223, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "70": {"itemId": 20224, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "71": {"itemId": 1818, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "72": {"itemId": 1821, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "73": {"itemId": 1822, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "74": {"itemId": 37352, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "75": {"itemId": 1277, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "76": {"itemId": 1025, "pre": {"sys": 0, "locked": false}, "preOrdered": 3}, "77": {"itemId": 1038, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "78": {"itemId": 1035, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "79": {"itemId": 20134, "pre": {"sys": 0, "locked": false}, "preOrdered": 2, "og": ["promo"], "demo": true}, "80": {"itemId": 1041, "pre": {"sys": 0, "locked": false}, "preOrdered": 3}, "81": {"itemId": 1048, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "82": {"itemId": 1045, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "83": {"itemId": 1284, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "84": {"itemId": 1044, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "85": {"itemId": 1927, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "86": {"itemId": 1062, "pre": {"sys": 0, "locked": true}}, "87": {"itemId": 1068, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "88": {"itemId": 1060, "pre": {"sys": 0, "locked": false}, "preOrdered": 4, "labels": ["on_sale"]}, "89": {"itemId": 1063, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "90": {"itemId": 1064, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "91": {"itemId": 1065, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "92": {"itemId": 1070, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "93": {"itemId": 21064, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "94": {"itemId": 1092, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "95": {"itemId": 1078, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "96": {"itemId": 21365, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "97": {"itemId": 1090, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "98": {"itemId": 1079, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "99": {"itemId": 1080, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "100": {"itemId": 1342, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "101": {"itemId": 20039, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "102": {"itemId": 1095, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "103": {"itemId": 1098, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "104": {"itemId": 1995, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "105": {"itemId": 1103, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "106": {"itemId": 37201, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "107": {"itemId": 1922, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "108": {"itemId": 1274, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "109": {"itemId": 1967, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "110": {"itemId": 1111, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "og": ["added"], "demo": true}, "111": {"itemId": 1117, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "112": {"itemId": 1114, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "113": {"itemId": 1121, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "114": {"itemId": 1127, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "115": {"itemId": 1116, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "116": {"itemId": 1119, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "117": {"itemId": 21140, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "118": {"itemId": 1106, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "119": {"itemId": 1921, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "labels": ["on_sale"]}, "120": {"itemId": 1124, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "121": {"itemId": 1256, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "122": {"itemId": 1136, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "123": {"itemId": 1145, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "124": {"itemId": 1130, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "125": {"itemId": 1128, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "126": {"itemId": 21353, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "127": {"itemId": 21352, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "128": {"itemId": 1441, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "129": {"itemId": 21068, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "130": {"itemId": 1154, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "131": {"itemId": 1160, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "132": {"itemId": 1159, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "133": {"itemId": 37379, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "ordLocked": true}, "134": {"itemId": 1428, "pre": {"sys": 1, "locked": false}, "preOrdered": 4}, "135": {"itemId": 1173, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "136": {"itemId": 1200, "pre": {"sys": 1, "locked": false}, "preOrdered": 5}, "137": {"itemId": 1201, "pre": {"sys": 1, "locked": false}, "preOrdered": 4}, "138": {"itemId": 20494, "pre": {"sys": 0, "locked": true}}, "139": {"itemId": 1202, "pre": {"sys": 1, "locked": false}, "preOrdered": 3, "og": ["removed"], "demo": true}, "140": {"itemId": 1203, "pre": {"sys": 1, "locked": false}, "preOrdered": 8, "labels": ["on_sale"]}, "141": {"itemId": 21095, "pre": {"sys": 0, "locked": true}}, "142": {"itemId": 20710, "pre": {"sys": 3, "locked": false}, "preOrdered": 7}, "143": {"itemId": 1204, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "144": {"itemId": 20712, "pre": {"sys": 1, "locked": false}, "preOrdered": 10}, "145": {"itemId": 1225, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "146": {"itemId": 20711, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "147": {"itemId": 1208, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "148": {"itemId": 20709, "pre": {"sys": 2, "locked": false}, "preOrdered": 5}, "149": {"itemId": 1223, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "150": {"itemId": 21094, "pre": {"sys": 0, "locked": true}}, "151": {"itemId": 1230, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "152": {"itemId": 1220, "pre": {"sys": 1, "locked": false}, "preOrdered": 1, "ordLocked": true}, "153": {"itemId": 37236, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "154": {"itemId": 37312, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "labels": ["on_sale"]}, "155": {"itemId": 1231, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "156": {"itemId": 1197, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "157": {"itemId": 20749, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "158": {"itemId": 20519, "pre": {"sys": 1, "locked": false}, "preOrdered": 6}, "159": {"itemId": 20935, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "160": {"itemId": 37282, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "labels": ["on_sale"]}, "161": {"itemId": 20164, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "162": {"itemId": 37298, "pre": {"sys": 1, "locked": false}, "preOrdered": 2, "labels": ["on_sale"]}, "163": {"itemId": 1191, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "164": {"itemId": 20057, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "165": {"itemId": 40737, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}};
+const CP = {"0": {"itemId": 1436, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "1": {"itemId": 1448, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "2": {"itemId": 1455, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "3": {"itemId": 1453, "pre": {"sys": 0, "locked": false}, "preOrdered": 5}, "4": {"itemId": 1450, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "5": {"itemId": 1348, "pre": {"sys": 1, "locked": false}, "preOrdered": 8}, "6": {"itemId": 37385, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "7": {"itemId": 1471, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "8": {"itemId": 20007, "pre": {"sys": 0, "locked": true}, "noForecast": true}, "9": {"itemId": 37188, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "10": {"itemId": 1482, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "11": {"itemId": 20345, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "12": {"itemId": 1875, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "13": {"itemId": 1516, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "14": {"itemId": 20015, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "15": {"itemId": 1523, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "16": {"itemId": 1913, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "17": {"itemId": 1928, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "18": {"itemId": 1540, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "19": {"itemId": 1539, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "20": {"itemId": 1532, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "21": {"itemId": 1529, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "22": {"itemId": 1899, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "23": {"itemId": 1533, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "24": {"itemId": 1880, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "25": {"itemId": 20095, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "26": {"itemId": 1898, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "27": {"itemId": 20395, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "28": {"itemId": 1905, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "29": {"itemId": 1640, "pre": {"sys": 1, "locked": false}, "preOrdered": 0, "og": ["price"], "demo": true}, "30": {"itemId": 1611, "pre": {"sys": 2, "locked": false}, "preOrdered": 4}, "31": {"itemId": 21133, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "32": {"itemId": 1902, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "33": {"itemId": 1710, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "34": {"itemId": 20405, "pre": {"sys": 2, "locked": false}, "preOrdered": 1}, "35": {"itemId": 1704, "pre": {"sys": 2, "locked": false}, "preOrdered": 10}, "36": {"itemId": 1741, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "recFirst": 1, "demo": true}, "37": {"itemId": 1774, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "38": {"itemId": 1782, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "39": {"itemId": 20046, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "40": {"itemId": 1753, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "41": {"itemId": 20312, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "42": {"itemId": 20825, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "43": {"itemId": 1797, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "44": {"itemId": 20332, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "45": {"itemId": 21061, "pre": {"sys": 2, "locked": false}, "preOrdered": 0}, "46": {"itemId": 1217, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "47": {"itemId": 1851, "pre": {"sys": 1, "locked": false}, "preOrdered": 15}, "48": {"itemId": 1843, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "49": {"itemId": 1891, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "50": {"itemId": 1933, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "51": {"itemId": 1005, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "52": {"itemId": 1004, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "53": {"itemId": 20518, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "54": {"itemId": 20045, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "55": {"itemId": 1320, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "56": {"itemId": 1294, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "og": ["case", "price"], "demo": true}, "57": {"itemId": 1019, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "58": {"itemId": 1018, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "59": {"itemId": 1021, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "60": {"itemId": 1810, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "61": {"itemId": 20498, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "62": {"itemId": 1813, "pre": {"sys": 2, "locked": false}, "preOrdered": 10}, "63": {"itemId": 20501, "pre": {"sys": 2, "locked": false}, "preOrdered": 6}, "64": {"itemId": 20497, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "65": {"itemId": 1816, "pre": {"sys": 2, "locked": false}, "preOrdered": 2}, "66": {"itemId": 37351, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "67": {"itemId": 20499, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "68": {"itemId": 21106, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "69": {"itemId": 20223, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "70": {"itemId": 20224, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "71": {"itemId": 1818, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "72": {"itemId": 1821, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "73": {"itemId": 1822, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "74": {"itemId": 37352, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "75": {"itemId": 1277, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "76": {"itemId": 1025, "pre": {"sys": 0, "locked": false}, "preOrdered": 3}, "77": {"itemId": 1038, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "78": {"itemId": 1035, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "79": {"itemId": 20134, "pre": {"sys": 0, "locked": false}, "preOrdered": 2, "og": ["promo"], "demo": true}, "80": {"itemId": 1041, "pre": {"sys": 0, "locked": false}, "preOrdered": 3}, "81": {"itemId": 1048, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "82": {"itemId": 1045, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "83": {"itemId": 1284, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "84": {"itemId": 1044, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "85": {"itemId": 1927, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "86": {"itemId": 1062, "pre": {"sys": 0, "locked": true}}, "87": {"itemId": 1068, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "88": {"itemId": 1060, "pre": {"sys": 0, "locked": false}, "preOrdered": 4, "labels": ["on_sale"]}, "89": {"itemId": 1063, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "recFirst": 1, "demo": true}, "90": {"itemId": 1064, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "91": {"itemId": 1065, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "92": {"itemId": 1070, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "93": {"itemId": 21064, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "94": {"itemId": 1092, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "95": {"itemId": 1078, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "96": {"itemId": 21365, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "97": {"itemId": 1090, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "98": {"itemId": 1079, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "recFirst": 1, "demo": true}, "99": {"itemId": 1080, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "recFirst": 2, "demo": true}, "100": {"itemId": 1342, "pre": {"sys": 2, "locked": false}, "preOrdered": 3}, "101": {"itemId": 20039, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "102": {"itemId": 1095, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "103": {"itemId": 1098, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "104": {"itemId": 1995, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "105": {"itemId": 1103, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "106": {"itemId": 37201, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "107": {"itemId": 1922, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "108": {"itemId": 1274, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "109": {"itemId": 1967, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "110": {"itemId": 1111, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "og": ["added"], "demo": true}, "111": {"itemId": 1117, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "112": {"itemId": 1114, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "113": {"itemId": 1121, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "114": {"itemId": 1127, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "115": {"itemId": 1116, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "116": {"itemId": 1119, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "117": {"itemId": 21140, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "118": {"itemId": 1106, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "119": {"itemId": 1921, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "labels": ["on_sale"]}, "120": {"itemId": 1124, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "121": {"itemId": 1256, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "122": {"itemId": 1136, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "123": {"itemId": 1145, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "124": {"itemId": 1130, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "125": {"itemId": 1128, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "126": {"itemId": 21353, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "127": {"itemId": 21352, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "128": {"itemId": 1441, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "129": {"itemId": 21068, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "130": {"itemId": 1154, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "131": {"itemId": 1160, "pre": {"sys": 1, "locked": false}, "preOrdered": 0}, "132": {"itemId": 1159, "pre": {"sys": 0, "locked": true}, "ordLocked": true}, "133": {"itemId": 37379, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "ordLocked": true}, "134": {"itemId": 1428, "pre": {"sys": 1, "locked": false}, "preOrdered": 4, "recFirst": 3, "demo": true}, "135": {"itemId": 1173, "pre": {"sys": 0, "locked": false}, "preOrdered": 1}, "136": {"itemId": 1200, "pre": {"sys": 1, "locked": false}, "preOrdered": 5}, "137": {"itemId": 1201, "pre": {"sys": 1, "locked": false}, "preOrdered": 4}, "138": {"itemId": 20494, "pre": {"sys": 0, "locked": true}}, "139": {"itemId": 1202, "pre": {"sys": 1, "locked": false}, "preOrdered": 3, "og": ["removed"], "demo": true}, "140": {"itemId": 1203, "pre": {"sys": 1, "locked": false}, "preOrdered": 8, "labels": ["on_sale"]}, "141": {"itemId": 21095, "pre": {"sys": 0, "locked": true}}, "142": {"itemId": 20710, "pre": {"sys": 3, "locked": false}, "preOrdered": 7}, "143": {"itemId": 1204, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "144": {"itemId": 20712, "pre": {"sys": 1, "locked": false}, "preOrdered": 10, "recFirst": 12, "demo": true}, "145": {"itemId": 1225, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "146": {"itemId": 20711, "pre": {"sys": 1, "locked": false}, "preOrdered": 3}, "147": {"itemId": 1208, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "148": {"itemId": 20709, "pre": {"sys": 2, "locked": false}, "preOrdered": 5}, "149": {"itemId": 1223, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "150": {"itemId": 21094, "pre": {"sys": 0, "locked": true}}, "151": {"itemId": 1230, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "152": {"itemId": 1220, "pre": {"sys": 1, "locked": false}, "preOrdered": 1, "ordLocked": true}, "153": {"itemId": 37236, "pre": {"sys": 1, "locked": false}, "preOrdered": 2}, "154": {"itemId": 37312, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "labels": ["on_sale"]}, "155": {"itemId": 1231, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "156": {"itemId": 1197, "pre": {"sys": 1, "locked": false}, "preOrdered": 0, "recFirst": 1, "demo": true}, "157": {"itemId": 20749, "pre": {"sys": 1, "locked": false}, "preOrdered": 1}, "158": {"itemId": 20519, "pre": {"sys": 1, "locked": false}, "preOrdered": 6, "recFirst": 5, "demo": true}, "159": {"itemId": 20935, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "160": {"itemId": 37282, "pre": {"sys": 0, "locked": false}, "preOrdered": 1, "labels": ["on_sale"]}, "161": {"itemId": 20164, "pre": {"sys": 0, "locked": false}, "preOrdered": 2}, "162": {"itemId": 37298, "pre": {"sys": 1, "locked": false}, "preOrdered": 2, "labels": ["on_sale"]}, "163": {"itemId": 1191, "pre": {"sys": 0, "locked": false}, "preOrdered": 0}, "164": {"itemId": 20057, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}, "165": {"itemId": 40737, "pre": {"sys": 0, "locked": false}, "preOrdered": 0, "noForecast": true}};
 const CP_DUMMY = false;
 const cpOf = ix => CP[String(ix)] || {};
 const cpRemoved = ix => (cpOf(ix).og||[]).includes('removed');
@@ -10652,6 +10720,9 @@ function cpPromoDays(ix){
   const short = a===b ? f(a,{weekday:'short'}) : `${f(a,{weekday:'short'})}–${f(b,{weekday:'short'})}`;
   return {short, long: ds.map(d=>f(d,{weekday:'short',day:'numeric',month:'short'})).join(', ')};
 }
+/* No shelf walk at C&P: entering the order lands on the full list (order guide order). */
+applyCatPage = function(){ CATFILTER=null; CATOPEN=false; CATQUERY=''; render(); };
+function cpRecalcd(ix){ return cpOf(ix).recFirst!=null; }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
@@ -10831,26 +10902,23 @@ function cpWtd(ix){
 }
 /* Product sheet: promo days as light red columns (every row). The running total is shown
    under the commande only. */
-function cpSheetStrip(ix, h){
+function cpSheetStrip(ix, h, cls){
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
   const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
   const n={};
   const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
     const i=(n[k]=(n[k]||0)+1)-1;
     return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
-  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  }).replace('class="SalesHistory', `class="${cls||'cpStripLg'} SalesHistory`);
   return h2;
 }
 const _histHTML_wtd = histHTML;
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
   if(!h) return h;
-  if(opt && opt.lg) return cpSheetStrip(ix, h);
-  /* Under the commande: only the running total since Tuesday, with the days it covers.
-     The 7 days themselves are in the product sheet. */
-  const it=ITEMS[ix], w=cpWtd(ix), L=t();
-  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
-  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
+  /* Under the commande the last 7 days of sales (promo days light red), no running total
+     (decided 16 Oct); the product sheet shows the same days with intake and shrink. */
+  return cpSheetStrip(ix, h, opt && opt.lg ? 'cpStripLg' : 'cpStrip');
 };
 render();
 /* ===== C&P: orders overview ===== */
@@ -11035,6 +11103,210 @@ ocPaintCard();
 setInterval(ocPaintCard, 30000);
 /* statuses change with the clock (16:01 -> Passée, midnight -> new buckets) */
 setInterval(()=>{ if(DASH_TAB===1 && document.body.classList.contains('dash-active')) renderOrdersPanel(); }, 30000);
+
+/* ===== C&P: complete the order, reopen it (askReOpenOrderConfirmation), see what was recalculated =====
+   "Confirmer et clôturer" completes today's order (Complétée) and shows its barcode screen; opening
+   the order again shows that screen too. "Continuer la modification" there asks first, as the app
+   does (askReOpenOrderConfirmation); after "Réouvrir la commande" the list opens with
+   the filter "Commande recalculée" already on, i.e. only the items whose reco moved since.
+   ?closed=1 opens the page with today's order already completed. */
+function cpToday(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
+const _ocStatusAt_cp = ocStatusAt;
+ocStatusAt = function(o, now){ return o._cpSt || _ocStatusAt_cp(o, now); };
+function cpRepaint(){ ocPaintCard(); if(DASH_TAB===1) renderOrdersPanel(); }
+if(new URLSearchParams(location.search).get('closed')==='1'){ const o=cpToday(); if(o){ o._cpSt='closed'; cpRepaint(); } }
+const _s2Go_cp = document.getElementById('s2Go').onclick;
+document.getElementById('s2Go').onclick = function(e){
+  const r=_s2Go_cp.call(this, e);
+  const o=cpToday();
+  if(o){
+    o._cpSt='closed';
+    cpRepaint(); bcsOpen();
+  }
+  toast(t().ordClosedToast);
+  return r;
+};
+function cpAskReopen(go){
+  let root=document.getElementById('cpReopenRoot');
+  if(!root){ root=document.createElement('div'); root.id='cpReopenRoot'; document.body.appendChild(root); }
+  const L=t();
+  root.innerHTML = `<div class="ov on" style="z-index:9999">
+    <div class="AppFormDialog">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">${L.reopenOrdTitle}</div>
+        <button type="button" class="AppFormDialog__close" data-r="no" aria-label="${L.close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">${L.reopenOrdText}</div>
+      <div class="AppFormDialog__actions"><div class="AppFormDialog__actionsEnd">
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" data-r="no">${L.cancel}</button>
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" data-r="yes">${L.reopenOrdYes}</button>
+      </div></div>
+    </div></div>`;
+  root.onclick = e=>{
+    const b=e.target.closest('[data-r]'); if(!b) return;
+    root.innerHTML='';
+    if(b.dataset.r!=='yes') return;
+    const o=cpToday(); if(o) o._cpSt='open';
+    cpRepaint();
+    go();
+    /* only the recalculated items, the filter already applied */
+    clearFilt();
+    if(ITEMS.some((it,ix)=>cpRecalcd(ix))) CATFILT.rec=true;
+    syncFiltUI();
+    goToList(null);
+  };
+}
+/* ===== C&P: barcode screen of a completed order (MOB-1683, order-guide-barcodes.html) =====
+   Shown right after "Confirmer et clôturer" and whenever the completed order is opened again.
+   Ordered items only (switch "Masquer les commandes à 0"), five per page, a barcode per item to
+   scan into the supplier's terminal; a tap on a barcode greys it out as scanned. A quantity can
+   still be changed here (keypad); the changes are applied once at the end, after the last page.
+   "Continuer la modification" reopens the order (askReOpenOrderConfirmation). C&P's order guide
+   carries no barcodes (prod_orderset_plu.barcode is empty at Neuville): the bars are drawn. */
+const BCS_TX = {
+  fr:{closed:'Clôturée', hide0:'Masquer les commandes à 0', item:'Article', order:'Commande', page:'Page', of:'sur',
+      lines:'Articles', cases:'Nb de colis', retail:'Prix de vente', cont:'Continuer la modification',
+      saveT:'Voulez-vous enregistrer vos modifications ?', saveS:'Une fois tous les codes-barres scannés, vous pouvez appliquer les modifications.',
+      apply:'Appliquer les modifications', left1:'1 page restante', leftN:'{n} pages restantes', allSeen:'toutes les pages vues',
+      dlgT:'Appliquer les modifications ?', dlgB:'Vous avez modifié {n} quantité(s) de commande et parcouru tous les codes-barres.',
+      dlgS:'Sans les appliquer, la commande reste telle qu’elle a été complétée – vos modifications sont alors perdues.',
+      again:'Revoir', applied:'Modifications appliquées', edit:'Modifier la quantité commandée', save:'Enregistrer', cancel:'Annuler', total:'Total', back:'‹ Retour'},
+  en:{closed:'Closed', hide0:'Hide 0-Orders', item:'Item', order:'Order', page:'Page', of:'of',
+      lines:'Line Items', cases:'Case Count', retail:'Retail Price', cont:'Continue Editing',
+      saveT:'Do you want to save your changes?', saveS:'Once you have scanned all barcodes, you can apply the changes.',
+      apply:'Apply changes', left1:'1 page left', leftN:'{n} pages left', allSeen:'all pages seen',
+      dlgT:'Apply changes?', dlgB:'You changed {n} order quantities and have paged through all barcodes.',
+      dlgS:'Without applying, the order stays exactly as it was completed – your changes are then lost.',
+      again:'Review again', applied:'Changes applied', edit:'Edit order quantity', save:'Save', cancel:'Cancel', total:'Total', back:'‹ Back'},
+  de:{closed:'Abgeschlossen', hide0:'0-Bestellungen ausblenden', item:'Artikel', order:'Bestellung', page:'Seite', of:'von',
+      lines:'Artikel', cases:'Kisten', retail:'Verkaufswert', cont:'Weiter bearbeiten',
+      saveT:'Möchtest du deine Änderungen speichern?', saveS:'Sobald alle Barcodes gescannt sind, kannst du die Änderungen übernehmen.',
+      apply:'Änderungen übernehmen', left1:'noch 1 Seite', leftN:'noch {n} Seiten', allSeen:'alle Seiten gesehen',
+      dlgT:'Änderungen übernehmen?', dlgB:'Du hast {n} Bestellmengen geändert und alle Barcodes durchgeblättert.',
+      dlgS:'Ohne Übernehmen bleibt die Bestellung so, wie sie abgeschlossen wurde – deine Änderungen gehen dann verloren.',
+      again:'Nochmal prüfen', applied:'Änderungen übernommen', edit:'Bestellmenge ändern', save:'Speichern', cancel:'Abbrechen', total:'Gesamt', back:'‹ Zurück'}};
+const bcsT = () => BCS_TX[LANG] || BCS_TX.fr;
+let BCS = null;
+function bcsRng(seed){ let s=seed>>>0; return ()=>((s=(s*1664525+1013904223)>>>0)/4294967296); }
+function bcsBars(seed){
+  const r=bcsRng(seed*7919+13), M=2, W=95; let b='';
+  const bar=(x,w)=>{ b+=`<rect x="${x*M}" y="0" width="${w*M}" height="58" fill="#111"/>`; };
+  bar(0,1); bar(2,1); let x=4;
+  while(x<W-6){ const w=1+Math.floor(r()*3); bar(x,w); x+=w+1+Math.floor(r()*2); }
+  bar(W-3,1); bar(W-1,1);
+  return `<svg class="bcs-bc" viewBox="0 0 ${W*M} 58" preserveAspectRatio="none">${b}</svg>`;
+}
+function bcsEan(ix){ const r=bcsRng(ix*31+7); return '3'+String(Math.floor(r()*1e12)).padStart(12,'0').slice(0,12); }
+function bcsQty(ix){ return BCS.edits[ix]!=null ? BCS.edits[ix] : orderVal(ix); }
+function bcsList(){ return ITEMS.map((_,ix)=>ix).filter(ix=>!ST[ix].hidden && !cpRemoved(ix) && (!BCS.hide0 || bcsQty(ix)>0 || BCS.edits[ix]!=null)); }
+function bcsOpen(){
+  BCS={page:1, hide0:true, edits:{}, scanned:{}, reached:false, dlg:false, closedAt:ocNow()};
+  let root=document.getElementById('bcsRoot');
+  if(!root){ root=document.createElement('div'); root.id='bcsRoot'; document.body.appendChild(root); root.addEventListener('click', bcsClick); }
+  bcsRender();
+}
+function bcsClose(){ const r=document.getElementById('bcsRoot'); if(r) r.innerHTML=''; BCS=null; }
+function bcsRender(){
+  const T=bcsT(), L=t(), list=bcsList(), per=5, pages=Math.max(1,Math.ceil(list.length/per));
+  if(BCS.page>pages) BCS.page=pages;
+  if(BCS.page===pages) BCS.reached=true;
+  const rows=list.slice((BCS.page-1)*per, BCS.page*per).map(ix=>{
+    const it=ITEMS[ix], q=bcsQty(ix), unit=it.unit==='kg'?'kg':L.piece;
+    const pcs = it.case!=null ? `${(Math.round(q*it.case*100)/100).toLocaleString('de-DE')} ${unit}` : '';
+    return `<div class="bcs-row">
+      <div><div class="bcs-nm">${it.name}</div>
+        <div class="bcs-meta">${it.case!=null?it.case.toLocaleString('de-DE')+' '+unit:''}${it.vk!=null?' · '+eur(it.vk):''}</div></div>
+      <div><button type="button" class="bcs-qty${BCS.edits[ix]!=null?' is-ed':''}" data-b="qty" data-i="${ix}"><b>${q}</b><span>${pcs}</span></button></div>
+      <div class="bcs-bcw${BCS.scanned[ix]?' is-sc':''}" data-b="scan" data-i="${ix}">${bcsBars(ix+1)}<div class="bcs-bcn">${bcsEan(ix)}</div></div>
+    </div>`; }).join('');
+  const ordered=ITEMS.map((_,ix)=>ix).filter(ix=>!ST[ix].hidden && !cpRemoved(ix) && bcsQty(ix)>0);
+  const cases=ordered.reduce((a,ix)=>a+bcsQty(ix),0);
+  const retail=ordered.reduce((a,ix)=>a+bcsQty(ix)*(ITEMS[ix].case||0)*(ITEMS[ix].vk||0),0);
+  const nEd=Object.keys(BCS.edits).length, left=pages-BCS.page;
+  const o=cpToday(), dl=o?ocDt(o.deadline):ocNow();
+  document.getElementById('bcsRoot').innerHTML = `<div class="bcs">
+    <div class="bcs-hdr"><button type="button" class="bcs-back" data-b="back">${T.back}</button>
+      <div class="bcs-tt"><div class="bcs-t1">${L.ordersatz||'Guide de commande'} ${ocMMMEd(dl)} &nbsp;|&nbsp; ${OC.supplier}</div>
+        <div class="bcs-t2">${T.closed} <b>${ocMMMEd(BCS.closedAt)} ${ocTime(BCS.closedAt)}</b></div></div>
+      <span class="bcs-done">✓</span></div>
+    ${nEd?`<div class="bcs-save"><span class="bcs-ico">!</span><div class="bcs-msg"><b>${T.saveT}</b>${T.saveS}</div>
+      <div class="bcs-act"><button type="button" class="bcs-apply" data-b="apply"${BCS.reached?'':' disabled'}>${T.apply}</button>
+      <span>${BCS.reached?T.allSeen:(left===1?T.left1:T.leftN.replace('{n}',left))}</span></div></div>`:''}
+    <div class="bcs-tool"><button type="button" class="bcs-sw${BCS.hide0?' on':''}" data-b="hide0" aria-pressed="${BCS.hide0}"></button><span>${T.hide0}</span></div>
+    <div class="bcs-row bcs-head"><div>${T.item}</div><div>${T.order}</div><div></div></div>
+    <div class="bcs-rows">${rows}</div>
+    <div class="bcs-pager"><button type="button" class="bcs-arr" data-b="prev"${BCS.page===1?' disabled':''}>←</button>
+      <span>${T.page} <b>${BCS.page}</b> ${T.of} <b>${pages}</b></span>
+      <button type="button" class="bcs-arr" data-b="next"${BCS.page===pages?' disabled':''}>→</button></div>
+    <div class="bcs-stats">
+      <div><span>${T.lines}</span><b>${ordered.length}</b></div>
+      <div><span>${T.cases}</span><b>${cases}</b></div>
+      <div><span>${T.retail}</span><b>${eur(retail)}</b></div>
+      <button type="button" class="bcs-cont" data-b="cont">${T.cont} ↻</button></div>
+  </div>`;
+}
+function bcsPad(ix){
+  const T=bcsT(), it=ITEMS[ix]; let val=String(bcsQty(ix));
+  const root=document.createElement('div'); root.className='ov on bcs-pad'; document.body.appendChild(root);
+  const draw=()=>{ root.innerHTML=`<div class="bcs-sheet">
+    <div class="bcs-sh"><b>${T.edit}</b><button type="button" data-k="x">✕</button></div>
+    <div class="bcs-sb"><div><div class="bcs-nm">${it.name}</div>
+      <div class="bcs-kf"><label>${T.order}</label><div class="bcs-kbox">${val}</div></div>
+      <div class="bcs-kf"><label>${T.total}</label><div>${it.case!=null?(Math.round((+val||0)*it.case*100)/100).toLocaleString('de-DE')+' '+(it.unit==='kg'?'kg':t().piece):''}</div></div></div>
+      <div class="bcs-keys">${[1,2,3,4,5,6,7,8,9].map(k=>`<button type="button" data-k="${k}">${k}</button>`).join('')}<span></span><button type="button" data-k="0">0</button><button type="button" data-k="del">⌫</button></div></div>
+    <div class="bcs-sf"><button type="button" class="bcs-lnk" data-k="x">${T.cancel}</button><button type="button" class="bcs-cta" data-k="ok">${T.save}</button></div></div>`; };
+  draw();
+  root.onclick=e=>{
+    if(e.target===root){ root.remove(); return; }
+    const k=e.target.closest('[data-k]')?.dataset.k; if(!k) return;
+    if(k==='x'){ root.remove(); return; }
+    if(k==='ok'){ const v=Math.max(0,parseInt(val||'0',10)||0); root.remove();
+      if(v===orderVal(ix)) delete BCS.edits[ix]; else BCS.edits[ix]=v; bcsRender(); return; }
+    if(k==='del') val=val.slice(0,-1)||'0'; else val=(val==='0'?k:(val+k).slice(0,2));
+    draw();
+  };
+}
+function bcsApply(){
+  Object.entries(BCS.edits).forEach(([ix,v])=>{ const s=ST[+ix]; s.order=v; s.answered=true; s.manual=true; s.pendOrder=null; });
+  BCS.edits={}; render(); bcsRender(); cpRepaint(); toast(bcsT().applied);
+}
+function bcsAskApply(){
+  const T=bcsT(), n=Object.keys(BCS.edits).length;
+  const root=document.createElement('div'); root.className='ov on'; root.style.zIndex=10001; document.body.appendChild(root);
+  root.innerHTML=`<div class="AppFormDialog"><div class="AppFormDialog__header"><div class="AppFormDialog__title">${T.dlgT}</div>
+    <button type="button" class="AppFormDialog__close" data-d="no">${CLOSE_ICON}</button></div>
+    <div class="AppFormDialog__body">${T.dlgB.replace('{n}',n)}<span style="display:block;margin-top:12px;font-size:14px;color:var(--ff-grey-500)">${T.dlgS}</span></div>
+    <div class="AppFormDialog__actions"><div class="AppFormDialog__actionsEnd">
+      <button type="button" class="PrimaryTextButton PrimaryTextButton--none" data-d="no">${T.again}</button>
+      <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" data-d="yes">${T.apply}</button></div></div></div>`;
+  root.onclick=e=>{ const d=e.target.closest('[data-d]')?.dataset.d; if(!d) return; root.remove(); if(d==='yes') bcsApply(); };
+}
+function bcsClick(e){
+  const b=e.target.closest('[data-b]'); if(!b || !BCS) return;
+  const k=b.dataset.b, ix=+b.dataset.i;
+  if(k==='back'){ bcsClose(); history.replaceState({page:'dash'}, '', location.href); showDash(); showDashTab(1); cpRepaint(); }
+  else if(k==='hide0'){ BCS.hide0=!BCS.hide0; BCS.page=1; bcsRender(); }
+  else if(k==='prev'){ BCS.page--; bcsRender(); window.scrollTo(0,0); }
+  else if(k==='next'){ BCS.page++; bcsRender(); window.scrollTo(0,0);
+    const pages=Math.max(1,Math.ceil(bcsList().length/5));
+    if(BCS.page===pages && Object.keys(BCS.edits).length && !BCS.dlg){ BCS.dlg=true; setTimeout(bcsAskApply, 400); } }
+  else if(k==='scan'){ BCS.scanned[ix]=!BCS.scanned[ix]; bcsRender(); }
+  else if(k==='qty'){ bcsPad(ix); }
+  else if(k==='apply'){ if(!b.disabled) bcsApply(); }
+  else if(k==='cont'){ cpAskReopen(()=>{ bcsClose(); _enterApp_cp(); }); }
+}
+const _enterApp_cp = enterApp;
+enterApp = function(...a){
+  const o=cpToday();
+  if(o && ocState(o, ocNow())==='completed'){ bcsOpen(); return; }
+  return _enterApp_cp(...a);
+};
+/* the centre button holds the original enterApp, so it is caught before it runs */
+document.getElementById('dashFab').addEventListener('click', e=>{
+  const o=cpToday();
+  if(!(o && ocState(o, ocNow())==='completed')) return;
+  e.stopImmediatePropagation(); e.preventDefault(); bcsOpen();
+}, true);
 </script>
 </body>
 </html>

@@ -35,6 +35,7 @@ ap.add_argument('--ladders-json', help='RP_items json: items whose note starts w
 ap.add_argument('--tiles-from', help='page whose TILES (shelf keywords) to use; default --items-from')
 ap.add_argument('--deadline', default=None, help='HH:MM order deadline shown in the header')
 ap.add_argument('--cp-lines', help='real lines pulled from prod_orders_output (see cp_lines_*.json)')
+ap.add_argument('--demo-recalc', type=int, default=0, help='add N labelled example lines whose order reco was recalculated (new order guide during the day)')
 ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled example lines for the order guide marker (incl. one removed)')
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
@@ -211,6 +212,7 @@ rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
 # ---- locale keys (same keys in all three, parity) --------------------------
 LOC = {
     'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
+               filtRecalc='Bestellung neu berechnet', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
                tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
                tipRecFirst='Zuerst', tipRecNow='Jetzt',
                tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
@@ -219,6 +221,7 @@ LOC = {
                tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
                cpDummy='Demodaten · noch nicht Perrache', cpDemo='Beispiel', labelNew='Neu'),
     'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
+               filtRecalc='Order recalculated', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
                tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
                tipRecFirst='First', tipRecNow='Now',
                tipOgTitle='Order guide changed', ogCase='Case size changed', ogPromo='Promo dates changed',
@@ -227,6 +230,7 @@ LOC = {
                tipLockTitle='Locked', tipLockText='This field cannot be edited.',
                cpDummy='Demo data · not Perrache yet', cpDemo='Example', labelNew='New'),
     'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
+               filtRecalc='Commande recalculée', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
                tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
                tipRecFirst='Initial', tipRecNow='Maintenant',
                tipOgTitle='Guide de commande modifié', ogCase='Colisage modifié', ogPromo='Dates de promo modifiées',
@@ -285,6 +289,20 @@ elif args.cp_lines:
         for n in range(args.demo_og):
             ix = pool[(n + 1) * step]
             cp[str(ix)]['og'] = kinds[n % len(kinds)]
+            cp[str(ix)]['demo'] = True
+    # labelled examples for "order recalculated": the reco moved after a new order guide came in
+    # (app: orderguide_data_changed / isInitialResultShifted). Picked at random, seeded, so a
+    # rebuild picks the same items.
+    if args.demo_recalc:
+        import random
+        rng = random.Random(1015)
+        pool = [ix for ix in range(len(items))
+                if not any(k in cp[str(ix)] for k in ('ordLocked', 'og', 'noForecast')) and not items[ix].get('hidden')
+                and any(r.get('plan') for r in items[ix]['rungs'])]
+        for ix in sorted(rng.sample(pool, min(args.demo_recalc, len(pool)))):
+            plan = next(r for r in items[ix]['rungs'] if r.get('plan'))
+            o = plan.get('order') or 0
+            cp[str(ix)]['recFirst'] = o + 1 if (o == 0 or ix % 2) else o - 1
             cp[str(ix)]['demo'] = True
 else:
     dummy = True
@@ -347,14 +365,15 @@ if not core_ids:
 # Filter "order guide changed": only the items where HQ changed something (cpOf(ix).og), so the
 # user can check exactly those. Sits with the warnings; the set does not shrink when the user edits.
 rep("const CATFILT = {invNote:false, ordNote:false, rhb0:false,",
-    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false,")
+    "const CATFILT = {invNote:false, ordNote:false, rhb0:false, og:false, rec:false,")
 rep("return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||",
-    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||")
+    "return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.og||CATFILT.rec||")
 rep("|| (CATFILT.rhb0 && rhbZero(it.id)) ||",
-    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) ||")
+    "|| (CATFILT.rhb0 && rhbZero(it.id)) || (CATFILT.og && cpOgChanged(it.id)) || (CATFILT.rec && cpRecalcd(it.id)) ||")
 rep("        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix))))}",
     "        + chk('rhb0',L.displaySize,count((it,ix)=>rhbZero(ix)))\n"
-    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix))))}")
+    "        + chk('og',L.tipOgTitle,count((it,ix)=>cpOgChanged(ix)))\n"
+    "        + (ITEMS.some((it,ix)=>cpRecalcd(ix)) ? chk('rec',L.filtRecalc,count((it,ix)=>cpRecalcd(ix))) : ''))}")
 # Inventory as ONE number: the app's simulated inventory (it.app, always inside the plan rung)
 # instead of the plan rung's range ("1,7 - 2,7 CS", "min. 0,2 CS"). -/+ step from that number;
 # landing back on it restores the untouched state. The order ladder behind it is unchanged.
@@ -369,6 +388,13 @@ rep("      const assume=koText(it.rungs[s.plan],it);",
 # keypad: no range total and no "inside the range" hint
 rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
     "       rLoKO: null, rHiKO: null,")
+# No shelf walk: the order opens on the full list, sorted like the order guide.
+rep("let SORT={key:'shelf', dir:1};", "let SORT={key:'guide', dir:1};")
+rep("  {key:'shelf',     lbl:'sortShelfSeq'},\n", "")
+rep("let CATOPEN=true;", "let CATOPEN=false;")
+# No item code (PLU) in the row's meta line, only the case content (asked 16 Oct).
+rep("      `<span class=\"metarow\"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?",
+    "      `<span class=\"metarow\">${it.case!=null?")
 # No supplier filter at C&P: the "Fournisseurs / Rewe" section is inherited from the REWE page.
 rep("      ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}\n", "")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
@@ -475,6 +501,9 @@ function cpPromoDays(ix){
   const short = a===b ? f(a,{weekday:'short'}) : `${f(a,{weekday:'short'})}–${f(b,{weekday:'short'})}`;
   return {short, long: ds.map(d=>f(d,{weekday:'short',day:'numeric',month:'short'})).join(', ')};
 }
+/* No shelf walk at C&P: entering the order lands on the full list (order guide order). */
+applyCatPage = function(){ CATFILTER=null; CATOPEN=false; CATQUERY=''; render(); };
+function cpRecalcd(ix){ return cpOf(ix).recFirst!=null; }
 function cpOgChanged(ix){ const og=cpOf(ix).og; return !!(og&&og.length); }
 function ogOn(ix){ const og=cpOf(ix).og; return !!(og&&og.length) && (cpRemoved(ix) || !ST[ix].manual); }
 
@@ -666,26 +695,23 @@ function cpWtd(ix){
 }
 /* Product sheet: promo days as light red columns (every row). The running total is shown
    under the commande only. */
-function cpSheetStrip(ix, h){
+function cpSheetStrip(ix, h, cls){
   const it=ITEMS[ix], w=cpWtd(ix), L=t();
   const promo=new Set((HIST_PROMO[it.plu]||[]).filter(d=>d>=7).map(d=>d-7));
   const n={};
   const h2=h.replace(/<span class="(SalesHistory__(wd|s|x|d)(?![a-z])[^"]*)"/g, (m,c,k)=>{
     const i=(n[k]=(n[k]||0)+1)-1;
     return promo.has(i) ? `<span class="${c} cpPromo"${k==='wd'?` title="${L.histPromo}"`:''}` : m;
-  }).replace('class="SalesHistory', 'class="cpStripLg SalesHistory');
+  }).replace('class="SalesHistory', `class="${cls||'cpStripLg'} SalesHistory`);
   return h2;
 }
 const _histHTML_wtd = histHTML;
 histHTML = function(ix, opt){
   const h=_histHTML_wtd(ix, opt);
   if(!h) return h;
-  if(opt && opt.lg) return cpSheetStrip(ix, h);
-  /* Under the commande: only the running total since Tuesday, with the days it covers.
-     The 7 days themselves are in the product sheet. */
-  const it=ITEMS[ix], w=cpWtd(ix), L=t();
-  const val = w.v==null ? '–' : `${w.v}${it.case?' '+L.caseUnit:''}`;
-  return `<div class="cpSumPill" title="${w.longLabel}"><span class="cpSumPill__l"><b>Σ</b>${w.days}</span><span class="cpSumPill__v${w.v==null?' is-nil':''}">${val}</span></div>`;
+  /* Under the commande the last 7 days of sales (promo days light red), no running total
+     (decided 16 Oct); the product sheet shows the same days with intake and shrink. */
+  return cpSheetStrip(ix, h, opt && opt.lg ? 'cpStripLg' : 'cpStrip');
 };
 render();
 """
@@ -693,7 +719,12 @@ CSS_WTD = """
 /* ===== C&P: 7-day sales under the commande, running total as an 8th column ===== */
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
-.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.35fr)}
+.cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+/* no CS in the commande and Prévision boxes; no kg/piece vs CS switch on the inventory keypad;
+   no shelf chip (no shelf walk at C&P) */
+.ColumnCounterField__value i{display:none}
+#invUnitSeg{display:none!important}
+#catChipWrap{display:none}
 .cpStrip .cpSum{align-self:stretch;display:flex;align-items:center;justify-content:center;margin-left:2px;
   border-left:1px solid var(--ff-grey-300)}
 .cpStrip .cpPromo{align-self:stretch;display:flex;align-items:center;justify-content:center;background:#FDECEC}
@@ -718,11 +749,271 @@ JS = JS.replace('__CP__', json.dumps(cp, ensure_ascii=False)).replace('__DUMMY__
 idx = s.rindex('</script>')
 s = s[:idx] + JS + s[idx:]
 
+BCS_CSS = r"""
+/* ===== C&P: barcode screen of a completed order (from order-guide-barcodes.html) ===== */
+.bcs{position:fixed;inset:0;z-index:9000;background:var(--ff-color-white);overflow-y:auto;display:flex;flex-direction:column;color:var(--ff-grey-800)}
+.bcs-hdr{background:var(--green);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:3}
+.bcs-back{background:none;border:0;color:inherit;font:inherit;font-weight:600;font-size:15px;cursor:pointer;padding:0}
+.bcs-tt{flex:1;min-width:0}.bcs-t1{font-weight:700;font-size:15px}.bcs-t2{font-size:12.5px;color:#c9dbd3}.bcs-t2 b{color:#c1ce5d;font-weight:600}
+.bcs-done{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-weight:700}
+.bcs-save{display:flex;gap:12px;align-items:center;background:#fff4e7;border-bottom:1px solid #f5d7ac;padding:10px 18px;position:sticky;top:60px;z-index:2}
+.bcs-ico{width:22px;height:22px;border-radius:50%;background:#ff8502;color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.bcs-msg{flex:1;font-size:12.5px;line-height:1.45;color:#6b4a19}.bcs-msg b{display:block;font-size:13px;color:#4a3410}
+.bcs-act{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:10.5px;color:#8a6a35;white-space:nowrap}
+.bcs-apply{border:0;border-radius:8px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;background:var(--green);color:#fff;cursor:pointer}
+.bcs-apply:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
+.bcs-tool{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--ff-grey-200);font-size:13px;color:var(--ff-grey-600)}
+.bcs-sw{width:36px;height:20px;border-radius:12px;background:var(--ff-grey-300);position:relative;border:0;cursor:pointer;padding:0}
+.bcs-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.bcs-sw.on{background:#ff8502}.bcs-sw.on::after{left:18px}
+.bcs-row{display:grid;grid-template-columns:1fr 120px minmax(150px,200px);gap:14px;padding:12px 18px;border-bottom:1px solid var(--ff-grey-200);align-items:center}
+.bcs-head{font-size:13px;font-weight:600;color:var(--ff-grey-600);padding-top:10px;padding-bottom:10px}
+.bcs-rows{flex:1}
+.bcs-nm{font-weight:700;font-size:14.5px;line-height:1.25;margin-bottom:4px}
+.bcs-meta{font-size:12.5px;color:var(--ff-grey-500)}
+.bcs-qty{border:1px solid var(--ff-grey-200);border-radius:7px;padding:6px 10px;min-width:70px;background:#fff;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center}
+.bcs-qty b{font-size:15px;color:var(--ff-grey-900)}.bcs-qty span{font-size:10px;color:var(--ff-grey-500)}
+.bcs-qty.is-ed{border-color:#ff8502}.bcs-qty.is-ed b{color:#ff8502}
+.bcs-bcw{cursor:pointer}.bcs-bcw.is-sc{opacity:.3}
+.bcs-bc{display:block;width:100%;height:58px}
+.bcs-bcn{font-size:9.5px;color:var(--ff-grey-500);text-align:center;letter-spacing:.06em;margin-top:3px}
+.bcs-pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;font-size:13px;color:var(--ff-grey-600)}
+.bcs-arr{width:34px;height:34px;border-radius:50%;border:1px solid var(--ff-grey-200);background:#fff;cursor:pointer;font-size:16px}
+.bcs-arr:disabled{opacity:.35;cursor:not-allowed}
+.bcs-stats{display:flex;align-items:center;gap:6px;padding:10px 18px;border-top:1px solid var(--ff-grey-200);background:#fff;position:sticky;bottom:0}
+.bcs-stats>div{flex:1;text-align:center;display:flex;flex-direction:column;font-size:10px;color:var(--ff-grey-500)}
+.bcs-stats>div b{font-size:13px;color:var(--ff-grey-900)}
+.bcs-cont{background:none;border:0;color:var(--green);font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.bcs-pad{z-index:10000;align-items:flex-end;padding:0}
+.bcs-sheet{background:#fff;width:100%;max-width:705px;border-radius:15px 15px 0 0;padding-bottom:18px}
+.bcs-sh{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--ff-grey-200);font-size:17px}
+.bcs-sh button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--ff-grey-500)}
+.bcs-sb{display:grid;grid-template-columns:1fr 240px;gap:22px;padding:18px 22px}
+.bcs-kf{display:flex;align-items:center;gap:14px;margin-top:14px;font-weight:700}.bcs-kf label{width:90px}
+.bcs-kbox{border:1.5px solid #ff8502;border-radius:8px;padding:8px 14px;min-width:92px;text-align:right}
+.bcs-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bcs-keys button{background:var(--ff-grey-100);border:0;border-radius:8px;padding:15px 0;font:inherit;font-size:17px;font-weight:700;cursor:pointer}
+.bcs-sf{display:flex;justify-content:space-between;align-items:center;padding:0 22px}
+.bcs-lnk{border:0;background:none;color:var(--green);font:inherit;font-weight:700;cursor:pointer}
+.bcs-cta{background:var(--green);color:#fff;border:0;border-radius:999px;padding:13px 30px;font:inherit;font-weight:700;cursor:pointer}
+@media(max-width:620px){ .bcs-row{grid-template-columns:1fr 90px} .bcs-bcw{grid-column:1/-1} .bcs-head>div:last-child{display:none} .bcs-sb{grid-template-columns:1fr} }
+"""
+
+REOPEN_JS = r"""
+/* ===== C&P: complete the order, reopen it (askReOpenOrderConfirmation), see what was recalculated =====
+   "Confirmer et clôturer" completes today's order (Complétée) and shows its barcode screen; opening
+   the order again shows that screen too. "Continuer la modification" there asks first, as the app
+   does (askReOpenOrderConfirmation); after "Réouvrir la commande" the list opens with
+   the filter "Commande recalculée" already on, i.e. only the items whose reco moved since.
+   ?closed=1 opens the page with today's order already completed. */
+function cpToday(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
+const _ocStatusAt_cp = ocStatusAt;
+ocStatusAt = function(o, now){ return o._cpSt || _ocStatusAt_cp(o, now); };
+function cpRepaint(){ ocPaintCard(); if(DASH_TAB===1) renderOrdersPanel(); }
+if(new URLSearchParams(location.search).get('closed')==='1'){ const o=cpToday(); if(o){ o._cpSt='closed'; cpRepaint(); } }
+const _s2Go_cp = document.getElementById('s2Go').onclick;
+document.getElementById('s2Go').onclick = function(e){
+  const r=_s2Go_cp.call(this, e);
+  const o=cpToday();
+  if(o){
+    o._cpSt='closed';
+    cpRepaint(); bcsOpen();
+  }
+  toast(t().ordClosedToast);
+  return r;
+};
+function cpAskReopen(go){
+  let root=document.getElementById('cpReopenRoot');
+  if(!root){ root=document.createElement('div'); root.id='cpReopenRoot'; document.body.appendChild(root); }
+  const L=t();
+  root.innerHTML = `<div class="ov on" style="z-index:9999">
+    <div class="AppFormDialog">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title">${L.reopenOrdTitle}</div>
+        <button type="button" class="AppFormDialog__close" data-r="no" aria-label="${L.close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">${L.reopenOrdText}</div>
+      <div class="AppFormDialog__actions"><div class="AppFormDialog__actionsEnd">
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--none" data-r="no">${L.cancel}</button>
+        <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" data-r="yes">${L.reopenOrdYes}</button>
+      </div></div>
+    </div></div>`;
+  root.onclick = e=>{
+    const b=e.target.closest('[data-r]'); if(!b) return;
+    root.innerHTML='';
+    if(b.dataset.r!=='yes') return;
+    const o=cpToday(); if(o) o._cpSt='open';
+    cpRepaint();
+    go();
+    /* only the recalculated items, the filter already applied */
+    clearFilt();
+    if(ITEMS.some((it,ix)=>cpRecalcd(ix))) CATFILT.rec=true;
+    syncFiltUI();
+    goToList(null);
+  };
+}
+/* ===== C&P: barcode screen of a completed order (MOB-1683, order-guide-barcodes.html) =====
+   Shown right after "Confirmer et clôturer" and whenever the completed order is opened again.
+   Ordered items only (switch "Masquer les commandes à 0"), five per page, a barcode per item to
+   scan into the supplier's terminal; a tap on a barcode greys it out as scanned. A quantity can
+   still be changed here (keypad); the changes are applied once at the end, after the last page.
+   "Continuer la modification" reopens the order (askReOpenOrderConfirmation). C&P's order guide
+   carries no barcodes (prod_orderset_plu.barcode is empty at Neuville): the bars are drawn. */
+const BCS_TX = {
+  fr:{closed:'Clôturée', hide0:'Masquer les commandes à 0', item:'Article', order:'Commande', page:'Page', of:'sur',
+      lines:'Articles', cases:'Nb de colis', retail:'Prix de vente', cont:'Continuer la modification',
+      saveT:'Voulez-vous enregistrer vos modifications ?', saveS:'Une fois tous les codes-barres scannés, vous pouvez appliquer les modifications.',
+      apply:'Appliquer les modifications', left1:'1 page restante', leftN:'{n} pages restantes', allSeen:'toutes les pages vues',
+      dlgT:'Appliquer les modifications ?', dlgB:'Vous avez modifié {n} quantité(s) de commande et parcouru tous les codes-barres.',
+      dlgS:'Sans les appliquer, la commande reste telle qu’elle a été complétée – vos modifications sont alors perdues.',
+      again:'Revoir', applied:'Modifications appliquées', edit:'Modifier la quantité commandée', save:'Enregistrer', cancel:'Annuler', total:'Total', back:'‹ Retour'},
+  en:{closed:'Closed', hide0:'Hide 0-Orders', item:'Item', order:'Order', page:'Page', of:'of',
+      lines:'Line Items', cases:'Case Count', retail:'Retail Price', cont:'Continue Editing',
+      saveT:'Do you want to save your changes?', saveS:'Once you have scanned all barcodes, you can apply the changes.',
+      apply:'Apply changes', left1:'1 page left', leftN:'{n} pages left', allSeen:'all pages seen',
+      dlgT:'Apply changes?', dlgB:'You changed {n} order quantities and have paged through all barcodes.',
+      dlgS:'Without applying, the order stays exactly as it was completed – your changes are then lost.',
+      again:'Review again', applied:'Changes applied', edit:'Edit order quantity', save:'Save', cancel:'Cancel', total:'Total', back:'‹ Back'},
+  de:{closed:'Abgeschlossen', hide0:'0-Bestellungen ausblenden', item:'Artikel', order:'Bestellung', page:'Seite', of:'von',
+      lines:'Artikel', cases:'Kisten', retail:'Verkaufswert', cont:'Weiter bearbeiten',
+      saveT:'Möchtest du deine Änderungen speichern?', saveS:'Sobald alle Barcodes gescannt sind, kannst du die Änderungen übernehmen.',
+      apply:'Änderungen übernehmen', left1:'noch 1 Seite', leftN:'noch {n} Seiten', allSeen:'alle Seiten gesehen',
+      dlgT:'Änderungen übernehmen?', dlgB:'Du hast {n} Bestellmengen geändert und alle Barcodes durchgeblättert.',
+      dlgS:'Ohne Übernehmen bleibt die Bestellung so, wie sie abgeschlossen wurde – deine Änderungen gehen dann verloren.',
+      again:'Nochmal prüfen', applied:'Änderungen übernommen', edit:'Bestellmenge ändern', save:'Speichern', cancel:'Abbrechen', total:'Gesamt', back:'‹ Zurück'}};
+const bcsT = () => BCS_TX[LANG] || BCS_TX.fr;
+let BCS = null;
+function bcsRng(seed){ let s=seed>>>0; return ()=>((s=(s*1664525+1013904223)>>>0)/4294967296); }
+function bcsBars(seed){
+  const r=bcsRng(seed*7919+13), M=2, W=95; let b='';
+  const bar=(x,w)=>{ b+=`<rect x="${x*M}" y="0" width="${w*M}" height="58" fill="#111"/>`; };
+  bar(0,1); bar(2,1); let x=4;
+  while(x<W-6){ const w=1+Math.floor(r()*3); bar(x,w); x+=w+1+Math.floor(r()*2); }
+  bar(W-3,1); bar(W-1,1);
+  return `<svg class="bcs-bc" viewBox="0 0 ${W*M} 58" preserveAspectRatio="none">${b}</svg>`;
+}
+function bcsEan(ix){ const r=bcsRng(ix*31+7); return '3'+String(Math.floor(r()*1e12)).padStart(12,'0').slice(0,12); }
+function bcsQty(ix){ return BCS.edits[ix]!=null ? BCS.edits[ix] : orderVal(ix); }
+function bcsList(){ return ITEMS.map((_,ix)=>ix).filter(ix=>!ST[ix].hidden && !cpRemoved(ix) && (!BCS.hide0 || bcsQty(ix)>0 || BCS.edits[ix]!=null)); }
+function bcsOpen(){
+  BCS={page:1, hide0:true, edits:{}, scanned:{}, reached:false, dlg:false, closedAt:ocNow()};
+  let root=document.getElementById('bcsRoot');
+  if(!root){ root=document.createElement('div'); root.id='bcsRoot'; document.body.appendChild(root); root.addEventListener('click', bcsClick); }
+  bcsRender();
+}
+function bcsClose(){ const r=document.getElementById('bcsRoot'); if(r) r.innerHTML=''; BCS=null; }
+function bcsRender(){
+  const T=bcsT(), L=t(), list=bcsList(), per=5, pages=Math.max(1,Math.ceil(list.length/per));
+  if(BCS.page>pages) BCS.page=pages;
+  if(BCS.page===pages) BCS.reached=true;
+  const rows=list.slice((BCS.page-1)*per, BCS.page*per).map(ix=>{
+    const it=ITEMS[ix], q=bcsQty(ix), unit=it.unit==='kg'?'kg':L.piece;
+    const pcs = it.case!=null ? `${(Math.round(q*it.case*100)/100).toLocaleString('de-DE')} ${unit}` : '';
+    return `<div class="bcs-row">
+      <div><div class="bcs-nm">${it.name}</div>
+        <div class="bcs-meta">${it.case!=null?it.case.toLocaleString('de-DE')+' '+unit:''}${it.vk!=null?' · '+eur(it.vk):''}</div></div>
+      <div><button type="button" class="bcs-qty${BCS.edits[ix]!=null?' is-ed':''}" data-b="qty" data-i="${ix}"><b>${q}</b><span>${pcs}</span></button></div>
+      <div class="bcs-bcw${BCS.scanned[ix]?' is-sc':''}" data-b="scan" data-i="${ix}">${bcsBars(ix+1)}<div class="bcs-bcn">${bcsEan(ix)}</div></div>
+    </div>`; }).join('');
+  const ordered=ITEMS.map((_,ix)=>ix).filter(ix=>!ST[ix].hidden && !cpRemoved(ix) && bcsQty(ix)>0);
+  const cases=ordered.reduce((a,ix)=>a+bcsQty(ix),0);
+  const retail=ordered.reduce((a,ix)=>a+bcsQty(ix)*(ITEMS[ix].case||0)*(ITEMS[ix].vk||0),0);
+  const nEd=Object.keys(BCS.edits).length, left=pages-BCS.page;
+  const o=cpToday(), dl=o?ocDt(o.deadline):ocNow();
+  document.getElementById('bcsRoot').innerHTML = `<div class="bcs">
+    <div class="bcs-hdr"><button type="button" class="bcs-back" data-b="back">${T.back}</button>
+      <div class="bcs-tt"><div class="bcs-t1">${L.ordersatz||'Guide de commande'} ${ocMMMEd(dl)} &nbsp;|&nbsp; ${OC.supplier}</div>
+        <div class="bcs-t2">${T.closed} <b>${ocMMMEd(BCS.closedAt)} ${ocTime(BCS.closedAt)}</b></div></div>
+      <span class="bcs-done">✓</span></div>
+    ${nEd?`<div class="bcs-save"><span class="bcs-ico">!</span><div class="bcs-msg"><b>${T.saveT}</b>${T.saveS}</div>
+      <div class="bcs-act"><button type="button" class="bcs-apply" data-b="apply"${BCS.reached?'':' disabled'}>${T.apply}</button>
+      <span>${BCS.reached?T.allSeen:(left===1?T.left1:T.leftN.replace('{n}',left))}</span></div></div>`:''}
+    <div class="bcs-tool"><button type="button" class="bcs-sw${BCS.hide0?' on':''}" data-b="hide0" aria-pressed="${BCS.hide0}"></button><span>${T.hide0}</span></div>
+    <div class="bcs-row bcs-head"><div>${T.item}</div><div>${T.order}</div><div></div></div>
+    <div class="bcs-rows">${rows}</div>
+    <div class="bcs-pager"><button type="button" class="bcs-arr" data-b="prev"${BCS.page===1?' disabled':''}>←</button>
+      <span>${T.page} <b>${BCS.page}</b> ${T.of} <b>${pages}</b></span>
+      <button type="button" class="bcs-arr" data-b="next"${BCS.page===pages?' disabled':''}>→</button></div>
+    <div class="bcs-stats">
+      <div><span>${T.lines}</span><b>${ordered.length}</b></div>
+      <div><span>${T.cases}</span><b>${cases}</b></div>
+      <div><span>${T.retail}</span><b>${eur(retail)}</b></div>
+      <button type="button" class="bcs-cont" data-b="cont">${T.cont} ↻</button></div>
+  </div>`;
+}
+function bcsPad(ix){
+  const T=bcsT(), it=ITEMS[ix]; let val=String(bcsQty(ix));
+  const root=document.createElement('div'); root.className='ov on bcs-pad'; document.body.appendChild(root);
+  const draw=()=>{ root.innerHTML=`<div class="bcs-sheet">
+    <div class="bcs-sh"><b>${T.edit}</b><button type="button" data-k="x">✕</button></div>
+    <div class="bcs-sb"><div><div class="bcs-nm">${it.name}</div>
+      <div class="bcs-kf"><label>${T.order}</label><div class="bcs-kbox">${val}</div></div>
+      <div class="bcs-kf"><label>${T.total}</label><div>${it.case!=null?(Math.round((+val||0)*it.case*100)/100).toLocaleString('de-DE')+' '+(it.unit==='kg'?'kg':t().piece):''}</div></div></div>
+      <div class="bcs-keys">${[1,2,3,4,5,6,7,8,9].map(k=>`<button type="button" data-k="${k}">${k}</button>`).join('')}<span></span><button type="button" data-k="0">0</button><button type="button" data-k="del">⌫</button></div></div>
+    <div class="bcs-sf"><button type="button" class="bcs-lnk" data-k="x">${T.cancel}</button><button type="button" class="bcs-cta" data-k="ok">${T.save}</button></div></div>`; };
+  draw();
+  root.onclick=e=>{
+    if(e.target===root){ root.remove(); return; }
+    const k=e.target.closest('[data-k]')?.dataset.k; if(!k) return;
+    if(k==='x'){ root.remove(); return; }
+    if(k==='ok'){ const v=Math.max(0,parseInt(val||'0',10)||0); root.remove();
+      if(v===orderVal(ix)) delete BCS.edits[ix]; else BCS.edits[ix]=v; bcsRender(); return; }
+    if(k==='del') val=val.slice(0,-1)||'0'; else val=(val==='0'?k:(val+k).slice(0,2));
+    draw();
+  };
+}
+function bcsApply(){
+  Object.entries(BCS.edits).forEach(([ix,v])=>{ const s=ST[+ix]; s.order=v; s.answered=true; s.manual=true; s.pendOrder=null; });
+  BCS.edits={}; render(); bcsRender(); cpRepaint(); toast(bcsT().applied);
+}
+function bcsAskApply(){
+  const T=bcsT(), n=Object.keys(BCS.edits).length;
+  const root=document.createElement('div'); root.className='ov on'; root.style.zIndex=10001; document.body.appendChild(root);
+  root.innerHTML=`<div class="AppFormDialog"><div class="AppFormDialog__header"><div class="AppFormDialog__title">${T.dlgT}</div>
+    <button type="button" class="AppFormDialog__close" data-d="no">${CLOSE_ICON}</button></div>
+    <div class="AppFormDialog__body">${T.dlgB.replace('{n}',n)}<span style="display:block;margin-top:12px;font-size:14px;color:var(--ff-grey-500)">${T.dlgS}</span></div>
+    <div class="AppFormDialog__actions"><div class="AppFormDialog__actionsEnd">
+      <button type="button" class="PrimaryTextButton PrimaryTextButton--none" data-d="no">${T.again}</button>
+      <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" data-d="yes">${T.apply}</button></div></div></div>`;
+  root.onclick=e=>{ const d=e.target.closest('[data-d]')?.dataset.d; if(!d) return; root.remove(); if(d==='yes') bcsApply(); };
+}
+function bcsClick(e){
+  const b=e.target.closest('[data-b]'); if(!b || !BCS) return;
+  const k=b.dataset.b, ix=+b.dataset.i;
+  if(k==='back'){ bcsClose(); history.replaceState({page:'dash'}, '', location.href); showDash(); showDashTab(1); cpRepaint(); }
+  else if(k==='hide0'){ BCS.hide0=!BCS.hide0; BCS.page=1; bcsRender(); }
+  else if(k==='prev'){ BCS.page--; bcsRender(); window.scrollTo(0,0); }
+  else if(k==='next'){ BCS.page++; bcsRender(); window.scrollTo(0,0);
+    const pages=Math.max(1,Math.ceil(bcsList().length/5));
+    if(BCS.page===pages && Object.keys(BCS.edits).length && !BCS.dlg){ BCS.dlg=true; setTimeout(bcsAskApply, 400); } }
+  else if(k==='scan'){ BCS.scanned[ix]=!BCS.scanned[ix]; bcsRender(); }
+  else if(k==='qty'){ bcsPad(ix); }
+  else if(k==='apply'){ if(!b.disabled) bcsApply(); }
+  else if(k==='cont'){ cpAskReopen(()=>{ bcsClose(); _enterApp_cp(); }); }
+}
+const _enterApp_cp = enterApp;
+enterApp = function(...a){
+  const o=cpToday();
+  if(o && ocState(o, ocNow())==='completed'){ bcsOpen(); return; }
+  return _enterApp_cp(...a);
+};
+/* the centre button holds the original enterApp, so it is caught before it runs */
+document.getElementById('dashFab').addEventListener('click', e=>{
+  const o=cpToday();
+  if(!(o && ocState(o, ocNow())==='completed')) return;
+  e.stopImmediatePropagation(); e.preventDefault(); bcsOpen();
+}, true);
+"""
+
 if args.orders:
     sys.path.insert(0, __import__('os').path.dirname(__file__))
     from cp_orders_overview import inject, inject_lock
     oc = json.load(open(args.orders, encoding='utf-8')); oc.pop('_source', None)
     s = inject(s, oc, args.clock)
+    idx = s.rindex('</script>')
+    s = s[:idx] + REOPEN_JS + s[idx:]
+    idx = s.rindex('</style>')
+    s = s[:idx] + BCS_CSS + s[idx:]
     if args.opens_at:
         s = inject_lock(s, args.opens_at)
 
