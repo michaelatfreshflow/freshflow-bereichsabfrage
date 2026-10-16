@@ -625,9 +625,12 @@ window.CP_READY = true;
 const _ordCommitted_rec = ordCommitted, _orderVal_rec = orderVal;
 function cpRecNew(ix){ return (cpRemoved(ix) || cpOf(ix).ordLocked) ? 0 : _ordCommitted_rec(ix); }
 function cpRecPending(ix){ const s=ST[ix];
-  return cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked && !s.recAcc && !s.manual && s.pendOrder==null; }
+  return cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked && !s.recAcc && !s.manual; }
+/* A typed quantity that is only pending (inventory not confirmed yet, the "Ça correspond ?"
+   strip) is no decision: until it is confirmed the order stays on the old quantity, not on the
+   recalculated one. The field shows the pending number as everywhere else. */
 ordCommitted = function(ix){ return cpRecPending(ix) ? cpOf(ix).recFirst : _ordCommitted_rec(ix); };
-orderVal = function(ix){ return cpRecPending(ix) ? cpOf(ix).recFirst : _orderVal_rec(ix); };
+orderVal = function(ix){ return (ST[ix].pendOrder==null && cpRecPending(ix)) ? cpOf(ix).recFirst : _orderVal_rec(ix); };
 document.addEventListener('click', e=>{
   const b=e.target.closest('[data-a="recok"]'); if(!b) return;
   e.stopPropagation(); e.preventDefault();
