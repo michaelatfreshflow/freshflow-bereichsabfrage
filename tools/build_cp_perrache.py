@@ -582,14 +582,19 @@ function cpDecorate(){
         const own=slot && slot.querySelector('button');
         const ownKind=own && own.dataset.kind;
         if(ownKind==='ord') btns.push(own.outerHTML);
-        if(ordRecalc(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));
+        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* pending: the icon sits in the bar */
         if(ownKind==='edit') btns.push(own.outerHTML);
       }
       if(slot) slot.outerHTML=cpSlot(btns);
       if(cpRecalcd(ix) && !cpRemoved(ix) && !cpOf(ix).ordLocked){
         const f=ordWrap;
-        if(f && cpRecPending(ix)) f.insertAdjacentHTML('afterend',
-          `<div class="cpRecBar"><span>${L.recProposal} <b>${cpRecNew(ix)} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
+        if(f && cpRecPending(ix)){
+          /* one unit: the field gets the recalculation colour, and right under it the same icon,
+             the recalculated quantity and the button, pointing up at the field (which keeps the old one) */
+          const fld=ordWrap.querySelector('.ColumnCounterField'); if(fld) fld.classList.add('cpRecPend');
+          f.insertAdjacentHTML('afterend',
+          `<div class="cpRecBar">${cpBtn('rec',ix,L.tipRecTitle)}<span class="cpRecBar__v">${L.recProposal} <b>${cpRecNew(ix)} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
+        }
         else if(f && ST[ix].recAcc && !ST[ix].manual) f.insertAdjacentHTML('afterend', `<div class="cpRecBar is-ok">✓ ${L.recAccepted}</div>`);
       }
       if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
@@ -748,11 +753,20 @@ CSS_WTD = """
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
-.cpRecBar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px auto 0;position:relative;left:-10px;padding:3px 4px 3px 9px;border-radius:var(--ff-radius-pill);
-  background:#FFF8D6;border:1px solid #F2DC6B;font-size:var(--ff-text-primary-caption-12);color:#5c4a00;white-space:nowrap;width:max-content;max-width:100%}
-.cpRecBar b{color:#2b2300}
-.cpRecBar__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:3px 10px;cursor:pointer}
-.cpRecBar.is-ok{background:var(--ff-grey-100);border-color:var(--ff-grey-200);color:var(--ff-grey-600);padding-right:9px}
+.cpRecPend .ColumnCounterField__box{border:2px solid #E0B800;background:#FFFBE6}
+.cpRecBar{position:relative;display:flex;align-items:center;gap:6px;width:max-content;margin:7px auto 2px;left:-10px;
+  padding:3px 4px 3px 4px;border-radius:var(--ff-radius-pill);background:#FFF4B8;border:1px solid #E0B800;
+  font-size:var(--ff-text-primary-caption-12);color:#5c4a00;white-space:nowrap}
+.cpRecBar::before{content:"";position:absolute;top:-6px;left:50%;margin-left:-6px;width:10px;height:10px;background:#FFF4B8;
+  border-left:1px solid #E0B800;border-top:1px solid #E0B800;transform:rotate(45deg)}
+.cpRecBar .whyBtn{width:22px;height:22px;margin:0}
+.cpRecBar .whyBtn svg{width:20px;height:20px}
+.cpRecBar__v{position:relative}
+.cpRecBar__v s{color:#5c4a00;font-weight:600;text-decoration-thickness:1.5px}
+.cpRecBar__v b{color:#2b2300}
+.cpRecBar__ok{position:relative;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:3px 10px;cursor:pointer}
+.cpRecBar.is-ok{background:var(--ff-grey-100);border-color:var(--ff-grey-200);color:var(--ff-grey-600);padding:3px 9px}
+.cpRecBar.is-ok::before{background:var(--ff-grey-100);border-color:var(--ff-grey-200)}
 /* no kg/piece vs CS switch on the inventory keypad;
    no shelf chip (no shelf walk at C&P) */
 #invUnitSeg{display:none!important}
