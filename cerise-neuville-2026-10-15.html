@@ -6479,7 +6479,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const unitName = it.unit==='kg' ? 'kg' : t().piece;
     const marginPct = (it.ek!=null && it.vk) ? ((it.vk-it.ek)/it.vk*100) : null;
     const meta =
-      `<span class="metarow"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:'?'}</span>`
+      `<span class="metarow">${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:'?'}</span>`
       + `<span class="metarow">${it.vk!=null?eur(it.vk):'?'}</span>`;   /* hide_purchase_price_and_margin: retail price only */
     /* Das Zeichen steht vor den Merkmalen, immer an derselben Stelle -- so findet
        das Auge beim Durchgehen der Liste sofort, was schon in der Hand war. */

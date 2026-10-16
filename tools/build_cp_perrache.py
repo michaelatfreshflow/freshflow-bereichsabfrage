@@ -392,6 +392,9 @@ rep("       rLoKO: r ? (r.lo==null?0:r.lo) : null, rHiKO: r ? r.hi : null,",
 rep("let SORT={key:'shelf', dir:1};", "let SORT={key:'guide', dir:1};")
 rep("  {key:'shelf',     lbl:'sortShelfSeq'},\n", "")
 rep("let CATOPEN=true;", "let CATOPEN=false;")
+# No item code (PLU) in the row's meta line, only the case content (asked 16 Oct).
+rep("      `<span class=\"metarow\"><b>${it.plu!=null?it.plu:'–'}</b> ${it.case!=null?",
+    "      `<span class=\"metarow\">${it.case!=null?")
 # No supplier filter at C&P: the "Fournisseurs / Rewe" section is inherited from the REWE page.
 rep("      ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}\n", "")
 m = re.search(r'const KERN_IDS = new Set\(\[[^\]]*\]\);', s)
