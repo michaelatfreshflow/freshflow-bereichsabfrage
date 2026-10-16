@@ -10915,7 +10915,7 @@ openWhy = function(btn, ix, kind){
     box=`<div class="whyRow"><span>${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></span></div>`;
     /* the decision lives here: accept the recalculated quantity, or it is not ordered */
     if(kind==='rec') box += cpRecPending(ix)
-      ? `<div class="cpRecTip"><span>${L.recAskTip}</span><button type="button" class="cpRecTip__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`
+      ? `<div class="cpRecTip"><button type="button" class="cpRecTip__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`
       : `<div class="cpRecTip"><span class="cpRecTip__done">✓ ${ST[ix].recAcc && !ST[ix].manual ? L.recAccepted : L.recChanged}</span></div>`;
   } else if(kind==='og'){
     title=L.tipOgTitle;
