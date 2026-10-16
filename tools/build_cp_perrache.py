@@ -212,7 +212,7 @@ rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
 # ---- locale keys (same keys in all three, parity) --------------------------
 LOC = {
     'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
-               filtRecalc='Bestellung neu berechnet', recPopTitle='Neu berechnete Artikel', recPopText='Es gibt neu berechnete Artikel, die deine Aufmerksamkeit brauchen. Wir haben den Filter so gesetzt, dass du nur diese siehst. Setze den Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
+               filtRecalc='Bestellung neu berechnet', recPopTitle='Geänderte Artikel', recPopText='Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
                tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
                tipRecFirst='Zuerst', tipRecNow='Jetzt',
                tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
@@ -221,7 +221,7 @@ LOC = {
                tipLockTitle='Gesperrt', tipLockText='Dieses Feld kann nicht bearbeitet werden.',
                cpDummy='Demodaten · noch nicht Perrache', cpDemo='Beispiel', labelNew='Neu'),
     'en': dict(hdrPre='Preorder', preOrdered='Pre-ordered', preLabel='Preorder',
-               filtRecalc='Order recalculated', recPopTitle='Recalculated items', recPopText='There are new recalculated items that need your attention. We set the filter so that you see only those. Reset the filter to see everything again.', recPopOk='Got it', recPopAll='Show all', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
+               filtRecalc='Order recalculated', recPopTitle='Changed items', recPopText='There are new recalculated items and order guide changes that need your attention. We set the filters so that you see only those. Reset the filters to see everything again.', recPopOk='Got it', recPopAll='Show all', reopenOrdTitle='This order has been already completed', reopenOrdText='You are reopening a completed order. Please make sure to complete it before leaving the app.', reopenOrdYes='Reopen the order', ordClosedToast='Order completed',
                tipRecTitle='Recalculated', tipRecText='This order recommendation was recalculated.',
                tipRecFirst='First', tipRecNow='Now',
                tipOgTitle='Order guide changed', ogCase='Case size changed', ogPromo='Promo dates changed',
@@ -230,7 +230,7 @@ LOC = {
                tipLockTitle='Locked', tipLockText='This field cannot be edited.',
                cpDummy='Demo data · not Perrache yet', cpDemo='Example', labelNew='New'),
     'fr': dict(hdrPre='Prévision', preOrdered='Prévision', preLabel='Pré-commande',
-               filtRecalc='Commande recalculée', recPopTitle='Articles recalculés', recPopText='Il y a de nouveaux articles recalculés qui demandent votre attention. Nous avons réglé le filtre pour que vous ne voyiez que ceux-là. Réinitialisez le filtre pour tout revoir.', recPopOk='Compris', recPopAll='Tout afficher', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
+               filtRecalc='Commande recalculée', recPopTitle='Articles modifiés', recPopText='Il y a de nouveaux articles recalculés et des modifications du guide de commande qui demandent votre attention. Nous avons réglé les filtres pour que vous ne voyiez que ceux-là. Réinitialisez les filtres pour tout revoir.', recPopOk='Compris', recPopAll='Tout afficher', reopenOrdTitle='Cette commande a déjà été complétée', reopenOrdText="Vous rouvrez une commande déjà complétée. Assurez-vous de la compléter avant de quitter l'application.", reopenOrdYes='Réouvrir la commande', ordClosedToast='Commande complétée',
                tipRecTitle='Recalculé', tipRecText='Cette recommandation de commande a été recalculée.',
                tipRecFirst='Initial', tipRecNow='Maintenant',
                tipOgTitle='Guide de commande modifié', ogCase='Colisage modifié', ogPromo='Dates de promo modifiées',
@@ -554,7 +554,7 @@ rowHTML = function(ix, ...rest){
   const pd=cpPromoDays(ix);
   if(pd && !/class="pill promo"/.test(h)) h = h.replace('<div class="pills">', `<div class="pills"><span class="pill promo" title="${pd.long}">${L.sale} ${pd.short}</span> `);
   if(c.labels) h = h.replace('<div class="pills">', `<div class="pills">${c.labels.map(k=>`<span class="pill">${k==='new'?L.labelNew:k.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')}</span>`).join(' ')} `);
-  if(c.demo) h = h.replace('<div class="pills">', `<div class="pills"><span class="demoTag">${L.cpDemo}</span> `);
+  /* no "Exemple" tag on the demo lines (asked 16 Oct); they stay marked in CP (demo:true) */
   if(c.preLabel) h = h.replace('<div class="pills">', `<div class="pills"><span class="preLabelTag">${L.preLabel}: ${c.preLabel.date}, ${c.preLabel.qty} ${L.caseUnit}</span> `);
   return h;
 };
@@ -808,7 +808,7 @@ REOPEN_JS = r"""
    "Confirmer et clôturer" completes today's order (Complétée) and shows its barcode screen; opening
    the order again shows that screen too. "Continuer la modification" there asks first, as the app
    does (askReOpenOrderConfirmation); after "Réouvrir la commande" the list opens with
-   the filter "Commande recalculée" already on, i.e. only the items whose reco moved since.
+   the filters "Guide de commande modifié" and "Commande recalculée" already on.
    ?closed=1 opens the page with today's order already completed. */
 function cpToday(){ return OC.orders.find(o=>o.deadline.startsWith(OC.today)); }
 const _ocStatusAt_cp = ocStatusAt;
@@ -867,11 +867,13 @@ function cpAskReopen(go){
     go();
     /* only the recalculated items, the filter already applied */
     clearFilt();
-    const anyRec=ITEMS.some((it,ix)=>cpRecalcd(ix));
+    /* both warnings HQ can cause while the order was closed: recalculated, order guide changed */
+    const anyRec=ITEMS.some((it,ix)=>cpRecalcd(ix)), anyOg=ITEMS.some((it,ix)=>cpOgChanged(ix));
     if(anyRec) CATFILT.rec=true;
+    if(anyOg) CATFILT.og=true;
     syncFiltUI();
     goToList(null);
-    if(anyRec) cpRecPopup();
+    if(anyRec || anyOg) cpRecPopup();
   };
 }
 /* ===== C&P: barcode screen of a completed order (MOB-1683, order-guide-barcodes.html) =====
