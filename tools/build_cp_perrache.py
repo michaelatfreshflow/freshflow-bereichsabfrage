@@ -492,9 +492,10 @@ function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : (cpO
 /* decided recalculation: accepted to another value than the backend's, or changed by hand while open */
 function preRecalc(ix){ const p=cpOf(ix).pre, s=ST[ix];
   return !!p && !p.locked && !prePending(ix) && ((s.preAccVal!=null && s.preAccVal!==p.sys) || !!s.preRecDecided); }
-/* The open recalculated tooltip under a field: icon and title, before -> now, Accept. */
-function cpRecCardHTML(ix, first, now, act){ const L=t();
-  return `<div class="cpRecCard"><div class="cpRecCard__hd">${ICON_REC}<b>${L.tipRecTitle}</b></div><div class="cpRecCard__box">${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></div><button type="button" class="cpRecCard__ok" data-a="${act}" data-i="${ix}">${L.recAccept}</button></div>`; }
+/* The slim accept bar under a field, pointing at it: the recalculated icon (tap: before -> now),
+   the recalculated quantity and Accept. Commande and Prévision each get their own. */
+function cpRecCardHTML(ix, first, now, act){ const L=t(), kind = act==='recok' ? 'rec' : 'prerec';
+  return `<div class="cpRecBar">${cpBtn(kind,ix,L.tipRecTitle)}<span class="cpRecBar__v">${L.recProposal} <b>${now} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept}</button></div>`; }
 /* the arrow points at the field, not at the middle of the card */
 function cpAimCard(card, fld){ const box=fld && fld.querySelector('.ColumnCounterField__box');
   if(!card || !box) return; const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
@@ -599,7 +600,7 @@ function cpDecorate(){
         const own=slot && slot.querySelector('button');
         const ownKind=own && own.dataset.kind;
         if(ownKind==='ord') btns.push(own.outerHTML);
-        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the open tooltip under the field */
+        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the accept bar under the field */
         if(ownKind==='edit') btns.push(own.outerHTML);
       }
       if(slot) slot.outerHTML=cpSlot(btns);
@@ -624,7 +625,7 @@ function cpDecorate(){
     }
     const pre=document.createElement('div'); pre.className='cpPre'; pre.innerHTML=preCellHTML(ix);
     cells[2].after(pre);
-    if(prePending(ix)) cpAimCard(pre.querySelector('.cpRecCard'), pre.querySelector('.ColumnCounterField'));
+    if(prePending(ix)) cpAimCard(pre.querySelector('.cpRecBar'), pre.querySelector('.ColumnCounterField'));
   });
   const hp=document.getElementById('hdrPre'); if(hp) hp.textContent=t().hdrPre;
 }
@@ -789,20 +790,19 @@ CSS_WTD = """
    as on the order corrections banner */
 :root{--ff-color-warning-text:#8a4b00;--cpRecTint:#fef1dc}
 .cpRecPend .ColumnCounterField__box{border:2px solid var(--ff-color-warning);background:var(--cpRecTint)}
-/* Not decided yet: the MOB-1765 recalculated tooltip, always open under the field and pointing
-   at it, with Accept in it. Tooltip colours as in the app (AppToolTip); Accept is the primary button. */
-.cpRecCard{position:relative;box-sizing:border-box;width:max-content;max-width:calc(100% - 8px);margin:10px auto 4px;padding:9px 10px;
-  background:#3F3F46;color:#fff;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.18);text-align:left}
-.cpRecCard::before{content:"";position:absolute;top:-5px;left:var(--ax,50%);margin-left:-6px;width:12px;height:12px;
-  background:#3F3F46;transform:rotate(45deg);border-radius:2px}
-.cpRecCard__hd{position:relative;display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold)}
-.cpRecCard__hd svg{width:20px;height:20px;flex:0 0 auto;display:block}
-.cpRecCard__box{margin-top:8px;background:#52525B;border-radius:10px;padding:7px 10px;
-  font-size:var(--ff-text-primary-caption-12);line-height:1.35}
-.cpRecCard__box s,.cpRecCard__box b{white-space:nowrap}
-.cpRecCard__box s{text-decoration-thickness:1.5px}
-.cpRecCard__ok{display:block;margin:8px 0 0 auto;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;
-  font:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:600;padding:5px 14px;cursor:pointer}
+/* Not decided yet: a slim bar under the field, pointing at it (C&P, agreed 16 Oct; slim again 19 Oct).
+   App colours: warning at 18 % with warningText, Accept is the primary button. Fits its column, so
+   the Commande and Prévision bars sit side by side. */
+.cpRecBar{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;
+  margin:6px auto 2px;padding:2px 3px;border-radius:var(--ff-radius-pill);background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
+  font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
+.cpRecBar::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:9px;height:9px;background:var(--cpRecTint);
+  border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
+.cpRecBar .whyBtn{position:relative;width:18px;height:18px;margin:0;flex:0 0 auto}
+.cpRecBar .whyBtn svg{width:17px;height:17px}
+.cpRecBar__v{position:relative}
+.cpRecBar__v b{color:var(--ff-color-warning-text)}
+.cpRecBar__ok{position:relative;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:2px 7px;cursor:pointer}
 .cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
 .cpRecTip .cpRecTip__ok{align-self:flex-end}
 .cpRecTip__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
