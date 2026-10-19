@@ -483,8 +483,23 @@ function preApp(ix){
   /* what actually gets ordered, not a pending (unconfirmed) value */
   return Math.max(0, p.sys - (ordCommitted(ix) - cpBaseOrder(ix)));
 }
-function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : preApp(ix); }
-function preRecalc(ix){ const p=cpOf(ix).pre; return !!p && !p.locked && ST[ix].preUser==null && preApp(ix)!==p.sys; }
+/* A recalculated Prévision needs its own Accept, separate from the commande (C&P, 19 Oct):
+   until accepted it keeps the value it had (the backend one, or the last accepted one). */
+function preBase(ix){ const s=ST[ix]; return s.preAccVal!=null ? s.preAccVal : cpOf(ix).pre.sys; }
+function prePending(ix){ const p=cpOf(ix).pre;
+  return !!p && !p.locked && !cpRemoved(ix) && ST[ix].preUser==null && preApp(ix)!==preBase(ix); }
+function preShown(ix){ const s=ST[ix]; return s.preUser!=null ? s.preUser : (cpOf(ix).pre ? preBase(ix) : null); }
+/* decided recalculation: accepted to another value than the backend's, or changed by hand while open */
+function preRecalc(ix){ const p=cpOf(ix).pre, s=ST[ix];
+  return !!p && !p.locked && !prePending(ix) && ((s.preAccVal!=null && s.preAccVal!==p.sys) || !!s.preRecDecided); }
+/* The slim accept bar under a field, pointing at it: the recalculated icon (tap: before -> now),
+   the recalculated quantity and Accept. Commande and Prévision each get their own. */
+function cpRecCardHTML(ix, first, now, act){ const L=t(), kind = act==='recok' ? 'rec' : 'prerec';
+  return `<div class="cpRecBar">${cpBtn(kind,ix,L.tipRecTitle)}<span class="cpRecBar__v">${L.recProposal} <b>${now} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept}</button></div>`; }
+/* the arrow points at the field, not at the middle of the card */
+function cpAimCard(card, fld){ const box=fld && fld.querySelector('.ColumnCounterField__box');
+  if(!card || !box) return; const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
+  if(c.width) card.style.setProperty('--ax', Math.max(14, Math.min(d.left+d.width/2-c.left, c.width-14))+'px'); }
 function ordRecalc(ix){ return cpRecalcd(ix) && !cpRemoved(ix); }
 /* Inventory as one number: the app's simulated inventory, inside the plan rung. Piece items
    land on whole pieces so the case figure and the piece figure agree. */
@@ -527,18 +542,18 @@ function preCellHTML(ix){
   const p=cpOf(ix).pre, L=t();
   if(cpRemoved(ix)) return `<div class="withbang"><div class="ColumnCounterField ColumnCounterField--locked"><button class="ColumnCounterField__button" disabled>${ICON_MINUS}</button><div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>0</b><i>${L.caseUnit}</i></span></div><button class="ColumnCounterField__button" disabled>${ICON_PLUS}</button></div><span class="statusSlot"></span></div>`;
   if(!p) return `<div class="preDash">—</div>`;
-  const v=preShown(ix), locked=!!p.locked, s=ST[ix];
+  const v=preShown(ix), locked=!!p.locked, s=ST[ix], pend=prePending(ix);
   const icons=[];
   if(locked) icons.push(cpBtn('lock',ix,L.tipLockTitle));
   if(preRecalc(ix)) icons.push(cpBtn('prerec',ix,L.tipRecTitle));
   if(!locked && s.preUser!=null && s.preUser!==preApp(ix)) icons.push(cpBtn('preedit',ix,L.tipEditTitle));
   const it=ITEMS[ix];
-  return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}">
+  return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}${pend?' cpRecPend':''}">
       <button class="ColumnCounterField__button" data-a="predec" data-i="${ix}"${locked||v<=0?' disabled':''} aria-label="${L.less}">${ICON_MINUS}</button>
       <div class="ColumnCounterField__box"><span class="ColumnCounterField__value"><b>${v}</b><i>${L.caseUnit}</i></span>
         </div>
       <button class="ColumnCounterField__button" data-a="preinc" data-i="${ix}"${locked?' disabled':''} aria-label="${L.more}">${ICON_PLUS}</button>
-    </div>${cpSlot(icons)}</div>`;
+    </div>${cpSlot(icons)}</div>`+(pend ? cpRecCardHTML(ix, preBase(ix), preApp(ix), 'preok') : '');
 }
 
 /* Hook into the row: OG marker behind the name, recalculated + stacking on the commande,
@@ -585,7 +600,7 @@ function cpDecorate(){
         const own=slot && slot.querySelector('button');
         const ownKind=own && own.dataset.kind;
         if(ownKind==='ord') btns.push(own.outerHTML);
-        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the open tooltip under the field */
+        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the accept bar under the field */
         if(ownKind==='edit') btns.push(own.outerHTML);
       }
       if(slot) slot.outerHTML=cpSlot(btns);
@@ -595,11 +610,8 @@ function cpDecorate(){
       if(cpRecPending(ix)){
         const fld=ordWrap.querySelector('.ColumnCounterField'); if(fld) fld.classList.add('cpRecPend');
         ordWrap.insertAdjacentHTML('afterend',
-          `<div class="cpRecCard"><div class="cpRecCard__hd">${ICON_REC}<b>${L.tipRecTitle}</b></div><div class="cpRecCard__box">${L.tipRecFirst} <s>${cpOf(ix).recFirst} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${cpRecNew(ix)} ${L.caseUnit}</b></div><button type="button" class="cpRecCard__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
-        /* the arrow points at the field, not at the middle of the card */
-        const card=ordWrap.nextElementSibling, box=fld && fld.querySelector('.ColumnCounterField__box');
-        if(card && box){ const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
-          if(c.width) card.style.setProperty('--ax', Math.max(14, Math.min(d.left+d.width/2-c.left, c.width-14))+'px'); }
+          cpRecCardHTML(ix, cpOf(ix).recFirst, cpRecNew(ix), 'recok'));
+        cpAimCard(ordWrap.nextElementSibling, fld);
       }
       if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
       if(cpOf(ix).ordLocked){
@@ -613,6 +625,7 @@ function cpDecorate(){
     }
     const pre=document.createElement('div'); pre.className='cpPre'; pre.innerHTML=preCellHTML(ix);
     cells[2].after(pre);
+    if(prePending(ix)) cpAimCard(pre.querySelector('.cpRecBar'), pre.querySelector('.ColumnCounterField'));
   });
   const hp=document.getElementById('hdrPre'); if(hp) hp.textContent=t().hdrPre;
 }
@@ -648,6 +661,11 @@ document.addEventListener('click', e=>{
   e.stopPropagation(); e.preventDefault();
   ST[+b.dataset.i].recAcc=true; if(typeof closeWhy==='function') closeWhy(); render();
 }, true);
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="preok"]'); if(!b) return;
+  e.stopPropagation(); e.preventDefault();
+  const ix=+b.dataset.i; ST[ix].preAccVal=preApp(ix); if(typeof closeWhy==='function') closeWhy(); render();
+}, true);
 
 /* Tooltip content for the C&P kinds; the base openWhy keeps inv/ord/edit/info. */
 const _openWhy_cp = openWhy;
@@ -658,13 +676,16 @@ openWhy = function(btn, ix, kind){
   let title, text='', box='';
   if(kind==='rec'||kind==='prerec'){
     title=L.tipRecTitle; text=L.tipRecText;
-    const first = kind==='rec' ? cpOf(ix).recFirst : cpOf(ix).pre.sys;
-    const now = kind==='rec' ? cpRecNew(ix) : preShown(ix);
+    const first = kind==='rec' ? cpOf(ix).recFirst : (prePending(ix) ? preBase(ix) : cpOf(ix).pre.sys);
+    const now = kind==='rec' ? cpRecNew(ix) : (prePending(ix) ? preApp(ix) : preShown(ix));
     box=`<div class="whyRow"><span>${L.tipRecFirst} <s>${first} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${now} ${L.caseUnit}</b></span></div>`;
     /* the decision lives here: accept the recalculated quantity, or it is not ordered */
     if(kind==='rec') box += cpRecPending(ix)
       ? `<div class="cpRecTip"><button type="button" class="cpRecTip__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`
       : `<div class="cpRecTip"><span class="cpRecTip__done">✓ ${ST[ix].recAcc && !ST[ix].manual ? L.recAccepted : L.recChanged}</span></div>`;
+    if(kind==='prerec') box += prePending(ix)
+      ? `<div class="cpRecTip"><button type="button" class="cpRecTip__ok" data-a="preok" data-i="${ix}">${L.recAccept}</button></div>`
+      : `<div class="cpRecTip"><span class="cpRecTip__done">✓ ${ST[ix].preUser==null ? L.recAccepted : L.recChanged}</span></div>`;
   } else if(kind==='og'){
     title=L.tipOgTitle;
     const og=cpOf(ix).og, order=['added','removed','case','promo','price'];
@@ -688,9 +709,9 @@ document.addEventListener('click', e=>{
   const b=e.target.closest('[data-a="predec"],[data-a="preinc"]'); if(!b) return;
   e.stopPropagation();
   const ix=+b.dataset.i, s=ST[ix];
-  const v=preShown(ix) + (b.dataset.a==='preinc'?1:-1);
-  s.preUser=Math.max(0,v);
-  if(s.preUser===preApp(ix)) s.preUser=null;
+  const v=Math.max(0, preShown(ix) + (b.dataset.a==='preinc'?1:-1));
+  if(prePending(ix)) s.preRecDecided=true;
+  if(v===preApp(ix)){ s.preUser=null; s.preAccVal=v; } else s.preUser=v;
   render();
 }, true);
 if(CP_DUMMY){ const d=document.createElement('div'); d.className='cpDummy'; d.textContent=t().cpDummy; document.body.appendChild(d); }
@@ -769,19 +790,19 @@ CSS_WTD = """
    as on the order corrections banner */
 :root{--ff-color-warning-text:#8a4b00;--cpRecTint:#fef1dc}
 .cpRecPend .ColumnCounterField__box{border:2px solid var(--ff-color-warning);background:var(--cpRecTint)}
-/* Not decided yet: the MOB-1765 recalculated tooltip, always open under the field and pointing
-   at it, with Accept in it. Tooltip colours as in the app (AppToolTip); Accept is the primary button. */
-.cpRecCard{position:relative;width:max-content;max-width:260px;margin:10px auto 4px;padding:10px 12px;
-  background:#3F3F46;color:#fff;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.18);text-align:left}
-.cpRecCard::before{content:"";position:absolute;top:-5px;left:var(--ax,50%);margin-left:-6px;width:12px;height:12px;
-  background:#3F3F46;transform:rotate(45deg);border-radius:2px}
-.cpRecCard__hd{position:relative;display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold)}
-.cpRecCard__hd svg{width:20px;height:20px;flex:0 0 auto;display:block}
-.cpRecCard__box{margin-top:8px;background:#52525B;border-radius:10px;padding:7px 10px;
-  font-size:var(--ff-text-primary-caption-12);line-height:1.35;white-space:nowrap}
-.cpRecCard__box s{text-decoration-thickness:1.5px}
-.cpRecCard__ok{display:block;margin:8px 0 0 auto;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;
-  font:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:600;padding:5px 14px;cursor:pointer}
+/* Not decided yet: a slim bar under the field, pointing at it (C&P, agreed 16 Oct; slim again 19 Oct).
+   App colours: warning at 18 % with warningText, Accept is the primary button. Fits its column, so
+   the Commande and Prévision bars sit side by side. */
+.cpRecBar{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;
+  margin:6px auto 2px;padding:2px 3px;border-radius:var(--ff-radius-pill);background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
+  font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
+.cpRecBar::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:9px;height:9px;background:var(--cpRecTint);
+  border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
+.cpRecBar .whyBtn{position:relative;width:18px;height:18px;margin:0;flex:0 0 auto}
+.cpRecBar .whyBtn svg{width:17px;height:17px}
+.cpRecBar__v{position:relative}
+.cpRecBar__v b{color:var(--ff-color-warning-text)}
+.cpRecBar__ok{position:relative;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:2px 7px;cursor:pointer}
 .cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
 .cpRecTip .cpRecTip__ok{align-self:flex-end}
 .cpRecTip__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
