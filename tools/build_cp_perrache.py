@@ -854,13 +854,16 @@ BCS_CSS = r"""
 .bcs-sw{width:36px;height:20px;border-radius:12px;background:var(--ff-grey-300);position:relative;border:0;cursor:pointer;padding:0}
 .bcs-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
 .bcs-sw.on{background:#ff8502}.bcs-sw.on::after{left:18px}
-.bcs-row{display:grid;grid-template-columns:1fr 120px minmax(150px,200px);gap:14px;padding:12px 18px;border-bottom:1px solid var(--ff-grey-200);align-items:center}
+.bcs-row{display:grid;grid-template-columns:1fr 100px 120px minmax(150px,200px);gap:14px;padding:12px 18px;border-bottom:1px solid var(--ff-grey-200);align-items:center}
 .bcs-head{font-size:13px;font-weight:600;color:var(--ff-grey-600);padding-top:10px;padding-bottom:10px}
 .bcs-rows{flex:1}
 .bcs-nm{font-weight:700;font-size:14.5px;line-height:1.25;margin-bottom:4px}
 .bcs-meta{font-size:12.5px;color:var(--ff-grey-500)}
 .bcs-qty{border:1px solid var(--ff-grey-200);border-radius:7px;padding:6px 10px;min-width:70px;background:#fff;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center}
 .bcs-qty b{font-size:15px;color:var(--ff-grey-900)}.bcs-qty span{font-size:10px;color:var(--ff-grey-500)}
+/* inventory: one number, read-only (the count, else the simulated inventory the order guide shows) */
+.bcs-inv{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.bcs-inv b{font-size:15px;color:var(--ff-grey-900);font-weight:600}.bcs-inv span{font-size:10px;color:var(--ff-grey-500)}
 .bcs-qty.is-ed{border-color:#ff8502}.bcs-qty.is-ed b{color:#ff8502}
 .bcs-bcw{cursor:pointer}.bcs-bcw.is-sc{opacity:.3}
 .bcs-bc{display:block;width:100%;height:58px}
@@ -968,21 +971,21 @@ function cpAskReopen(go){
    "Continuer la modification" reopens the order (askReOpenOrderConfirmation). C&P's order guide
    carries no barcodes (prod_orderset_plu.barcode is empty at Neuville): the bars are drawn. */
 const BCS_TX = {
-  fr:{closed:'Clôturée', hide0:'Masquer les commandes à 0', item:'Article', order:'Commande', page:'Page', of:'sur',
+  fr:{closed:'Clôturée', hide0:'Masquer les commandes à 0', item:'Article', inv:'Inventaire', order:'Commande', page:'Page', of:'sur',
       lines:'Articles', cases:'Nb de colis', retail:'Prix de vente', cont:'Continuer la modification',
       saveT:'Voulez-vous enregistrer vos modifications ?', saveS:'Une fois tous les codes-barres scannés, vous pouvez appliquer les modifications.',
       apply:'Appliquer les modifications', left1:'1 page restante', leftN:'{n} pages restantes', allSeen:'toutes les pages vues',
       dlgT:'Appliquer les modifications ?', dlgB:'Vous avez modifié {n} quantité(s) de commande et parcouru tous les codes-barres.',
       dlgS:'Sans les appliquer, la commande reste telle qu’elle a été complétée – vos modifications sont alors perdues.',
       again:'Revoir', applied:'Modifications appliquées', edit:'Modifier la quantité commandée', save:'Enregistrer', cancel:'Annuler', total:'Total', back:'‹ Retour'},
-  en:{closed:'Closed', hide0:'Hide 0-Orders', item:'Item', order:'Order', page:'Page', of:'of',
+  en:{closed:'Closed', hide0:'Hide 0-Orders', item:'Item', inv:'Inventory', order:'Order', page:'Page', of:'of',
       lines:'Line Items', cases:'Case Count', retail:'Retail Price', cont:'Continue Editing',
       saveT:'Do you want to save your changes?', saveS:'Once you have scanned all barcodes, you can apply the changes.',
       apply:'Apply changes', left1:'1 page left', leftN:'{n} pages left', allSeen:'all pages seen',
       dlgT:'Apply changes?', dlgB:'You changed {n} order quantities and have paged through all barcodes.',
       dlgS:'Without applying, the order stays exactly as it was completed – your changes are then lost.',
       again:'Review again', applied:'Changes applied', edit:'Edit order quantity', save:'Save', cancel:'Cancel', total:'Total', back:'‹ Back'},
-  de:{closed:'Abgeschlossen', hide0:'0-Bestellungen ausblenden', item:'Artikel', order:'Bestellung', page:'Seite', of:'von',
+  de:{closed:'Abgeschlossen', hide0:'0-Bestellungen ausblenden', item:'Artikel', inv:'Bestand', order:'Bestellung', page:'Seite', of:'von',
       lines:'Artikel', cases:'Kisten', retail:'Verkaufswert', cont:'Weiter bearbeiten',
       saveT:'Möchtest du deine Änderungen speichern?', saveS:'Sobald alle Barcodes gescannt sind, kannst du die Änderungen übernehmen.',
       apply:'Änderungen übernehmen', left1:'noch 1 Seite', leftN:'noch {n} Seiten', allSeen:'alle Seiten gesehen',
@@ -1001,6 +1004,11 @@ function bcsBars(seed){
   return `<svg class="bcs-bc" viewBox="0 0 ${W*M} 58" preserveAspectRatio="none">${b}</svg>`;
 }
 function bcsEan(ix){ const r=bcsRng(ix*31+7); return '3'+String(Math.floor(r()*1e12)).padStart(12,'0').slice(0,12); }
+/* Inventory as ONE number, as in the order guide: the count if there is one, else the simulated inventory. */
+function bcsInv(ix){ const it=ITEMS[ix], s=ST[ix];
+  if(s.step==='need') return {big:'–', small:''};
+  const v = s.step==='range' || s.ko==null ? cpSimKo(it,s) : s.ko;
+  return {big:koNum(v)+' '+t().caseUnit, small:cpSimSub(it,v)}; }
 function bcsQty(ix){ return BCS.edits[ix]!=null ? BCS.edits[ix] : orderVal(ix); }
 function bcsList(){ return ITEMS.map((_,ix)=>ix).filter(ix=>!ST[ix].hidden && !cpRemoved(ix) && (!BCS.hide0 || bcsQty(ix)>0 || BCS.edits[ix]!=null)); }
 function bcsOpen(){
@@ -1020,6 +1028,7 @@ function bcsRender(){
     return `<div class="bcs-row">
       <div><div class="bcs-nm">${it.name}</div>
         <div class="bcs-meta">${it.case!=null?it.case.toLocaleString('de-DE')+' '+unit:''}${it.vk!=null?' · '+eur(it.vk):''}</div></div>
+      <div class="bcs-inv">${(()=>{ const n=bcsInv(ix); return `<b>${n.big}</b><span>${n.small}</span>`; })()}</div>
       <div><button type="button" class="bcs-qty${BCS.edits[ix]!=null?' is-ed':''}" data-b="qty" data-i="${ix}"><b>${q}</b><span>${pcs}</span></button></div>
       <div class="bcs-bcw${BCS.scanned[ix]?' is-sc':''}" data-b="scan" data-i="${ix}">${bcsBars(ix+1)}<div class="bcs-bcn">${bcsEan(ix)}</div></div>
     </div>`; }).join('');
@@ -1037,7 +1046,7 @@ function bcsRender(){
       <div class="bcs-act"><button type="button" class="bcs-apply" data-b="apply"${BCS.reached?'':' disabled'}>${T.apply}</button>
       <span>${BCS.reached?T.allSeen:(left===1?T.left1:T.leftN.replace('{n}',left))}</span></div></div>`:''}
     <div class="bcs-tool"><button type="button" class="bcs-sw${BCS.hide0?' on':''}" data-b="hide0" aria-pressed="${BCS.hide0}"></button><span>${T.hide0}</span></div>
-    <div class="bcs-row bcs-head"><div>${T.item}</div><div>${T.order}</div><div></div></div>
+    <div class="bcs-row bcs-head"><div>${T.item}</div><div>${T.inv}</div><div>${T.order}</div><div></div></div>
     <div class="bcs-rows">${rows}</div>
     <div class="bcs-pager"><button type="button" class="bcs-arr" data-b="prev"${BCS.page===1?' disabled':''}>←</button>
       <span>${T.page} <b>${BCS.page}</b> ${T.of} <b>${pages}</b></span>
