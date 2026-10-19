@@ -2283,21 +2283,23 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
 .cpStrip .SalesHistory__card{grid-template-columns:minmax(0,1fr);padding-left:3px;padding-right:3px}
 .cpStrip .SalesHistory__marks{display:none}
 .cpStrip .SalesHistory__wk{grid-template-columns:repeat(7,minmax(0,1fr))}
-/* app colours only (AppColors): warning (#FAAF3B) at 18 % on white = #FEF1DC, as on the order
-   corrections banner; text warningText; Accept is the primary button */
+/* app colours only (AppColors): the field keeps warning (#FAAF3B) at 18 % on white = #FEF1DC,
+   as on the order corrections banner */
 :root{--ff-color-warning-text:#8a4b00;--cpRecTint:#fef1dc}
 .cpRecPend .ColumnCounterField__box{border:2px solid var(--ff-color-warning);background:var(--cpRecTint)}
-.cpRecBar{position:relative;display:flex;align-items:center;gap:6px;width:max-content;margin:7px auto 2px;left:-10px;
-  padding:3px 4px 3px 4px;border-radius:var(--ff-radius-pill);background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
-  font-size:var(--ff-text-primary-caption-12);color:var(--ff-color-warning-text);white-space:nowrap}
-.cpRecBar::before{content:"";position:absolute;top:-6px;left:50%;margin-left:-6px;width:10px;height:10px;background:var(--cpRecTint);
-  border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
-.cpRecBar .whyBtn{width:22px;height:22px;margin:0}
-.cpRecBar .whyBtn svg{width:20px;height:20px}
-.cpRecBar__v{position:relative}
-.cpRecBar__v s{color:var(--ff-color-warning-text);font-weight:600;text-decoration-thickness:1.5px}
-.cpRecBar__v b{color:var(--ff-color-warning-text)}
-.cpRecBar__ok{position:relative;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:3px 10px;cursor:pointer}
+/* Not decided yet: the MOB-1765 recalculated tooltip, always open under the field and pointing
+   at it, with Accept in it. Tooltip colours as in the app (AppToolTip); Accept is the primary button. */
+.cpRecCard{position:relative;width:max-content;max-width:260px;margin:10px auto 4px;padding:10px 12px;
+  background:#3F3F46;color:#fff;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.18);text-align:left}
+.cpRecCard::before{content:"";position:absolute;top:-5px;left:var(--ax,50%);margin-left:-6px;width:12px;height:12px;
+  background:#3F3F46;transform:rotate(45deg);border-radius:2px}
+.cpRecCard__hd{position:relative;display:flex;align-items:center;gap:8px;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold)}
+.cpRecCard__hd svg{width:20px;height:20px;flex:0 0 auto;display:block}
+.cpRecCard__box{margin-top:8px;background:#52525B;border-radius:10px;padding:7px 10px;
+  font-size:var(--ff-text-primary-caption-12);line-height:1.35;white-space:nowrap}
+.cpRecCard__box s{text-decoration-thickness:1.5px}
+.cpRecCard__ok{display:block;margin:8px 0 0 auto;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;
+  font:inherit;font-size:var(--ff-text-primary-caption-12);font-weight:600;padding:5px 14px;cursor:pointer}
 .cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
 .cpRecTip .cpRecTip__ok{align-self:flex-end}
 .cpRecTip__ok{border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:7px 16px;cursor:pointer}
@@ -10844,7 +10846,7 @@ function cpDecorate(){
         const own=slot && slot.querySelector('button');
         const ownKind=own && own.dataset.kind;
         if(ownKind==='ord') btns.push(own.outerHTML);
-        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the accept bar */
+        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the open tooltip under the field */
         if(ownKind==='edit') btns.push(own.outerHTML);
       }
       if(slot) slot.outerHTML=cpSlot(btns);
@@ -10854,7 +10856,11 @@ function cpDecorate(){
       if(cpRecPending(ix)){
         const fld=ordWrap.querySelector('.ColumnCounterField'); if(fld) fld.classList.add('cpRecPend');
         ordWrap.insertAdjacentHTML('afterend',
-          `<div class="cpRecBar">${cpBtn('rec',ix,L.tipRecTitle)}<span class="cpRecBar__v">${L.recProposal} <b>${cpRecNew(ix)} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
+          `<div class="cpRecCard"><div class="cpRecCard__hd">${ICON_REC}<b>${L.tipRecTitle}</b></div><div class="cpRecCard__box">${L.tipRecFirst} <s>${cpOf(ix).recFirst} ${L.caseUnit}</s> → ${L.tipRecNow} <b>${cpRecNew(ix)} ${L.caseUnit}</b></div><button type="button" class="cpRecCard__ok" data-a="recok" data-i="${ix}">${L.recAccept}</button></div>`);
+        /* the arrow points at the field, not at the middle of the card */
+        const card=ordWrap.nextElementSibling, box=fld && fld.querySelector('.ColumnCounterField__box');
+        if(card && box){ const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
+          if(c.width) card.style.setProperty('--ax', Math.max(14, Math.min(d.left+d.width/2-c.left, c.width-14))+'px'); }
       }
       if(cpRemoved(ix)){ const b=cells[2].querySelector('.ColumnCounterField__value b'); if(b) b.textContent='0'; }
       if(cpOf(ix).ordLocked){
