@@ -1159,10 +1159,9 @@ body.isFiltering{
 .SalesHistory--lg .SalesHistory__wk span:nth-child(n+8){border-top:1px solid var(--ff-grey-200)}
 .SalesHistory--lg .SalesHistory__wd{flex-direction:column;gap:0;line-height:1.1;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500)}
 .SalesHistory--lg .SalesHistory__wd b{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800)}
-/* Im Blatt ist der ganze Aktionstag hellrot hinterlegt, vom Wochentag bis zur
-   letzten Zeile -- eine Spalte, die man beim Wischen sofort findet. */
-.SalesHistory--lg .SalesHistory__wk .is-promo{background:#fdeceb}
-.SalesHistory--lg .SalesHistory__wd.is-promo{justify-self:stretch;width:auto;margin:0;padding:0;border-radius:0;
+/* Im Blatt ist nur der Kopf des Aktionstags hellrot hinterlegt (Wochentag und
+   Datum); die Zahlen darunter bleiben unberuehrt. */
+.SalesHistory--lg .SalesHistory__wd.is-promo{justify-self:stretch;width:auto;margin:0;padding:0;border-radius:0;background:#fdeceb;
   color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-regular)}
 .SalesHistory--lg .SalesHistory__wd.is-promo b{color:var(--ff-color-tag-promotion-foreground)}
 .SalesHistory--lg .SalesHistory__s,.SalesHistory--lg .SalesHistory__x{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);color:var(--ff-grey-900)}
@@ -5993,8 +5992,7 @@ function histHTML(ix, opt){
     rows.forEach(k=>{ const R=HIST_ROWS[k];
       for(let d=w*7; d<w*7+7; d++){
         const v=histNum(S[k][d],it,R.nilZero);
-        const promo=opt.lg && (HIST_PROMO[it.plu]||[]).includes(d);
-        body+=`<span class="${R.cls}${v==null?' is-nil':''}${promo?' is-promo':''}">${v==null?'–':v}</span>`;
+        body+=`<span class="${R.cls}${v==null?' is-nil':''}">${v==null?'–':v}</span>`;
       }
     });
     return `<div class="SalesHistory__wk" data-wk="${w}">${hd}${body}</div>`;
