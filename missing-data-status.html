@@ -3190,11 +3190,8 @@ const T={
     miCatIntake:'Wareneingang',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Verkauf',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Wareneingangsdaten abschicken',
-    /* Nur der Wareneingang steht "aus" statt zu "fehlen": hinter ihm liegt eine
-       Annahme, die weiterrechnet. Die anderen Quellen fehlen wirklich, sie
-       behalten missingInputTableMissingStatus. */
-    miPending:'Ausstehend',
-    miIntakeFallback:'Bisher wurden keine neuen Daten empfangen. Freshflow nutzt vorübergehend die ursprüngliche Bestellmenge als Grundlage.',
+    /* MOB-1781: Wortlaut von Lars (Slack, 18.09. / 21.09. / 25.09.). */
+    miIntakeFallback:'Heutiger Wareneingang ist noch nicht da. Bis dahin arbeiten wir mit den Bestellmengen von gestern. Lieferkappungen und Reklamationen sind also in den simulierten Beständen nicht berücksichtigt.',
     miProcessing:'Wareneingang wird verarbeitet',
     miSince:'seit {t}',
     /* Der Push. Die App verschickt heute keine -- es gibt also auch keine
@@ -3587,8 +3584,7 @@ const T={
     miCatIntake:'Order Intake',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Sales',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Send order intake data',
-    miPending:'Pending',
-    miIntakeFallback:'No new data has been received yet. Freshflow is temporarily using the original order quantity as the basis.',
+    miIntakeFallback:"Today's intake has not arrived yet. Until then we use yesterday's order quantities. Delivery caps and complaints are therefore not included in the simulated inventory.",
     miProcessing:'Order intake is being processed',
     miSince:'since {t}',
     pushApp:'Freshflow',
@@ -3978,8 +3974,7 @@ const T={
     miCatIntake:'Livraison',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Ventes',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Envoyer les données de livraison',
-    miPending:'En attente',
-    miIntakeFallback:"Aucune nouvelle donnée n'a encore été reçue. Freshflow utilise provisoirement la quantité commandée initiale comme base.",
+    miIntakeFallback:"La livraison du jour n'est pas encore arrivée. D'ici là, nous utilisons les quantités commandées hier. Les livraisons plafonnées et les réclamations ne sont donc pas prises en compte dans les stocks simulés.",
     miProcessing:'Livraison en cours de traitement',
     miSince:'depuis {t}',
     pushApp:'Freshflow',
@@ -4464,7 +4459,7 @@ document.addEventListener('keydown', e=>{
    nichts zu lesen gibt. Fehlt etwas, traegt er missingInputWarningIconCaption
    und oeffnet auf Druck die Tafel.
 
-   Im Prototyp fehlt der Wareneingang des Vortags: der haeufigste Fall in einem
+   Im Prototyp fehlt der heutige Wareneingang: der haeufigste Fall in einem
    Markt und der einzige, den der Kaufmann selbst nachholen kann. Genau deshalb
    haengt der Knopf "Jetzt Wareneingang verarbeiten" an dieser Zeile und an
    keiner anderen -- wer ihn drueckt, weiss dann, was gerade laeuft und seit wann. */
@@ -4472,7 +4467,6 @@ document.addEventListener('keydown', e=>{
 /* Das Bestelldatum der Datei, nicht der Tag des Betrachters: alles andere auf
    dieser Flaeche (Uebersicht, Ordersatzkopf) steht auf dem 25.08.2026. */
 const MI_TODAY = new Date(2026, 7, 25);
-const MI_DAY_MS = 86400000;
 
 /* level: 'ok' | 'warn' | 'err'. days sind die Tage ohne Lieferung. */
 const MI = {
@@ -4481,7 +4475,9 @@ const MI = {
     { key:'ordersatz', lbl:()=>t().ordersatz,  level:'ok',  days:[] },
     { key:'sales',     lbl:()=>t().miCatSales, level:'ok',  days:[] },
     { key:'intake',    lbl:()=>t().miCatIntake, level:'err',
-      days:[ new Date(MI_TODAY.getTime() - MI_DAY_MS) ] }
+      /* Der heutige Tag, nicht der Vortag: der Satz darunter spricht vom
+         heutigen Wareneingang und von der Bestellung von gestern. */
+      days:[ new Date(MI_TODAY) ] }
   ],
   /* null = noch nicht angestossen, sonst der Zeitpunkt des Drucks. */
   intakeStartedAt: null,
@@ -4562,9 +4558,9 @@ function miRenderPanel(){
 
   const rows = MI.cats.map(c=>{
     const ok = c.level==='ok';
-    const status = ok ? L.miUploaded
-                 : c.key==='intake' ? L.miPending
-                 : L.miMissing;
+    /* Der Wareneingang bleibt "Fehlen" und rot wie heute in der App: der Satz
+       darunter erklaert die Luecke, er stuft sie nicht herab (MOB-1781). */
+    const status = ok ? L.miUploaded : L.miMissing;
     const tag = `<span class="MissingInput__tag MissingInput__tag--${c.level}">`
               + MI_TAGIC[c.level] + status + '</span>';
     /* Nur die Wareneingangszeile traegt die Handlung: sie ist die einzige
@@ -4584,8 +4580,9 @@ function miRenderPanel(){
     const days = ok ? '' : c.days.map(d=>
       `<div class="MissingInput__day"><b>${miDay(d)}</b><span>${miMonthDayYear(d)}</span></div>`).join('');
     /* Einmal je Zeile, nicht je Tag -- der Hinweis gilt der Luecke, nicht dem
-       einzelnen Datum. Er bleibt waehrend des Laufs stehen: bis die Daten da
-       sind, rechnet das System weiter mit der Bestellung des Vortages. */
+       einzelnen Datum. Er bleibt waehrend des Laufs stehen und verschwindet
+       erst, wenn der Wareneingang hochgeladen ist: bis dahin rechnet das
+       System mit den Bestellmengen von gestern (MOB-1781). */
     const hint = (c.key==='intake' && !ok)
       ? `<div class="MissingInput__hint">`
         + `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`
@@ -4748,7 +4745,7 @@ document.addEventListener('click', e=>{
    Wegklicken von heute zaehlt nicht mehr. */
 function miResetDemo(){
   const cat=MI.cats.find(c=>c.key==='intake');
-  if(cat){ cat.level='err'; cat.days=[ new Date(MI_TODAY.getTime()-MI_DAY_MS) ]; }
+  if(cat){ cat.level='err'; cat.days=[ new Date(MI_TODAY) ]; }
   MI.intakeStartedAt=null;
   ffPushHide();
   try{ localStorage.removeItem(MI_DISMISS_KEY); }catch(e){}
