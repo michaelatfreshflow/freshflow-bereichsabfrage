@@ -897,6 +897,21 @@ body.isFiltering{
 }
 .PrimaryTextButton--dark{background:var(--ff-color-primary);color:var(--ff-color-white)}
 .PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary)}
+/* Einstieg in die Bestellung: dieselbe AppFormDialog-Form, drei Schritte. Der
+   mittlere (Bestand) ist hervorgehoben -- er ist der Grund fuer das Popup. */
+.OrderIntro__lead{margin:0 0 20px}
+.OrderIntro__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.OrderIntro__step{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;
+  border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-c8)}
+.OrderIntro__step.is-key{background:var(--amber-bg);border-color:var(--amber)}
+.OrderIntro__num{flex:none;width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;background:var(--ff-color-primary);
+  color:var(--ff-color-white);font-weight:var(--ff-weight-semibold);font-size:14px}
+.OrderIntro__step.is-key .OrderIntro__num{background:var(--amber)}
+.OrderIntro__step b{display:block;color:var(--ff-grey-900);font-weight:var(--ff-weight-semibold);margin-bottom:2px}
+.OrderIntro__step p{margin:0;font-size:var(--ff-text-primary-body-text-14);line-height:1.45}
+.OrderIntro__rule{margin:20px 0 0;font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900)}
+.OrderIntro .AppFormDialog__body{padding:24px 32px 28px;max-height:calc(100vh - 220px);overflow:auto}
 /* overlayColor: buttonTheme.foreground.withValues(alpha: 0.1) */
 .PrimaryTextButton--dark:active{background:var(--ff-primary-500)}
 .PrimaryTextButton--none:active{background:var(--ff-primary-10)}
@@ -2580,6 +2595,7 @@ body.dash-active .scanFab{display:none}
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
   <div id="catReopenRoot"></div>
+  <div id="orderIntroRoot"></div>
   <div id="catCelebrateRoot"></div>
   <div id="catItemPickerRoot"></div>
   <div id="catIconPickerRoot"></div>
@@ -3620,6 +3636,16 @@ const T={
     resetConfirm:'Wirklich zurücksetzen?',
     shelfChangeTip:'Regal wechseln oder Filter aufheben',
     openOrderTip:'Aktuelle Bestellung öffnen',
+    introTitle:'So funktioniert Freshflow',
+    introLead:'Freshflow schlägt dir für jeden Artikel eine Bestellmenge vor. Der Vorschlag ist nur so gut wie der Bestand, mit dem er rechnet.',
+    introS1T:'Die App rechnet vor',
+    introS1:'Aus Verkäufen, Lieferungen und Abschriften schätzt die App deinen Bestand und den Verkauf bis zur nächsten Lieferung. Daraus entsteht die vorgeschlagene Bestellmenge.',
+    introS2T:'Erst den Bestand prüfen',
+    introS2:'Bei jedem Artikel zeigt die App einen Bestandsbereich. Liegt dein Bestand darin, musst du nichts eintippen. Liegt er außerhalb, korrigiere ihn – die Bestellung rechnet sich dann neu.',
+    introS3T:'Dann die Bestellung anpassen',
+    introS3:'Ändere die Bestellmenge erst danach. Sonst passt du einen Vorschlag an, der auf einem falschen Bestand beruht.',
+    introRule:'Erst Bestand, dann Bestellung.',
+    introGo:'Verstanden, los geht’s',
     hideItem:'Ausblenden',
     unhideItem:'Wieder einblenden',
     changeShelf:'Regal ändern',
@@ -4060,6 +4086,16 @@ const T={
     resetConfirm:'Really reset?',
     shelfChangeTip:'Change shelf or clear the filter',
     openOrderTip:'Open the current order',
+    introTitle:'How Freshflow works',
+    introLead:'Freshflow suggests an order quantity for every item. The suggestion is only as good as the inventory it is based on.',
+    introS1T:'The app does the maths',
+    introS1:'From sales, deliveries and write-offs the app estimates your inventory and the sales until the next delivery. That gives the suggested order quantity.',
+    introS2T:'Check the inventory first',
+    introS2:'For every item the app shows an inventory range. If your inventory is inside it, you don’t need to type anything. If it is outside, correct it – the order then recalculates.',
+    introS3T:'Then adjust the order',
+    introS3:'Only change the order quantity after that. Otherwise you adjust a suggestion that is based on the wrong inventory.',
+    introRule:'Inventory first, then the order.',
+    introGo:'Got it, let’s go',
     hideItem:'Hide',
     unhideItem:'Show again',
     changeShelf:'Change shelf',
@@ -4500,6 +4536,16 @@ const T={
     resetConfirm:'Vraiment réinitialiser ?',
     shelfChangeTip:'Changer de rayon ou effacer le filtre',
     openOrderTip:'Ouvrir la commande en cours',
+    introTitle:'Comment fonctionne Freshflow',
+    introLead:'Freshflow te propose une quantité de commande pour chaque article. La proposition ne vaut que ce que vaut le stock sur lequel elle se base.',
+    introS1T:'L’app fait le calcul',
+    introS1:'À partir des ventes, des livraisons et de la démarque, l’app estime ton stock et les ventes jusqu’à la prochaine livraison. C’est ce qui donne la quantité proposée.',
+    introS2T:'D’abord vérifier le stock',
+    introS2:'Pour chaque article, l’app affiche une fourchette de stock. Si ton stock est dedans, tu n’as rien à saisir. S’il est en dehors, corrige-le – la commande se recalcule.',
+    introS3T:'Ensuite ajuster la commande',
+    introS3:'Ne change la quantité qu’après. Sinon tu ajustes une proposition qui repose sur un stock faux.',
+    introRule:'D’abord le stock, ensuite la commande.',
+    introGo:'Compris, on y va',
     hideItem:'Masquer',
     unhideItem:'Réafficher',
     changeShelf:'Changer de rayon',
@@ -6652,7 +6698,7 @@ let INV_SHOWN=5;
 let INV_REVIEW=null;
 let DASH_TAB=0;
 function showDashTab(i){
-  if(i===1){ showApp(); return; }            // Bestellungen -> die Bestellliste
+  if(i===1){ showApp(); showOrderIntro(); return; }   // Bestellungen -> die Bestellliste
   DASH_TAB=i;
   const panel = i===0?'panelDash' : i===2?'panelInv' : 'panelStore';
   DASH_PANELS.forEach(id=>{ const el=document.getElementById(id); if(el) el.hidden = id!==panel; });
@@ -6873,6 +6919,41 @@ function enterApp(){
   history.pushState({page:'cat'}, '', location.href);
   showApp();
   applyCatPage();
+  showOrderIntro();
+}
+/* Bei jedem Einstieg in die Bestellung: kurz, wie Freshflow rechnet, und vor
+   allem die Reihenfolge -- erst den Bestand pruefen, dann die Bestellmenge
+   anfassen. Kein "nicht mehr anzeigen": die Erinnerung soll jedes Mal kommen. */
+function showOrderIntro(){
+  const root=document.getElementById('orderIntroRoot'), L=t();
+  const step=(n,ti,tx,key)=>`<li class="OrderIntro__step${key?' is-key':''}">
+      <span class="OrderIntro__num">${n}</span><div><b>${ti}</b><p>${tx}</p></div></li>`;
+  root.innerHTML = `<div class="ov on OrderIntro" style="z-index:9999;align-items:center" id="orderIntroOv">
+    <div class="AppFormDialog" role="dialog" aria-modal="true" aria-labelledby="orderIntroTitle">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title" id="orderIntroTitle">${L.introTitle}</div>
+        <button type="button" class="AppFormDialog__close" id="orderIntroClose" aria-label="${L.close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">
+        <p class="OrderIntro__lead">${L.introLead}</p>
+        <ol class="OrderIntro__steps">
+          ${step(1,L.introS1T,L.introS1)}
+          ${step(2,L.introS2T,L.introS2,true)}
+          ${step(3,L.introS3T,L.introS3)}
+        </ol>
+        <p class="OrderIntro__rule">${L.introRule}</p>
+      </div>
+      <div class="AppFormDialog__actions">
+        <div class="AppFormDialog__actionsEnd">
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="orderIntroGo">${L.introGo}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const dismiss=()=>{ root.innerHTML=''; };
+  document.getElementById('orderIntroGo').onclick=dismiss;
+  document.getElementById('orderIntroClose').onclick=dismiss;
+  document.getElementById('orderIntroOv').onclick=e=>{ if(e.target.id==='orderIntroOv') dismiss(); };
 }
 document.getElementById('dashFab').addEventListener('click', enterApp);
 
