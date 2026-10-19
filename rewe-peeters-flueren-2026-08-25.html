@@ -1159,7 +1159,11 @@ body.isFiltering{
 .SalesHistory--lg .SalesHistory__wk span:nth-child(n+8){border-top:1px solid var(--ff-grey-200)}
 .SalesHistory--lg .SalesHistory__wd{flex-direction:column;gap:0;line-height:1.1;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500)}
 .SalesHistory--lg .SalesHistory__wd b{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold);color:var(--ff-grey-800)}
-.SalesHistory--lg .SalesHistory__wd.is-promo{justify-self:center;width:40px;margin:1px 0;background:var(--ff-color-tag-promotion-background)}
+/* Im Blatt ist der ganze Aktionstag hellrot hinterlegt, vom Wochentag bis zur
+   letzten Zeile -- eine Spalte, die man beim Wischen sofort findet. */
+.SalesHistory--lg .SalesHistory__wk .is-promo{background:#fdeceb}
+.SalesHistory--lg .SalesHistory__wd.is-promo{justify-self:stretch;width:auto;margin:0;padding:0;border-radius:0;
+  color:var(--ff-color-tag-promotion-foreground);font-weight:var(--ff-weight-regular)}
 .SalesHistory--lg .SalesHistory__wd.is-promo b{color:var(--ff-color-tag-promotion-foreground)}
 .SalesHistory--lg .SalesHistory__s,.SalesHistory--lg .SalesHistory__x{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);color:var(--ff-grey-900)}
 .SalesHistory--lg .SalesHistory__d{font-size:var(--ff-text-primary-body-text-16);font-weight:var(--ff-weight-medium);color:var(--ff-color-dark-green)}
@@ -1170,9 +1174,6 @@ body.isFiltering{
   -webkit-mask-image:linear-gradient(to left,transparent 0,#000 8%);mask-image:linear-gradient(to left,transparent 0,#000 8%)}
 /* Im Blatt steht die Woche schon im Kopf der Tabelle und wandert beim Wischen mit. */
 .SalesHistory--lg .SalesHistory__date{display:none}
-/* Iteration 1: eine Woche, fest -- kein Streifen, nichts zu wischen. */
-.SalesHistory.is-iter1 .SalesHistory__scroll{overflow:hidden;-webkit-mask-image:none;mask-image:none;cursor:default}
-.SalesHistory.is-iter1 .SalesHistory__wk{flex-basis:100%}
 .ItemSheet__chartsHd{gap:12px}
 /* Die Tabs: zwei Segmente, das aktive weiss auf grauer Spur -- man sieht auf einen
    Blick, welche Ansicht offen ist. */
@@ -5951,9 +5952,6 @@ function eyeIcon(off){
    Beides in Kisten, wie die Bestellzahl darueber. Ohne Kistengroesse bleibt es
    bei Stueck/kg. Kein Datensatz und keine Lieferung sind ein Strich. */
 const HIST_PG = {};
-/* ?iter=1 zeigt Iteration 1 des Tickets: nur die Daten, die die App heute schon hat
-   (die 7 Tage vor dem Bestelltag). Keine Vorwoche zum Wischen, keine Aktionstage. */
-const HIST_ITER1 = new URLSearchParams(location.search).get('iter')==='1';   // ix -> 0 (juengste Woche, Standard) oder 1 (Woche davor)
 const ICON_HIST_SALES='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 10.5 5 7l2.5 2.5L12 5"/><path d="M8.6 4.4H12.6V8.4"/></svg>';
 const ICON_HIST_DELIV='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 2h1.8l1.6 6.6h6.4l1.4-4.8H3.5"/><circle cx="5.2" cy="11.4" r=".6"/><circle cx="10" cy="11.4" r=".6"/></svg>';
 function histDay(i){ return new Date(HIST_FROM.getFullYear(), HIST_FROM.getMonth(), HIST_FROM.getDate()+i); }
@@ -5984,18 +5982,19 @@ function histHTML(ix, opt){
   const it=ITEMS[ix];
   if(it.plu==null || !HIST[it.plu]) return '';
   const rows=opt.rows||['sales'], S=sdSeries(it);   // unter der Bestellmenge nur der Verkauf
-  const L=t(), pg=HIST_ITER1 ? 0 : (HIST_PG[ix]||0);
+  const L=t(), pg=HIST_PG[ix]||0;
   const wk = w => {
     let hd='', body='';
     for(let d=w*7; d<w*7+7; d++){
       const wd=histDay(d).toLocaleDateString(dateLoc(),{weekday:'short'}).replace('.','').slice(0,2);
-      const promo=!HIST_ITER1 && (HIST_PROMO[it.plu]||[]).includes(d);
+      const promo=(HIST_PROMO[it.plu]||[]).includes(d);
       hd+=`<span class="SalesHistory__wd${promo?' is-promo':''}"${promo?` title="${L.histPromo}"`:''}>${wd}${opt.lg?`<b>${histDay(d).getDate()}${LANG==='de'?'.':''}</b>`:''}</span>`;
     }
     rows.forEach(k=>{ const R=HIST_ROWS[k];
       for(let d=w*7; d<w*7+7; d++){
         const v=histNum(S[k][d],it,R.nilZero);
-        body+=`<span class="${R.cls}${v==null?' is-nil':''}">${v==null?'–':v}</span>`;
+        const promo=opt.lg && (HIST_PROMO[it.plu]||[]).includes(d);
+        body+=`<span class="${R.cls}${v==null?' is-nil':''}${promo?' is-promo':''}">${v==null?'–':v}</span>`;
       }
     });
     return `<div class="SalesHistory__wk" data-wk="${w}">${hd}${body}</div>`;
@@ -6004,10 +6003,10 @@ function histHTML(ix, opt){
     return `<span class="is-${k}" title="${L[R.lb]}" aria-label="${L[R.lb]}">${R.icon()}${opt.lg?`<em>${L[R.lb]}</em>`:''}</span>`; }).join('');
   /* Juengste Woche zuerst im DOM: die Leiste ist rtl, also steht sie rechts und
      ist ohne Zutun sichtbar; links daneben liegt die Woche davor. */
-  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''}${pg?' is-old':''}${HIST_ITER1?' is-iter1':''}" data-ix="${ix}">
+  return `<div class="SalesHistory${opt.lg?' SalesHistory--lg':''}${pg?' is-old':''}" data-ix="${ix}">
     <div class="SalesHistory__card">
       <div class="SalesHistory__marks"><span></span>${marks}</div>
-      <div class="SalesHistory__scroll">${wk(1)}${HIST_ITER1?'':wk(0)}</div>
+      <div class="SalesHistory__scroll">${wk(1)}${wk(0)}</div>
     </div>
     <span class="SalesHistory__date">${histRange(1-pg)}</span>
   </div>`;
@@ -6466,8 +6465,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         ${pendSub?`<span class="ColumnCounterField__label">${pendSub}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
-    </div>${s.manual?mark('edit',ix):bang(it.ordNote,'ord',ix)}</div>
-    ${backOnly?'':histHTML(ix)}`;
+    </div>${s.manual?mark('edit',ix):bang(it.ordNote,'ord',ix)}</div>`;
     /* Das Auge steht sonst nur in "Bestellung verwalten" und an ausgeblendeten
        Zeilen. Im Scan-Ergebnis steht es immer: dort kommt man auch an Artikel, die
        die Liste gar nicht zeigt, und dann muss ablesbar sein, ob der Artikel in der
