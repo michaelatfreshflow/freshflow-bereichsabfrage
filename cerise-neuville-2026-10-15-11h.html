@@ -10839,8 +10839,8 @@ function preCellHTML(ix){
   const v=preShown(ix), locked=!!p.locked, s=ST[ix], pend=prePending(ix);
   const icons=[];
   if(locked) icons.push(cpBtn('lock',ix,L.tipLockTitle));
-  if(preRecalc(ix)) icons.push(cpBtn('prerec',ix,L.tipRecTitle));
-  if(!locked && s.preUser!=null && s.preUser!==preApp(ix)) icons.push(cpBtn('preedit',ix,L.tipEditTitle));
+  /* decided recalculation: no icon once accepted, the edited icon once kept or changed by hand */
+  if(!locked && ((s.preUser!=null && s.preUser!==preApp(ix)) || preKept(ix))) icons.push(cpBtn('preedit',ix,L.tipEditTitle));
   const it=ITEMS[ix];
   return `<div class="withbang"><div class="ColumnCounterField${locked?' ColumnCounterField--locked':''}${pend?' cpRecPend':''}">
       <button class="ColumnCounterField__button" data-a="predec" data-i="${ix}"${locked||v<=0?' disabled':''} aria-label="${L.less}">${ICON_MINUS}</button>
@@ -10894,8 +10894,11 @@ function cpDecorate(){
         const own=slot && slot.querySelector('button');
         const ownKind=own && own.dataset.kind;
         if(ownKind==='ord') btns.push(own.outerHTML);
-        if(ordRecalc(ix) && !cpRecPending(ix)) btns.push(cpBtn('rec',ix,L.tipRecTitle));   /* undecided: the icon sits in the accept bar under the field */
+        /* The recalculated icon is dismissed like a needs-attention one (C&P, 19 Oct): it lives in the
+           accept bar while open and is gone once decided. Accepted: nothing stays. Kept or changed by
+           hand: the order now differs from the recommendation, so the edited icon shows. */
         if(ownKind==='edit') btns.push(own.outerHTML);
+        else if(cpRecKept(ix)) btns.push(cpBtn('edit',ix,L.tipEditTitle));
       }
       if(slot) slot.outerHTML=cpSlot(btns);
       /* Recalculated, not decided yet (C&P, agreed 16 Oct): the field keeps the old quantity and
