@@ -212,7 +212,7 @@ rep("(new URLSearchParams(location.search).get('retailer') || 'rewe')",
 # ---- locale keys (same keys in all three, parity) --------------------------
 LOC = {
     'de': dict(hdrPre='Vorbestellung', preOrdered='Vorbestellt', preLabel='Vorbestellung',
-               filtRecalc='Bestellung neu berechnet', recAccept='Übernehmen', recAccepted='Neuberechnung übernommen', recChanged='Menge selbst geändert', recKeep='{n} behalten', recKept='Vorherige Menge beibehalten', recAskTip='Erst nach Übernehmen wird die neue Menge bestellt.', recProposal='Neu berechnet', recPopTitle='Geänderte Artikel', recPopText='Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Übernimm die neu berechnete Menge oder ändere sie – sonst bleibt die Bestellmenge, wie sie war. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
+               filtRecalc='Bestellung neu berechnet', recAccept='Annehmen', recAccepted='Neuberechnung übernommen', recChanged='Menge selbst geändert', recKeep='{n} behalten', recKept='Vorherige Menge beibehalten', recAskTip='Erst nach Übernehmen wird die neue Menge bestellt.', recProposal='Neu berechnet', recPopTitle='Geänderte Artikel', recPopText='Es gibt neu berechnete Artikel und Änderungen im Ordersatz, die deine Aufmerksamkeit brauchen. Übernimm die neu berechnete Menge oder ändere sie – sonst bleibt die Bestellmenge, wie sie war. Wir haben die Filter so gesetzt, dass du nur diese siehst. Setze die Filter zurück, um wieder alles zu sehen.', recPopOk='Verstanden', recPopAll='Alles anzeigen', reopenOrdTitle='Diese Bestellung wurde bereits abgeschlossen', reopenOrdText='Sie öffnen gerade eine bereits abgeschlossene Bestellung. Bitte schliessen Sie sie vor verlassen der App wieder ab.', reopenOrdYes='Bestellung wieder öffnen', ordClosedToast='Bestellung abgeschlossen',
                tipRecTitle='Neu berechnet', tipRecText='Dieser Bestellvorschlag wurde neu berechnet.',
                tipRecFirst='Zuerst', tipRecNow='Jetzt',
                tipOgTitle='Ordersatz geändert', ogCase='Kistengröße geändert', ogPromo='Aktionsdaten geändert',
@@ -807,17 +807,17 @@ CSS_WTD = """
    as on the order corrections banner */
 :root{--ff-color-warning-text:#8a4b00;--cpRecTint:#fef1dc}
 .cpRecPend .ColumnCounterField__box{border:2px solid var(--ff-color-warning);background:var(--cpRecTint)}
-/* Not decided yet: a small card under the field, pointing at it, with both choices at once (C&P, 20 Oct):
-   accept the new value (primary, on top) or keep the old one (outline below). No icon. Stacked so it fits
+/* Not decided yet: a bar under the field, pointing at it, with both choices side by side (C&P, 20 Oct):
+   keep the old value (outline, left) or accept the new one (primary, right). No icon. Sized so it fits
    the column. App colours: warning at
    18 % with warningText; fits its column, so the Commande and Prévision bars sit side by side. */
-.cpRecBar{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:4px;width:max-content;min-width:120px;max-width:100%;
-  margin:7px auto 2px;padding:4px;border-radius:14px;background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
-  font-size:12px;color:var(--ff-color-warning-text);white-space:nowrap}
+.cpRecBar{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:2px;width:max-content;
+  margin:7px auto 2px;padding:2px;border-radius:var(--ff-radius-pill);   /* centred under the field; may reach past the cell edge into the free space */
+  left:50%;transform:translateX(-50%);margin-left:0;margin-right:0background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
+  font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
 .cpRecBar::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:9px;height:9px;background:var(--cpRecTint);
   border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
-.cpRecBar__keep,.cpRecBar__ok{position:relative;border-radius:var(--ff-radius-pill);font:inherit;font-weight:500;padding:5px 12px;cursor:pointer;text-align:center}
-.cpRecBar__ok{order:-1}   /* Accept on top: the main choice */
+.cpRecBar__keep,.cpRecBar__ok{position:relative;border-radius:var(--ff-radius-pill);font:inherit;font-weight:500;padding:4px 6px;cursor:pointer;text-align:center}
 .cpRecBar__keep{background:#fff;border:1px solid var(--ff-color-warning);color:var(--ff-color-warning-text)}
 .cpRecBar__ok{border:1px solid var(--green);background:var(--green);color:#fff}
 .cpRecBar__keep b,.cpRecBar__ok b{font-weight:700}
