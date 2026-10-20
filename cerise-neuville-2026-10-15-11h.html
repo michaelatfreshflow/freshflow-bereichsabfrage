@@ -2295,8 +2295,11 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
   margin:7px auto 2px;padding:2px 2px 2px;border-radius:13px;   /* centred under the field; may reach past the cell edge into the free space */
   left:50%;transform:translateX(-50%);margin-left:0;margin-right:0background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
   font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
-.cpRecBar::before{content:"";position:absolute;top:-6px;left:50%;margin-left:-5px;width:9px;height:9px;background:transparent;   /* outline only, no fill */
-  border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
+/* the tail of the bubble: an outer triangle in the border colour and an inner one in the bubble
+   colour, 1 px lower, that covers the bubble's top border, so tail and bubble read as one shape */
+.cpRecBar::before,.cpRecBar::after{content:"";position:absolute;left:50%;width:0;height:0;border-style:solid;border-color:transparent;border-top-width:0}
+.cpRecBar::before{top:-8px;margin-left:-7px;border-width:0 7px 7px;border-bottom-color:var(--ff-color-warning)}
+.cpRecBar::after{top:-6px;margin-left:-6px;border-width:0 6px 6px;border-bottom-color:var(--cpRecTint)}
 /* the caption says what happened, so the two choices read as a recalculation (C&P, 20 Oct) */
 .cpRecBar__cap{position:relative;font-size:10.5px;font-weight:var(--ff-weight-semibold);line-height:1.2;padding-top:1px;color:var(--ff-color-warning-text)}
 .cpRecBar__btns{position:relative;display:flex;align-items:center;gap:2px}
