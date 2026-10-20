@@ -495,8 +495,9 @@ function preRecalc(ix){ const p=cpOf(ix).pre, s=ST[ix];
   return !!p && !p.locked && !prePending(ix) && ((s.preAccVal!=null && s.preAccVal!==p.sys) || !!s.preRecDecided || preKept(ix)); }
 /* The slim accept bar under a field, pointing at it: the recalculated icon (tap: before -> now),
    the recalculated quantity and Accept. Commande and Prévision each get their own. */
-function cpRecCardHTML(ix, first, now, act){ const L=t(), kind = act==='recok' ? 'rec' : 'prerec';
-  return `<div class="cpRecBar">${cpBtn(kind,ix,L.tipRecTitle)}<span class="cpRecBar__v">${L.recProposal} <b>${now} ${L.caseUnit}</b></span><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept}</button></div>`; }
+function cpRecCardHTML(ix, first, now, act){ const L=t(), keep = act==='recok' ? 'reckeep' : 'prekeep';
+  /* no recalculated icon (C&P, 20 Oct): the two choices themselves carry the old and the new value */
+  return `<div class="cpRecBar"><button type="button" class="cpRecBar__keep" data-a="${keep}" data-i="${ix}">${L.recKeep.replace('{n}', `<b>${first} ${L.caseUnit}</b>`)}</button><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept} <b>${now} ${L.caseUnit}</b></button></div>`; }
 /* the arrow points at the field, not at the middle of the card */
 function cpAimCard(card, fld){ const box=fld && fld.querySelector('.ColumnCounterField__box');
   if(!card || !box) return; const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
@@ -806,19 +807,20 @@ CSS_WTD = """
    as on the order corrections banner */
 :root{--ff-color-warning-text:#8a4b00;--cpRecTint:#fef1dc}
 .cpRecPend .ColumnCounterField__box{border:2px solid var(--ff-color-warning);background:var(--cpRecTint)}
-/* Not decided yet: a slim bar under the field, pointing at it (C&P, agreed 16 Oct; slim again 19 Oct).
-   App colours: warning at 18 % with warningText, Accept is the primary button. Fits its column, so
-   the Commande and Prévision bars sit side by side. */
-.cpRecBar{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;
-  margin:6px auto 2px;padding:2px 3px;border-radius:var(--ff-radius-pill);background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
-  font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
+/* Not decided yet: a small card under the field, pointing at it, with both choices at once (C&P, 20 Oct):
+   accept the new value (primary, on top) or keep the old one (outline below). No icon. Stacked so it fits
+   the column. App colours: warning at
+   18 % with warningText; fits its column, so the Commande and Prévision bars sit side by side. */
+.cpRecBar{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:4px;width:max-content;min-width:120px;max-width:100%;
+  margin:7px auto 2px;padding:4px;border-radius:14px;background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
+  font-size:12px;color:var(--ff-color-warning-text);white-space:nowrap}
 .cpRecBar::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:9px;height:9px;background:var(--cpRecTint);
   border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
-.cpRecBar .whyBtn{position:relative;width:18px;height:18px;margin:0;flex:0 0 auto}
-.cpRecBar .whyBtn svg{width:17px;height:17px}
-.cpRecBar__v{position:relative}
-.cpRecBar__v b{color:var(--ff-color-warning-text)}
-.cpRecBar__ok{position:relative;border:0;border-radius:var(--ff-radius-pill);background:var(--green);color:#fff;font:inherit;font-weight:600;padding:2px 7px;cursor:pointer}
+.cpRecBar__keep,.cpRecBar__ok{position:relative;border-radius:var(--ff-radius-pill);font:inherit;font-weight:500;padding:5px 12px;cursor:pointer;text-align:center}
+.cpRecBar__ok{order:-1}   /* Accept on top: the main choice */
+.cpRecBar__keep{background:#fff;border:1px solid var(--ff-color-warning);color:var(--ff-color-warning-text)}
+.cpRecBar__ok{border:1px solid var(--green);background:var(--green);color:#fff}
+.cpRecBar__keep b,.cpRecBar__ok b{font-weight:700}
 .cpRecTip{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:10px;line-height:1.4}
 .cpRecTip .cpRecTip__ok{align-self:flex-end}
 .cpRecTip__btns{align-self:stretch;display:flex;justify-content:flex-end;align-items:center;gap:8px}
