@@ -5,8 +5,8 @@ The rule (from the PD-794 backtest): the count (back room + shelf, in cases) is 
   3 x (simulated inventory + today's intake)   and   simulated inventory + today's intake + 3 cases.
 Both inputs are on the order item the app reads (simulated inventory = the page's it.app, in cases;
 today's intake = order_intake_sku, kg or pieces, divided by the case). Then
-  * the inventory keypad shows the warning in its hint box (the count in cases and in kg or
-    pieces, next to what the app expects) and the save button reads "Confirm";
+  * the inventory keypad shows a short warning in its hint box (the count in cases and in kg or
+    pieces, "please check the number", no reasoning) and the save button reads "Confirm";
   * a + on the row that would cross the line does not step, it opens the same keypad with the
     stepped value already in it: confirm saves it, cancel leaves the row as it was.
 A confirmed count saves as typed; after a confirmation + on that item steps without asking again.
@@ -30,12 +30,9 @@ JS = r"""
 __MARK__
 const CP_INTAKE_TODAY = __DATA__;   /* PLU -> kg or pieces arriving on the order day; missing = 0 */
 function cpHighT(){ return ({
-  de:{title:'Bestand ungewöhnlich hoch', facts:'Eingegeben: {v} = {u}. Die App erwartet etwa {e} (Bestand plus heutiger Wareneingang).',
-      rule:'Der Bestand wird in Kisten eingegeben. Stimmt die Zahl, bestätige sie.', ok:'Bestätigen'},
-  en:{title:'Inventory unusually high', facts:'Entered: {v} = {u}. The app expects about {e} (inventory plus today\'s intake).',
-      rule:'Inventory is entered in cases. If the number is right, confirm it.', ok:'Confirm'},
-  fr:{title:'Stock inhabituellement élevé', facts:'Saisi : {v} = {u}. L\'app attend environ {e} (stock plus livraison du jour).',
-      rule:'Le stock se saisit en colis. Si le chiffre est juste, confirmez-le.', ok:'Confirmer'}})[LANG]; }
+  de:{title:'Bestand ungewöhnlich hoch', facts:'{v} = {u}. Bitte prüfe die Zahl.', ok:'Bestätigen'},
+  en:{title:'Inventory unusually high', facts:'{v} = {u}. Please check the number.', ok:'Confirm'},
+  fr:{title:'Stock inhabituellement élevé', facts:'{v} = {u}. Veuillez vérifier le chiffre.', ok:'Confirmer'}})[LANG]; }
 /* what the app expects, in cases: simulated inventory + today's intake; null = nothing to check against */
 function cpExpectKo(it){ if(!(it.case>0) || it.app==null) return null;
   return Math.max(0, it.app) + (CP_INTAKE_TODAY[it.plu]||0)/it.case; }
@@ -49,11 +46,10 @@ drawInvPad = function(){
   INV.high = !INV.backOnly && !(INV.back==='0' && INV.floor==='0') && cpTooHigh(it, v.cases);
   btn.textContent = INV.high ? cpHighT().ok : t().saveTick;
   if(!INV.high || !hint) return;
-  const T=cpHighT(), ex=cpExpectKo(it);
-  const facts=T.facts.replace('{v}', csNum(v.cases)+' '+t().caseUnit).replace('{u}', cpQtyTxt(it, v.cases))
-    .replace('{e}', koNum(Math.round(ex*10)/10)+' '+t().caseUnit+' = '+cpQtyTxt(it, ex));
+  const T=cpHighT();
+  const facts=T.facts.replace('{v}', csNum(v.cases)+' '+t().caseUnit).replace('{u}', cpQtyTxt(it, v.cases));
   hint.hidden=false;
-  hint.innerHTML = ICON_INV_BANG+'<span><b class="hintTitle">'+T.title+'</b>'+facts+'<br>'+T.rule+'</span>';
+  hint.innerHTML = ICON_INV_BANG+'<span><b class="hintTitle">'+T.title+'</b>'+facts+'</span>';
 };
 const _invSave_cp794 = document.getElementById('invSpeichern').onclick;
 document.getElementById('invSpeichern').onclick = function(e){
