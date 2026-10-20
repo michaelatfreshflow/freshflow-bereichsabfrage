@@ -5242,7 +5242,7 @@ function miResetDemo(){
   if(cat){ cat.level='err'; cat.days=[ new Date(MI_TODAY.getTime()-MI_DAY_MS) ]; }
   MI.intakeStartedAt=null;
   ffPushHide();
-  try{ localStorage.removeItem(MI_DISMISS_KEY); }catch(e){}
+  try{ localStorage.removeItem(MI_DISMISS_KEY); localStorage.removeItem(ORDER_INTRO_KEY); }catch(e){}
   miRender();
 }
 
@@ -6912,12 +6912,20 @@ function enterApp(){
   showOrderIntro();
 }
 /* Erinnerung beim Einstieg in die Bestellung: erst den Bestand pruefen, dann
-   die Bestellmenge anfassen. Store-Einstellung: an welchen Wochentagen sie kommt
-   (0=So ... 6=Sa), leer = aus. An diesen Tagen bei jedem Einstieg, kein
-   "nicht mehr anzeigen". Der Prototyp-Bestelltag ist ein Dienstag. */
-const ORDER_INTRO_WEEKDAYS=[2,4];   // Di + Do
+   die Bestellmenge anfassen. Store-Einstellung an/aus. Ist sie an, kommt das
+   Popup beim Oeffnen der Bestellung, wenn es seit 72 Stunden nicht mehr
+   weggeklickt wurde -- also etwa zweimal pro Woche, ohne Wochentage zu pflegen.
+   Kein "nicht mehr anzeigen". "Zurücksetzen" laesst es wieder erscheinen. */
+const ORDER_INTRO_ON=true;
+const ORDER_INTRO_EVERY_MS=72*3600*1000;
+const ORDER_INTRO_KEY='orderIntroSeenAt';
+function orderIntroDue(){
+  if(!ORDER_INTRO_ON) return false;
+  let seen=0; try{ seen=+localStorage.getItem(ORDER_INTRO_KEY)||0; }catch(e){}
+  return Date.now()-seen >= ORDER_INTRO_EVERY_MS;
+}
 function showOrderIntro(){
-  if(!ORDER_INTRO_WEEKDAYS.includes(MI_TODAY.getDay())) return;
+  if(!orderIntroDue()) return;
   const root=document.getElementById('orderIntroRoot'), L=t();
   const step=(n,ti,tx,key)=>`<li class="OrderIntro__step${key?' is-key':''}">
       <span class="OrderIntro__num">${n}</span><div><b>${ti}</b><p>${tx}</p></div></li>`;
@@ -6941,7 +6949,10 @@ function showOrderIntro(){
       </div>
     </div>
   </div>`;
-  const dismiss=()=>{ root.innerHTML=''; };
+  const dismiss=()=>{
+    root.innerHTML='';
+    try{ localStorage.setItem(ORDER_INTRO_KEY, String(Date.now())); }catch(e){}
+  };
   document.getElementById('orderIntroGo').onclick=dismiss;
   document.getElementById('orderIntroClose').onclick=dismiss;
   document.getElementById('orderIntroOv').onclick=e=>{ if(e.target.id==='orderIntroOv') dismiss(); };
