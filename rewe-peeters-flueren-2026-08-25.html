@@ -8291,6 +8291,15 @@ function renderScanRes(keepOpen, keepFocus){
       setScanCode(e.target.value.replace(/\D/g,''));
       renderScanRes(false, true);
     });
+    /* Enter gilt als Scan: dann greift dieselbe Regel wie beim Sucher -- im offenen
+       Regal springt die Liste, sonst bleibt das Blatt. So laesst sich jeder Fall mit
+       einer getippten Nummer vorfuehren. */
+    q.addEventListener('keydown', e=>{
+      if(e.key!=='Enter') return;
+      e.preventDefault();
+      const d=e.target.value.replace(/\D/g,'');
+      if(d){ closeScanRes(); doScan(d); }
+    });
   }
   document.getElementById('scanResX').onclick=()=>closeScanRes();
   /* Einschalten wirkt sofort auf das, was gerade auf dem Blatt steht -- sonst
