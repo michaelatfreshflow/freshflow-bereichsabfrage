@@ -897,6 +897,20 @@ body.isFiltering{
 }
 .PrimaryTextButton--dark{background:var(--ff-color-primary);color:var(--ff-color-white)}
 .PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary)}
+/* Einstieg in die Bestellung: dieselbe AppFormDialog-Form, zwei Schritte. Der
+   erste (Bestand) ist hervorgehoben -- er ist der Grund fuer das Popup. */
+.OrderIntro__lead{margin:0 0 20px}
+.OrderIntro__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.OrderIntro__step{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;
+  border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-c8)}
+.OrderIntro__step.is-key{background:var(--amber-bg);border-color:var(--amber)}
+.OrderIntro__num{flex:none;width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;background:var(--ff-color-primary);
+  color:var(--ff-color-white);font-weight:var(--ff-weight-semibold);font-size:14px}
+.OrderIntro__step.is-key .OrderIntro__num{background:var(--amber)}
+.OrderIntro__step b{display:block;color:var(--ff-grey-900);font-weight:var(--ff-weight-semibold);margin-bottom:2px}
+.OrderIntro__step p{margin:0;font-size:var(--ff-text-primary-body-text-14);line-height:1.45}
+.OrderIntro .AppFormDialog__body{padding:24px 32px 28px;max-height:calc(100vh - 220px);overflow:auto}
 /* overlayColor: buttonTheme.foreground.withValues(alpha: 0.1) */
 .PrimaryTextButton--dark:active{background:var(--ff-primary-500)}
 .PrimaryTextButton--none:active{background:var(--ff-primary-10)}
@@ -2580,6 +2594,7 @@ body.dash-active .scanFab{display:none}
   <div id="catOverlayRoot"></div>
   <div id="catConfirmRoot"></div>
   <div id="catReopenRoot"></div>
+  <div id="orderIntroRoot"></div>
   <div id="catCelebrateRoot"></div>
   <div id="catItemPickerRoot"></div>
   <div id="catIconPickerRoot"></div>
@@ -3620,6 +3635,13 @@ const T={
     resetConfirm:'Wirklich zurücksetzen?',
     shelfChangeTip:'Regal wechseln oder Filter aufheben',
     openOrderTip:'Aktuelle Bestellung öffnen',
+    introTitle:'Erst Bestand, dann Bestellung',
+    introLead:'Freshflow rechnet deine Bestellung aus deinem Bestand.',
+    introS1T:'Bestand prüfen',
+    introS1:'Im angezeigten Bereich? Nichts tun. Außerhalb? Korrigieren.',
+    introS2T:'Dann Bestellung anpassen',
+    introS2:'Erst, wenn der Bestand stimmt.',
+    introGo:'Verstanden',
     hideItem:'Ausblenden',
     unhideItem:'Wieder einblenden',
     changeShelf:'Regal ändern',
@@ -4060,6 +4082,13 @@ const T={
     resetConfirm:'Really reset?',
     shelfChangeTip:'Change shelf or clear the filter',
     openOrderTip:'Open the current order',
+    introTitle:'Inventory first, then the order',
+    introLead:'Freshflow calculates your order from your inventory.',
+    introS1T:'Check the inventory',
+    introS1:'Inside the range shown? Do nothing. Outside? Correct it.',
+    introS2T:'Then adjust the order',
+    introS2:'Only once the inventory is right.',
+    introGo:'Got it',
     hideItem:'Hide',
     unhideItem:'Show again',
     changeShelf:'Change shelf',
@@ -4500,6 +4529,13 @@ const T={
     resetConfirm:'Vraiment réinitialiser ?',
     shelfChangeTip:'Changer de rayon ou effacer le filtre',
     openOrderTip:'Ouvrir la commande en cours',
+    introTitle:'D’abord le stock, ensuite la commande',
+    introLead:'Freshflow calcule ta commande à partir de ton stock.',
+    introS1T:'Vérifier le stock',
+    introS1:'Dans la fourchette affichée ? Rien à faire. En dehors ? Corrige-le.',
+    introS2T:'Ensuite ajuster la commande',
+    introS2:'Seulement quand le stock est juste.',
+    introGo:'Compris',
     hideItem:'Masquer',
     unhideItem:'Réafficher',
     changeShelf:'Changer de rayon',
@@ -5206,7 +5242,7 @@ function miResetDemo(){
   if(cat){ cat.level='err'; cat.days=[ new Date(MI_TODAY.getTime()-MI_DAY_MS) ]; }
   MI.intakeStartedAt=null;
   ffPushHide();
-  try{ localStorage.removeItem(MI_DISMISS_KEY); }catch(e){}
+  try{ localStorage.removeItem(MI_DISMISS_KEY); localStorage.removeItem(ORDER_INTRO_KEY); }catch(e){}
   miRender();
 }
 
@@ -6652,7 +6688,7 @@ let INV_SHOWN=5;
 let INV_REVIEW=null;
 let DASH_TAB=0;
 function showDashTab(i){
-  if(i===1){ showApp(); return; }            // Bestellungen -> die Bestellliste
+  if(i===1){ showApp(); showOrderIntro(); return; }   // Bestellungen -> die Bestellliste
   DASH_TAB=i;
   const panel = i===0?'panelDash' : i===2?'panelInv' : 'panelStore';
   DASH_PANELS.forEach(id=>{ const el=document.getElementById(id); if(el) el.hidden = id!==panel; });
@@ -6873,6 +6909,53 @@ function enterApp(){
   history.pushState({page:'cat'}, '', location.href);
   showApp();
   applyCatPage();
+  showOrderIntro();
+}
+/* Erinnerung beim Einstieg in die Bestellung: erst den Bestand pruefen, dann
+   die Bestellmenge anfassen. Store-Einstellung an/aus. Ist sie an, kommt das
+   Popup beim Oeffnen der Bestellung, wenn es seit 72 Stunden nicht mehr
+   weggeklickt wurde -- also etwa zweimal pro Woche, ohne Wochentage zu pflegen.
+   Kein "nicht mehr anzeigen". "Zurücksetzen" laesst es wieder erscheinen. */
+const ORDER_INTRO_ON=true;
+const ORDER_INTRO_EVERY_MS=72*3600*1000;
+const ORDER_INTRO_KEY='orderIntroSeenAt';
+function orderIntroDue(){
+  if(!ORDER_INTRO_ON) return false;
+  let seen=0; try{ seen=+localStorage.getItem(ORDER_INTRO_KEY)||0; }catch(e){}
+  return Date.now()-seen >= ORDER_INTRO_EVERY_MS;
+}
+function showOrderIntro(){
+  if(!orderIntroDue()) return;
+  const root=document.getElementById('orderIntroRoot'), L=t();
+  const step=(n,ti,tx,key)=>`<li class="OrderIntro__step${key?' is-key':''}">
+      <span class="OrderIntro__num">${n}</span><div><b>${ti}</b><p>${tx}</p></div></li>`;
+  root.innerHTML = `<div class="ov on OrderIntro" style="z-index:9999;align-items:center" id="orderIntroOv">
+    <div class="AppFormDialog" role="dialog" aria-modal="true" aria-labelledby="orderIntroTitle">
+      <div class="AppFormDialog__header">
+        <div class="AppFormDialog__title" id="orderIntroTitle">${L.introTitle}</div>
+        <button type="button" class="AppFormDialog__close" id="orderIntroClose" aria-label="${L.close}">${CLOSE_ICON}</button>
+      </div>
+      <div class="AppFormDialog__body">
+        <p class="OrderIntro__lead">${L.introLead}</p>
+        <ol class="OrderIntro__steps">
+          ${step(1,L.introS1T,L.introS1,true)}
+          ${step(2,L.introS2T,L.introS2)}
+        </ol>
+      </div>
+      <div class="AppFormDialog__actions">
+        <div class="AppFormDialog__actionsEnd">
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="orderIntroGo">${L.introGo}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const dismiss=()=>{
+    root.innerHTML='';
+    try{ localStorage.setItem(ORDER_INTRO_KEY, String(Date.now())); }catch(e){}
+  };
+  document.getElementById('orderIntroGo').onclick=dismiss;
+  document.getElementById('orderIntroClose').onclick=dismiss;
+  document.getElementById('orderIntroOv').onclick=e=>{ if(e.target.id==='orderIntroOv') dismiss(); };
 }
 document.getElementById('dashFab').addEventListener('click', enterApp);
 
