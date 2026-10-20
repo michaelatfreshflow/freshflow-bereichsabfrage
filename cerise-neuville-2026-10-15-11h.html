@@ -2291,12 +2291,15 @@ body.hasPre.seqEdit #list > .row, body.hasPre.seqEdit #colh{
    keep the old value (outline, left) or accept the new one (primary, right). No icon. Sized so it fits
    the column. App colours: warning at
    18 % with warningText; fits its column, so the Commande and Prévision bars sit side by side. */
-.cpRecBar{position:relative;box-sizing:border-box;display:flex;align-items:center;gap:2px;width:max-content;
-  margin:7px auto 2px;padding:2px;border-radius:var(--ff-radius-pill);   /* centred under the field; may reach past the cell edge into the free space */
+.cpRecBar{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:1px;width:max-content;
+  margin:7px auto 2px;padding:2px 2px 2px;border-radius:13px;   /* centred under the field; may reach past the cell edge into the free space */
   left:50%;transform:translateX(-50%);margin-left:0;margin-right:0background:var(--cpRecTint);border:1px solid var(--ff-color-warning);
   font-size:11px;color:var(--ff-color-warning-text);white-space:nowrap}
 .cpRecBar::before{content:"";position:absolute;top:-6px;left:var(--ax,50%);margin-left:-5px;width:9px;height:9px;background:var(--cpRecTint);
   border-left:1px solid var(--ff-color-warning);border-top:1px solid var(--ff-color-warning);transform:rotate(45deg)}
+/* the caption says what happened, so the two choices read as a recalculation (C&P, 20 Oct) */
+.cpRecBar__cap{position:relative;font-size:10.5px;font-weight:var(--ff-weight-semibold);line-height:1.2;padding-top:1px;color:var(--ff-color-warning-text)}
+.cpRecBar__btns{position:relative;display:flex;align-items:center;gap:2px}
 .cpRecBar__keep,.cpRecBar__ok{position:relative;border-radius:var(--ff-radius-pill);font:inherit;font-weight:500;padding:4px 6px;cursor:pointer;text-align:center}
 .cpRecBar__keep{background:#fff;border:1px solid var(--ff-color-warning);color:var(--ff-color-warning-text)}
 .cpRecBar__ok{border:1px solid var(--green);background:var(--green);color:#fff}
@@ -10794,7 +10797,7 @@ function preRecalc(ix){ const p=cpOf(ix).pre, s=ST[ix];
    the recalculated quantity and Accept. Commande and Prévision each get their own. */
 function cpRecCardHTML(ix, first, now, act){ const L=t(), keep = act==='recok' ? 'reckeep' : 'prekeep';
   /* no recalculated icon (C&P, 20 Oct): the two choices themselves carry the old and the new value */
-  return `<div class="cpRecBar"><button type="button" class="cpRecBar__keep" data-a="${keep}" data-i="${ix}">${L.recKeep.replace('{n}', `<b>${first} ${L.caseUnit}</b>`)}</button><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept} <b>${now} ${L.caseUnit}</b></button></div>`; }
+  return `<div class="cpRecBar"><span class="cpRecBar__cap">${L.tipRecTitle}</span><div class="cpRecBar__btns"><button type="button" class="cpRecBar__keep" data-a="${keep}" data-i="${ix}">${L.recKeep.replace('{n}', `<b>${first} ${L.caseUnit}</b>`)}</button><button type="button" class="cpRecBar__ok" data-a="${act}" data-i="${ix}">${L.recAccept} <b>${now} ${L.caseUnit}</b></button></div></div>`; }
 /* the arrow points at the field, not at the middle of the card */
 function cpAimCard(card, fld){ const box=fld && fld.querySelector('.ColumnCounterField__box');
   if(!card || !box) return; const d=box.getBoundingClientRect(), c=card.getBoundingClientRect();
