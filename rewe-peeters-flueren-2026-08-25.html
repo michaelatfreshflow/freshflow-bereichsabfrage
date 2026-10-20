@@ -724,6 +724,10 @@ body.isFiltering{
    also die Folge im Klartext: was das Ausblenden fuer die Bestellung bedeutet. */
 .movecta__note{font-size:var(--ff-text-primary-body-text-14);color:var(--mute)}
 .movecta + .movecta{margin-top:6px}
+/* Umgelenkter Scan: dieselbe Amber-Leiste wie oben im Scan-Ergebnis, nur unter der Zeile. */
+.movecta.is-via{background:var(--amber-bg);border-color:var(--amber);border-left-width:3px}
+.movecta.is-via .nm{font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);
+  color:#8a4b00;overflow-wrap:anywhere}
 /* Kennzeichen an der zuletzt gescannten Zeile: dahinter kommt der naechste. */
 .pill.lastscan{border-color:#4F78B5;background:#E3ECF8;color:#2F5690;font-weight:var(--ff-weight-bold)}
 /* Die zuletzt gescannte Zeile traegt einen eigenen, blauen Grund -- anders als das
@@ -3689,8 +3693,11 @@ const T={
     scanTypeOrScan:'Barcode eingeben oder scannen.',
     scanNotListed:'Nicht im Ordersatz.',
     scanNo:'Nr.',
-    scanAltLead:'Dieser Artikel aus dem Ordersatz kommt ihm am nächsten:',
-    scanAltNone:'Kein ähnlicher Artikel im Ordersatz gefunden.',
+    scanAltLead:'Stattdessen bestellbar:',
+    scanAltLeadN:'Stattdessen bestellbar, bitte einen wählen:',
+    scanAltNone:'Kein Artikel derselben Artikelgruppe im Ordersatz.',
+    scanViaLb:'Gescannt',
+    scanViaNote:'nicht im Ordersatz, wird als dieser Artikel bestellt',
     bsBtn:'Lagerbestand scannen',
     bsTitle:'Lagerbestand scannen',
     bsHint:'Kistenetikett in den Rahmen halten',
@@ -3811,7 +3818,10 @@ const T={
     filtSuppliers:'Lieferanten',
     filtTags:'Stichworte',
     filtAll:'Alle',
-    filtSet:'Gesetzt',
+    filtPlace_first:'Nur Erstpl.',             // PD-772
+    filtPlace_both:'Erst- + Zweitpl.',
+    filtPlace_second:'Nur Zweitpl.',
+    filtPlace_empty:'Leer',
     filtEmpty:'Leer',
     filtReset:'Filter zurücksetzen',
     filtApply:'Filter anwenden',
@@ -4129,8 +4139,11 @@ const T={
     scanTypeOrScan:'Type a barcode or scan one.',
     scanNotListed:'Not in the order guide.',
     scanNo:'No.',
-    scanAltLead:'This order-guide item comes closest:',
-    scanAltNone:'No similar item found in the order guide.',
+    scanAltLead:'Orderable instead:',
+    scanAltLeadN:'Orderable instead, pick one:',
+    scanAltNone:'No item of the same item group in the order guide.',
+    scanViaLb:'Scanned',
+    scanViaNote:'not in the order guide, ordered as this item',
     bsBtn:'Scan back storage',
     bsTitle:'Scan back storage',
     bsHint:'Hold the crate label inside the frame',
@@ -4251,7 +4264,10 @@ const T={
     filtSuppliers:'Suppliers',
     filtTags:'Tags',
     filtAll:'All',
-    filtSet:'Set',
+    filtPlace_first:'Primary only',
+    filtPlace_both:'Primary + secondary',
+    filtPlace_second:'Secondary only',
+    filtPlace_empty:'Empty',
     filtEmpty:'Empty',
     filtReset:'Reset filters',
     filtApply:'Apply filters',
@@ -4569,8 +4585,11 @@ const T={
     scanTypeOrScan:'Saisissez un code-barres ou scannez.',
     scanNotListed:'Absent de l’assortiment.',
     scanNo:'N°',
-    scanAltLead:'Cet article de l’assortiment s’en rapproche le plus :',
-    scanAltNone:'Aucun article similaire dans l’assortiment.',
+    scanAltLead:'Commandable à la place :',
+    scanAltLeadN:'Commandable à la place, choisissez-en un :',
+    scanAltNone:'Aucun article du même groupe dans l’assortiment.',
+    scanViaLb:'Scanné',
+    scanViaNote:'absent de l’assortiment, commandé comme cet article',
     bsBtn:'Scanner la réserve',
     bsTitle:'Scanner la réserve',
     bsHint:'Placez l’étiquette du colis dans le cadre',
@@ -4691,7 +4710,10 @@ const T={
     filtSuppliers:'Fournisseurs',
     filtTags:'Mots-clés',
     filtAll:'Tous',
-    filtSet:'Renseigné',
+    filtPlace_first:'Permanent seul',
+    filtPlace_both:'Perm. + second.',
+    filtPlace_second:'Secondaire seul',
+    filtPlace_empty:'Vide',
     filtEmpty:'Vide',
     filtReset:'Réinitialiser les filtres',
     filtApply:'Appliquer les filtres',
@@ -6340,6 +6362,18 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           </div><button class="cta movecta__go" type="button" data-a="scanpick" data-i="${ix}" title="${L.scanPickTip}">${L.scanPickBtn}</button>
         </div>`
       : '';
+    /* Umgelenkter Scan (MOB-1731): gescannt wurde ein Artikel ausserhalb des Ordersatzes,
+       angesprungen wird sein bestellbares Gruppenmitglied. Damit die Liste nicht an der
+       falschen Zeile zu landen scheint, steht unter ihr, was gescannt wurde. Im Blatt sagt
+       das schon die Leiste oben. */
+    const via = (!forceEye && scanRow && SCAN.unlisted && SCAN.alts.length===1 && SCAN.alts[0]===ix)
+      ? SCAN.unlisted : null;
+    const viaCta = via
+      ? `<div class="movecta is-via">
+          <div class="movecta__mv"><span class="lb">${L.scanViaLb}</span><span class="nm">${via.name} · ${L.scanNo} ${via.plu}</span>
+          <span class="movecta__note">${L.scanViaNote}</span></div>
+        </div>`
+      : '';
     const reAsk = (!forceEye && SCAN_ASK && SCAN_ASK.ix===ix && scanRow) ? SCAN_ASK : null;
     const reDone = (!forceEye && SCAN_REORDER && SCAN_REORDER.ix===ix && scanRow) ? SCAN_REORDER : null;
     const reorderCta = reAsk
@@ -6492,7 +6526,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const isLastScan = !forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it);
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${viaCta}${hideCta}${moveCta}${reorderCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -6549,7 +6583,7 @@ function render(){
     /* Aufteilung, kein ODER: sie schneidet die Liste, unabhaengig von den Haken. */
     const seen = !!SCAN_SEEN[overrideKey(it)];
     const scanHide = SCAN_FILT==='yes' ? !seen : SCAN_FILT==='no' ? seen : false;
-    const rhbHide = RHB_FILT==='set' ? rhbZero(ix) : RHB_FILT==='empty' ? !rhbZero(ix) : false;
+    const rhbHide = RHB_FILT!=='all' && !RHB_FILT.split(',').includes(placeOf(it));
     const recoHide = RECO_FILT==='pos' ? recoOf(ix)===0 : RECO_FILT==='zero' ? recoOf(ix)!==0 : false;
     let catFilterHide = false;
     if(CATFILTER){
@@ -7911,7 +7945,7 @@ function pluApproxMatch(plu, qDigits){
    der Hand haelt, will ihn sehen, auch wenn er in der Liste gerade wegfaellt.
    Bedienbar bleibt die Zeile trotzdem: sie wird mit rowHTML() gebaut und haengt
    an rowClick(), also am selben Zustand wie die Liste. */
-let SCAN={plu:null, matches:[], unlisted:null, timer:null};
+let SCAN={plu:null, matches:[], unlisted:null, alts:[], timer:null};
 // var, nicht let: render() laeuft schon beim Start, bevor diese Zeile erreicht ist.
 var SCAN_JUMP=null;
 
@@ -7920,56 +7954,32 @@ var SCAN_JUMP=null;
    anderen Warengruppe, Streckenware, ausgelistete Nummern. Der Barcode ist
    trotzdem lesbar und der Artikelstamm kennt Name und Nummer -- nur bestellen
    laesst er sich hier nicht. Fuer die Demo steht dieser Stamm als kleine Liste
-   hier; im Produkt kaeme er aus dem Artikelstamm der Filiale. */
+   hier; im Produkt kaeme er aus dem Artikelstamm der Filiale.
+   grp: die bestellbaren Mitglieder seiner Artikelgruppe (MOB-1731), als PLU. Im
+   Produkt kaeme das aus den Freshflow-Artikelgruppen; hier steht es fest, damit
+   jeder Fall vorfuehrbar ist: ein Mitglied, mehrere, keins. */
 const UNLISTED = [
-  {plu:1907512, name:'APFEL ELSTAR 6,5KG REWE BW 1KG LS'},
-  {plu:2734118, name:'TOMATE OCHSENHERZ REWE BW 500G SL'},
-  {plu:1041288, name:'KARTOFFEL DRILLINGE REWE BW 750G SL'},
-  {plu:1057344, name:'ORANGE BLUT MORO UEB REWE BW 1KG LS'},
-  {plu:483722,  name:'GURKE SNACK REWE BW 250G SL'},
-  {plu:8229901, name:'PILZ KRAEUTERSEITLING REWE BW 200G SL'},
-  {plu:305421,  name:'WASSERMELONE KERNARM 1ST LS'},
-  {plu:1043508, name:'SALAT FELDSALAT NRW REWE REG 125G SL'},
+  {plu:1907512, name:'APFEL ELSTAR 6,5KG REWE BW 1KG LS',          grp:[6839517]},
+  {plu:4310634, name:'APFEL JONAGOLD AUT 7KG REWE BW 1KG LS',      grp:[8659022, 7225426]},
+  {plu:4318820, name:'TOMATE RISPE NLD REWE BW 500G SL',           grp:[7002640]},
+  {plu:2734118, name:'TOMATE OCHSENHERZ REWE BW 500G SL',          grp:[]},
+  {plu:1041288, name:'KARTOFFEL DRILLINGE REWE BW 750G SL',        grp:[2484343]},
+  {plu:1057344, name:'ORANGE BLUT MORO UEB REWE BW 1KG LS',        grp:[7414242, 1057913]},
+  {plu:483722,  name:'GURKE SNACK REWE BW 250G SL',                grp:[]},
+  {plu:8229901, name:'PILZ KRAEUTERSEITLING REWE BW 200G SL',      grp:[]},
+  {plu:305421,  name:'WASSERMELONE KERNARM 1ST LS',                grp:[]},
+  {plu:1043508, name:'SALAT FELDSALAT NRW REWE REG 125G SL',       grp:[]},
 ];
 function unlistedOf(digits){
   if(!digits) return null;
   return UNLISTED.find(u=>String(u.plu)===digits) || null;
 }
-
-/* Aus welchen Woertern eines Artikelnamens laesst sich Aehnlichkeit ablesen?
-   Nicht aus Herkunft, Marke, Gebindekuerzel oder Gewicht -- die stehen auf
-   fast jedem Namen. Uebrig bleibt, was den Artikel ausmacht: APFEL, ELSTAR. */
-const NAME_NOISE=new Set(['rewe','bio','ogt','nrw','reg','ueb','group','neutral',
-  'neutr','deu','eur','fra','plu','bund','stk','kart','lose','premium','snack']);
-function nameTokens(name){
-  return String(name||'').toLowerCase().split(/[^a-zäöüß]+/)
-    .filter(w=>w.length>2 && !NAME_NOISE.has(w));
-}
-/* Was koennte der Kaufmann stattdessen bestellen? Zuerst dieselbe Sorte
-   (gleiches erstes Wort: APFEL zu APFEL), dann was den Namen teilt, dann was
-   im selben Regal steht. Ausgeblendetes bleibt drin -- wer den Artikel in der
+/* Was laesst sich stattdessen bestellen? Die Mitglieder derselben Artikelgruppe,
+   die im Ordersatz stehen. Ausgeblendetes bleibt drin -- wer den Artikel in der
    Hand haelt, soll die Alternative sehen, auch wenn die Liste sie wegfiltert. */
-function scanAlternatives(u){
+function scanGroup(u){
   if(!u) return [];
-  const ut=nameTokens(u.name), first=ut[0]||'', tile=tileByName(u.name);
-  const scored=[];
-  ITEMS.forEach((it,ix)=>{
-    const t2=nameTokens(it.name);
-    let sc=0;
-    if(first && t2[0]===first) sc+=6;
-    sc+=2*t2.filter(w=>ut.includes(w)).length;
-    if(tileOf(it)===tile) sc+=3;
-    if(sc>0) scored.push({ix, sc});
-  });
-  scored.sort((a,b)=>b.sc-a.sc || a.ix-b.ix);
-  /* Gibt es Artikel derselben Sorte, tritt der blosse Regalnachbar zurueck:
-     neben zwei Kartoffelsorten will niemand noch Zwiebeln vorgeschlagen
-     bekommen. Nur wenn nichts Naeheres da ist, fuellt das Regal die Liste. */
-  const strong=scored.filter(x=>x.sc>=5);
-  const list=strong.length
-    ? strong.concat(scored.filter(x=>x.sc<5)).slice(0, Math.max(strong.length, 4))
-    : scored.slice(0,6);
-  return list.map(x=>x.ix);
+  return (u.grp||[]).map(plu=>ITEMS.findIndex(it=>it.plu===plu)).filter(ix=>ix>=0);
 }
 
 /* Ein Code kommt aus dem Sucher oder aus dem Suchfeld -- beide Wege setzen
@@ -7978,6 +7988,12 @@ function setScanCode(digits){
   SCAN.plu=digits||'';
   SCAN.matches=scanBest(scanMatches(SCAN.plu));
   SCAN.unlisted=SCAN.matches.length?null:unlistedOf(SCAN.plu);
+  /* Nicht im Ordersatz (MOB-1731): der Scan wird zuerst auf das bestellbare Mitglied
+     der Artikelgruppe umgelenkt, danach gilt dieselbe Regel wie fuer jeden Treffer
+     (springen oder Scan-Ergebnis). Bei mehreren gibt es kein eindeutiges Ziel --
+     dann bleibt matches leer und das Blatt zeigt alle zur Auswahl. */
+  SCAN.alts=scanGroup(SCAN.unlisted);
+  if(SCAN.alts.length===1) SCAN.matches=SCAN.alts.slice();
 }
 
 /* Der FAB sitzt immer unten rechts, ueber der Fussleiste -- deren Hoehe haengt an
@@ -8213,10 +8229,12 @@ function renderScanRes(keepOpen, keepFocus){
   /* Leeres Feld heisst "noch nichts gescannt", nicht "nichts gefunden" -- sonst
      steht die Fehlmeldung da, sobald man den Code loescht, um neu zu tippen. */
   const noCode = !SCAN.plu;
-  /* Nicht im Ordersatz, aber im Artikelstamm: dann steht oben der Name des
-     Artikels, den man in der Hand haelt, und darunter die Alternativen. */
+  /* Nicht im Ordersatz, aber im Artikelstamm: oben nur eine Leiste mit dem, was man
+     in der Hand haelt -- keine eigene Zeile, bestellen laesst es sich ja nicht. Darunter
+     die bestellbaren Mitglieder seiner Artikelgruppe als normale Zeilen. */
   const u = noCode ? null : SCAN.unlisted;
-  const alts = u ? scanAlternatives(u).slice(0,1) : [];   // auch hier: genau ein Ergebnis
+  const alts = u ? SCAN.alts : [];
+  const rows = u ? alts : m;
   const head = noCode ? L.scanTitle
     : (u ? u.name
     : (m.length===1 ? ITEMS[m[0]].name
@@ -8238,16 +8256,14 @@ function renderScanRes(keepOpen, keepFocus){
       <span class="ic" aria-hidden="true">!</span>
       <div class="tx">
         <div class="nm">${u.name} <span class="no">· ${L.scanNo} ${u.plu}</span></div>
-        <div class="sub">${L.scanNotListed} ${alts.length?L.scanAltLead:''}</div>
+        <div class="sub">${L.scanNotListed} ${alts.length?(alts.length>1?L.scanAltLeadN:L.scanAltLead):''}</div>
       </div>
     </div>`:''}
-    ${m.length?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
+    ${m.length && !u?`<div class="scanRes__note">${L.scanAllNote}</div>`:''}
     <div class="scanRes__body" id="scanResBody">
-      ${m.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
-      ${m.map(ix=>rowHTML(ix,'',true)).join('')}`
-      :u?(alts.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
-      ${alts.map(ix=>rowHTML(ix,'',true)).join('')}`
-      :`<div class="scanRes__empty">${L.scanAltNone}</div>`)
+      ${rows.length?`<div class="colh"><div>${L.item}</div><div>${L.inventory}</div><div>${L.order}</div></div>
+      ${rows.map(ix=>rowHTML(ix,'',true)).join('')}`
+      :u?`<div class="scanRes__empty">${L.scanAltNone}</div>`
       :`<div class="scanRes__empty">${noCode?L.scanTypeOrScan:L.scanNoHitSub}</div>`}
     </div>
     <div class="scanRes__foot">
@@ -8322,7 +8338,18 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
 const CATFILT = {invNote:false, ordNote:false, rhb0:false, rewe:false, bio:false, kern:false, promo:false};
 /* Regalhoechstbestand Alle / Gesetzt / Leer ist dagegen eine Aufteilung (UND):
    Leer heisst RHB 0 -- jemand hat eingetragen, dass der Artikel heute nicht im Regal steht. */
-let RHB_FILT='all';   // 'all' | 'set' | 'empty'
+/* PD-772: wo der Artikel liegt, in vier Gruppen, die sich nicht ueberschneiden
+   und zusammen jeden Artikel abdecken -- zwei Fragen: hat das Regal eine Zahl
+   ueber 0, gibt es eine Zweitplatzierung? Als Chips wie die anderen Abschnitte;
+   die drei mit Platzierung lassen sich kombinieren (ODER), Alle und Leer nur
+   allein. "Alle Zweitplatzierungen" = both + second. */
+let RHB_FILT='all';   // 'all' | kommagetrennt aus RHB_GROUPS
+const RHB_GROUPS=['first','both','second','empty'];
+const RHB_COMBINE=['first','both','second'];
+function placeOf(it){
+  const h=dsHome(it)>0, z=hasSecond(it);
+  return h ? (z?'both':'first') : (z?'second':'empty');
+}
 function rhbZero(ix){ return !homeEmpty(ITEMS[ix]) && dsHome(ITEMS[ix])===0; }
 function filtActive(){
   return CATFILT.invNote||CATFILT.ordNote||CATFILT.rhb0||CATFILT.rewe||CATFILT.bio||CATFILT.kern||CATFILT.promo;
@@ -8374,7 +8401,9 @@ function renderFiltPanel(){
       ${sec('reco',FICON.reco,L.filtReco,
           pills('reco',[['all',L.filtAll],['pos',L.filtRecoPos],['zero',L.filtRecoZero]]))}
       ${sec('rhb',FICON.rhb,L.displaySize,
-          pills('rhb',[['all',L.filtAll],['set',L.filtSet],['empty',L.filtEmpty]]))}
+          `<div class="fdr__pills">${['all'].concat(RHB_GROUPS).map(k=>{
+            const on = k==='all' ? D.rhb==='all' : D.rhb.split(',').includes(k);
+            return `<button class="fpill${on?' on':''}" type="button" data-frhb="${k}">${k==='all'?L.filtAll:L['filtPlace_'+k]}</button>`; }).join('')}</div>`)}
       ${sec('vis',FICON.vis,L.filtVis,
           pills('vis',[['all',L.filtAll],['visible',L.filtVisible],['hidden',L.filtHidden]]))}
       ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}
@@ -8410,10 +8439,22 @@ filtBtn.addEventListener('click', e=>{
 });
 filtPop.addEventListener('click', e=>{
   e.stopPropagation();
-  const k=e.target.closest('[data-fk]'), r=e.target.closest('[data-fgrp]'),
+  const k=e.target.closest('[data-fk]'), r=e.target.closest('[data-fgrp]'), p=e.target.closest('[data-frhb]'),
         h=e.target.closest('[data-fsec]'), a=e.target.closest('[data-fact]');
   if(k){ FDRAFT[k.dataset.fk]=!FDRAFT[k.dataset.fk]; renderFiltPanel(); }
   else if(r){ FDRAFT[r.dataset.fgrp]=r.dataset.fval; renderFiltPanel(); }
+  else if(p){
+    /* Alle und Leer stehen allein; die drei mit einer Platzierung lassen sich
+       zusammen waehlen. Der letzte abgewaehlte faellt auf Alle zurueck. */
+    const k=p.dataset.frhb;
+    if(k==='all' || k==='empty') FDRAFT.rhb=k;
+    else {
+      const on=FDRAFT.rhb.split(',').filter(g=>RHB_COMBINE.includes(g));
+      const next=RHB_COMBINE.filter(g=>g===k ? !on.includes(g) : on.includes(g));
+      FDRAFT.rhb=next.length ? next.join(',') : 'all';
+    }
+    renderFiltPanel();
+  }
   else if(h){ FCOLLAPSED[h.dataset.fsec]=!FCOLLAPSED[h.dataset.fsec]; renderFiltPanel(); }
   else if(a && a.dataset.fact==='reset'){
     Object.keys(FDRAFT).forEach(x=>FDRAFT[x]=false);
@@ -10384,6 +10425,59 @@ render();
 
 /* initial labelling -- LANG defaults to 'de' */
 applyLang();
+
+/* PD-794: count that can't be right */
+const CP_INTAKE_TODAY = {"22241":48,"25267":6,"417804":8,"455217":18.1,"469769":7,"475360":15,"475963":6,"482293":6,"482404":14,"482595":10,"482684":6,"483303":48,"609355":20,"886960":10,"1033906":48,"1041139":20,"1105044":50,"1105069":10,"1197159":20,"1902921":16,"1907470":10,"1928831":4,"2103338":10,"2304925":19,"2323429":10,"2427591":1,"2484343":8,"2486005":12,"2598087":8,"2731347":10,"2867271":16,"3363970":27,"3420657":4,"4659244":13,"6238955":12,"7231840":6,"7676549":12,"7877179":5,"7877799":5,"7962430":19,"8025058":12,"8229835":10,"9097506":4,"9469308":10.5,"9964870":4};   /* PLU -> kg or pieces arriving on the order day; missing = 0 */
+function cpHighT(){ return ({
+  de:{title:'Bestand ungewöhnlich hoch', facts:'Eingegeben: {v} = {u}. Die App erwartet etwa {e} (Bestand plus heutiger Wareneingang).',
+      rule:'Der Bestand wird in Kisten eingegeben. Stimmt die Zahl, bestätige sie.', ok:'Bestätigen'},
+  en:{title:'Inventory unusually high', facts:'Entered: {v} = {u}. The app expects about {e} (inventory plus today\'s intake).',
+      rule:'Inventory is entered in cases. If the number is right, confirm it.', ok:'Confirm'},
+  fr:{title:'Stock inhabituellement élevé', facts:'Saisi : {v} = {u}. L\'app attend environ {e} (stock plus livraison du jour).',
+      rule:'Le stock se saisit en colis. Si le chiffre est juste, confirmez-le.', ok:'Confirmer'}})[LANG]; }
+/* what the app expects, in cases: simulated inventory + today's intake; null = nothing to check against */
+function cpExpectKo(it){ if(!(it.case>0) || it.app==null) return null;
+  return Math.max(0, it.app) + (CP_INTAKE_TODAY[it.plu]||0)/it.case; }
+function cpTooHigh(it,ko){ const e=cpExpectKo(it); return e!=null && ko > Math.max(3*e, e+3)+1e-9; }
+/* same rounding as the "= 13 kg" line under the total, so the hint never shows another number */
+function cpQtyTxt(it,ko){ return Math.round(ko*it.case)+' '+uw(it); }
+const _drawInvPad_cp794 = drawInvPad;
+drawInvPad = function(){
+  _drawInvPad_cp794();
+  const it=ITEMS[INV.ix], v=invPadVals(), hint=document.getElementById('invHint'), btn=document.getElementById('invSpeichern');
+  INV.high = !INV.backOnly && !(INV.back==='0' && INV.floor==='0') && cpTooHigh(it, v.cases);
+  btn.textContent = INV.high ? cpHighT().ok : t().saveTick;
+  if(!INV.high || !hint) return;
+  const T=cpHighT(), ex=cpExpectKo(it);
+  const facts=T.facts.replace('{v}', csNum(v.cases)+' '+t().caseUnit).replace('{u}', cpQtyTxt(it, v.cases))
+    .replace('{e}', koNum(Math.round(ex*10)/10)+' '+t().caseUnit+' = '+cpQtyTxt(it, ex));
+  hint.hidden=false;
+  hint.innerHTML = ICON_INV_BANG+'<span><b class="hintTitle">'+T.title+'</b>'+facts+'<br>'+T.rule+'</span>';
+};
+const _invSave_cp794 = document.getElementById('invSpeichern').onclick;
+document.getElementById('invSpeichern').onclick = function(e){
+  const ix=INV.ix, high=INV.high;
+  _invSave_cp794.call(this, e);
+  if(high) ST[ix].cpHighOk = true;   /* confirmed: + on this item no longer asks */
+};
+/* + that would cross the line: same keypad as "enter inventory", with the stepped value in it */
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="bstep"][data-d="1"]'); if(!b || b.disabled) return;
+  const ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
+  if(s.cpHighOk) return;
+  /* the same step the row would take: C&P from the one number, REWE from the top of the range */
+  const r=it.rungs[s.plan]||{};
+  let next = s.step==='range' ? stepKo(it, typeof cpSimKo==='function' ? cpSimKo(it,s) : r.hi, 1)
+           : s.step==='need' ? 1 : stepKo(it, s.ko, 1);
+  if(next==null || isNaN(next)) return;
+  next = Math.max(0, Math.min(99, next));
+  if(!cpTooHigh(it, next)) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  openInvPad(ix);
+  INV.floor = String(Math.round(next*100)/100); INV.act='floor';
+  drawInvPad();
+}, true);
+/* PD-794 end */
 </script>
 </body>
 </html>

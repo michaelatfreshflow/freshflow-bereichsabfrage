@@ -40,6 +40,7 @@ ap.add_argument('--demo-og', type=int, default=0, help='add N clearly labelled e
 ap.add_argument('--orders', help='orders overview data for the Commandes tab (tools/data/cp_*_orders_*.json)')
 ap.add_argument('--opens-at', help='HH:MM: orders cannot be opened before this (C&P: 11:00, MOB-1730); needs --orders')
 ap.add_argument('--sales-json', help='past.sales per PLU for the order day (tools/data/cp_<store>_sales_<date>.json): the 7-day strip under the commande')
+ap.add_argument('--intake-json', help="today's intake per PLU (tools/data/cp_<store>_intake_today_<date>.json): warn on a count that can't be right (PD-794)")
 ap.add_argument('--city', default='Lyon', help='city shown on the dashboard weather card')
 ap.add_argument('--order-date', default='2026-10-13', help='YYYY-MM-DD order day: dashboard date and the 30-day chart window')
 ap.add_argument('--clock', help='HH:MM the page opens on when no ?now= is given (see cp_orders_overview.py)')
@@ -48,6 +49,9 @@ ap.add_argument('--guide-id', default='cerise-perrache-2026-10-13')
 args = ap.parse_args()
 
 s = open(args.base, encoding='utf-8').read()
+sys.path.insert(0, __import__('os').path.dirname(__file__))
+from cp_high_count import strip as _strip_high
+s = _strip_high(s)   # the REWE base carries the PD-794 block with its own intake; C&P re-adds it below
 src = open(args.items_from, encoding='utf-8').read()
 
 
@@ -1165,6 +1169,11 @@ if args.orders:
     s = s[:idx] + BCS_CSS + s[idx:]
     if args.opens_at:
         s = inject_lock(s, args.opens_at)
+
+if args.intake_json:
+    sys.path.insert(0, __import__('os').path.dirname(__file__))
+    from cp_high_count import inject as inject_high
+    s = inject_high(s, json.load(open(args.intake_json, encoding='utf-8'))['intake_today'])
 
 open(args.out, 'w', encoding='utf-8').write(s)
 print(f'wrote {args.out}: {len(items)} items, {len(cp)} with C&P fields, dummy={dummy}')

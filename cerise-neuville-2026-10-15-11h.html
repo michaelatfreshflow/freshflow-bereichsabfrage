@@ -11552,6 +11552,59 @@ document.getElementById('ocBody').addEventListener('click', e=>{
   if(!isOrderClosed(o)) return;
   e.stopImmediatePropagation(); lkShow(o);
 }, true);
+
+/* PD-794: count that can't be right */
+const CP_INTAKE_TODAY = {"1004":5,"1005":5,"1025":12,"1060":6,"1070":12,"1079":12,"1092":24,"1095":3,"1119":5,"1127":10,"1128":12,"1145":10,"1160":20,"1197":3,"1200":6,"1201":6,"1202":6,"1203":36,"1216":1,"1217":7.708,"1294":14,"1320":5,"1339":5,"1348":37,"1428":6,"1436":5.878,"1455":20,"1516":7,"1523":8,"1529":41,"1532":72,"1640":15,"1704":14.649,"1710":3.801,"1741":40,"1753":32.168,"1774":10.518,"1782":31.648,"1797":15.332,"1818":2,"1821":2,"1843":6.3,"1851":20,"1891":7.256,"1921":12,"20015":10,"20039":8,"20045":6,"20046":18.75,"20095":12,"20164":10,"20223":6,"20332":39,"20345":2,"20405":7.8,"20498":5,"20499":10,"20501":5,"20518":6,"20740":30,"20825":25.71,"20935":7,"21061":8.426,"21104":5,"21352":6,"21353":12,"21369":5,"37282":10.768,"37298":8.822,"37312":9.4,"37385":9};   /* PLU -> kg or pieces arriving on the order day; missing = 0 */
+function cpHighT(){ return ({
+  de:{title:'Bestand ungewöhnlich hoch', facts:'Eingegeben: {v} = {u}. Die App erwartet etwa {e} (Bestand plus heutiger Wareneingang).',
+      rule:'Der Bestand wird in Kisten eingegeben. Stimmt die Zahl, bestätige sie.', ok:'Bestätigen'},
+  en:{title:'Inventory unusually high', facts:'Entered: {v} = {u}. The app expects about {e} (inventory plus today\'s intake).',
+      rule:'Inventory is entered in cases. If the number is right, confirm it.', ok:'Confirm'},
+  fr:{title:'Stock inhabituellement élevé', facts:'Saisi : {v} = {u}. L\'app attend environ {e} (stock plus livraison du jour).',
+      rule:'Le stock se saisit en colis. Si le chiffre est juste, confirmez-le.', ok:'Confirmer'}})[LANG]; }
+/* what the app expects, in cases: simulated inventory + today's intake; null = nothing to check against */
+function cpExpectKo(it){ if(!(it.case>0) || it.app==null) return null;
+  return Math.max(0, it.app) + (CP_INTAKE_TODAY[it.plu]||0)/it.case; }
+function cpTooHigh(it,ko){ const e=cpExpectKo(it); return e!=null && ko > Math.max(3*e, e+3)+1e-9; }
+/* same rounding as the "= 13 kg" line under the total, so the hint never shows another number */
+function cpQtyTxt(it,ko){ return Math.round(ko*it.case)+' '+uw(it); }
+const _drawInvPad_cp794 = drawInvPad;
+drawInvPad = function(){
+  _drawInvPad_cp794();
+  const it=ITEMS[INV.ix], v=invPadVals(), hint=document.getElementById('invHint'), btn=document.getElementById('invSpeichern');
+  INV.high = !INV.backOnly && !(INV.back==='0' && INV.floor==='0') && cpTooHigh(it, v.cases);
+  btn.textContent = INV.high ? cpHighT().ok : t().saveTick;
+  if(!INV.high || !hint) return;
+  const T=cpHighT(), ex=cpExpectKo(it);
+  const facts=T.facts.replace('{v}', csNum(v.cases)+' '+t().caseUnit).replace('{u}', cpQtyTxt(it, v.cases))
+    .replace('{e}', koNum(Math.round(ex*10)/10)+' '+t().caseUnit+' = '+cpQtyTxt(it, ex));
+  hint.hidden=false;
+  hint.innerHTML = ICON_INV_BANG+'<span><b class="hintTitle">'+T.title+'</b>'+facts+'<br>'+T.rule+'</span>';
+};
+const _invSave_cp794 = document.getElementById('invSpeichern').onclick;
+document.getElementById('invSpeichern').onclick = function(e){
+  const ix=INV.ix, high=INV.high;
+  _invSave_cp794.call(this, e);
+  if(high) ST[ix].cpHighOk = true;   /* confirmed: + on this item no longer asks */
+};
+/* + that would cross the line: same keypad as "enter inventory", with the stepped value in it */
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-a="bstep"][data-d="1"]'); if(!b || b.disabled) return;
+  const ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
+  if(s.cpHighOk) return;
+  /* the same step the row would take: C&P from the one number, REWE from the top of the range */
+  const r=it.rungs[s.plan]||{};
+  let next = s.step==='range' ? stepKo(it, typeof cpSimKo==='function' ? cpSimKo(it,s) : r.hi, 1)
+           : s.step==='need' ? 1 : stepKo(it, s.ko, 1);
+  if(next==null || isNaN(next)) return;
+  next = Math.max(0, Math.min(99, next));
+  if(!cpTooHigh(it, next)) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  openInvPad(ix);
+  INV.floor = String(Math.round(next*100)/100); INV.act='floor';
+  drawInvPad();
+}, true);
+/* PD-794 end */
 </script>
 </body>
 </html>
