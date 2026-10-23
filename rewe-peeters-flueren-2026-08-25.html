@@ -3818,10 +3818,8 @@ const T={
     filtSuppliers:'Lieferanten',
     filtTags:'Stichworte',
     filtAll:'Alle',
-    filtPlace_first:'Nur Erstpl.',             // PD-772
-    filtPlace_both:'Erst- + Zweitpl.',
-    filtPlace_second:'Nur Zweitpl.',
-    filtPlace_empty:'Leer',
+    filtFirst:'Erstpl. gesetzt',               // PD-772
+    filtSecond:'Zweitpl. gesetzt',
     filtEmpty:'Leer',
     filtReset:'Filter zurücksetzen',
     filtApply:'Filter anwenden',
@@ -4264,10 +4262,8 @@ const T={
     filtSuppliers:'Suppliers',
     filtTags:'Tags',
     filtAll:'All',
-    filtPlace_first:'Primary only',
-    filtPlace_both:'Primary + secondary',
-    filtPlace_second:'Secondary only',
-    filtPlace_empty:'Empty',
+    filtFirst:'Primary set',
+    filtSecond:'Secondary set',
     filtEmpty:'Empty',
     filtReset:'Reset filters',
     filtApply:'Apply filters',
@@ -4710,10 +4706,8 @@ const T={
     filtSuppliers:'Fournisseurs',
     filtTags:'Mots-clés',
     filtAll:'Tous',
-    filtPlace_first:'Permanent seul',
-    filtPlace_both:'Perm. + second.',
-    filtPlace_second:'Secondaire seul',
-    filtPlace_empty:'Vide',
+    filtFirst:'Permanent renseigné',
+    filtSecond:'Secondaire renseigné',
     filtEmpty:'Vide',
     filtReset:'Réinitialiser les filtres',
     filtApply:'Appliquer les filtres',
@@ -6583,7 +6577,7 @@ function render(){
     /* Aufteilung, kein ODER: sie schneidet die Liste, unabhaengig von den Haken. */
     const seen = !!SCAN_SEEN[overrideKey(it)];
     const scanHide = SCAN_FILT==='yes' ? !seen : SCAN_FILT==='no' ? seen : false;
-    const rhbHide = RHB_FILT!=='all' && !RHB_FILT.split(',').includes(placeOf(it));
+    const rhbHide = !rhbShows(it, RHB_FILT);
     const recoHide = RECO_FILT==='pos' ? recoOf(ix)===0 : RECO_FILT==='zero' ? recoOf(ix)!==0 : false;
     let catFilterHide = false;
     if(CATFILTER){
@@ -8338,17 +8332,14 @@ document.getElementById('resetGo').addEventListener('click', ()=>{
 const CATFILT = {invNote:false, ordNote:false, rhb0:false, rewe:false, bio:false, kern:false, promo:false};
 /* Regalhoechstbestand Alle / Gesetzt / Leer ist dagegen eine Aufteilung (UND):
    Leer heisst RHB 0 -- jemand hat eingetragen, dass der Artikel heute nicht im Regal steht. */
-/* PD-772: wo der Artikel liegt, in vier Gruppen, die sich nicht ueberschneiden
-   und zusammen jeden Artikel abdecken -- zwei Fragen: hat das Regal eine Zahl
-   ueber 0, gibt es eine Zweitplatzierung? Als Chips wie die anderen Abschnitte;
-   die drei mit Platzierung lassen sich kombinieren (ODER), Alle und Leer nur
-   allein. "Alle Zweitplatzierungen" = both + second. */
-let RHB_FILT='all';   // 'all' | kommagetrennt aus RHB_GROUPS
-const RHB_GROUPS=['first','both','second','empty'];
-const RHB_COMBINE=['first','both','second'];
-function placeOf(it){
+/* PD-772: "Gesetzt" ist aufgeteilt in Erstpl. gesetzt (Regal ueber 0) und
+   Zweitpl. gesetzt (es gibt eine Zweitplatzierung) -- so findet der Markt alle
+   Zweitplatzierungen ueber alle Regale und raeumt sie im Regalhöchstbestand ab.
+   Ein Artikel mit beidem steht unter beiden; Leer heisst: nirgends etwas. */
+let RHB_FILT='all';   // 'all' | 'first' | 'second' | 'empty'
+function rhbShows(it, f){
   const h=dsHome(it)>0, z=hasSecond(it);
-  return h ? (z?'both':'first') : (z?'second':'empty');
+  return f==='first' ? h : f==='second' ? z : f==='empty' ? (!h && !z) : true;
 }
 function rhbZero(ix){ return !homeEmpty(ITEMS[ix]) && dsHome(ITEMS[ix])===0; }
 function filtActive(){
@@ -8401,9 +8392,7 @@ function renderFiltPanel(){
       ${sec('reco',FICON.reco,L.filtReco,
           pills('reco',[['all',L.filtAll],['pos',L.filtRecoPos],['zero',L.filtRecoZero]]))}
       ${sec('rhb',FICON.rhb,L.displaySize,
-          `<div class="fdr__pills">${['all'].concat(RHB_GROUPS).map(k=>{
-            const on = k==='all' ? D.rhb==='all' : D.rhb.split(',').includes(k);
-            return `<button class="fpill${on?' on':''}" type="button" data-frhb="${k}">${k==='all'?L.filtAll:L['filtPlace_'+k]}</button>`; }).join('')}</div>`)}
+          pills('rhb',[['all',L.filtAll],['first',L.filtFirst],['second',L.filtSecond],['empty',L.filtEmpty]]))}
       ${sec('vis',FICON.vis,L.filtVis,
           pills('vis',[['all',L.filtAll],['visible',L.filtVisible],['hidden',L.filtHidden]]))}
       ${sec('sup',FICON.sup,L.filtSuppliers, chk('rewe','Rewe',ITEMS.length))}
@@ -8439,22 +8428,10 @@ filtBtn.addEventListener('click', e=>{
 });
 filtPop.addEventListener('click', e=>{
   e.stopPropagation();
-  const k=e.target.closest('[data-fk]'), r=e.target.closest('[data-fgrp]'), p=e.target.closest('[data-frhb]'),
+  const k=e.target.closest('[data-fk]'), r=e.target.closest('[data-fgrp]'),
         h=e.target.closest('[data-fsec]'), a=e.target.closest('[data-fact]');
   if(k){ FDRAFT[k.dataset.fk]=!FDRAFT[k.dataset.fk]; renderFiltPanel(); }
   else if(r){ FDRAFT[r.dataset.fgrp]=r.dataset.fval; renderFiltPanel(); }
-  else if(p){
-    /* Alle und Leer stehen allein; die drei mit einer Platzierung lassen sich
-       zusammen waehlen. Der letzte abgewaehlte faellt auf Alle zurueck. */
-    const k=p.dataset.frhb;
-    if(k==='all' || k==='empty') FDRAFT.rhb=k;
-    else {
-      const on=FDRAFT.rhb.split(',').filter(g=>RHB_COMBINE.includes(g));
-      const next=RHB_COMBINE.filter(g=>g===k ? !on.includes(g) : on.includes(g));
-      FDRAFT.rhb=next.length ? next.join(',') : 'all';
-    }
-    renderFiltPanel();
-  }
   else if(h){ FCOLLAPSED[h.dataset.fsec]=!FCOLLAPSED[h.dataset.fsec]; renderFiltPanel(); }
   else if(a && a.dataset.fact==='reset'){
     Object.keys(FDRAFT).forEach(x=>FDRAFT[x]=false);
