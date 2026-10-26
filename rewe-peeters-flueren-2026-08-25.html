@@ -732,6 +732,21 @@ body.isFiltering{
    Farben stehen nur da, solange eine Frage offen ist oder das Scan-Ergebnis einen
    Artikel aus einem anderen Regal zeigt: dann ist Blau "dahinter kommt er". */
 .row.lastScan{background:#EEF3FB;box-shadow:inset 4px 0 0 #4F78B5}
+/* Regal neu scannen: oben ein Band mit Fortschritt, darunter erst die gescannten
+   Artikel in Scan-Reihenfolge, dann -- abgesetzt und blasser -- die noch offenen. */
+.rescan{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 12px;padding:10px 12px;
+  border-radius:var(--ff-radius-c15);background:#EEF3FB;border:1px solid #C9D7EE}
+.rescan__tx{flex:1;min-width:0}
+.rescan__t{font-weight:var(--ff-weight-bold);color:#2F5690;font-size:var(--ff-text-primary-body-text-14)}
+.rescan__s{font-size:var(--ff-text-primary-body-text-14);color:var(--mute)}
+.rescan .cta{padding:8px 16px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
+.rescan__alt{flex:0 0 auto;background:none;border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-c15);
+  padding:8px 14px;font-size:var(--ff-text-primary-body-text-14);color:var(--ink);cursor:pointer}
+.rescan--start{background:var(--ff-grey-100);border-color:var(--ff-grey-200)}
+.rescan--start .rescan__t{color:var(--ink)}
+.rescanDiv{margin:14px 12px 4px;font-size:var(--ff-text-primary-sub-title-10);letter-spacing:.6px;
+  text-transform:uppercase;font-weight:var(--ff-weight-bold);color:var(--mute)}
+.row.rescanTodo{opacity:.5}
 .movecta .movecta__go{padding:8px 20px;font-size:var(--ff-text-primary-body-text-14);flex:0 0 auto}
 /* "automatisch" steht am Block, nicht am Knopf: der Knopf tut dasselbe wie sonst,
    nur die Ursache war eine andere. */
@@ -3049,6 +3064,63 @@ function scanLastIn(tileId){
   const ix=ITEMS.findIndex(it=>overrideKey(it)===k);
   return (ix>=0 && tileOf(ITEMS[ix])===tileId) ? k : null;   // inzwischen weggezogen: kein Anker
 }
+/* Regal neu scannen: statt ein neues Regal anzulegen, alles hineinzuscannen und das
+   alte zu loeschen, scannt man im Regal selbst noch einmal von vorn. Jeder Scan kommt
+   hinter den vorigen; was am Ende nicht gescannt ist, wird einmal gefragt.
+   RESCAN={tile, done:[keys], prev:ITEM_ORDER vorher, ask:bool}. */
+let RESCAN=null;
+function rescanOn(){ return !!(RESCAN && CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===RESCAN.tile); }
+function rescanTodoKeys(){
+  return shelfSeq(RESCAN.tile).map(i=>overrideKey(ITEMS[i])).filter(k=>!RESCAN.done.includes(k));
+}
+function rescanStart(tileId){
+  RESCAN={tile:tileId, done:[], ask:false,
+    prev:Array.isArray(ITEM_ORDER[tileId]) ? ITEM_ORDER[tileId].slice() : undefined};
+  setScanLast(tileId, null);
+  if(SORT.key!=='shelf'){ SORT={key:'shelf', dir:1}; renderSortUI(); }
+}
+/* Gescannt: hinter den zuletzt gescannten, also ans Ende der schon gescannten. */
+function rescanAdd(key){
+  if(!RESCAN.done.includes(key)) RESCAN.done.push(key);
+  ITEM_ORDER[RESCAN.tile]=RESCAN.done.concat(rescanTodoKeys());
+  saveItemOrder();
+  setScanLast(RESCAN.tile, key);
+}
+function rescanCancel(){
+  if(RESCAN.prev===undefined) delete ITEM_ORDER[RESCAN.tile]; else ITEM_ORDER[RESCAN.tile]=RESCAN.prev;
+  saveItemOrder();
+  RESCAN=null;
+}
+function rescanFinish(drop){
+  const todo=rescanTodoKeys();
+  if(todo.length && drop===undefined){ RESCAN.ask=true; return; }
+  if(drop){
+    todo.forEach(k=>{ const it=ITEMS.find(x=>overrideKey(x)===k); if(it) setCatOverride(it, UNSHELVED_TILE); });
+    toast(t().rescanDropped(todo.length));
+  }
+  RESCAN=null;
+}
+function rescanBandHTML(){
+  const L=t();
+  if(!rescanOn()){
+    if(!(MANAGE_MODE && CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id!==UNSHELVED_TILE)) return '';
+    return `<div class="rescan rescan--start"><div class="rescan__tx">
+        <div class="rescan__s">${L.rescanStartS}</div></div>
+      <button class="cta" type="button" data-a="rescanstart">${L.rescanStartBtn}</button></div>`;
+  }
+  const n=RESCAN.done.length, m=shelfSeq(RESCAN.tile).length;
+  if(RESCAN.ask){
+    const k=rescanTodoKeys().length;
+    return `<div class="rescan"><div class="rescan__tx">
+        <div class="rescan__t">${L.rescanAskT(k)}</div><div class="rescan__s">${L.rescanAskS}</div></div>
+      <button class="rescan__alt" type="button" data-a="rescandrop">${L.rescanDrop}</button>
+      <button class="cta" type="button" data-a="rescankeep">${L.rescanKeep}</button></div>`;
+  }
+  return `<div class="rescan"><div class="rescan__tx">
+      <div class="rescan__t">${L.rescanOnT}</div><div class="rescan__s">${L.rescanOnS(n,m)}</div></div>
+    <button class="rescan__alt" type="button" data-a="rescancancel">${L.rescanCancel}</button>
+    <button class="cta" type="button" data-a="rescandone">${L.rescanDone}</button></div>`;
+}
 let SCAN_FILT='all';        // 'all' | 'yes' | 'no'
 function setCatOverride(it, tileId){
   const from=tileOf(it);
@@ -3745,6 +3817,18 @@ const T={
     scanShelfLb:'Regal',
     reorderLb:'Im Regal hinter',
     lastScanTag:'Zuletzt gescannt',
+    rescanStartS:'Reihenfolge falsch? Einmal am Regal entlang scannen, die Liste übernimmt sie.',
+    rescanStartBtn:'Regal neu scannen',
+    rescanOnT:'Regal neu scannen',
+    rescanOnS:(n,m)=>`${n} von ${m} gescannt · jeder Scan kommt hinter den vorigen`,
+    rescanDone:'Fertig',
+    rescanCancel:'Abbrechen',
+    rescanTodoDiv:'Noch nicht gescannt',
+    rescanAskT:n=>`${n} ${n===1?'Artikel':'Artikel'} nicht gescannt`,
+    rescanAskS:'Stehen sie noch in diesem Regal?',
+    rescanKeep:'Hinten im Regal lassen',
+    rescanDrop:'Aus dem Regal nehmen',
+    rescanDropped:n=>`${n} Artikel ohne Regal`,
     reorderBtn:'Hinter zuletzt gescanntem einordnen',
     reorderTip:'Den Artikel in der Regalreihenfolge direkt hinter den zuletzt gescannten stellen',
     reorderDoneLb:'Einsortiert hinter',
@@ -4185,6 +4269,18 @@ const T={
     scanShelfLb:'Shelf',
     reorderLb:'On the shelf behind',
     lastScanTag:'Last scanned',
+    rescanStartS:'Order wrong? Scan along the shelf once and the list takes it over.',
+    rescanStartBtn:'Rescan shelf',
+    rescanOnT:'Rescanning shelf',
+    rescanOnS:(n,m)=>`${n} of ${m} scanned · each scan goes behind the previous one`,
+    rescanDone:'Done',
+    rescanCancel:'Cancel',
+    rescanTodoDiv:'Not scanned yet',
+    rescanAskT:n=>`${n} ${n===1?'item':'items'} not scanned`,
+    rescanAskS:'Are they still on this shelf?',
+    rescanKeep:'Keep at the end of the shelf',
+    rescanDrop:'Remove from shelf',
+    rescanDropped:n=>`${n} ${n===1?'item':'items'} without shelf`,
     reorderBtn:'Place behind last scanned',
     reorderTip:'Put the item directly behind the previously scanned one in the shelf order',
     reorderDoneLb:'Moved behind',
@@ -4625,6 +4721,18 @@ const T={
     scanShelfLb:'Rayon',
     reorderLb:'En rayon après',
     lastScanTag:'Dernier scanné',
+    rescanStartS:'Ordre faux ? Scannez une fois le long du rayon, la liste le reprend.',
+    rescanStartBtn:'Rescanner le rayon',
+    rescanOnT:'Rescan du rayon',
+    rescanOnS:(n,m)=>`${n} sur ${m} scannés · chaque scan se place derrière le précédent`,
+    rescanDone:'Terminer',
+    rescanCancel:'Annuler',
+    rescanTodoDiv:'Pas encore scanné',
+    rescanAskT:n=>`${n} ${n===1?'article non scanné':'articles non scannés'}`,
+    rescanAskS:'Sont-ils encore dans ce rayon ?',
+    rescanKeep:'Laisser en fin de rayon',
+    rescanDrop:'Retirer du rayon',
+    rescanDropped:n=>`${n} ${n===1?'article':'articles'} sans rayon`,
     reorderBtn:'Placer derrière le dernier scanné',
     reorderTip:'Placer l’article juste après le dernier article scanné dans l’ordre du rayon',
     reorderDoneLb:'Placé après',
@@ -6490,7 +6598,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
       <div>${bsCounterHTML(ix,n)}</div></div>`;
     }
     const isLastScan = !forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it);
-    return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${extraCls||''}" data-ix="${ix}">
+    return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${(!forceEye && rescanOn() && !RESCAN.done.includes(overrideKey(it)))?' rescanTodo':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
       <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
@@ -6532,6 +6640,8 @@ function render(){
   let idxOrder = ITEMS.map((_,ix)=>ix);
   idxOrder = sortIdx(idxOrder);
   const shownIdx=[];   // sichtbare Zeilen fuer stats(); NICHT 'shown' -- das ist weiter unten die Bestellmenge
+  html += rescanBandHTML();
+  let rescanDiv = !rescanOn() || !RESCAN.done.length;   // Trenner erst, wenn schon etwas gescannt ist
   idxOrder.forEach(ix=>{
     const it=ITEMS[ix];
     const s=ST[ix], L=t();
@@ -6559,6 +6669,9 @@ function render(){
                            : VIS_FILT==='visible' ? (s.hidden && !MANAGE_MODE) : false;
     const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide || scanHide || rhbHide || recoHide;
     if(!hide) shownIdx.push(ix);
+    if(!hide && !rescanDiv && !RESCAN.done.includes(overrideKey(it))){
+      html += `<div class="rescanDiv">${L.rescanTodoDiv}</div>`; rescanDiv=true;
+    }
     html += rowHTML(ix, hide?' hide':'');
   });
   /* "Vergessen?": eine Liste in der gewaehlten Sortierung, ohne Gruppen -- das
@@ -7789,6 +7902,14 @@ function toast(m){const el=document.getElementById('toast');el.textContent=m;el.
 function rowClick(e){
   const b=e.target.closest('button, [data-a="ordpad"], [data-a="auslage"], [data-a="invpad"]'); if(!b) return;
   const a=b.dataset.a, ix=+b.dataset.i, it=ITEMS[ix], s=ST[ix];
+  if(a && a.startsWith('rescan')){
+    if(a==='rescanstart') rescanStart(CATFILTER.id);
+    else if(a==='rescancancel') rescanCancel();
+    else if(a==='rescandone') rescanFinish();
+    else if(a==='rescankeep') rescanFinish(false);
+    else if(a==='rescandrop') rescanFinish(true);
+    render(); return;
+  }
   if(a==='why'){ e.stopPropagation(); openWhy(b, ix, b.dataset.kind); return; }
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
@@ -8079,6 +8200,19 @@ function doScan(digits){
        jetzt der Anker. Solange sie offen war, blieb der Anker (und das Kennzeichen
        "Zuvor gescannt") beim Artikel davor -- sonst zeigte die Liste auf die Zeile, die
        gerade gefragt wird, hinter welchen Artikel sie gehoert. */
+    /* Beim Neu-Scannen wird nicht gefragt: jeder Treffer in diesem Regal kommt
+       hinter den vorigen, so wie man am Regal entlanggeht. */
+    if(rescanOn() && SCAN.matches.length===1 && tileOf(ITEMS[SCAN.matches[0]])===tileId){
+      const ix=SCAN.matches[0];
+      SCAN_SEEN[overrideKey(ITEMS[ix])]=true;
+      SCAN_ASK=null; SCAN_REORDER=null;
+      rescanAdd(overrideKey(ITEMS[ix]));
+      closeScanRes();
+      SCAN_JUMP=[ix];
+      render();
+      markScanJump(true);
+      return;
+    }
     if(SCAN_ASK) setScanLast(SCAN_ASK.tile, overrideKey(ITEMS[SCAN_ASK.ix]));
     const anchor = tileId ? scanLastIn(tileId) : null;   // vor autoFix, das den Anker verschiebt
     SCAN_ASK=null; SCAN_REORDER=null;
@@ -8172,6 +8306,7 @@ function markScanJump(scroll){
 function scanAssign(it, to){
   const anchor=scanLastIn(to);
   setCatOverride(it, to);
+  if(RESCAN && RESCAN.tile===to){ rescanAdd(overrideKey(it)); return; }
   if(anchor) seqPlaceAfter(it, to, anchor);
   setScanLast(to, overrideKey(it));
 }
