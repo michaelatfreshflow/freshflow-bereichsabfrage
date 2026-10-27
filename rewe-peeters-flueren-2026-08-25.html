@@ -387,7 +387,14 @@ html,body{margin:0;background:#000;font-family:'Inter',-apple-system,BlinkMacSys
   animation:miSpin .9s linear infinite}
 @keyframes miSpin{to{transform:rotate(360deg)}}
 
-.MissingInput__foot{display:flex;justify-content:flex-end;padding:0 40px 16px}
+.MissingInput__foot{display:flex;justify-content:flex-end;align-items:center;
+  gap:12px;flex-wrap:wrap;padding:0 40px 16px}
+/* PD-539: "Aktionen und Vorbestellungen anpassen" -- links im Fuss, damit es nicht mit
+   "Zurueck" verwechselt wird. Die Tafel ist von ueberall erreichbar, deshalb
+   sitzt der Einstieg hier und nicht im Artikel. Nur da, wenn der Markt in
+   Appsmith einen Link hat. */
+.MissingInput__promo{margin-right:auto;gap:8px}
+.MissingInput__promo svg{flex:0 0 auto}
 /* ---------- Push auf das Geraet ----------
    Kein Teil der App, sondern das, was das Geraet darueber legt: die Meldung
    erreicht den Markt auch dann, wenn die Tafel laengst zu ist oder jemand
@@ -3592,6 +3599,9 @@ const T={
     miCaption:'Fehlende Daten',  // [arb] missingInputWarningIconCaption
     miCatIntake:'Wareneingang',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Verkauf',  // [arb] missingInputSalesCategoryCaption
+    /* PD-539, neu -- noch ohne .arb-Schluessel. */
+    miPromo:'Aktionen und Vorbestellungen anpassen',
+    miPromoHint:'öffnet im Browser',
     miProcessIntake:'Wareneingangsdaten abschicken',
     /* Nur der Wareneingang steht "aus" statt zu "fehlen": hinter ihm liegt eine
        Annahme, die weiterrechnet. Die anderen Quellen fehlen wirklich, sie
@@ -4051,6 +4061,8 @@ const T={
     miCatIntake:'Order Intake',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Sales',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Send order intake data',
+    miPromo:'Edit promotions and preorders',
+    miPromoHint:'opens in the browser',
     miPending:'Pending',
     miIntakeFallback:'No new data has been received yet. Freshflow is temporarily using the original order quantity as the basis.',
     miProcessing:'Order intake is being processed',
@@ -4503,6 +4515,8 @@ const T={
     miCatIntake:'Livraison',  // [arb] missingInputOrderIntakeCategoryCaption
     miCatSales:'Ventes',  // [arb] missingInputSalesCategoryCaption
     miProcessIntake:'Envoyer les données de livraison',
+    miPromo:'Modifier les promos et précommandes',
+    miPromoHint:'s’ouvre dans le navigateur',
     miPending:'En attente',
     miIntakeFallback:"Aucune nouvelle donnée n'a encore été reçue. Freshflow utilise provisoirement la quantité commandée initiale comme base.",
     miProcessing:'Livraison en cours de traitement',
@@ -5037,6 +5051,11 @@ document.addEventListener('keydown', e=>{
 const MI_TODAY = new Date(2026, 7, 25);
 const MI_DAY_MS = 86400000;
 
+/* PD-539: Link zur Promo- & Vorbestellungs-Web-App (Speedboat). In der App
+   kommt er je Markt aus Appsmith; leer = kein Knopf. Hier vom Generator je
+   Datei gesetzt -- im Prototyp zeigt er auf das Mockup der Web-App. */
+const PROMO_URL = 'https://claude.ai/artifact/8sEY998xBUanSW6uHhs7y4?sk=Y3QYWxAi9dfzQ-4Kx00i7Q';
+
 /* level: 'ok' | 'warn' | 'err'. days sind die Tage ohne Lieferung. */
 const MI = {
   cats: [
@@ -5177,6 +5196,12 @@ function miRenderPanel(){
     +   `</div>`
     + `</div>`
     + `<div class="MissingInput__foot">`
+    +   (PROMO_URL
+          ? `<button type="button" class="PrimaryTextButton PrimaryTextButton--none MissingInput__promo" id="miPromo"`
+            + ` aria-label="${L.miPromo} (${L.miPromoHint})">`
+            + `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`
+            + `<span>${L.miPromo}</span></button>`
+          : '')
     +   `<button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="miDismiss">${L.miDismiss}</button>`
     + `</div>`
     + `</div>`;
@@ -5226,6 +5251,9 @@ document.addEventListener('click', e=>{
     return;
   }
   if(e.target.closest('#miDismiss')){ miClose(); return; }
+  /* Externer Browser statt Overlay -- offen in PD-539. Die Tafel bleibt offen:
+     wer zurueckkommt, steht wieder da, wo er war. */
+  if(e.target.closest('#miPromo')){ window.open(PROMO_URL, '_blank', 'noopener'); return; }
   /* Klick auf den Vorhang, nicht in die Tafel. */
   const ov=document.getElementById('miOv');
   if(ov && ov.classList.contains('on') && e.target===ov) miClose();
