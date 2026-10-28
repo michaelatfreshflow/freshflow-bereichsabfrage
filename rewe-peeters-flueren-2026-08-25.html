@@ -7955,11 +7955,14 @@ function rowClick(e){
   /* Wieder einblenden aus dem Scan-Ergebnis: dieselbe Wirkung wie das Auge, nur
      als Klartext-Angebot -- und es wird vermerkt, damit der Block danach die
      Rueckgaengig-Zeile zeigt statt zu verschwinden. */
+  /* MOB-1821: nur bei genau einem Treffer geht das Popover zu -- bei mehreren
+     bleibt der Block im Ergebnis stehen. Springt die Liste, ist der Artikel jetzt
+     der zuletzt gescannte dieses Regals; Rueckgaengig gibt den Anker zurueck. */
   else if(a==='scanshow'){
     s.hidden=false;
     SCAN_SHOWN[overrideKey(it)]=true;
     render();
-    scanJumpIfShown(ix); }
+    if(SCAN.matches.length===1) scanShowJump(ix); }
   else if(a==='scanunshow'){
     scanUndoShow(ix);
     render(); }
@@ -8244,8 +8247,27 @@ function doScan(digits){
   }, 340);
 }
 function scanUndoShow(ix){
+  const key=overrideKey(ITEMS[ix]), e=SCAN_SHOWN_LAST[key];
   ST[ix].hidden=true;
-  delete SCAN_SHOWN[overrideKey(ITEMS[ix])];
+  delete SCAN_SHOWN[key];
+  /* Ein wieder ausgeblendeter Artikel steht nicht in der Liste -- er kann nicht der
+     Anker bleiben, der naechste Scan kaeme sonst hinter eine unsichtbare Zeile. */
+  if(e && SCAN_LAST[e.tile]===key) setScanLast(e.tile, e.prev);
+  delete SCAN_SHOWN_LAST[key];
+}
+/* Eingeblendet aus dem Popover und jetzt in der Liste: dorthin springen wie nach
+   einem Scan, der gleich im Regal trifft (MOB-1747), samt "Zuletzt gescannt". */
+const SCAN_SHOWN_LAST={};
+function scanShowJump(ix){
+  const tileId = (CATFILTER && CATFILTER.kind==='tile') ? CATFILTER.id : null;
+  if(!document.getElementById('scanRes').classList.contains('on')) return;
+  if(CATOPEN || !SHOWN_IDX.includes(ix)) return;
+  if(tileId){
+    const key=overrideKey(ITEMS[ix]);
+    SCAN_SHOWN_LAST[key]={tile:tileId, prev:SCAN_LAST[tileId]};
+    setScanLast(tileId, key);
+  }
+  scanJumpIfShown(ix);
 }
 function scanUndoMove(ix){
   const it=ITEMS[ix], s=ST[ix], key=overrideKey(it), e=SCAN_MOVED[key];
