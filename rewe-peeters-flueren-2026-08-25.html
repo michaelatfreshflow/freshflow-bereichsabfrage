@@ -831,6 +831,8 @@ body.isFiltering{
 .invTip__cap{font-size:10.5px;font-weight:var(--ff-weight-semibold);line-height:1.25;padding:1px 4px 0;text-align:center}
 .invTip__cap b{font-weight:var(--ff-weight-bold);white-space:nowrap}
 .invTip__btns{display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap}
+/* Unter der Bestellung ist wenig Platz bis zum Rand: die vier Gruende zwei mal zwei. */
+.invTip__btns--why{display:grid;grid-template-columns:1fr 1fr}
 .invTip__alt,.invTip__go,.invTip__why{border-radius:var(--ff-radius-pill);font:inherit;font-weight:600;padding:5px 9px;cursor:pointer;white-space:nowrap}
 .invTip__alt,.invTip__why{background:#fff;border:1px solid var(--ff-color-warning);color:var(--invTipText)}
 .invTip__go{border:1px solid var(--green);background:var(--green);color:#fff}
@@ -6527,7 +6529,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     /* PD-806: die Rueckfrage ist kein Streifen ueber die ganze Zeile mehr, sondern eine
        Sprechblase direkt unter dem Bestand, auf ihn zeigend -- gebaut wie die
        Neu-berechnet-Blase bei C&P (MOB-1777). Sie fragt nach dem Bestand, also steht sie
-       am Bestand. Nach "Passt" auf einer +1 fragt dieselbe Blase nach dem Grund. */
+       am Bestand. */
     /* Kein Satz ueber die Annahme: die Blase zeigt auf den Stepper, und der zeigt sie
        schon. Was bleibt, sind die zwei Antworten. */
     const invTip = askInv(it,s) ? `<div class="invTip">
@@ -6535,7 +6537,10 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
           <button class="invTip__alt" type="button" data-a="invcount" data-i="${ix}">${L.invAskCount}</button>
           <button class="invTip__go" type="button" data-a="invok" data-i="${ix}">${L.invAskOk}</button>
         </div>
-      </div>` : s.reasonAsk ? `<div class="invTip">
+      </div>` : '';
+    /* Nach "Passt" auf einer +1: "Warum mehr?" fragt nach der Bestellung, nicht nach dem
+       Bestand -- darum steht diese Blase unter der Bestellmenge und zeigt auf sie. */
+    const whyTip = (!askInv(it,s) && s.reasonAsk) ? `<div class="invTip invTip--why">
         <span class="invTip__cap">${L.reasonAsk}</span>
         <div class="invTip__btns invTip__btns--why">
           ${REASONS.map(k=>`<button class="invTip__why" type="button" data-a="reason" data-r="${k}" data-i="${ix}">${L[REASON_KEY[k]]}</button>`).join('')}
@@ -6612,7 +6617,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         ${pendSub?`<span class="ColumnCounterField__label">${pendSub}</span>`:''}
       </div>
       <button class="ColumnCounterField__button" data-a="inc" data-i="${ix}" aria-label="${t().more}">${ICON_PLUS}</button>
-    </div>${s.manual?mark('edit',ix):bang(it.ordNote,'ord',ix)}</div>`;
+    </div>${s.manual?mark('edit',ix):bang(it.ordNote,'ord',ix)}</div>${whyTip}`;
     /* Das Auge steht sonst nur in "Bestellung verwalten" und an ausgeblendeten
        Zeilen. Im Scan-Ergebnis steht es immer: dort kommt man auch an Artikel, die
        die Liste gar nicht zeigt, und dann muss ablesbar sein, ob der Artikel in der
@@ -8058,17 +8063,24 @@ function rowClick(e){
   else if(a==='dsone'){ TAPS++; s.auslage=1; render(); }
 }
 list.addEventListener('click',rowClick);
-/* PD-806: die Blase mittig unter das Bestandsfeld (die weisse Box), nicht unter die
-   ganze Zelle mit dem !-Platz daneben -- so zeigt der Schwanz genau auf die Zahl.
-   Wie cpAimNow() bei C&P: nach dem Layout messen und um die Differenz schieben. */
+/* PD-806: die Blase mittig unter ihr Feld (die weisse Box), nicht unter die ganze
+   Zelle mit dem !-Platz daneben -- so zeigt der Schwanz genau auf die Zahl. Wie
+   cpAimNow() bei C&P: nach dem Layout messen und um die Differenz schieben. Die
+   Bestellspalte steht am rechten Rand: reicht die Blase darueber hinaus, bleibt sie
+   im Bild und nur der Schwanz wandert, damit er weiter auf die Zahl zeigt. */
 function aimInvTips(){
   document.querySelectorAll('#list .invTip').forEach(tip=>{
-    const box=tip.closest('.invCell')?.querySelector('.InventoryCounterField__box');
+    const box=tip.parentElement?.querySelector('.InventoryCounterField__box, .ColumnCounterField__box');
     if(!box) return;
-    tip.style.transform='';
+    tip.style.transform=''; tip.style.removeProperty('--tail');
     const d=box.getBoundingClientRect(), c=tip.getBoundingClientRect();
     if(!c.width || !d.width) return;
-    tip.style.transform=`translateX(${((d.left+d.width/2)-(c.left+c.width/2)).toFixed(1)}px)`;
+    const mid=d.left+d.width/2, edge=document.documentElement.clientWidth-8;
+    let dx=mid-(c.left+c.width/2);
+    if(c.right+dx>edge) dx=edge-c.right;
+    if(c.left+dx<8) dx=8-c.left;
+    tip.style.transform=`translateX(${dx.toFixed(1)}px)`;
+    tip.style.setProperty('--tail', `${(mid-(c.left+dx)).toFixed(1)}px`);
   });
 }
 { const _render=render; render=function(){ const r=_render.apply(this,arguments); requestAnimationFrame(aimInvTips); return r; }; }
@@ -10537,6 +10549,9 @@ function bsSelfTest(){
     ok('grund: die Rueckfrage steht unter dem Bestand',
        rowHTML(ixQ).indexOf('class="invTip"') < rowHTML(ixQ).indexOf('ColumnCounterField'));
     document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
+    { const h=rowHTML(ixQ);
+      ok('grund: "Warum mehr?" steht unter der Bestellung, nicht unter dem Bestand',
+         h.indexOf('invTip--why') > h.indexOf('ColumnCounterField__box')); }
     ok('grund: nach Passt auf +1 steht die Frage, ohne Ueberspringen', sW.reasonAsk===true
        && rowHTML(ixQ).includes('data-a="reason"') && !rowHTML(ixQ).includes('reasonskip'));
     ok('grund: kein "Nicht verfuegbar" in der Auswahl', REASONS.length===4 && !REASONS.includes('na'));
