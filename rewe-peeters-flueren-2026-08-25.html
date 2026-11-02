@@ -817,6 +817,25 @@ body.isFiltering{
   cursor:pointer;font-family:inherit;font-size:var(--ff-text-primary-body-text-14);
   font-weight:var(--ff-weight-bold)}
 .invask__alt:hover{background:var(--amber-bg)}
+/* PD-806: die Rueckfrage als Sprechblase unter dem Bestand, auf ihn zeigend -- dieselbe
+   Bauform wie die Neu-berechnet-Blase bei C&P (MOB-1777): Warnfarbe auf 18 %, Rand in
+   Warnfarbe, Schwanz aus zwei Dreiecken, zwei Pillen nebeneinander, die gruene rechts. */
+:root{--invTipTint:#fef1dc;--invTipText:#8a4b00}
+.invTip{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:3px;
+  align-self:flex-start;width:max-content;max-width:260px;margin:9px 0 2px;padding:4px 4px 5px;border-radius:13px;
+  background:var(--invTipTint);border:1px solid var(--ff-color-warning);
+  font-size:11px;color:var(--invTipText)}
+.invTip::before,.invTip::after{content:"";position:absolute;left:var(--tail,50%);width:0;height:0;border-style:solid;border-color:transparent;border-top-width:0}
+.invTip::before{top:-8px;margin-left:-7px;border-width:0 7px 7px;border-bottom-color:var(--ff-color-warning)}
+.invTip::after{top:-6px;margin-left:-6px;border-width:0 6px 6px;border-bottom-color:var(--invTipTint)}
+.invTip__cap{font-size:10.5px;font-weight:var(--ff-weight-semibold);line-height:1.25;padding:1px 4px 0;text-align:center}
+.invTip__cap b{font-weight:var(--ff-weight-bold);white-space:nowrap}
+.invTip__btns{display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap}
+.invTip__alt,.invTip__go,.invTip__why{border-radius:var(--ff-radius-pill);font:inherit;font-weight:600;padding:5px 9px;cursor:pointer;white-space:nowrap}
+.invTip__alt,.invTip__why{background:#fff;border:1px solid var(--ff-color-warning);color:var(--invTipText)}
+.invTip__go{border:1px solid var(--green);background:var(--green);color:#fff}
+.invTip__why:hover,.invTip__alt:hover{background:var(--ff-orange-10)}
+
 /* Beantwortet ist beantwortet: der Streifen geht weg und laesst nichts stehen. Keine
    Erfolgsmeldung, kein Weg zurueck -- die Zeile sagt mit der Zahl und dem verschwundenen
    Rahmen schon alles, und wer die Menge doch anders haben will, tippt sie einfach. */
@@ -3968,10 +3987,14 @@ const T={
     tipAlwaysTop:'Steht immer oben',
     invAskLabel:'Noch nicht übernommen',
     invAskInstead:'gilt:',
-    invAskNote:'Wir rechnen mit einem Bestand von {v}.',
     invAskOk:'Passt',
-    invAskCount:'Bestand korrigieren',
+    invAskCount:'Korrigieren',
     invAskConfirmed:'Bestand bestätigt, nicht gezählt',
+    reasonAsk:'Warum mehr?',
+    reasonPromo:'Werbung',
+    reasonShrink:'Abschriften',
+    reasonExp:'Erfahrung',
+    reasonOther:'Sonstige',
     dsAskLabel:'Kein Regalhöchstbestand',
     dsAskNote:'Bestellung erhöht – bitte Regalhöchstbestand eintragen.',
     dsAskBtn:'Regalhöchstbestand auf 1 {u} setzen',
@@ -4420,10 +4443,14 @@ const T={
     tipAlwaysTop:'Always on top',
     invAskLabel:'Not applied yet',
     invAskInstead:'applies:',
-    invAskNote:'We are assuming a stock of {v}.',
     invAskOk:'That fits',
-    invAskCount:'Correct inventory',
+    invAskCount:'Correct',
     invAskConfirmed:'inventory confirmed, not counted',
+    reasonAsk:'Why more?',
+    reasonPromo:'Promotion',
+    reasonShrink:'Write-offs',
+    reasonExp:'Experience',
+    reasonOther:'Other',
     dsAskLabel:'No display size',
     dsAskNote:'Order raised – please enter the display size.',
     dsAskBtn:'Set display size to 1 {u}',
@@ -4872,10 +4899,14 @@ const T={
     tipAlwaysTop:'Toujours en haut',
     invAskLabel:'Pas encore appliqué',
     invAskInstead:'en vigueur :',
-    invAskNote:'Nous estimons un stock de {v}.',
     invAskOk:'C’est bon',
-    invAskCount:'Corriger le stock',
+    invAskCount:'Corriger',
     invAskConfirmed:'stock confirmé, non compté',
+    reasonAsk:'Pourquoi plus ?',
+    reasonPromo:'Promotion',
+    reasonShrink:'Démarque',
+    reasonExp:'Expérience',
+    reasonOther:'Autre',
     dsAskLabel:'Pas de linéaire',
     dsAskNote:'Commande augmentée – merci de saisir le linéaire.',
     dsAskBtn:'Mettre le linéaire à 1 {u}',
@@ -5378,6 +5409,9 @@ function initState(it){
              Getrennt bleiben sie trotzdem: nur eine echte Zahl darf je in den Bestand,
              ein "Passt" ist eine Zustimmung zur Schaetzung und keine Zaehlung. */
           invOk:false,
+          /* PD-806: nach "Passt" auf einer +1 die Frage nach dem Grund. reasonAsk = die
+             Frage steht offen, reason = die Antwort (null = keine/uebersprungen). */
+          reasonAsk:false, reason:null,
           /* Die von Hand getippte Bestellmenge, SOLANGE der Bestand dahinter offen ist:
              sichtbar, aber noch nicht uebernommen. null = nichts vorgemerkt.
              Sie ist der einzige Ort, an dem eine unbestaetigte Aenderung liegt --
@@ -5953,6 +5987,10 @@ function freezeOrd(it,s){ return !invAnswered(s) && s.home==='range'; }
    wird nur unter freezeOrd(). Eine Bedingung, ein Zustand: es gibt keinen Weg, bei
    dem der Streifen und die eingefrorene Zahl auseinanderlaufen koennten. */
 function askInv(it,s){ return s.pendOrder!=null; }
+/* PD-806: die Gruende fuer eine +1, in dieser Reihenfolge. "Nicht verfuegbar" fehlt mit
+   Absicht: wer mehr bestellt, hat die Ware -- der Grund passt nur zu einer 0. */
+const REASONS=['promo','shrink','exp','other'];
+const REASON_KEY={promo:'reasonPromo', shrink:'reasonShrink', exp:'reasonExp', other:'reasonOther'};
 /* Die Gruende, aus denen eine Zeile ein ! traegt, OHNE die offene Rueckfrage. Die
    Zusammenfassung rechnet damit: ob der Kaufmann eine vorgemerkte Aenderung
    bestaetigt oder stehen laesst, ist seine Sache und nichts, was ihm beim
@@ -6486,20 +6524,23 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        Beantwortet verschwindet er ersatzlos: keine Erfolgsmeldung und kein Weg
        zurueck. Beides erklaerte etwas, das die Zeile selbst schon zeigt, und haette
        eine erledigte Zeile weiter wie eine offene aussehen lassen. */
-    const askBlock = !askInv(it,s) ? '' : (()=>{
-      /* Nur die Kistenzahl. Die Stueckzahl in Klammern dahinter sagte dasselbe ein
-         zweites Mal in einer anderen Einheit und machte aus einem Satz eine Rechnung --
-         der Stepper darueber zeigt sie ohnehin. */
-      const assume=koText(it.rungs[s.plan],it);
-      return `<div class="invask">
-        <div class="invask__mv">
-          <span class="lb">${L.invAskLabel}</span>
-          <span class="invask__note">${L.invAskNote.replace('{v}',`<b>${assume}</b>`)}</span>
+    /* PD-806: die Rueckfrage ist kein Streifen ueber die ganze Zeile mehr, sondern eine
+       Sprechblase direkt unter dem Bestand, auf ihn zeigend -- gebaut wie die
+       Neu-berechnet-Blase bei C&P (MOB-1777). Sie fragt nach dem Bestand, also steht sie
+       am Bestand. Nach "Passt" auf einer +1 fragt dieselbe Blase nach dem Grund. */
+    /* Kein Satz ueber die Annahme: die Blase zeigt auf den Stepper, und der zeigt sie
+       schon. Was bleibt, sind die zwei Antworten. */
+    const invTip = askInv(it,s) ? `<div class="invTip">
+        <div class="invTip__btns">
+          <button class="invTip__alt" type="button" data-a="invcount" data-i="${ix}">${L.invAskCount}</button>
+          <button class="invTip__go" type="button" data-a="invok" data-i="${ix}">${L.invAskOk}</button>
         </div>
-        <button class="invask__go" type="button" data-a="invok" data-i="${ix}">${L.invAskOk}</button>
-        <button class="invask__alt" type="button" data-a="invcount" data-i="${ix}">${L.invAskCount}</button>
-      </div>`;
-    })();
+      </div>` : s.reasonAsk ? `<div class="invTip">
+        <span class="invTip__cap">${L.reasonAsk}</span>
+        <div class="invTip__btns invTip__btns--why">
+          ${REASONS.map(k=>`<button class="invTip__why" type="button" data-a="reason" data-r="${k}" data-i="${ix}">${L[REASON_KEY[k]]}</button>`).join('')}
+        </div>
+      </div>` : '';
     /* Mehr bestellt, aber am Regal ist kein Platz eingetragen: die hoehere Menge haette
        nirgends zu liegen. Gefragt wird nur, wenn der Kaufmann selbst hochgesetzt hat --
        vorgemerkt ueber der geltenden Zahl, oder von Hand ueber der des Modells. Ein Druck
@@ -6525,7 +6566,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        Bestandsspalte keinerlei Zeichen truege. */
     let noteTxt = (invAnswered(s)||noCount(s)) ? null : (s.mode==='unsure' ? (it.invNote?`${it.invNote} · ${L.unsure}`:L.unsure) : it.invNote);
     if(!noteTxt && askInv(it,s)) noteTxt = L.invAskLabel;
-    let cell = `<div class="invCell"><div class="withbang">${box}${noCount(s)?mark('info',ix):bang(noteTxt,'inv',ix)}</div>`;
+    let cell = `<div class="invCell"><div class="withbang">${box}${noCount(s)?mark('info',ix):bang(noteTxt,'inv',ix)}</div>${invTip}`;
     /* Der Regalhöchstbestand des Platzes, an dem der Kaufmann GERADE STEHT -- eine Zahl,
        wie eh und je. Welches Regal das ist, sagt schon das Kennzeichen an der
        Zeile ("Stammpl.: ..." bzw. "Zweitpl.: ..."); es hier zu wiederholen
@@ -6600,7 +6641,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
     const isLastScan = !forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it);
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${(!forceEye && rescanOn() && !RESCAN.done.includes(overrideKey(it)))?' rescanTodo':''}${extraCls||''}" data-ix="${ix}">
       <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
-      <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
+      <div>${cell}</div><div>${ord}</div>${seqGrip}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
 
 /* Ein Vergleich je Sortierung. Alles liefert eine Zahl oder einen String; der
@@ -7910,6 +7951,9 @@ function rowClick(e){
     else if(a==='rescandrop') rescanFinish(true);
     render(); return;
   }
+  /* PD-806: kein Ueberspringen-Knopf. Der Grund ist freiwillig -- wer an einer anderen
+     Zeile weitermacht, hat nicht geantwortet, und die Frage geht still zu. */
+  ST.forEach((o,i)=>{ if(i!==ix) o.reasonAsk=false; });
   if(a==='why'){ e.stopPropagation(); openWhy(b, ix, b.dataset.kind); return; }
   if(a==='bstep'){ TAPS++;
     const d=+b.dataset.d;
@@ -8005,12 +8049,30 @@ function rowClick(e){
       s.order=s.pendOrder; s.answered=true; s.auto=false;
       if(s.order!==prev) s.manual=true;
       s.pendOrder=null;
+      /* PD-806: genau eine Kiste mehr als die App -- dann der Grund, freiwillig. */
+      s.reasonAsk = (s.order-prev===1);
     }
     render(); }
   else if(a==='invcount'){ openInvPad(ix); }
+  else if(a==='reason'){ TAPS++; s.reason=b.dataset.r; s.reasonAsk=false; render(); }
   else if(a==='dsone'){ TAPS++; s.auslage=1; render(); }
 }
 list.addEventListener('click',rowClick);
+/* PD-806: die Blase mittig unter das Bestandsfeld (die weisse Box), nicht unter die
+   ganze Zelle mit dem !-Platz daneben -- so zeigt der Schwanz genau auf die Zahl.
+   Wie cpAimNow() bei C&P: nach dem Layout messen und um die Differenz schieben. */
+function aimInvTips(){
+  document.querySelectorAll('#list .invTip').forEach(tip=>{
+    const box=tip.closest('.invCell')?.querySelector('.InventoryCounterField__box');
+    if(!box) return;
+    tip.style.transform='';
+    const d=box.getBoundingClientRect(), c=tip.getBoundingClientRect();
+    if(!c.width || !d.width) return;
+    tip.style.transform=`translateX(${((d.left+d.width/2)-(c.left+c.width/2)).toFixed(1)}px)`;
+  });
+}
+{ const _render=render; render=function(){ const r=_render.apply(this,arguments); requestAnimationFrame(aimInvTips); return r; }; }
+window.addEventListener('resize', aimInvTips);
 document.getElementById('q').addEventListener('input',render);
 
 /* ---------- tolerantes PLU-Matching (auch für getippte Ziffern nutzbar) ---------- */
@@ -10412,13 +10474,13 @@ function bsSelfTest(){
     ok('vormerken: die Zelle sagt das auch',
        rowHTML(ixQ).includes('ColumnCounterField--pending'));
     ok('vormerken: und die Rueckfrage steht da', askInv(itQ,sQ)===true
-       && rowHTML(ixQ).includes('class="invask"'));
+       && rowHTML(ixQ).includes('class="invTip"'));
     ok('vormerken: die Zeile gilt nicht als erledigt', rowClear(itQ,sQ)===false);
     ok('vormerken: und zaehlt in die Regal-Aufmerksamkeit', needsAttn(itQ,sQ)===true);
-    /* Passt steht vor Bestand zaehlen -- die haeufigere Antwort zuerst. */
+    /* PD-806: wie die C&P-Blase -- die gruene Antwort rechts, Bestand korrigieren links. */
     const html=rowHTML(ixQ);
-    ok('vormerken: "Passt" steht vor "Bestand zaehlen"',
-       html.indexOf('data-a="invok"') < html.indexOf('data-a="invcount"'));
+    ok('vormerken: "Passt" steht rechts von "Korrigieren"',
+       html.indexOf('data-a="invcount"') < html.indexOf('data-a="invok"'));
 
     // Zurueck auf die Zahl des Modells: nichts mehr vorgemerkt, nichts mehr zu fragen.
     const dec=()=>document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="dec"]`).click();
@@ -10435,7 +10497,7 @@ function bsSelfTest(){
     ok('passt: gezaehlt wurde nichts -- der Stepper zeigt weiter die Spanne',
        sQ.touched===false && sQ.invOk===true && sQ.step==='range');
     ok('passt: kein Streifen, kein gestrichelter Rahmen mehr',
-       !rowHTML(ixQ).includes('class="invask"') && !rowHTML(ixQ).includes('--pending'));
+       !rowHTML(ixQ).includes('class="invTip"') && !rowHTML(ixQ).includes('--pending'));
     ok('passt: die Zeile ist erledigt', rowClear(itQ,sQ)===true);
     /* Ist der Bestand einmal beantwortet, gilt jede weitere Handeingabe sofort. */
     bump(ixQ,1);
@@ -10463,10 +10525,32 @@ function bsSelfTest(){
          weder eine Erfolgsmeldung noch einen Weg zurueck. */
       const doneHtml=rowHTML(ixQ);
       ok('zaehlen: die Zeile laesst nichts stehen',
-         !doneHtml.includes('class="invask"') && !doneHtml.includes('invask is-done')
+         !doneHtml.includes('class="invTip"') && !doneHtml.includes('invask is-done')
          && !doneHtml.includes('data-a="ordundo"') && !doneHtml.includes('--pending'));
       ok('zaehlen: und gilt als erledigt', rowClear(itR,sR)===true);
     }
+
+    /* PD-806: Passt auf genau +1 fragt nach dem Grund, freiwillig; +3 oben fragte nicht. */
+    reset(); render();
+    const sW=ST[ixQ];
+    bump(ixQ,1);
+    ok('grund: die Rueckfrage steht unter dem Bestand',
+       rowHTML(ixQ).indexOf('class="invTip"') < rowHTML(ixQ).indexOf('ColumnCounterField'));
+    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
+    ok('grund: nach Passt auf +1 steht die Frage, ohne Ueberspringen', sW.reasonAsk===true
+       && rowHTML(ixQ).includes('data-a="reason"') && !rowHTML(ixQ).includes('reasonskip'));
+    ok('grund: kein "Nicht verfuegbar" in der Auswahl', REASONS.length===4 && !REASONS.includes('na'));
+    ok('grund: die offene Frage haelt die Zeile nicht auf', rowClear(itQ,sW)===true);
+    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="reason"][data-r="promo"]`).click();
+    ok('grund: Werbung ist vermerkt, die Blase ist zu',
+       sW.reason==='promo' && sW.reasonAsk===false && !rowHTML(ixQ).includes('class="invTip"'));
+    reset(); render();
+    bump(ixQ,1);
+    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
+    const ixO=[...document.querySelectorAll('#list .row[data-ix]')].map(r=>+r.dataset.ix).find(i=>i!==ixQ);
+    if(ixO!=null) document.querySelector(`#list .row[data-ix="${ixO}"] [data-a="inc"]`).click();
+    ok('grund: weiter an einer anderen Zeile -- die Frage geht ohne Grund zu',
+       ixO==null || (ST[ixQ].reason===null && ST[ixQ].reasonAsk===false));
 
     /* Die Fussleiste rechnet mit dem, was bestellt wird -- nicht mit dem Vorgemerkten. */
     reset(); render();
