@@ -2993,7 +2993,7 @@ let DF_CFG=(function(){
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
 function dfFresh(date){ return {date, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
-let DF_ANIM=null, DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
+let DF_SETUP=null, DF_ANIM=null, DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
 function dfLoad(){
   try{ DF=JSON.parse(localStorage.getItem(DF_KEY)||'null'); }catch(e){ DF=null; }
   if(!DF || DF.date!==HDR_DATE) DF=dfFresh(HDR_DATE);
@@ -3007,7 +3007,7 @@ const DF_TXT={
     intakeRun:'Gemeldet {a} · Zahlen bereit ca. {r}', intakeReady:'Gemeldet {a} · verarbeitet',
     intakeCta:'Melden', intakeHave:'Wareneingang liegt schon vor',
     back:'Lager scannen', backOpen:'Noch nicht gezählt', backDraft:'Zählung angefangen, noch offen', backCta:'Scannen', backResume:'Fortsetzen',
-    unshelved:'Artikel ohne Regal zuordnen', unshelvedOpen:'{n} Artikel ohne Regal', unshelvedNone:'Alle Artikel haben ein Regal', unshelvedCta:'Zuordnen',
+    unshelved:'Artikel ohne Regal oder Regalhöchstbestand', setupNoShelf:'{n} ohne Regal', setupNoDs:'{n} ohne Regalhöchstbestand', unshelvedNone:'Alle Artikel haben Regal und Regalhöchstbestand', unshelvedCta:'Ergänzen',
     shelves:'Regal für Regal', shelvesMeta:'{f} von {n} Regalen fertig', shelvesCta:'Zu den Regalen',
     coreOpen:'{n} Artikel mit Vorschlag 0', coreSeen:'{n} Artikel angesehen', coreNone:'Nichts zu prüfen', coreCta:'Prüfen',
     mde:'Barcodes ins MDE scannen', mdeNotClosed:'Erst die Bestellung abschließen', mdeMeta:'{s} von {n} gescannt',
@@ -3030,7 +3030,7 @@ const DF_TXT={
     intakeRun:'Reported {a} · figures ready around {r}', intakeReady:'Reported {a} · processed',
     intakeCta:'Report', intakeHave:'Intake data already there',
     back:'Scan back storage', backOpen:'Not counted yet', backDraft:'Count started, still open', backCta:'Scan', backResume:'Resume',
-    unshelved:'Assign items without a shelf', unshelvedOpen:'{n} items without a shelf', unshelvedNone:'Every item has a shelf', unshelvedCta:'Assign',
+    unshelved:'Items without shelf or display size', setupNoShelf:'{n} without shelf', setupNoDs:'{n} without display size', unshelvedNone:'Every item has a shelf and a display size', unshelvedCta:'Complete',
     shelves:'Shelf by shelf', shelvesMeta:'{f} of {n} shelves done', shelvesCta:'Go to shelves',
     coreOpen:'{n} items with a suggestion of 0', coreSeen:'{n} items reviewed', coreNone:'Nothing to check', coreCta:'Check',
     mde:'Scan barcodes into the MDE', mdeNotClosed:'Complete the order first', mdeMeta:'{s} of {n} scanned',
@@ -3053,7 +3053,7 @@ const DF_TXT={
     intakeRun:'Déclarée {a} · chiffres prêts vers {r}', intakeReady:'Déclarée {a} · traitée',
     intakeCta:'Déclarer', intakeHave:'Réception déjà disponible',
     back:'Scanner la réserve', backOpen:'Pas encore comptée', backDraft:'Comptage commencé, encore ouvert', backCta:'Scanner', backResume:'Reprendre',
-    unshelved:'Ranger les articles sans rayon', unshelvedOpen:'{n} articles sans rayon', unshelvedNone:'Tous les articles ont un rayon', unshelvedCta:'Ranger',
+    unshelved:'Articles sans rayon ni linéaire', setupNoShelf:'{n} sans rayon', setupNoDs:'{n} sans linéaire', unshelvedNone:'Tous les articles ont un rayon et un linéaire', unshelvedCta:'Compléter',
     shelves:'Rayon par rayon', shelvesMeta:'{f} sur {n} rayons terminés', shelvesCta:'Vers les rayons',
     coreOpen:'{n} articles proposés à 0', coreSeen:'{n} articles vus', coreNone:'Rien à vérifier', coreCta:'Vérifier',
     mde:'Scanner les codes-barres dans le MDE', mdeNotClosed:'Clôturer d\'abord la commande', mdeMeta:'{s} sur {n} scannés',
@@ -3110,6 +3110,19 @@ function dfLines(){
   });
   return out;
 }
+/* Schritt 3: aktive Artikel ohne Regal ODER ohne Regalhoechstbestand. Unabhaengig vom
+   Regal "Kein Regal zugeordnet" -- der Schritt hat seine eigene Liste. */
+function dfNoShelf(ix){ return tileOf(ITEMS[ix])===UNSHELVED_TILE; }
+function dfSetupCounts(){
+  let shelf=0, ds=0; const list=[];
+  ITEMS.forEach((it,ix)=>{
+    if(ST[ix].hidden) return;
+    const a=dfNoShelf(ix), b=rhbZero(ix);
+    if(a) shelf++; if(b) ds++;
+    if(a||b) list.push(ix);
+  });
+  return {shelf, ds, list};
+}
 function dfShelfTiles(){
   return TILE_ORDER.filter(id=>id!==UNSHELVED_TILE && itemsForFilter({kind:'tile', id}).length>0);
 }
@@ -3146,9 +3159,10 @@ function dfSteps(){
       cta: BS_DRAFT?L.backResume:L.backCta});
   }
   if(DF_CFG.shelfWalk){
-    const n=itemsForFilter({kind:'tile', id:UNSHELVED_TILE}).length;
+    const c=dfSetupCounts(), n=c.list.length;
+    const parts=[c.shelf?dfF(L.setupNoShelf,{n:c.shelf}):'', c.ds?dfF(L.setupNoDs,{n:c.ds}):''].filter(Boolean);
     steps.push({k:'unshelved', title:L.unshelved, done:n===0, warn:n>0,
-      meta: n ? dfF(L.unshelvedOpen,{n}) : L.unshelvedNone, cta:L.unshelvedCta});
+      meta: n ? parts.join(' · ') : L.unshelvedNone, cta:L.unshelvedCta});
     const tiles=dfShelfTiles(), f=tiles.filter(id=>CATFINISHED[id]).length;
     steps.push({k:'shelves', title:L.shelves, done:tiles.length>0 && f===tiles.length,
       meta: dfF(L.shelvesMeta,{f, n:tiles.length}), cta:L.shelvesCta});
@@ -3335,7 +3349,11 @@ function dfGo(k){
     if(bsFresh()){ invReviewOpen(0); return; }
     bsStart(false); bsScanOff(); return;
   }
-  if(k==='unshelved'){ pickCategory('tile', UNSHELVED_TILE, tileLabel(UNSHELVED_TILE)); return; }
+  if(k==='unshelved'){
+    /* Eigene Liste: wer beim Oeffnen dabei war, bleibt stehen, bis der Kaufmann geht --
+       sonst verschwindet die Zeile unter dem Finger, sobald sie vollstaendig ist. */
+    clearFilt(); DF_SETUP=new Set(dfSetupCounts().list); DF_ANIM='slide'; goToList(null); return;
+  }
   /* Erst die Uebersicht: der Kaufmann sieht, welche Regale offen sind, und waehlt selbst. */
   if(k==='shelves'){ dfShowShelves(); return; }
   if(k==='core'){ applyForgotPreset(); DF_CORE_OPEN=true; goToList(null); return; }
@@ -7406,7 +7424,8 @@ function render(){
     }
     const hiddenSuppressed = VIS_FILT==='hidden' ? !s.hidden
                            : VIS_FILT==='visible' ? (s.hidden && !MANAGE_MODE) : false;
-    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide || scanHide || rhbHide || recoHide;
+    const setupHide = !!(DF_SETUP && !CATFILTER && !DF_SETUP.has(ix));   // Tagesablauf, Schritt 3
+    const hide = hiddenSuppressed || (q && !it.name.toLowerCase().includes(q) && !pluApproxMatch(it.plu, digitsQ)) || catHide || catFilterHide || scanHide || rhbHide || recoHide || setupHide;
     if(!hide) shownIdx.push(ix);
     if(!hide && !rescanDiv && !RESCAN.done.includes(overrideKey(it))){
       html += `<div class="rescanDiv">${L.rescanTodoDiv}</div>`; rescanDiv=true;
@@ -11310,6 +11329,7 @@ document.getElementById('dfPill').addEventListener('click', dfGoHome);
    auf der richtigen Ebene. */
 const dfApplyCat0=applyCatPage;
 applyCatPage=function(){
+  DF_SETUP=null;
   DF_HOME=!(history.state && history.state.page==='shelves');
   if(DF_HOME) DF_HOME_D=history.state && history.state.dfD;
   return dfApplyCat0.apply(this, arguments);
@@ -11333,21 +11353,29 @@ renderCatOverlay=function(){
     DF_ANIM=null;
   }
 };
-/* "Kein Regal zugeordnet" ist kein Regal im Gang, sondern ein Schritt im Tagesablauf:
-   die Taste unten fuehrt darum zurueck auf die Startseite statt ins naechste Regal. */
-const dfInUnshelved=()=>!!(CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===UNSHELVED_TILE);
+/* Die Liste von Schritt 3 traegt ihren Namen als Chip und unten "Zum Tagesablauf".
+   Jeder andere Filter, jedes Regal und die Startseite heben sie auf. */
+const dfInSetup=()=>!!(DF_SETUP && !CATFILTER && !CATOPEN);
+const dfClear0=clearFilt;
+clearFilt=function(){ DF_SETUP=null; return dfClear0.apply(this, arguments); };
 const dfChip0=renderCatChip;
 renderCatChip=function(){
   const r=dfChip0.apply(this, arguments);
   const b=document.getElementById('nextRegalBtn');
-  if(b) b.textContent = dfInUnshelved() ? dfTx().toDay : t().nextShelfArrow;
+  if(dfInSetup()){
+    const wrap=document.getElementById('catChipWrap');
+    wrap.innerHTML=`<button class="catchip warn" id="catChipBtn" type="button">${mmEsc(dfTx().unshelved)}</button>`;
+    document.getElementById('catChipBtn').onclick=goToCategories;
+    if(b){ b.style.display=''; b.textContent=dfTx().toDay; }
+    const cta=document.getElementById('cta'); if(cta) cta.style.display='none';
+  } else if(b) b.textContent=t().nextShelfArrow;
   return r;
 };
 const dfNextBtn=document.getElementById('nextRegalBtn'), dfNext0=dfNextBtn.onclick;
-dfNextBtn.onclick=function(e){ if(dfInUnshelved()){ dfReturnHome(); return; } return dfNext0.call(this, e); };
+dfNextBtn.onclick=function(e){ if(dfInSetup()){ dfReturnHome(); return; } return dfNext0.call(this, e); };
 /* Aus der Uebersicht in ein Regal: dieselbe Bewegung, eine Ebene tiefer. */
 const dfPick0=pickCategory;
-pickCategory=function(){ DF_ANIM='slide'; return dfPick0.apply(this, arguments); };
+pickCategory=function(){ DF_SETUP=null; DF_ANIM='slide'; return dfPick0.apply(this, arguments); };
 document.getElementById('dfDash').addEventListener('click', enterApp);
 document.getElementById('dfDash').style.cursor='pointer';
 setInterval(()=>{ dfTick(); if(dfOnHome()) dfRenderHome(); }, 30000);
