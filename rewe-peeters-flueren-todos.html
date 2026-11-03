@@ -2433,6 +2433,13 @@ body.df-home .foot{display:none}
   .DayFlow__more{grid-template-columns:1fr}
 }
 
+/* Seitenwechsel im Tagesablauf: Regale kommen von rechts, die Startseite blendet ein. */
+.DayFlow--slide{animation:dfSlide .26s cubic-bezier(.2,.8,.2,1)}
+.DayFlow--in{animation:dfFade .24s ease}
+@keyframes dfSlide{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
+@keyframes dfFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.DayFlow--slide,.DayFlow--in{animation:none}}
+
 </style>
 </head>
 <body>
@@ -2986,7 +2993,7 @@ let DF_CFG=(function(){
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
 function dfFresh(date){ return {date, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
-let DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
+let DF_ANIM=null, DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
 function dfLoad(){
   try{ DF=JSON.parse(localStorage.getItem(DF_KEY)||'null'); }catch(e){ DF=null; }
   if(!DF || DF.date!==HDR_DATE) DF=dfFresh(HDR_DATE);
@@ -2994,14 +3001,14 @@ function dfLoad(){
 function dfSave(){ try{ localStorage.setItem(DF_KEY, JSON.stringify(DF)); }catch(e){} }
 
 const DF_TXT={
-  de:{eyebrow:'Dein Tagesablauf', navShelves:'Alle Regale', navAll:'Alle Artikel', helloMorning:'Guten Morgen', hello:'Hallo', head0:'{n} Schritte bis zur Bestellung.', headMid:'Noch {n} Schritte, du bist gut dabei.', headLast:'Nur noch ein Schritt!', headAll:'Alles erledigt, stark!', nextLbl:'Als Nächstes', later:'Später erinnern', title:'Bestellung {d}', of:'{a} von {n} erledigt',
+  de:{eyebrow:'Dein Tagesablauf', toDay:'Zum Tagesablauf ›', navShelves:'Alle Regale', navAll:'Alle Artikel', helloMorning:'Guten Morgen', hello:'Hallo', head0:'{n} Schritte bis zur Bestellung.', headMid:'Noch {n} Schritte, du bist gut dabei.', headLast:'Nur noch ein Schritt!', headAll:'Alles erledigt, stark!', nextLbl:'Als Nächstes', later:'Später erinnern', title:'Bestellung {d}', of:'{a} von {n} erledigt',
     dueIn:'Bestellschluss in {t}', duePast:'Bestellschluss {h} vorbei',
     intake:'Wareneingang melden', intakeOpen:'Startet die Verarbeitung, rund 90 Minuten',
     intakeRun:'Gemeldet {a} · Zahlen bereit ca. {r}', intakeReady:'Gemeldet {a} · verarbeitet',
     intakeCta:'Melden', intakeHave:'Wareneingang liegt schon vor',
     back:'Lager scannen', backOpen:'Noch nicht gezählt', backDraft:'Zählung angefangen, noch offen', backCta:'Scannen', backResume:'Fortsetzen',
     unshelved:'Artikel ohne Regal zuordnen', unshelvedOpen:'{n} Artikel ohne Regal', unshelvedNone:'Alle Artikel haben ein Regal', unshelvedCta:'Zuordnen',
-    shelves:'Regal für Regal', shelvesMeta:'{f} von {n} Regalen fertig', shelvesCta:'Erstes Regal', shelvesGoOn:'Nächstes Regal',
+    shelves:'Regal für Regal', shelvesMeta:'{f} von {n} Regalen fertig', shelvesCta:'Zu den Regalen',
     coreOpen:'{n} Artikel mit Vorschlag 0', coreSeen:'{n} Artikel angesehen', coreNone:'Nichts zu prüfen', coreCta:'Prüfen',
     mde:'Barcodes ins MDE scannen', mdeNotClosed:'Erst die Bestellung abschließen', mdeMeta:'{s} von {n} gescannt',
     mdeRescan:'{n} Artikel nach dem Scannen geändert, neu scannen', mdeCloseCta:'Abschließen', mdeCta:'Scannen', mdeRescanCta:'Neu scannen',
@@ -3017,14 +3024,14 @@ const DF_TXT={
     cgCases:'{c} Kisten in der Bestellung', cgDur:'Dauer heute: {t}', cgDone:'Fertig',
     demo:'Demo: Markt-Konfiguration', demoNote:'Platzhalter-Schlüssel, die echten Appsmith-Namen folgen.',
     demoLabel:'Name für Schritt 5', demoReset:'Tagesablauf zurücksetzen'},
-  en:{eyebrow:'Your day', navShelves:'All shelves', navAll:'All items', helloMorning:'Good morning', hello:'Hi', head0:'{n} steps to your order.', headMid:'{n} steps left, nice going.', headLast:'Just one step left!', headAll:'All done, great work!', nextLbl:'Up next', later:'Remind me later', title:'Order {d}', of:'{a} of {n} done',
+  en:{eyebrow:'Your day', toDay:'Back to your day ›', navShelves:'All shelves', navAll:'All items', helloMorning:'Good morning', hello:'Hi', head0:'{n} steps to your order.', headMid:'{n} steps left, nice going.', headLast:'Just one step left!', headAll:'All done, great work!', nextLbl:'Up next', later:'Remind me later', title:'Order {d}', of:'{a} of {n} done',
     dueIn:'Order deadline in {t}', duePast:'Order deadline {h} passed',
     intake:'Report intake', intakeOpen:'Starts processing, about 90 minutes',
     intakeRun:'Reported {a} · figures ready around {r}', intakeReady:'Reported {a} · processed',
     intakeCta:'Report', intakeHave:'Intake data already there',
     back:'Scan back storage', backOpen:'Not counted yet', backDraft:'Count started, still open', backCta:'Scan', backResume:'Resume',
     unshelved:'Assign items without a shelf', unshelvedOpen:'{n} items without a shelf', unshelvedNone:'Every item has a shelf', unshelvedCta:'Assign',
-    shelves:'Shelf by shelf', shelvesMeta:'{f} of {n} shelves done', shelvesCta:'First shelf', shelvesGoOn:'Next shelf',
+    shelves:'Shelf by shelf', shelvesMeta:'{f} of {n} shelves done', shelvesCta:'Go to shelves',
     coreOpen:'{n} items with a suggestion of 0', coreSeen:'{n} items reviewed', coreNone:'Nothing to check', coreCta:'Check',
     mde:'Scan barcodes into the MDE', mdeNotClosed:'Complete the order first', mdeMeta:'{s} of {n} scanned',
     mdeRescan:'{n} items changed after scanning, scan again', mdeCloseCta:'Complete', mdeCta:'Scan', mdeRescanCta:'Scan again',
@@ -3040,14 +3047,14 @@ const DF_TXT={
     cgCases:'{c} cases in the order', cgDur:'Time today: {t}', cgDone:'Finish',
     demo:'Demo: store configuration', demoNote:'Placeholder keys, the real Appsmith names will follow.',
     demoLabel:'Name for step 5', demoReset:'Reset the day'},
-  fr:{eyebrow:'Votre journée', navShelves:'Tous les rayons', navAll:'Tous les articles', helloMorning:'Bonjour', hello:'Bonjour', head0:'{n} étapes avant la commande.', headMid:'Plus que {n} étapes, bien joué.', headLast:'Plus qu\'une étape !', headAll:'Tout est fait, bravo !', nextLbl:'Ensuite', later:'Me le rappeler plus tard', title:'Commande {d}', of:'{a} sur {n} terminées',
+  fr:{eyebrow:'Votre journée', toDay:'Vers la journée ›', navShelves:'Tous les rayons', navAll:'Tous les articles', helloMorning:'Bonjour', hello:'Bonjour', head0:'{n} étapes avant la commande.', headMid:'Plus que {n} étapes, bien joué.', headLast:'Plus qu\'une étape !', headAll:'Tout est fait, bravo !', nextLbl:'Ensuite', later:'Me le rappeler plus tard', title:'Commande {d}', of:'{a} sur {n} terminées',
     dueIn:'Clôture dans {t}', duePast:'Clôture {h} dépassée',
     intake:'Déclarer la réception', intakeOpen:'Lance le traitement, environ 90 minutes',
     intakeRun:'Déclarée {a} · chiffres prêts vers {r}', intakeReady:'Déclarée {a} · traitée',
     intakeCta:'Déclarer', intakeHave:'Réception déjà disponible',
     back:'Scanner la réserve', backOpen:'Pas encore comptée', backDraft:'Comptage commencé, encore ouvert', backCta:'Scanner', backResume:'Reprendre',
     unshelved:'Ranger les articles sans rayon', unshelvedOpen:'{n} articles sans rayon', unshelvedNone:'Tous les articles ont un rayon', unshelvedCta:'Ranger',
-    shelves:'Rayon par rayon', shelvesMeta:'{f} sur {n} rayons terminés', shelvesCta:'Premier rayon', shelvesGoOn:'Rayon suivant',
+    shelves:'Rayon par rayon', shelvesMeta:'{f} sur {n} rayons terminés', shelvesCta:'Vers les rayons',
     coreOpen:'{n} articles proposés à 0', coreSeen:'{n} articles vus', coreNone:'Rien à vérifier', coreCta:'Vérifier',
     mde:'Scanner les codes-barres dans le MDE', mdeNotClosed:'Clôturer d\'abord la commande', mdeMeta:'{s} sur {n} scannés',
     mdeRescan:'{n} articles modifiés après le scan, à rescanner', mdeCloseCta:'Clôturer', mdeCta:'Scanner', mdeRescanCta:'Rescanner',
@@ -3144,7 +3151,7 @@ function dfSteps(){
       meta: n ? dfF(L.unshelvedOpen,{n}) : L.unshelvedNone, cta:L.unshelvedCta});
     const tiles=dfShelfTiles(), f=tiles.filter(id=>CATFINISHED[id]).length;
     steps.push({k:'shelves', title:L.shelves, done:tiles.length>0 && f===tiles.length,
-      meta: dfF(L.shelvesMeta,{f, n:tiles.length}), cta: f?L.shelvesGoOn:L.shelvesCta});
+      meta: dfF(L.shelvesMeta,{f, n:tiles.length}), cta:L.shelvesCta});
   }
   if(DF_CFG.coreCheck){
     const n=forgotCount();
@@ -3278,10 +3285,24 @@ function dfRenderHome(){
     render();
   };
 }
+const DF_SELFTEST=/[?&]selftest=1/.test(location.search);
+/* Zurueck auf den Tagesablauf, ohne einen weiteren History-Eintrag anzuhaengen: der
+   gerade fertige Gang (Regal-Liste oder Uebersicht) wird durch die Startseite ersetzt. */
+/* Zurueck auf den Tagesablauf: liegt die Startseite schon in der History, geht es
+   dorthin zurueck (der fertige Gang faellt aus dem Verlauf, "‹ Zurück" fuehrt danach
+   aufs Dashboard). Sonst wird der aktuelle Eintrag zur Startseite. */
+let DF_HOME_D=null;
+function dfReturnHome(){
+  showApp(); DF_ANIM='in';
+  const cur=history.state && history.state.dfD;
+  if(DF_HOME_D!=null && cur!=null && cur>DF_HOME_D){ history.go(DF_HOME_D-cur); return; }
+  history.replaceState({page:'cat'}, '', location.href);
+  applyCatPage();
+}
 function dfOnHome(){ return typeof CATOPEN!=='undefined' && CATOPEN && DF_HOME && !CAT_EDIT; }
 /* Zurueck auf die Startseite der Bestellung -- von ueberall in der App. */
 function dfGoHome(){
-  showApp();
+  showApp(); DF_ANIM='in';
   if(dfOnHome()){ render(); return; }
   history.pushState({page:'cat'}, '', location.href);
   applyCatPage();
@@ -3289,7 +3310,7 @@ function dfGoHome(){
 /* Die Regale sind jetzt eine Ebene unter dem Tagesablauf: eigener History-Eintrag, damit
    "‹ Zurück" wieder auf den Tagesablauf fuehrt. */
 function dfShowShelves(){
-  showApp();
+  showApp(); DF_ANIM='slide';
   history.pushState({page:'shelves'}, '', location.href);
   applyCatPage();
 }
@@ -3315,11 +3336,8 @@ function dfGo(k){
     bsStart(false); bsScanOff(); return;
   }
   if(k==='unshelved'){ pickCategory('tile', UNSHELVED_TILE, tileLabel(UNSHELVED_TILE)); return; }
-  if(k==='shelves'){
-    const id=dfShelfTiles().find(x=>!CATFINISHED[x]);
-    if(id) pickCategory('tile', id, tileLabel(id)); else dfShowShelves();
-    return;
-  }
+  /* Erst die Uebersicht: der Kaufmann sieht, welche Regale offen sind, und waehlt selbst. */
+  if(k==='shelves'){ dfShowShelves(); return; }
   if(k==='core'){ applyForgotPreset(); DF_CORE_OPEN=true; goToList(null); return; }
   if(k==='mde'){ if(!DF.closedAt) openSummary(); else dfOpenMde(); }
 }
@@ -3461,7 +3479,12 @@ function dfTick(){
   const now={}; steps.forEach(s=>{ now[s.k]=s.done; });
   if(DF_PREV && !DF_CONGRATS && !dfOnHome()){   // die Startseite zeigt den Stand schon selbst
     const just=steps.find(s=>s.done && DF_PREV[s.k]===false && s.k!=='mde');
-    if(just) dfBanner('✓ '+dfF(L.bannerDone,{s:mmEsc(just.title)}), nx?mmEsc(dfF(L.bannerNext,{s:nx.title})):'', nx&&nx.k);
+    /* Zugeordnet, das letzte Regal, das Lager -- nach diesen Schritten geht es
+       zurueck auf den Tagesablauf statt nur einen Hinweis zu zeigen. Nicht vom
+       Dashboard aus (Inventur-Reiter) und nicht im Selbsttest, der den alten Gang prueft. */
+    if(just && ['unshelved','shelves','back'].includes(just.k) && !DF_SELFTEST
+       && !document.body.classList.contains('dash-active')) setTimeout(dfReturnHome, 150);   // erst das history.back() des Regal-Abschlusses ankommen lassen
+    else if(just) dfBanner('✓ '+dfF(L.bannerDone,{s:mmEsc(just.title)}), nx?mmEsc(dfF(L.bannerNext,{s:nx.title})):'', nx&&nx.k);
     else if(DF_PREV.mde===true && !mde.done && !DF_MDE) dfBanner(L.bannerRescan, mde.meta, 'mde');
   }
   DF_PREV=now;
@@ -11286,16 +11309,45 @@ document.getElementById('dfPill').addEventListener('click', dfGoHome);
    so landen "‹ Zurück", das Ende eines Regal-Gangs und goToCategories() von selbst
    auf der richtigen Ebene. */
 const dfApplyCat0=applyCatPage;
-applyCatPage=function(){ DF_HOME=!(history.state && history.state.page==='shelves'); return dfApplyCat0.apply(this, arguments); };
+applyCatPage=function(){
+  DF_HOME=!(history.state && history.state.page==='shelves');
+  if(DF_HOME) DF_HOME_D=history.state && history.state.dfD;
+  return dfApplyCat0.apply(this, arguments);
+};
+/* Jeder History-Eintrag kennt seine Tiefe -- so findet dfReturnHome() den Weg zurueck
+   zur Startseite, statt einen weiteren Eintrag anzuhaengen. */
+const dfPush0=history.pushState.bind(history), dfReplace0=history.replaceState.bind(history);
+history.pushState=function(st,t,u){ return dfPush0(Object.assign({}, st, {dfD:((history.state&&history.state.dfD)||0)+1}), t, u); };
+history.replaceState=function(st,t,u){ return dfReplace0(Object.assign({}, st, {dfD:(history.state&&history.state.dfD)||0}), t, u); };
 const dfCatOv0=renderCatOverlay;
 renderCatOverlay=function(){
   /* Auf der Startseite keine Fussleiste: Abschliessen ist dort Schritt 6. */
   document.body.classList.toggle('df-home', dfOnHome());
   /* Die Pille vor dem Messen setzen -- sonst liegt die Regal-Seite ueber ihr. */
   const pill=document.getElementById('dfPill'); if(pill && DF) pill.hidden=dfOnHome();
-  if(dfOnHome()){ dfRenderHome(); return; }
-  return dfCatOv0.apply(this, arguments);
+  if(dfOnHome()) dfRenderHome(); else dfCatOv0.apply(this, arguments);
+  /* Nur beim Seitenwechsel bewegen, nicht bei jedem render(). */
+  if(DF_ANIM){
+    const pg=document.querySelector('#catOverlayRoot .catov') || (!CATOPEN && document.getElementById('list'));
+    if(pg){ pg.classList.remove('DayFlow--in','DayFlow--slide'); void pg.offsetWidth; pg.classList.add('DayFlow--'+DF_ANIM); }
+    DF_ANIM=null;
+  }
 };
+/* "Kein Regal zugeordnet" ist kein Regal im Gang, sondern ein Schritt im Tagesablauf:
+   die Taste unten fuehrt darum zurueck auf die Startseite statt ins naechste Regal. */
+const dfInUnshelved=()=>!!(CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id===UNSHELVED_TILE);
+const dfChip0=renderCatChip;
+renderCatChip=function(){
+  const r=dfChip0.apply(this, arguments);
+  const b=document.getElementById('nextRegalBtn');
+  if(b) b.textContent = dfInUnshelved() ? dfTx().toDay : t().nextShelfArrow;
+  return r;
+};
+const dfNextBtn=document.getElementById('nextRegalBtn'), dfNext0=dfNextBtn.onclick;
+dfNextBtn.onclick=function(e){ if(dfInUnshelved()){ dfReturnHome(); return; } return dfNext0.call(this, e); };
+/* Aus der Uebersicht in ein Regal: dieselbe Bewegung, eine Ebene tiefer. */
+const dfPick0=pickCategory;
+pickCategory=function(){ DF_ANIM='slide'; return dfPick0.apply(this, arguments); };
 document.getElementById('dfDash').addEventListener('click', enterApp);
 document.getElementById('dfDash').style.cursor='pointer';
 setInterval(()=>{ dfTick(); if(dfOnHome()) dfRenderHome(); }, 30000);
