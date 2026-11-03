@@ -112,11 +112,20 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .bcn{font-size:9.5px;color:var(--ink3);text-align:center;letter-spacing:.06em;margin-top:3px}
 
 /* ---------- pager ---------- */
-.pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;border-top:1px solid var(--line)}
+.pager{display:flex;align-items:center;justify-content:flex-start;gap:18px;padding:12px 84px 12px 16px;min-height:62px;border-top:1px solid var(--line)}
 .parrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;font-size:16px;color:var(--ink2);font-family:inherit}
 .parrow:disabled{opacity:.35;cursor:not-allowed}
 .pager .p{font-size:13px;color:var(--ink2)}
 .pager .p b{font-weight:700;color:var(--ink)}
+/* ---------- all scanned (last page only) ----------
+   Sits in the pager bar, to the right of the page arrows. */
+.allscan{display:none;align-items:center;gap:12px;margin-left:auto;min-width:0}
+.allscan.on{display:flex}
+.allscan .msg{font-size:12px;line-height:1.4;color:var(--ink3);text-align:right}
+.allscan .msg b{color:var(--ink);font-weight:700}
+.allscan .btn-all{border:1.5px solid var(--green);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;font-family:inherit;background:#fff;color:var(--green);cursor:pointer;white-space:nowrap}
+.allscan.done .msg b{color:var(--green)}
+.allscan .undo{background:none;border:0;padding:0;font-family:inherit;font-size:13px;font-weight:700;color:var(--green);cursor:pointer;white-space:nowrap}
 .fab{position:absolute;right:16px;bottom:74px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer;z-index:20}
 
 /* ---------- stats ---------- */
@@ -227,6 +236,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
     <button class="parrow" id="prev">&#8592;</button>
     <div class="p">Page <b id="pgNow">1</b> of <b id="pgAll">14</b></div>
     <button class="parrow" id="next">&#8594;</button>
+    <div class="allscan" id="allscan"></div>
   </div>
 
   <button class="fab" title="Scan">
@@ -367,9 +377,6 @@ function render(){
   const from=(page-1)*PER_PAGE, list=items.slice(from,from+PER_PAGE);
   rows.innerHTML=list.map(it=>{
     const base=(v)=>num(v*it.cs)+" "+(it.unit==="KG"?"KG":"Piece");
-    const inv = it.noCount
-      ? `<div class="invbox none">No count<br>needed</div><div class="iinfo">i</div>`
-      : `<div class="invbox"><div class="a">0 – ${num(it.invHi)}<span class="u"> CS</span></div><div class="b">0 – ${base(it.invHi)}</div></div>${it.attnInv?'<div class="bang">!</div>':''}`;
     return `
     <div class="row" data-id="${it.id}">
       <div>
@@ -382,7 +389,6 @@ function render(){
         </div>
       </div>
       <div>
-        <div class="inv">${inv}</div>
         <div class="dsize">Display size <b>${it.display} CS</b></div>
       </div>
       <div class="ord">
@@ -400,7 +406,36 @@ function render(){
   document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
   stats();
   saveState();
+  allScan();
 }
+
+/* ---------- the whole list as scanned ----------
+   Erst auf der letzten Seite: dort ist man mit dem Scannen durch. Ein Tipp graut
+   alle Barcodes aus, statt jeden einzeln anzutippen. Rueckgaengig stellt genau
+   den Stand davor wieder her. */
+let scanBefore=null;
+function allScan(){
+  const el=document.getElementById("allscan");
+  if(page!==PAGES){ el.classList.remove("on"); return; }
+  const n=items.filter(i=>i.scanned).length, all=n===items.length;
+  el.classList.add("on");
+  el.classList.toggle("done", all);
+  el.innerHTML = all
+    ? `<div class="msg"><b>&#10003; All ${items.length} barcodes scanned</b></div>
+       ${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`
+    : `<div class="msg"><b>${n}</b> of ${items.length} scanned</div>
+       <button type="button" class="btn-all" id="allBtn">Mark all as scanned</button>`;
+}
+document.getElementById("allscan").addEventListener("click",e=>{
+  if(e.target.closest("#allBtn")){
+    scanBefore=items.map(i=>i.scanned);
+    items.forEach(i=>i.scanned=true);
+    render(); toast("All "+items.length+" barcodes marked as scanned");
+  } else if(e.target.closest("#allUndo")){
+    items.forEach((i,k)=>i.scanned=scanBefore[k]);
+    scanBefore=null; render();
+  }
+});
 
 function stats(){
   const cases=items.reduce((a,i)=>a+i.qty,0);
@@ -438,7 +473,7 @@ rows.addEventListener("click",e=>{
   const row=e.target.closest(".row"); if(!row) return;
   const id=+row.dataset.id, it=items.find(x=>x.id===id);
   if(e.target.closest(".qty")) openOrdPad(id);
-  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; render(); }
+  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; scanBefore=null; render(); }
 });
 /* ---------- order keypad ----------
    Dasselbe Tastenfeld wie in den Store-Prototypen: getippt wird in das Feld,
