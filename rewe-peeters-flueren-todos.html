@@ -2991,7 +2991,7 @@ let DF_CFG=(function(){
   catch(e){ return Object.assign({}, DF_CFG_DEFAULT); }
 })();
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
-function dfFresh(date){ return {date, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
+function dfFresh(date){ return {date, setupSeen:false, shelvesSeen:false, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
 let DF_SETUP=null, DF_ANIM=null, DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
 function dfLoad(){
@@ -3001,20 +3001,20 @@ function dfLoad(){
 function dfSave(){ try{ localStorage.setItem(DF_KEY, JSON.stringify(DF)); }catch(e){} }
 
 const DF_TXT={
-  de:{eyebrow:'Dein Tagesablauf', toDay:'Zum Tagesablauf ›', navShelves:'Alle Regale', navAll:'Alle Artikel', helloMorning:'Guten Morgen', hello:'Hallo', head0:'{n} Schritte bis zur Bestellung.', headMid:'Noch {n} Schritte, du bist gut dabei.', headLast:'Nur noch ein Schritt!', headAll:'Alles erledigt, stark!', nextLbl:'Als Nächstes', later:'Später erinnern', title:'Bestellung {d}', of:'{a} von {n} erledigt',
+  de:{eyebrow:'Dein Tagesablauf', setupDone:'Artikelpflege abschließen ✓', shelvesDoneBtn:'Regale abschließen ›', shelvesClosed:'Abgeschlossen', navShelves:'Alle Regale', navAll:'Alle Artikel', helloMorning:'Guten Morgen', hello:'Hallo', head0:'{n} Schritte bis zur Bestellung.', headMid:'Noch {n} Schritte, du bist gut dabei.', headLast:'Nur noch ein Schritt!', headAll:'Alles erledigt, stark!', nextLbl:'Als Nächstes', later:'Später erinnern', title:'Bestellung {d}', of:'{a} von {n} erledigt',
     dueIn:'Bestellschluss in {t}', duePast:'Bestellschluss {h} vorbei',
     intake:'Wareneingang melden', intakeOpen:'Startet die Verarbeitung, rund 90 Minuten',
     intakeRun:'Gemeldet {a} · Zahlen bereit ca. {r}', intakeReady:'Gemeldet {a} · verarbeitet',
     intakeCta:'Melden', intakeHave:'Wareneingang liegt schon vor',
     back:'Lager scannen', backOpen:'Noch nicht gezählt', backDraft:'Zählung angefangen, noch offen', backCta:'Scannen', backResume:'Fortsetzen',
-    unshelved:'Artikel ohne Regal oder Regalhöchstbestand', setupNoShelf:'{n} ohne Regal', setupNoDs:'{n} ohne Regalhöchstbestand', unshelvedNone:'Alle Artikel haben Regal und Regalhöchstbestand', unshelvedCta:'Ergänzen',
+    unshelved:'Artikel ohne Regal oder Regalhöchstbestand', setupNoShelf:'{n} ohne Regal', setupNoDs:'{n} ohne Regalhöchstbestand', setupSeen:'Durchgesehen', unshelvedNone:'Alle Artikel haben Regal und Regalhöchstbestand', unshelvedCta:'Ergänzen',
     shelves:'Regal für Regal', shelvesMeta:'{f} von {n} Regalen fertig', shelvesCta:'Zu den Regalen',
     coreOpen:'{n} Artikel mit Vorschlag 0', coreSeen:'{n} Artikel angesehen', coreNone:'Nichts zu prüfen', coreCta:'Prüfen',
     mde:'Barcodes ins MDE scannen', mdeNotClosed:'Erst die Bestellung abschließen', mdeMeta:'{s} von {n} gescannt',
     mdeRescan:'{n} Artikel nach dem Scannen geändert, neu scannen', mdeCloseCta:'Abschließen', mdeCta:'Scannen', mdeRescanCta:'Neu scannen',
     skip:'Überspringen', unskip:'Doch machen', skipped:'Übersprungen', open:'Öffnen', toOrder:'Zur Bestellung', close:'Schließen',
     pillNext:'Weiter: {s}', pillAll:'Tagesablauf erledigt', dash:'Tagesablauf: {a} von {n} erledigt',
-    bannerDone:'{s} erledigt', bannerNext:'Weiter: {s}', bannerGo:'Los', bannerRescan:'Bestellung nach dem Scannen geändert',
+    bannerGo:'Los', bannerRescan:'Bestellung nach dem Scannen geändert',
     remindTitle:'Noch offen im Tagesablauf', remindOpen:'Tagesablauf öffnen',
     remindPipe:'Wareneingang wird noch verarbeitet', remindPipeSub:'Zahlen bereit ca. {r}. Bis dahin kann sich die Bestellung noch ändern.',
     mdeTitle:'Barcodes ins MDE scannen', mdeBar:'<b>{s}</b> von {n} gescannt', mdeChanged:'{n} geändert', mdeAll:'Alle als gescannt markieren',
@@ -3024,20 +3024,20 @@ const DF_TXT={
     cgCases:'{c} Kisten in der Bestellung', cgDur:'Dauer heute: {t}', cgDone:'Fertig',
     demo:'Demo: Markt-Konfiguration', demoNote:'Platzhalter-Schlüssel, die echten Appsmith-Namen folgen.',
     demoLabel:'Name für Schritt 5', demoReset:'Tagesablauf zurücksetzen'},
-  en:{eyebrow:'Your day', toDay:'Back to your day ›', navShelves:'All shelves', navAll:'All items', helloMorning:'Good morning', hello:'Hi', head0:'{n} steps to your order.', headMid:'{n} steps left, nice going.', headLast:'Just one step left!', headAll:'All done, great work!', nextLbl:'Up next', later:'Remind me later', title:'Order {d}', of:'{a} of {n} done',
+  en:{eyebrow:'Your day', setupDone:'Complete task ✓', shelvesDoneBtn:'Complete shelves ›', shelvesClosed:'Completed', navShelves:'All shelves', navAll:'All items', helloMorning:'Good morning', hello:'Hi', head0:'{n} steps to your order.', headMid:'{n} steps left, nice going.', headLast:'Just one step left!', headAll:'All done, great work!', nextLbl:'Up next', later:'Remind me later', title:'Order {d}', of:'{a} of {n} done',
     dueIn:'Order deadline in {t}', duePast:'Order deadline {h} passed',
     intake:'Report intake', intakeOpen:'Starts processing, about 90 minutes',
     intakeRun:'Reported {a} · figures ready around {r}', intakeReady:'Reported {a} · processed',
     intakeCta:'Report', intakeHave:'Intake data already there',
     back:'Scan back storage', backOpen:'Not counted yet', backDraft:'Count started, still open', backCta:'Scan', backResume:'Resume',
-    unshelved:'Items without shelf or display size', setupNoShelf:'{n} without shelf', setupNoDs:'{n} without display size', unshelvedNone:'Every item has a shelf and a display size', unshelvedCta:'Complete',
+    unshelved:'Items without shelf or display size', setupNoShelf:'{n} without shelf', setupNoDs:'{n} without display size', setupSeen:'Reviewed', unshelvedNone:'Every item has a shelf and a display size', unshelvedCta:'Complete',
     shelves:'Shelf by shelf', shelvesMeta:'{f} of {n} shelves done', shelvesCta:'Go to shelves',
     coreOpen:'{n} items with a suggestion of 0', coreSeen:'{n} items reviewed', coreNone:'Nothing to check', coreCta:'Check',
     mde:'Scan barcodes into the MDE', mdeNotClosed:'Complete the order first', mdeMeta:'{s} of {n} scanned',
     mdeRescan:'{n} items changed after scanning, scan again', mdeCloseCta:'Complete', mdeCta:'Scan', mdeRescanCta:'Scan again',
     skip:'Skip', unskip:'Do it after all', skipped:'Skipped', open:'Open', toOrder:'Go to order', close:'Close',
     pillNext:'Next: {s}', pillAll:'Day complete', dash:'Your day: {a} of {n} done',
-    bannerDone:'{s} done', bannerNext:'Next: {s}', bannerGo:'Go', bannerRescan:'Order changed after scanning',
+    bannerGo:'Go', bannerRescan:'Order changed after scanning',
     remindTitle:'Still open today', remindOpen:'Open your day',
     remindPipe:'Intake is still being processed', remindPipeSub:'Figures ready around {r}. The order can still change until then.',
     mdeTitle:'Scan barcodes into the MDE', mdeBar:'<b>{s}</b> of {n} scanned', mdeChanged:'{n} changed', mdeAll:'Mark all as scanned',
@@ -3047,20 +3047,20 @@ const DF_TXT={
     cgCases:'{c} cases in the order', cgDur:'Time today: {t}', cgDone:'Finish',
     demo:'Demo: store configuration', demoNote:'Placeholder keys, the real Appsmith names will follow.',
     demoLabel:'Name for step 5', demoReset:'Reset the day'},
-  fr:{eyebrow:'Votre journée', toDay:'Vers la journée ›', navShelves:'Tous les rayons', navAll:'Tous les articles', helloMorning:'Bonjour', hello:'Bonjour', head0:'{n} étapes avant la commande.', headMid:'Plus que {n} étapes, bien joué.', headLast:'Plus qu\'une étape !', headAll:'Tout est fait, bravo !', nextLbl:'Ensuite', later:'Me le rappeler plus tard', title:'Commande {d}', of:'{a} sur {n} terminées',
+  fr:{eyebrow:'Votre journée', setupDone:'Terminer la tâche ✓', shelvesDoneBtn:'Terminer les rayons ›', shelvesClosed:'Terminé', navShelves:'Tous les rayons', navAll:'Tous les articles', helloMorning:'Bonjour', hello:'Bonjour', head0:'{n} étapes avant la commande.', headMid:'Plus que {n} étapes, bien joué.', headLast:'Plus qu\'une étape !', headAll:'Tout est fait, bravo !', nextLbl:'Ensuite', later:'Me le rappeler plus tard', title:'Commande {d}', of:'{a} sur {n} terminées',
     dueIn:'Clôture dans {t}', duePast:'Clôture {h} dépassée',
     intake:'Déclarer la réception', intakeOpen:'Lance le traitement, environ 90 minutes',
     intakeRun:'Déclarée {a} · chiffres prêts vers {r}', intakeReady:'Déclarée {a} · traitée',
     intakeCta:'Déclarer', intakeHave:'Réception déjà disponible',
     back:'Scanner la réserve', backOpen:'Pas encore comptée', backDraft:'Comptage commencé, encore ouvert', backCta:'Scanner', backResume:'Reprendre',
-    unshelved:'Articles sans rayon ni linéaire', setupNoShelf:'{n} sans rayon', setupNoDs:'{n} sans linéaire', unshelvedNone:'Tous les articles ont un rayon et un linéaire', unshelvedCta:'Compléter',
+    unshelved:'Articles sans rayon ni linéaire', setupNoShelf:'{n} sans rayon', setupNoDs:'{n} sans linéaire', setupSeen:'Vérifié', unshelvedNone:'Tous les articles ont un rayon et un linéaire', unshelvedCta:'Compléter',
     shelves:'Rayon par rayon', shelvesMeta:'{f} sur {n} rayons terminés', shelvesCta:'Vers les rayons',
     coreOpen:'{n} articles proposés à 0', coreSeen:'{n} articles vus', coreNone:'Rien à vérifier', coreCta:'Vérifier',
     mde:'Scanner les codes-barres dans le MDE', mdeNotClosed:'Clôturer d\'abord la commande', mdeMeta:'{s} sur {n} scannés',
     mdeRescan:'{n} articles modifiés après le scan, à rescanner', mdeCloseCta:'Clôturer', mdeCta:'Scanner', mdeRescanCta:'Rescanner',
     skip:'Passer', unskip:'Le faire quand même', skipped:'Passé', open:'Ouvrir', toOrder:'Vers la commande', close:'Fermer',
     pillNext:'Suite : {s}', pillAll:'Journée terminée', dash:'Votre journée : {a} sur {n} terminées',
-    bannerDone:'{s} terminé', bannerNext:'Suite : {s}', bannerGo:'Go', bannerRescan:'Commande modifiée après le scan',
+    bannerGo:'Go', bannerRescan:'Commande modifiée après le scan',
     remindTitle:'Encore ouvert aujourd\'hui', remindOpen:'Ouvrir la journée',
     remindPipe:'La réception est encore en traitement', remindPipeSub:'Chiffres prêts vers {r}. La commande peut encore changer d\'ici là.',
     mdeTitle:'Scanner les codes-barres dans le MDE', mdeBar:'<b>{s}</b> sur {n} scannés', mdeChanged:'{n} modifiés', mdeAll:'Tout marquer comme scanné',
@@ -3161,11 +3161,16 @@ function dfSteps(){
   if(DF_CFG.shelfWalk){
     const c=dfSetupCounts(), n=c.list.length;
     const parts=[c.shelf?dfF(L.setupNoShelf,{n:c.shelf}):'', c.ds?dfF(L.setupNoDs,{n:c.ds}):''].filter(Boolean);
-    steps.push({k:'unshelved', title:L.unshelved, done:n===0, warn:n>0,
-      meta: n ? parts.join(' · ') : L.unshelvedNone, cta:L.unshelvedCta});
+    /* "Artikelpflege abschließen" in der Liste heisst: durchgesehen. Was dann noch fehlt, bleibt
+       in der Zeile stehen, haelt den Schritt aber nicht mehr offen. */
+    steps.push({k:'unshelved', title:L.unshelved, done:n===0 || !!DF.setupSeen, warn:n>0 && !DF.setupSeen,
+      meta: !n ? L.unshelvedNone : DF.setupSeen ? L.setupSeen+' · '+parts.join(' · ') : parts.join(' · '), cta:L.unshelvedCta});
     const tiles=dfShelfTiles(), f=tiles.filter(id=>CATFINISHED[id]).length;
-    steps.push({k:'shelves', title:L.shelves, done:tiles.length>0 && f===tiles.length,
-      meta: dfF(L.shelvesMeta,{f, n:tiles.length}), cta:L.shelvesCta});
+    /* "Regale abschließen" auf der Uebersicht heisst: der Gang ist durch, auch wenn nicht
+       jedes Regal einzeln abgehakt wurde. Die Zahl bleibt ehrlich in der Zeile stehen. */
+    const allF=tiles.length>0 && f===tiles.length;
+    steps.push({k:'shelves', title:L.shelves, done:allF || !!DF.shelvesSeen,
+      meta: (DF.shelvesSeen && !allF ? L.shelvesClosed+' · ' : '')+dfF(L.shelvesMeta,{f, n:tiles.length}), cta:L.shelvesCta});
   }
   if(DF_CFG.coreCheck){
     const n=forgotCount();
@@ -3502,8 +3507,8 @@ function dfTick(){
        Dashboard aus (Inventur-Reiter) und nicht im Selbsttest, der den alten Gang prueft. */
     if(just && ['unshelved','shelves','back'].includes(just.k) && !DF_SELFTEST
        && !document.body.classList.contains('dash-active')) setTimeout(dfReturnHome, 150);   // erst das history.back() des Regal-Abschlusses ankommen lassen
-    else if(just) dfBanner('✓ '+dfF(L.bannerDone,{s:mmEsc(just.title)}), nx?mmEsc(dfF(L.bannerNext,{s:nx.title})):'', nx&&nx.k);
-    else if(DF_PREV.mde===true && !mde.done && !DF_MDE) dfBanner(L.bannerRescan, mde.meta, 'mde');
+    /* Kein "erledigt · Weiter"-Hinweis mehr: der Tagesablauf zeigt den Stand selbst. */
+    else if(!just && DF_PREV.mde===true && !mde.done && !DF_MDE) dfBanner(L.bannerRescan, mde.meta, 'mde');
   }
   DF_PREV=now;
   dfRenderPill(steps);
@@ -9797,9 +9802,10 @@ function openSummary(){
       <div><b>${cases}</b> ${t().casesInOrder}</div></div>`;
   document.getElementById('s2Body').innerHTML=h;
   const go=document.getElementById('s2Go');
-  go.disabled=blocked.length>0; go.style.opacity=blocked.length?.4:1;
-  go.textContent = blocked.length ? t().enterFirst
-                                  : `${implicit.length} ${t().confirmFinish}`;
+  /* Tagesablauf: warnen, nie sperren. Fehlende Zahlen stehen oben in Rot, der Weg zum
+     Abschluss und zum MDE-Scan bleibt trotzdem offen. */
+  go.disabled=false; go.style.opacity=1;
+  go.textContent = `${implicit.length} ${t().confirmFinish}`;
   document.getElementById('ov2').classList.add('on');
 }
 document.getElementById('cta').onclick=openSummary;
@@ -11353,7 +11359,7 @@ renderCatOverlay=function(){
     DF_ANIM=null;
   }
 };
-/* Die Liste von Schritt 3 traegt ihren Namen als Chip und unten "Zum Tagesablauf".
+/* Die Liste von Schritt 3 traegt ihren Namen als Chip und unten "Artikelpflege abschließen".
    Jeder andere Filter, jedes Regal und die Startseite heben sie auf. */
 const dfInSetup=()=>!!(DF_SETUP && !CATFILTER && !CATOPEN);
 const dfClear0=clearFilt;
@@ -11366,13 +11372,31 @@ renderCatChip=function(){
     const wrap=document.getElementById('catChipWrap');
     wrap.innerHTML=`<button class="catchip warn" id="catChipBtn" type="button">${mmEsc(dfTx().unshelved)}</button>`;
     document.getElementById('catChipBtn').onclick=goToCategories;
-    if(b){ b.style.display=''; b.textContent=dfTx().toDay; }
+    if(b){ b.style.display=''; b.textContent=dfTx().setupDone; }
     const cta=document.getElementById('cta'); if(cta) cta.style.display='none';
   } else if(b) b.textContent=t().nextShelfArrow;
+  /* Auf der Regal-Uebersicht schliesst die gruene Taste den Regal-Gang ab, nicht die
+     Bestellung -- die ist Schritt 6 im Tagesablauf. */
+  const cta=document.getElementById('cta');
+  if(cta) cta.textContent = dfOnShelves() ? dfTx().shelvesDoneBtn : t().completeOrderArrow;
   return r;
 };
+function dfOnShelves(){ return typeof CATOPEN!=='undefined' && CATOPEN && !DF_HOME && !CAT_EDIT && !CATFILTER; }
+const dfCta=document.getElementById('cta'), dfCta0=dfCta.onclick;
+dfCta.onclick=function(e){
+  if(!dfOnShelves()) return dfCta0.call(this, e);
+  const wasDone=dfSteps().find(s=>s.k==='shelves').done;
+  DF.shelvesSeen=true; dfSave();
+  if(wasDone) dfReturnHome(); else render();   // dfTick() fuehrt zurueck, sobald der Schritt fertig wird
+};
 const dfNextBtn=document.getElementById('nextRegalBtn'), dfNext0=dfNextBtn.onclick;
-dfNextBtn.onclick=function(e){ if(dfInSetup()){ dfReturnHome(); return; } return dfNext0.call(this, e); };
+dfNextBtn.onclick=function(e){
+  if(!dfInSetup()) return dfNext0.call(this, e);
+  const wasDone=dfSteps().find(s=>s.k==='unshelved').done;
+  DF.setupSeen=true; dfSave();
+  /* Wird der Schritt erst jetzt fertig, fuehrt dfTick() zurueck -- sonst direkt. */
+  if(wasDone) dfReturnHome(); else render();
+};
 /* Aus der Uebersicht in ein Regal: dieselbe Bewegung, eine Ebene tiefer. */
 const dfPick0=pickCategory;
 pickCategory=function(){ DF_SETUP=null; DF_ANIM='slide'; return dfPick0.apply(this, arguments); };
