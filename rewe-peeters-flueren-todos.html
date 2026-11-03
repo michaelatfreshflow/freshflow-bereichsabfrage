@@ -2377,6 +2377,62 @@ body.dash-active .scanFab{display:none}
   .DayFlow__bcGrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 }
 
+/* Tagesablauf, zweite Fassung: Kopf in Gruen mit Ring und Obst, ein Bild je Schritt,
+   der naechste Schritt als Karte. */
+.DayFlow__sheet{overflow-x:hidden}
+.DayFlow__sheet.is-shake{animation:dfShake .35s ease}
+@keyframes dfShake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.DayFlow__hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:18px;padding:22px 24px 22px;
+  background:linear-gradient(135deg,var(--green) 0%,var(--ff-color-dark-green,#2b3a36) 130%);color:var(--ff-color-white)}
+.DayFlow__decor img{position:absolute;opacity:.9;pointer-events:none}
+.DayFlow__heroTx{position:relative;flex:1;min-width:0}
+.DayFlow__heroTx .hi{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);text-transform:uppercase;letter-spacing:.06em;opacity:.8}
+.DayFlow__heroTx h2{margin:6px 0 10px;font-size:21px;line-height:1.25;max-width:330px}
+.DayFlow__due{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border-radius:var(--ff-radius-pill);padding:5px 11px;font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-semibold)}
+.DayFlow__due.is-soon{background:var(--ff-color-warning);color:#3d2a00}
+.DayFlow__due.is-late{background:var(--red);color:var(--ff-color-white)}
+.DayFlow__due .late{color:inherit}
+.DayFlow__ring{position:relative;flex:none;width:64px;height:64px;margin-right:4px;z-index:1}
+.DayFlow__ring svg circle:last-child{transition:stroke-dasharray .5s ease}
+.DayFlow__ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:19px;font-weight:var(--ff-weight-extra-bold)}
+.DayFlow__ring small{font-size:12px;opacity:.75;font-weight:var(--ff-weight-semibold)}
+.DayFlow__steps{border-top:0;padding:8px 0}
+.DayFlow__step{flex-wrap:wrap;border-bottom:0;margin:2px 12px;border-radius:12px;padding:11px 12px}
+.DayFlow__step.is-next{background:var(--ff-primary-10,#f7fcf6);box-shadow:inset 0 0 0 2px var(--green);margin:8px 12px;padding:15px 14px}
+.DayFlow__ic{width:38px;height:38px;border:0;background:var(--ff-grey-100);color:var(--ff-grey-600)}
+.DayFlow__step.is-next .DayFlow__ic{background:var(--green);color:var(--ff-color-white)}
+.DayFlow__step.is-done .DayFlow__ic{background:var(--green);color:var(--ff-color-white)}
+.DayFlow__step.is-skip .DayFlow__ic{background:var(--ff-grey-50);border:2px dashed var(--ff-grey-300,#d4d4d8)}
+.DayFlow__step.is-done .DayFlow__tx b{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.25)}
+.DayFlow__step.is-next .DayFlow__tx b{font-size:var(--ff-text-primary-body-text-16)}
+.DayFlow__step.is-next .cta{padding:11px 22px;font-size:var(--ff-text-primary-body-text-14)}
+.DayFlow__nextLb{display:block;font-style:normal;font-size:11px;font-weight:var(--ff-weight-bold);color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.DayFlow__ft{border-top:1px solid var(--line)}
+@media (max-width:560px){
+  .DayFlow__hero{padding:18px 16px}
+  .DayFlow__heroTx h2{font-size:18px}
+  .DayFlow__decor{display:none}
+}
+
+/* Tagesablauf als Startseite der Bestellung */
+body.df-home .foot{display:none}
+.DayFlow__home .DayFlow__hero{flex:none;padding:22px 28px}
+.DayFlow__home .DayFlow__heroTx h2{max-width:560px;font-size:24px}
+.DayFlow__body{flex:1;overflow-y:auto;padding:18px 24px 22px}
+.DayFlow__card{max-width:860px;margin:0 auto;background:var(--ff-color-white);border-radius:var(--ff-radius-c15);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.DayFlow__more{max-width:860px;margin:14px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.DayFlow__nav{display:flex;align-items:center;gap:12px;background:var(--ff-color-white);border:0;border-radius:12px;padding:14px 16px;cursor:pointer;
+  font:inherit;font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-bold);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.DayFlow__nav svg{color:var(--green)}
+.DayFlow__nav span{flex:1;text-align:left}
+.DayFlow__nav:hover{box-shadow:inset 0 0 0 1.5px var(--green)}
+.DayFlow__home .DayFlow__ft{max-width:860px;margin:6px auto 0;border-top:0;padding:10px 4px}
+.DayFlow__home .DayFlow__demo{max-width:820px;margin:0 auto 10px}
+@media (max-width:560px){
+  .DayFlow__body{padding:12px 10px 18px}
+  .DayFlow__more{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -2930,7 +2986,7 @@ let DF_CFG=(function(){
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
 function dfFresh(date){ return {date, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
-let DF_SHEET=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
+let DF_HOME=false, DF_MDE=false, DF_CONGRATS=false, DF_DEMO=false, DF_CORE_OPEN=false, DF_PREV=null;
 function dfLoad(){
   try{ DF=JSON.parse(localStorage.getItem(DF_KEY)||'null'); }catch(e){ DF=null; }
   if(!DF || DF.date!==HDR_DATE) DF=dfFresh(HDR_DATE);
@@ -2938,7 +2994,7 @@ function dfLoad(){
 function dfSave(){ try{ localStorage.setItem(DF_KEY, JSON.stringify(DF)); }catch(e){} }
 
 const DF_TXT={
-  de:{eyebrow:'Dein Tagesablauf', title:'Bestellung {d}', of:'{a} von {n} erledigt',
+  de:{eyebrow:'Dein Tagesablauf', navShelves:'Alle Regale', navAll:'Alle Artikel', helloMorning:'Guten Morgen', hello:'Hallo', head0:'{n} Schritte bis zur Bestellung.', headMid:'Noch {n} Schritte, du bist gut dabei.', headLast:'Nur noch ein Schritt!', headAll:'Alles erledigt, stark!', nextLbl:'Als Nächstes', later:'Später erinnern', title:'Bestellung {d}', of:'{a} von {n} erledigt',
     dueIn:'Bestellschluss in {t}', duePast:'Bestellschluss {h} vorbei',
     intake:'Wareneingang melden', intakeOpen:'Startet die Verarbeitung, rund 90 Minuten',
     intakeRun:'Gemeldet {a} · Zahlen bereit ca. {r}', intakeReady:'Gemeldet {a} · verarbeitet',
@@ -2961,7 +3017,7 @@ const DF_TXT={
     cgCases:'{c} Kisten in der Bestellung', cgDur:'Dauer heute: {t}', cgDone:'Fertig',
     demo:'Demo: Markt-Konfiguration', demoNote:'Platzhalter-Schlüssel, die echten Appsmith-Namen folgen.',
     demoLabel:'Name für Schritt 5', demoReset:'Tagesablauf zurücksetzen'},
-  en:{eyebrow:'Your day', title:'Order {d}', of:'{a} of {n} done',
+  en:{eyebrow:'Your day', navShelves:'All shelves', navAll:'All items', helloMorning:'Good morning', hello:'Hi', head0:'{n} steps to your order.', headMid:'{n} steps left, nice going.', headLast:'Just one step left!', headAll:'All done, great work!', nextLbl:'Up next', later:'Remind me later', title:'Order {d}', of:'{a} of {n} done',
     dueIn:'Order deadline in {t}', duePast:'Order deadline {h} passed',
     intake:'Report intake', intakeOpen:'Starts processing, about 90 minutes',
     intakeRun:'Reported {a} · figures ready around {r}', intakeReady:'Reported {a} · processed',
@@ -2984,7 +3040,7 @@ const DF_TXT={
     cgCases:'{c} cases in the order', cgDur:'Time today: {t}', cgDone:'Finish',
     demo:'Demo: store configuration', demoNote:'Placeholder keys, the real Appsmith names will follow.',
     demoLabel:'Name for step 5', demoReset:'Reset the day'},
-  fr:{eyebrow:'Votre journée', title:'Commande {d}', of:'{a} sur {n} terminées',
+  fr:{eyebrow:'Votre journée', navShelves:'Tous les rayons', navAll:'Tous les articles', helloMorning:'Bonjour', hello:'Bonjour', head0:'{n} étapes avant la commande.', headMid:'Plus que {n} étapes, bien joué.', headLast:'Plus qu\'une étape !', headAll:'Tout est fait, bravo !', nextLbl:'Ensuite', later:'Me le rappeler plus tard', title:'Commande {d}', of:'{a} sur {n} terminées',
     dueIn:'Clôture dans {t}', duePast:'Clôture {h} dépassée',
     intake:'Déclarer la réception', intakeOpen:'Lance le traitement, environ 90 minutes',
     intakeRun:'Déclarée {a} · chiffres prêts vers {r}', intakeReady:'Déclarée {a} · traitée',
@@ -3008,6 +3064,11 @@ const DF_TXT={
     demo:'Démo : configuration du magasin', demoNote:'Clés provisoires, les vrais noms Appsmith suivront.',
     demoLabel:'Nom de l\'étape 5', demoReset:'Réinitialiser la journée'}
 };
+/* Das Datum so, wie der Kopf es gerade zeigt -- HDR_DATE ist der deutsche Stand vom Laden. */
+function dfDate(){
+  const el=document.getElementById('hdrOrderDate');
+  return (el && el.textContent.replace(/\u00a0/g,' ').trim()) || HDR_DATE;
+}
 function dfTx(){ return DF_TXT[LANG] || DF_TXT.de; }
 function dfF(s, o){ return String(s).replace(/\{(\w)\}/g, (m,k)=> o[k]!=null ? o[k] : m); }
 function dfForgotLabel(){ return (DF_CFG.coreCheckLabel||'').trim() || t().forgotChip; }
@@ -3104,29 +3165,49 @@ function dfIntakeReady(){
 }
 function dfNext(steps){ return steps.find(s=>!s.done && !s.skipped) || null; }
 
-/* ---- Blatt ---- */
-function dfOpen(){
-  if(!DF.startedAt){ DF.startedAt=Date.now(); dfSave(); }
-  DF_SHEET=true; dfRenderSheet();
-}
-function dfClose(){ DF_SHEET=false; DF_DEMO=false; dfRenderSheet(); }
-/* Beim Einstieg in die Bestellung: solange etwas offen ist, steht der Tagesablauf davor. */
-function dfAutoOpen(){
-  if(DF_CONGRATS || DF_MDE) return;
-  if(dfNext(dfSteps())) dfOpen();
-}
+/* ---- Startseite ----
+   Der Tagesablauf ist die Startseite der Bestellung: er steht dort, wo vorher die
+   Regal-Uebersicht stand, und von hier aus geht es in jedes Werkzeug. Die Regale sind
+   eine Ebene darunter (dfShowShelves). DF_HOME sagt, ob die Seite gerade der
+   Tagesablauf ist; applyCatPage() setzt es aus dem History-Eintrag. */
 function dfDueHTML(){
   const L=dfTx(), left=dfDeadlineMs();
   return left>0 ? dfF(L.dueIn,{t:`<b>${dfDur(left)}</b>`}) : `<span class="late">${dfF(L.duePast,{h:HDR_DEADLINE})}</span>`;
 }
-function dfRenderSheet(){
-  const root=document.getElementById('dfSheetRoot'); if(!root) return;
-  if(!DF_SHEET){ root.innerHTML=''; return; }
+/* Je Schritt ein Bild -- die Liste soll sich lesen wie ein Plan fuer den Morgen, nicht
+   wie ein Formular. */
+const DF_ICON={
+  intake:'<path d="M1 7h12v9H1z"/><path d="M13 10h4l3 3v3h-7z"/><circle cx="5" cy="17.5" r="1.8"/><circle cx="16" cy="17.5" r="1.8"/>',
+  back:'<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>',
+  unshelved:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+  shelves:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  core:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  mde:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M8 8v8M12 8v8M16 8v8"/>'
+};
+function dfIcon(k){
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${DF_ICON[k]||''}</svg>`;
+}
+/* Die Ueberschrift waechst mit: am Anfang die Zahl der Schritte, unterwegs Zuspruch,
+   vor dem letzten Schritt nur noch der eine. */
+function dfHeadline(steps){
+  const L=dfTx(), left=steps.filter(s=>!s.done && !s.skipped).length;
+  if(!left) return L.headAll;
+  if(left===1) return L.headLast;
+  if(!steps.some(s=>s.done)) return dfF(L.head0,{n:left});
+  return dfF(L.headMid,{n:left});
+}
+function dfHello(){
+  const L=dfTx(), h=+new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'}).format(new Date());
+  return h<11 ? L.helloMorning : L.hello;
+}
+function dfRenderHome(){
+  const root=document.getElementById('catOverlayRoot'); if(!root) return;
+  if(!DF.startedAt){ DF.startedAt=Date.now(); dfSave(); }
   const L=dfTx(), steps=dfSteps(), nx=dfNext(steps), nDone=steps.filter(s=>s.done).length;
-  const bar=steps.map(s=>`<i class="${s.done?'is-done':s.skipped?'is-skip':''}"></i>`).join('');
-  const rows=steps.map((s,i)=>{
+  const left=dfDeadlineMs(), dueCls = left<15*60e3 ? 'is-late' : left<60*60e3 ? 'is-soon' : '';
+  const C=2*Math.PI*26, frac=steps.length ? nDone/steps.length : 0;
+  const rows=steps.map(s=>{
     const isNext = nx && nx.k===s.k;
-    const ic = s.done ? '✓' : s.skipped ? '–' : (i+1);
     const metaCls = s.warn && !s.done ? 'is-warn' : s.busy ? 'is-busy' : '';
     let acts='';
     if(s.skipped) acts=`<button class="DayFlow__lnk" type="button" data-unskip="${s.k}">${L.unskip}</button>`;
@@ -3136,8 +3217,8 @@ function dfRenderSheet(){
                     : `<button class="DayFlow__lnk" type="button" data-go="${s.k}">${s.cta} ›</button>`;
     } else if(s.k!=='intake') acts=`<button class="DayFlow__lnk DayFlow__lnk--mute" type="button" data-go="${s.k}">${L.open}</button>`;
     return `<div class="DayFlow__step${s.done?' is-done':''}${s.skipped?' is-skip':''}${isNext?' is-next':''}">
-      <span class="DayFlow__ic">${ic}</span>
-      <div class="DayFlow__tx"><b>${mmEsc(s.title)}</b><span class="${metaCls}">${s.skipped?L.skipped:s.meta}</span></div>
+      <span class="DayFlow__ic">${s.done?'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg>':dfIcon(s.k)}</span>
+      <div class="DayFlow__tx">${isNext?`<i class="DayFlow__nextLb">${L.nextLbl}</i>`:''}<b>${mmEsc(s.title)}</b><span class="${metaCls}">${s.skipped?L.skipped:s.meta}</span></div>
       <div class="DayFlow__acts">${acts}</div></div>`;
   }).join('');
   const demo = !DF_DEMO ? '' : `<div class="DayFlow__demo"><div class="ttl">${L.demo}</div>
@@ -3146,24 +3227,46 @@ function dfRenderSheet(){
         `<label><input type="checkbox" data-cfg="${k}"${DF_CFG[k]?' checked':''}> ${mmEsc(lb)} <code>${k}</code></label>`).join('')}
       <label>${L.demoLabel} <input type="text" id="dfCfgLabel" value="${mmEsc(DF_CFG.coreCheckLabel||'')}" placeholder="${mmEsc(t().forgotChip)}"> <code>coreCheckLabel</code></label>
       <div class="row2"><button type="button" id="dfReset">${L.demoReset}</button></div></div>`;
-  root.innerHTML=`<div class="DayFlow__ov" id="dfOv"><div class="DayFlow__sheet" role="dialog" aria-modal="true">
-    <div class="DayFlow__hd"><div>
-        <div class="eyebrow">${L.eyebrow}</div>
-        <h2>${dfF(L.title,{d:mmEsc(HDR_DATE)})}</h2>
-        <div class="sub">${dfF(L.of,{a:nDone, n:steps.length})} · ${dfDueHTML()}</div></div>
-      <button class="x" type="button" id="dfX" title="${L.close}">✕</button></div>
-    <div class="DayFlow__bar">${bar}</div>
-    <div class="DayFlow__steps">${rows}</div>
-    <div class="DayFlow__ft"><button class="DayFlow__lnk DayFlow__lnk--mute" type="button" id="dfDemoBtn">⚙ ${L.demo}</button>
-      <span class="sp"></span><button class="DayFlow__lnk" type="button" id="dfToOrder">${L.toOrder} ›</button></div>
-    ${demo}</div></div>`;
-  root.querySelector('#dfX').onclick=dfClose;
-  root.querySelector('#dfToOrder').onclick=dfClose;
-  root.querySelector('#dfOv').onclick=e=>{ if(e.target.id==='dfOv') dfClose(); };
-  root.querySelector('#dfDemoBtn').onclick=()=>{ DF_DEMO=!DF_DEMO; dfRenderSheet(); };
+  const decor=[['56_berries.png','right:120px;top:-16px;width:62px;transform:rotate(-14deg)'],
+               ['51_apple.png','right:-10px;bottom:-24px;width:78px;transform:rotate(12deg)'],
+               ['01_carrot.png','right:190px;bottom:-26px;width:58px;transform:rotate(28deg)'],
+               ['58_citrus.png','right:330px;top:-20px;width:54px;transform:rotate(-30deg)']]
+    .map(([f,st])=>`<img data-ic="${f}" alt="" style="${st}">`).join('');
+  /* Die Pille erst weg, dann messen -- sonst steht die Seite um ihre Hoehe zu tief. */
+  const pill=document.getElementById('dfPill'); if(pill) pill.hidden=true;
+  const hdr=document.querySelector('.hdr'), foot=document.querySelector('.foot');
+  const topPx=hdr?hdr.offsetHeight:0, botPx=(foot&&foot.offsetParent)?foot.offsetHeight:0;
+  const keep=root.querySelector('.DayFlow__body'), scroll=keep?keep.scrollTop:0;
+  root.innerHTML=`<div class="catov" style="top:${topPx}px;bottom:${botPx}px"><div class="catsheet DayFlow__home">
+    <div class="DayFlow__hero"><div class="DayFlow__decor" aria-hidden="true">${decor}</div>
+      <div class="DayFlow__heroTx">
+        <div class="hi">${L.eyebrow} · ${mmEsc(dfDate())}</div>
+        <h2>${dfHello()}! ${mmEsc(dfHeadline(steps))}</h2>
+        <div class="DayFlow__due ${dueCls}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${dfDueHTML()}</div>
+      </div>
+      <div class="DayFlow__ring" aria-label="${dfF(L.of,{a:nDone, n:steps.length})}">
+        <svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="7"/>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"
+            stroke-dasharray="${(C*frac).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg>
+        <b>${nDone}<small>/${steps.length}</small></b></div>
+    </div>
+    <div class="DayFlow__body">
+      <div class="DayFlow__card"><div class="DayFlow__steps">${rows}</div></div>
+      <div class="DayFlow__more">
+        <button type="button" class="DayFlow__nav" id="dfNavShelves">${dfIcon('shelves')}<span>${L.navShelves}</span>›</button>
+        <button type="button" class="DayFlow__nav" id="dfNavAll"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>${L.navAll}</span>›</button>
+      </div>
+      <div class="DayFlow__ft"><button class="DayFlow__lnk DayFlow__lnk--mute" type="button" id="dfDemoBtn">⚙ ${L.demo}</button></div>
+      ${demo}
+    </div></div></div>`;
+  const body=root.querySelector('.DayFlow__body'); if(body) body.scrollTop=scroll;
+  mmKeyIcons(root);
+  root.querySelector('#dfDemoBtn').onclick=()=>{ DF_DEMO=!DF_DEMO; dfRenderHome(); };
+  root.querySelector('#dfNavShelves').onclick=dfShowShelves;
+  root.querySelector('#dfNavAll').onclick=()=>{ clearFilt(); goToList(null); };
   root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>dfGo(b.dataset.go));
-  root.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>{ DF.skipped[b.dataset.skip]=true; dfSave(); dfTick(); });
-  root.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{ delete DF.skipped[b.dataset.unskip]; dfSave(); dfTick(); });
+  root.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>{ DF.skipped[b.dataset.skip]=true; dfSave(); render(); });
+  root.querySelectorAll('[data-unskip]').forEach(b=>b.onclick=()=>{ delete DF.skipped[b.dataset.unskip]; dfSave(); render(); });
   root.querySelectorAll('[data-cfg]').forEach(b=>b.onchange=()=>{ DF_CFG[b.dataset.cfg]=b.checked; dfCfgSave(); render(); });
   const lb=root.querySelector('#dfCfgLabel');
   if(lb) lb.onchange=()=>{ DF_CFG.coreCheckLabel=lb.value.trim(); dfCfgSave(); render(); };
@@ -3172,25 +3275,49 @@ function dfRenderSheet(){
     DF=dfFresh(HDR_DATE); dfSave(); DF_PREV=null;
     const c=MI.cats.find(c=>c.key==='intake');
     if(c){ c.level='err'; c.days=[new Date(MI_TODAY.getTime()-MI_DAY_MS)]; MI.intakeStartedAt=null; miRender(); }
-    dfTick();
+    render();
   };
 }
+function dfOnHome(){ return typeof CATOPEN!=='undefined' && CATOPEN && DF_HOME && !CAT_EDIT; }
+/* Zurueck auf die Startseite der Bestellung -- von ueberall in der App. */
+function dfGoHome(){
+  showApp();
+  if(dfOnHome()){ render(); return; }
+  history.pushState({page:'cat'}, '', location.href);
+  applyCatPage();
+}
+/* Die Regale sind jetzt eine Ebene unter dem Tagesablauf: eigener History-Eintrag, damit
+   "‹ Zurück" wieder auf den Tagesablauf fuehrt. */
+function dfShowShelves(){
+  showApp();
+  history.pushState({page:'shelves'}, '', location.href);
+  applyCatPage();
+}
 
-/* Ein Schritt fuehrt in sein Werkzeug -- das Blatt geht dafuer zu. */
+/* Ein Schritt fuehrt in sein Werkzeug. */
 function dfGo(k){
   const L=dfTx();
-  if(k!=='intake') dfClose();
+  showApp();
   if(k==='intake'){
     /* Derselbe Knopf wie "Wareneingangsdaten abschicken" in der Tafel -- der
        Nachlauf haengt das Melden dort an den Tagesablauf. */
     if(!DF.intakeAt && !dfIntakeReady()) miStartIntake();
     dfTick(); return;
   }
-  if(k==='back'){ bsOpenFromShelves(); return; }
+  if(k==='back'){
+    /* Ins Lager heisst: erst die Liste. Laeuft eine Zaehlung, geht es dort weiter; ist
+       heute schon gezaehlt, steht der Rueckblick da; sonst eine neue Zaehlung, aber
+       ohne Kamera -- gescannt wird, wenn der Kaufmann im Lager steht. */
+    if(document.getElementById('bsCam').classList.contains('on')) return;
+    BS.ret='shelves';
+    if(BS_DRAFT){ bsStart(true); return; }
+    if(bsFresh()){ invReviewOpen(0); return; }
+    bsStart(false); bsScanOff(); return;
+  }
   if(k==='unshelved'){ pickCategory('tile', UNSHELVED_TILE, tileLabel(UNSHELVED_TILE)); return; }
   if(k==='shelves'){
     const id=dfShelfTiles().find(x=>!CATFINISHED[x]);
-    if(id) pickCategory('tile', id, tileLabel(id)); else goToCategories();
+    if(id) pickCategory('tile', id, tileLabel(id)); else dfShowShelves();
     return;
   }
   if(k==='core'){ applyForgotPreset(); DF_CORE_OPEN=true; goToList(null); return; }
@@ -3210,7 +3337,7 @@ function dfReminderHTML(){
   if(open.length)
     h+=`<div class="stmt warn2" style="margin-top:${h?10:0}px;font-size:var(--ff-text-primary-body-text-14)">${L.remindTitle}
         <span class="sub">${open.map(s=>`${mmEsc(s.title)} (${s.meta})`).join(' · ')}</span>
-        <button class="DayFlow__lnk" type="button" onclick="document.getElementById('ov2').classList.remove('on');dfOpen()" style="margin-top:4px">${L.remindOpen} ›</button></div>`;
+        <button class="DayFlow__lnk" type="button" onclick="document.getElementById('ov2').classList.remove('on');dfGoHome()" style="margin-top:4px">${L.remindOpen} ›</button></div>`;
   return h ? `<div style="margin-bottom:16px">${h}</div>` : '';
 }
 function dfAfterClose(){
@@ -3278,7 +3405,7 @@ function dfRenderCongrats(){
   root.innerHTML=`<div class="DayFlow__cg"><div class="DayFlow__cgCard" role="dialog" aria-modal="true">
     <div class="DayFlow__cgIc">✓</div>
     <h2>${L.cgTitle}</h2>
-    <div class="lead">${dfF(L.cgLead,{d:mmEsc(HDR_DATE)})}<br>${lead2}</div>
+    <div class="lead">${dfF(L.cgLead,{d:mmEsc(dfDate())})}<br>${lead2}</div>
     <div class="DayFlow__cgList">${steps.map(s=>`<div class="${s.done?'':'is-skip'}">
         <i>${s.done?'✓':'–'}</i><b style="font-weight:var(--ff-weight-semibold)">${mmEsc(s.title)}</b>
         <span>${s.done?s.meta:L.skipped}</span></div>`).join('')}</div>
@@ -3295,7 +3422,7 @@ function dfRenderPill(steps){
   const L=dfTx(), nx=dfNext(steps), nDone=steps.filter(s=>s.done).length;
   const pill=document.getElementById('dfPill');
   if(pill){
-    pill.hidden=false;
+    pill.hidden=dfOnHome();      // auf der Startseite steht der Stand ohnehin gross da
     const mde=steps.find(s=>s.k==='mde');
     pill.classList.toggle('is-warn', !!(mde && mde.warn));
     pill.innerHTML = nx ? `<b>${nDone}/${steps.length}</b> · ${mmEsc(dfF(L.pillNext,{s:nx.title}))} ›` : `✓ ${L.pillAll}`;
@@ -3319,7 +3446,7 @@ function dfBanner(title, sub, goK){
   const hide=()=>el.classList.remove('on');
   el.querySelector('#dfBannerX').onclick=hide;
   const go=el.querySelector('#dfBannerGo'); if(go) go.onclick=()=>{ hide(); dfGo(goK); };
-  clearTimeout(DF_BANNER_T); DF_BANNER_T=setTimeout(hide, 8000);
+  clearTimeout(DF_BANNER_T);   // bleibt stehen, bis der Kaufmann weitergeht oder ihn wegtippt
 }
 /* Nach jedem render(): Stand neu lesen, Pille und offene Blaetter nachziehen, und wenn
    ein Schritt gerade fertig geworden ist, den naechsten anbieten. */
@@ -3332,14 +3459,13 @@ function dfTick(){
   const mde=steps.find(s=>s.k==='mde');
   if(DF.doneAt && !mde.done){ DF.doneAt=null; DF.doneLeft=null; dfSave(); }
   const now={}; steps.forEach(s=>{ now[s.k]=s.done; });
-  if(DF_PREV && !DF_CONGRATS && !DF_SHEET){   // das offene Blatt zeigt den Stand schon selbst
+  if(DF_PREV && !DF_CONGRATS && !dfOnHome()){   // die Startseite zeigt den Stand schon selbst
     const just=steps.find(s=>s.done && DF_PREV[s.k]===false && s.k!=='mde');
     if(just) dfBanner('✓ '+dfF(L.bannerDone,{s:mmEsc(just.title)}), nx?mmEsc(dfF(L.bannerNext,{s:nx.title})):'', nx&&nx.k);
     else if(DF_PREV.mde===true && !mde.done && !DF_MDE) dfBanner(L.bannerRescan, mde.meta, 'mde');
   }
   DF_PREV=now;
   dfRenderPill(steps);
-  if(DF_SHEET) dfRenderSheet();
   if(DF_MDE) dfRenderMde();
 }
 </script>
@@ -7355,7 +7481,7 @@ let INV_SHOWN=5;
 let INV_REVIEW=null;
 let DASH_TAB=0;
 function showDashTab(i){
-  if(i===1){ showApp(); dfAutoOpen(); return; }   // Bestellungen -> die Bestellliste
+  if(i===1){ showApp(); return; }            // Bestellungen -> die Bestellliste
   DASH_TAB=i;
   const panel = i===0?'panelDash' : i===2?'panelInv' : 'panelStore';
   DASH_PANELS.forEach(id=>{ const el=document.getElementById(id); if(el) el.hidden = id!==panel; });
@@ -7576,7 +7702,6 @@ function enterApp(){
   history.pushState({page:'cat'}, '', location.href);
   showApp();
   applyCatPage();
-  dfAutoOpen();
 }
 document.getElementById('dashFab').addEventListener('click', enterApp);
 
@@ -7780,7 +7905,8 @@ function clearFilt(){
    trotzdem hier, weil der Gang durch den Markt hier beginnt und das Lager Teil des
    Gangs ist. Am Ende des Rasters, nach den echten Regalen. */
 function backBandHTML(){
-  if(!DF_CFG.backScan) return '';   // Lager scannen ist je Markt abschaltbar (Tagesablauf-Konfiguration)
+  /* Im Tagesablauf ist das Lager ein Schritt auf der Startseite, kein Band ueber den Regalen. */
+  return '';
   const L=t(), e=bsFresh();
   const last = e || BS_LOG[0] || null;
   /* Ueber der ganzen Breite ist Platz fuer beides: seit wann, und wie viel. */
@@ -7880,12 +8006,12 @@ function renderCatOverlay(){
         </div>`;
       }).join('')}</div>`;
   } else {
-    const nAttn = attnCount(), nForgot = forgotCount();
+    const nAttn = attnCount();
     body = `<div class="catsec"><div class="lb">${tiles.length} ${t().shelfCount}</div>
           <div class="qf">
             <button class="catchip" type="button" data-a="catpick-all">${t().all}</button>
             ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">${t().openItems}</button>` : ''}
-            ${nForgot && DF_CFG.coreCheck ? `<button class="catchip fgt" type="button" data-a="catpick-forgot">${dfForgotLabel()}<span class="n">${nForgot}</span></button>` : ''}
+            <!-- Kern & Aktion prüfen ist im Tagesablauf ein Schritt auf der Startseite. -->
           </div></div>
         <div class="ShelfGrid">${tiles.map(tl=>{
           /* Jede Kachel traegt weiter ihre Artikelzahl -- nur die des Auffang-Eimers
@@ -10817,19 +10943,10 @@ function bsSelfTest(){
   const logKeepT=BS_LOG.slice(), draftKeepT=BS_DRAFT, catKeepT=CATOPEN;
   reset(); bsDraftClear(); BS_LOG.length=0;
   CATOPEN=true; render();
-  const bTile=()=>document.querySelector('[data-a="catpick-back"]');
-  ok('band: das Lager steht im Regal-Gang', !!bTile());
-  ok('band: es ist keine Kachel im Raster',
-     !bTile().closest('.ShelfGrid') && bTile().classList.contains('backBand'));
-  /* Vor der Regalzeile, direkt unter der Suche -- dort faengt der Rundgang an. */
-  ok('band: und steht vor allen Regalen',
-     !!(bTile().compareDocumentPosition(document.querySelector('.ShelfGrid'))
-        & Node.DOCUMENT_POSITION_FOLLOWING));
-  ok('band: ohne Zaehlung sagt es das',
-     (bTile().querySelector('.cnt')||{}).textContent===t().bsTileNever);
-  ok('band: und traegt den Fehlt-noch-Haken',
-     !bTile().classList.contains('backBand--done')
-     && (bTile().querySelector('.backBand__badge')||{}).textContent===t().bsTileNeed);
+  /* Im Tagesablauf ist "Lager scannen" ein Schritt auf der Startseite -- die Regal-
+     Ansicht traegt darum kein Lager-Band mehr. Was das Band ausloeste, bleibt geprueft. */
+  ok('band: die Regal-Ansicht traegt kein Lager-Band',
+     !document.querySelector('[data-a="catpick-back"]') && !!document.querySelector('.ShelfGrid'));
   /* Das Lager ist kein Regal: es darf den Abschluss der Bestellung nicht aufhalten. */
   const doneBefore=allShelvesDone();
   TILE_ORDER.forEach(id=>{ CATFINISHED[id]=true; });
@@ -10837,39 +10954,26 @@ function bsSelfTest(){
      allShelvesDone()===true, 'vorher '+doneBefore);
   CATFINISHED={};
 
-  /* Frisch gezaehlt: Haken, Menge, und ein Tipp fragt statt zu ueberschreiben. */
+  /* Frisch gezaehlt: ein neuer Einstieg fragt statt zu ueberschreiben. */
   BS_LOG.unshift({ts:Date.now()-2*3600e3, items:4, cases:6, zeroed:0, full:false,
                   lines:[{ix:ixA, n:2}]});
   render();
-  ok('band: eine Zaehlung im Fenster setzt den Haken',
-     bTile().classList.contains('backBand--done')
-     && (bTile().querySelector('.backBand__badge')||{}).textContent===t().shelfDone);
-  ok('band: und es nennt Wann und Menge',
-     (bTile().querySelector('.cnt')||{}).textContent
-       === bsAgo(BS_LOG[0].ts)+' · '+t().bsSummary.replace('{i}',4).replace('{c}', koNum(6)),
-     (bTile().querySelector('.cnt')||{}).textContent);
   bsOpenFromShelves();
   ok('band: innerhalb des Fensters wird gefragt statt gezaehlt',
      document.getElementById('ovBsAgain').classList.contains('on')
      && !document.getElementById('bsCam').classList.contains('on'));
   bsCloseAgainDlg();
 
-  /* Aelter als das Fenster: kein Haken, und ein Tipp faengt sofort an. */
+  /* Aelter als das Fenster: ein Einstieg faengt sofort an. */
   BS_LOG[0].ts = Date.now() - 19*3600e3;
   render();
-  ok('band: aelter als 18 Stunden steht wieder "noetig" da',
-     !bTile().classList.contains('backBand--done')
-     && (bTile().querySelector('.backBand__badge')||{}).textContent===t().bsTileNeed);
-  ok('band: der letzte Stand bleibt trotzdem sichtbar',
-     (bTile().querySelector('.cnt')||{}).textContent.indexOf(bsAgo(BS_LOG[0].ts))===0,
-     (bTile().querySelector('.cnt')||{}).textContent);
   bsOpenFromShelves();
   ok('band: und ein Tipp zaehlt sofort neu, ohne Frage',
      document.getElementById('bsCam').classList.contains('on')
      && !document.getElementById('ovBsAgain').classList.contains('on')
      && BS.lines.length===0);
 
-  /* Von hier aus abgeschlossen: zurueck auf den Regal-Gang, kein Rueckblick davor. */
+  /* Aus dem Gang heraus abgeschlossen: zurueck, kein Rueckblick davor. */
   bsScanOff(); bsFeed(codeA, 0); bsAskFull(); bsFinish(false);
   ok('band: abgeschlossen fuehrt zurueck auf "Wo bist du gerade?"',
      !document.getElementById('bsCam').classList.contains('on')
@@ -10878,8 +10982,6 @@ function bsSelfTest(){
   ok('band: gefeiert wird trotzdem',
      !!document.querySelector('#bsCelebrateRoot .catcelebrate'));
   endCatCelebration();
-  ok('band: und danach traegt es den Haken',
-     bTile().classList.contains('backBand--done'));
   /* Ueber den Inventur-Reiter eingestiegen bleibt es beim Rueckblick. */
   BS.ret='inv'; BS_LOG.length=0; bsDraftClear();
   bsStart(false); bsScanOff(); bsFeed(codeA, 0); bsAskFull(); bsFinish(false);
@@ -11156,7 +11258,6 @@ render();
 /* initial labelling -- LANG defaults to 'de' */
 applyLang();
 </script>
-<div id="dfSheetRoot"></div>
 <div id="dfMdeRoot"></div>
 <div id="dfCgRoot"></div>
 <div class="DayFlow__banner" id="dfBanner" role="status" aria-live="polite"></div>
@@ -11180,10 +11281,24 @@ if(DF.intakeAt){
 }
 const dfRender0=render;
 render=function(){ const r=dfRender0.apply(this, arguments); dfTick(); return r; };
-document.getElementById('dfPill').addEventListener('click', dfOpen);
+document.getElementById('dfPill').addEventListener('click', dfGoHome);
+/* Startseite oder Regale -- das entscheidet der History-Eintrag, nicht der Aufrufer:
+   so landen "‹ Zurück", das Ende eines Regal-Gangs und goToCategories() von selbst
+   auf der richtigen Ebene. */
+const dfApplyCat0=applyCatPage;
+applyCatPage=function(){ DF_HOME=!(history.state && history.state.page==='shelves'); return dfApplyCat0.apply(this, arguments); };
+const dfCatOv0=renderCatOverlay;
+renderCatOverlay=function(){
+  /* Auf der Startseite keine Fussleiste: Abschliessen ist dort Schritt 6. */
+  document.body.classList.toggle('df-home', dfOnHome());
+  /* Die Pille vor dem Messen setzen -- sonst liegt die Regal-Seite ueber ihr. */
+  const pill=document.getElementById('dfPill'); if(pill && DF) pill.hidden=dfOnHome();
+  if(dfOnHome()){ dfRenderHome(); return; }
+  return dfCatOv0.apply(this, arguments);
+};
 document.getElementById('dfDash').addEventListener('click', enterApp);
 document.getElementById('dfDash').style.cursor='pointer';
-setInterval(dfTick, 30000);
+setInterval(()=>{ dfTick(); if(dfOnHome()) dfRenderHome(); }, 30000);
 dfTick();
 </script>
 </body>
