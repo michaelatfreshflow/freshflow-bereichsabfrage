@@ -5331,8 +5331,8 @@ if(miSeverity()==='err' && !miDismissedToday()){
    happens to be a whole number. A whole-number KG case (e.g. exactly 20.0kg) is common
    (about a third of this store's KG items on 2026-08-19) and used to be mislabelled
    "20 St." with no way to tell it apart from a 20-piece case. */
-const uw=it=>it&&it.unit==='kg' ? 'kg' : ({de:'Stück',en:'pieces',fr:'pièces'})[LANG];   // long form, for prose
-const ua=it=>it&&it.unit==='kg' ? 'kg' : ({de:'St.',en:'pcs',fr:'pcs'})[LANG];       // short form, for chips/meta
+const uw=it=>it&&it.unit==='kg' ? 'kg' : ({de:'Stück',en:'pieces',fr:'pièces',es:'uds'})[LANG];   // long form, for prose
+const ua=it=>it&&it.unit==='kg' ? 'kg' : ({de:'St.',en:'pcs',fr:'pcs',es:'uds'})[LANG];       // short form, for chips/meta
 
 /* ---------- state ---------- */
 function planIdx(it){return it.rungs.findIndex(r=>r.plan)}
@@ -9066,7 +9066,7 @@ document.getElementById('s2Go').onclick=()=>{
     if(!s.answered&&s.mode==='ask'){s.auto=false;s.chosen=s.plan;s.order=it.rungs[s.plan].order??0;s.answered=true;n++}});
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+=s.answered?s.order:(it.rungs[s.plan].order??0)});
   document.getElementById('ov2').classList.remove('on');
-  toast(LANG==='de'?`${n} Aussagen bestätigt, Bestellung abgeschlossen.`:`${n} Aussagen bestätigt, order completed.`);
+  toast(LANG==='es'?`Pedido cerrado. ${n} respuestas confirmadas.`:`Order completed. ${n} answers confirmed.`);
   render();
 };
 /* ================= Lager scannen (back storage) =================
