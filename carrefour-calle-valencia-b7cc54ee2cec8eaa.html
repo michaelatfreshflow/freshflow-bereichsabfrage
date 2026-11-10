@@ -2277,6 +2277,8 @@ body.dash-active .scanFab{display:none}
 .dash-navitem.on{color:var(--amber)}
 .dash-navitem--inert{cursor:default}
 .dash-fabgap{display:block;height:24px}
+
+#mmTabFaq{display:none !important}
 </style>
 </head>
 <body>
@@ -4889,6 +4891,7 @@ const T={
   },
 };
 const t=()=>T[LANG];
+const _es=(es,en)=>LANG==='es'?es:en;
 
 /* ---------- language ----------
    Static chrome is re-labelled by id; everything rendered from a template
@@ -6598,7 +6601,7 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
        die Liste gar nicht zeigt, und dann muss ablesbar sein, ob der Artikel in der
        Bestellung mitlaeuft -- und umschaltbar, ohne den Verwalten-Modus zu suchen. */
     const eyeToggle = (forceEye || MANAGE_MODE || s.hidden)
-      ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?'Wieder einblenden':'Ausblenden'}">${eyeIcon(s.hidden)}</button>`
+      ? `<button class="eyeBtn${s.hidden?' off':''}" data-a="hide" data-i="${ix}" type="button" title="${s.hidden?_es('Mostrar de nuevo','Show again'):_es('Ocultar','Hide')}">${eyeIcon(s.hidden)}</button>`
       : '';
     /* Der Griff steht nur in der Regalreihenfolge -- in jeder anderen Sortierung
        ergibt sich die Position aus einer Zahl, da gibt es nichts zu ziehen. Dort
@@ -6810,21 +6813,35 @@ const FAQ_FALLBACK = 'edeka'; // solange ein Haendler keine eigene Seite hat
 let MM_TAB = 'guides';
 
 /* Anleitungen. Die Videos selbst gibt es im Prototyp nicht -- nur die Kacheln. */
-const MM_GUIDES = [
-  {ch:'Die Grundlagen', vids:[
-    ['Einführung in die Bestellvorbereitungen','In diesem Video zeigen wir dir, wie du alle nötigen Vorbereitungen für die tägliche Bestellung triffst.'],
-    ['Regalhöchstbestand','Schritt-für-Schritt-Anleitung, wie du den Regalhöchstbestand für jeden Artikel richtig einstellst.'],
-    ['App Konfiguration','Schritt-für-Schritt-Anleitung, um die Freshflow-App für deinen Markt einzurichten.']]},
-  {ch:'Tägliche Bestellung', vids:[
-    ['Überprüfung der Bestellvorschläge','So prüfst du die Vorschläge gezielt, zuerst die Artikel mit Ausrufezeichen.'],
-    ['Eingabe der Bestände','Wie du Bestände prüfst und korrigierst, bevor du die Vorschläge bewertest.']]},
-  {ch:'Funktionen', vids:[
-    ['Wie kann man Elemente ausblenden?','Artikel ausblenden, die du gerade nicht bestellen willst, und wieder einblenden.'],
-    ['Filter nutzen','Nach Aktionsartikeln, Bio-Artikeln oder Artikeln mit Ausrufezeichen filtern.']]},
-  {ch:'Technisches', vids:[
-    ['Ordersatz weiterleiten','Wie der wöchentliche Ordersatz per E-Mail zu Freshflow kommt.'],
-    ['Arbeiten ohne Internet','Was im Kühlraum ohne Netz geht und was nicht.']]},
-];
+const MM_GUIDES_L = {
+ es:[
+  {ch:'Lo básico', vids:[
+    ['Introducción a la preparación del pedido','En este vídeo te mostramos cómo preparar todo lo necesario para el pedido diario.'],
+    ['Exposición','Paso a paso: cómo fijar la exposición de cada artículo.'],
+    ['Configuración de la app','Paso a paso: cómo configurar la app de Freshflow para tu tienda.']]},
+  {ch:'Pedido diario', vids:[
+    ['Revisar las propuestas de pedido','Cómo revisar las propuestas, empezando por los artículos con signo de exclamación.'],
+    ['Introducir el inventario','Cómo comprobar y corregir el inventario antes de valorar las propuestas.']]},
+  {ch:'Funciones', vids:[
+    ['¿Cómo ocultar artículos?','Oculta los artículos que no quieres pedir ahora y vuelve a mostrarlos.'],
+    ['Usar los filtros','Filtra por ofertas, artículos eco o artículos con signo de exclamación.']]},
+  {ch:'Técnica', vids:[
+    ['Enviar la guía de pedido','Cómo llega la guía de pedido semanal a Freshflow por correo.'],
+    ['Trabajar sin internet','Qué funciona sin conexión en la cámara frigorífica y qué no.']]}],
+ en:[
+  {ch:'The basics', vids:[
+    ['Introduction to order preparation','This video shows you how to prepare everything for the daily order.'],
+    ['Display size','Step by step: how to set the display size for each item.'],
+    ['App setup','Step by step: how to set up the Freshflow app for your store.']]},
+  {ch:'Daily order', vids:[
+    ['Reviewing the order suggestions','How to review the suggestions, starting with the items marked with an exclamation mark.'],
+    ['Entering inventory','How to check and correct inventory before judging the suggestions.']]},
+  {ch:'Features', vids:[
+    ['How to hide items?','Hide items you do not want to order right now, and show them again.'],
+    ['Using filters','Filter for offers, organic items or items with an exclamation mark.']]},
+  {ch:'Technical', vids:[
+    ['Forwarding the order guide','How the weekly order guide reaches Freshflow by email.'],
+    ['Working offline','What works without a connection in the cold room, and what does not.']]}]};
 /* Obst und Gemuese am Rand des Vorschaubilds, wie auf den Video-Titelbildern der App. */
 const MM_THUMB_ICONS = [
   ['53_pear.png','left:-9%;top:4%'],['51_apple.png','left:-8%;bottom:-14%'],['56_berries.png','left:15%;bottom:-20%;width:24%'],
@@ -6868,6 +6885,7 @@ function renderGuides(){
   side.dataset.built='1';
   const thumb = MM_THUMB_ICONS.map(([f,st])=>`<img data-ic="${f}" alt="" style="${st}">`).join('')
     + '<span class="mmVid__play"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20"/></svg></span>';
+  const MM_GUIDES = MM_GUIDES_L[LANG] || MM_GUIDES_L.en;
   side.innerHTML = MM_GUIDES.map((g,k)=>`
     <button class="mmGd__ch" type="button" data-gch="${k}"><span>${mmEsc(g.ch)}</span>${MM_CHEV}</button>
     <div class="mmGd__sub" data-gsub="${k}" hidden>${g.vids.map((v,j)=>`<button type="button" data-gvid="${k}-${j}">${mmEsc(v[0])}</button>`).join('')}</div>`).join('');
@@ -7579,7 +7597,7 @@ function renderCatItemPicker(){
         <div style="flex:1">
           <div class="eyebrow">${L.changeShelf}</div>
           <h2>${it.name}</h2>
-          <div class="sub">Gilt ab sofort dauerhaft für diesen Artikel.</div>
+          <div class="sub">${_es('Se aplica a este artículo a partir de ahora.','Applies to this item from now on.')}</div>
         </div>
         <button class="x" id="catItemPickClose" type="button" title="${L.close}">✕</button>
       </div>
@@ -7667,15 +7685,15 @@ function renderCatConfirm(){
   const st=tileStats(CATCONFIRM.id);
   /* Copy states what is still outstanding rather than what is done -- the
      number the owner needs before committing is the unchecked one. */
-  const closing = 'Sobald du das Regal abschließt, wird dieses als erledigt markiert.';
+  const closing = _es('Al cerrar el lineal, se marcará como terminado.','Once you close the shelf, it is marked as done.');
   /* Singular needs its own case: "1 offene Artikel, die ... benötigen" is wrong
      in German -- it has to decline to "1 offenen Artikel, der ... benötigt". */
   const pending = st.open===1
-    ? 'Du hast noch 1 offenen Artikel, der deine Aufmerksamkeit benötigt.'
-    : `Du hast noch ${st.open} offene Artikel, die deine Aufmerksamkeit benötigen.`;
+    ? _es('Aún tienes 1 artículo abierto que requiere atención.','You still have 1 open item that needs your attention.')
+    : _es(`Aún tienes ${st.open} artículos abiertos que requieren atención.`,`You still have ${st.open} open items that need your attention.`);
   const bodyText = st.open>0
     ? `${pending} ${closing}`
-    : `Du hast alle Artikel geprüft. ${closing}`;
+    : `${_es('Has revisado todos los artículos.','You have checked all items.')} ${closing}`;
   root.innerHTML = `<div class="ov on" style="z-index:9999">
     <div class="AppFormDialog">
       <div class="AppFormDialog__header">
@@ -7889,11 +7907,11 @@ function renderCatCelebrate(){
   } else {
     /* Steht schon auf dem naechsten Regal -- CATFILTER ist zu diesem Zeitpunkt bereits umgesetzt. */
     const weiter = CATCELEBRATE.after==='next' && CATFILTER
-      ? `Weiter mit ${CATFILTER.label}` : 'Zurück zur Regal-Übersicht';
-    card = `<div class="eyebrow">Regal abgeschlossen</div>
+      ? `${_es('Sigue con','Next:')} ${CATFILTER.label}` : _es('Volver a los lineales','Back to the shelves');
+    card = `<div class="eyebrow">${_es('Lineal terminado','Shelf done')}</div>
       <h2>${CATCELEBRATE.label}</h2>
       <div class="sub">${weiter}</div>
-      <div class="hint">Tippen zum Überspringen</div>`;
+      <div class="hint">${_es('Toca para saltar','Tap to skip')}</div>`;
   }
   root.innerHTML = `<div class="catcelebrate">
     ${reduced ? '' : '<canvas id="catCelebrateCanvas"></canvas>'}
@@ -8975,7 +8993,7 @@ function legend(){
    [t().legNoCount,g.any,t().rOrderDetached],
    [t().legCountLabel,g.count,t().rPeriodicReal],
    [t().legContradict,g.unsure,t().rPlanAMismatch],
-   [t().legNoLadder,g.noladder,'Modell rechnet kein Bereich']];
+   [t().legNoLadder,g.noladder,_es('El modelo no calcula rango','The model computes no range')]];
   const pre=ST.filter(x=>x.auto).length;
   const openAsk=ITEMS.filter((it,ix)=>!ST[ix].answered&&ST[ix].mode==='ask').length;
   L.unshift([t().legPreset,pre,t().rPreselected]);
