@@ -3308,7 +3308,7 @@ const SHELF_NAMES = {
   /* Kein Regalname, sondern ein Zustand: was hier liegt, wartet auf ein Regal.
      "Sonstiges" las sich wie ein Regal am Ende des Gangs und wurde entsprechend
      behandelt -- naemlich gar nicht. */
-  'frutos-secos':        {de:'Nüsse & Maronen', en:'Nuts & dried goods', fr:'Fruits secs', es:'Frutos secos y deshidratados'},
+  'frutos-secos':        {de:'Nüsse & Maronen', en:'Nuts & pantry', fr:'Fruits secs', es:'Frutos secos y despensa'},
   'sonstiges':           {de:'Kein Regal zugeordnet',      en:'No shelf assigned',       fr:'Aucun rayon attribué', es:'Sin lineal asignado'},
 };
 function tileLabel(id){
@@ -5907,7 +5907,7 @@ function openWhy(btn, ix, kind){
   const p=document.createElement('div');
   p.className='whyPop';
   p.innerHTML=`<div class="whyHd">${icon}<b>${title}</b></div><div class="whyTx">${text}</div>`
-    + (tags.length ? `<div class="whyBox">${tags.map(x=>`<div class="whyRow">${icon}<span>${x}</span></div>`).join('')}</div>` : '');
+    + (tags.length ? `<div class="whyBox">${tags.map(x=>`<div class="whyRow"><span>${x}</span></div>`).join('')}</div>` : '');
   document.body.appendChild(p);
 
   const r=btn.getBoundingClientRect();
