@@ -2630,6 +2630,13 @@ body.df-home .foot{display:none}
 .DayFlow__bands .DayFlow__acts{width:auto}
 .DayFlow__bands .DayFlow__go{width:36px;height:36px;font-size:21px}
 
+/* Kacheln wie in Production: hoeher, mehr Luft, Name gross, Artikelzahl grau darunter. */
+.catbody .ShelfGrid{--main-axis-spacing:16px;--cross-axis-spacing:16px}
+.catbody .ShelfGridItem{height:64px;min-height:0;box-sizing:border-box;padding:0 18px;align-items:center;border-radius:10px;overflow:hidden}   /* so hoch wie ein To-do-Band */
+.catbody .ShelfGridItem__title{font-size:var(--ff-text-primary-body-text-14);font-weight:var(--ff-weight-semibold);line-height:1.3}
+.catbody .ShelfGridItem__meta{margin-top:6px}
+.catbody .ShelfGridItem__count{font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500)}
+
 </style>
 </head>
 <body>
@@ -3624,9 +3631,6 @@ function dfItem(s, nx, html){
 /* Production-nah: die To-dos sind Baender im Stil des heutigen Lager-Bands, gestapelt
    dort, wo heute das eine Band steht. Die Regale bleiben der Hauptteil der Seite und
    sind darum kein Band; der Abschluss bleibt "Bestellung abschließen" unten. */
-function dfProgressTxt(){
-  const st=dfSteps(); return dfF(dfTx().of,{a:st.filter(s=>s.done||s.skipped).length, n:st.length});
-}
 /* where: 'before' -- was vor dem Rundgang kommt (Wareneingang, Lager, Artikelpflege),
    'after' -- Kern & Aktion, die Pruefung nach dem letzten Regal, unter dem Raster. */
 function dfNativeBands(where){
@@ -8454,7 +8458,7 @@ function renderCatOverlay(){
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
-          <div class="eyebrow">${t().shelfEyebrow}${!CAT_EDIT && DF ? ' · '+dfProgressTxt() : ''}</div>
+          <div class="eyebrow">${t().shelfEyebrow}</div>
           <h2>${CAT_EDIT ? t().shelfEditTitle : t().shelfTitle}</h2>
           ${CAT_EDIT ? `<div class="sub">${t().shelfEditSub}</div>` : ''}
         </div>
