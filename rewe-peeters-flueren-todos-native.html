@@ -2349,31 +2349,72 @@ body.dash-active .scanFab{display:none}
 .DayFlow__mdeBar.is-done{background:#eef5f1;border-bottom-color:#cfe2d8}
 .DayFlow__mdeBar.is-done .ico{background:var(--green)}
 .DayFlow__mdeBar.is-done .msg b{color:var(--green);margin:0}
-/* MDE-Liste in Zeilen wie der Barcode-Screen (order-guide-barcodes.html), nicht als Kacheln. */
-.DayFlow__mrHead,.DayFlow__mr{display:grid;grid-template-columns:1fr 130px 110px 180px;gap:12px;padding:10px 18px;align-items:start}
-.DayFlow__mrHead{background:var(--ff-color-white);border-bottom:1px solid var(--line);font-size:13px;font-weight:var(--ff-weight-semibold);color:var(--ff-grey-700)}
-.DayFlow__mrList{flex:1;overflow-y:auto;background:var(--ff-color-white)}
-.DayFlow__mr{border-bottom:1px solid var(--line)}
-.DayFlow__mr.is-chg{background:var(--amber-bg)}
-.DayFlow__mr .nm{font-weight:var(--ff-weight-bold);font-size:14.5px;line-height:1.25;margin-bottom:5px}
-.DayFlow__mr .mt{font-size:12.5px;color:var(--ff-grey-600);line-height:1.5}
-.DayFlow__mr .chg{display:inline-block;margin-top:6px;font-size:11px;color:#8a4b00;font-weight:var(--ff-weight-semibold)}
-.DayFlow__mr .ds{font-size:12px;color:var(--ff-grey-600);padding-top:8px}
-.DayFlow__mr .ds b{color:var(--ff-grey-800);font-weight:var(--ff-weight-semibold);font-size:14px}
-.DayFlow__mr .ds .lb{display:none}
-.DayFlow__mrQty{border:1px solid var(--line);border-radius:7px;padding:6px 8px 7px;text-align:center;min-width:66px;background:var(--ff-color-white);cursor:pointer;font:inherit}
-.DayFlow__mrQty .a{color:var(--amber,#fb9410);font-weight:var(--ff-weight-bold);font-size:15px;line-height:1.2}
-.DayFlow__mrQty .b{font-size:10px;color:var(--ff-grey-600);margin-top:1px}
-.DayFlow__mrQty.is-ed{border-color:var(--amber,#fb9410);border-width:1.5px}
-.DayFlow__mrBc{position:relative;cursor:pointer}
-.DayFlow__mrBc svg{display:block;width:100%;height:52px}
-.DayFlow__mrBc .ean{font-size:10px;letter-spacing:.06em;text-align:center;color:var(--ff-grey-500);margin-top:3px}
-.DayFlow__mrBc .ok{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--green);color:var(--ff-color-white);display:grid;place-items:center;font-size:12px;font-weight:var(--ff-weight-bold)}
-.DayFlow__mrBc.is-ok svg,.DayFlow__mrBc.is-ok .ean{opacity:.35}
-.DayFlow__mrPager{display:flex;align-items:center;gap:18px;padding:12px 18px;border-top:1px solid var(--line);background:var(--ff-color-white)}
-.DayFlow__mrPager button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--ff-color-white);font-size:16px;color:var(--ff-grey-700);cursor:pointer}
-.DayFlow__mrPager button:disabled{opacity:.35;cursor:not-allowed}
-.DayFlow__mrPager span{font-size:13px;color:var(--ff-grey-700)}
+/* MDE-Schritt = der Barcode-Screen der App (Abschluss-Ansicht), so nah am Original wie
+   moeglich: gruener Kopf mit "Abgeschlossen", Suche mit Scan, Schalter/Sortierung/Filter,
+   Spalten Artikel · Bestand · Bestellung · Strichcode, drei Zeilen je Seite, Blaettern,
+   Scan-Knopf, Kennzahlen-Fuss mit "Weiter bearbeiten". Praefix ogx- (kein Konflikt). */
+.DayFlow__mde.ogx{background:var(--ff-color-white)}
+.ogx-hdr{background:var(--green);color:var(--ff-color-white);padding:14px 22px;display:flex;align-items:center;gap:18px;flex:none}
+.ogx-back{display:flex;align-items:center;gap:6px;font-size:15px;cursor:pointer;background:none;border:0;color:inherit;font:inherit;padding:0}
+.ogx-back svg{width:22px;height:22px}
+.ogx-tt{flex:1;min-width:0}
+.ogx-t1{font-weight:var(--ff-weight-bold);font-size:16px;line-height:1.35}
+.ogx-t1 i{font-style:normal;opacity:.8;margin:0 8px}
+.ogx-t2{font-size:14px;line-height:1.4;color:#c9dbd3}
+.ogx-t2 b{color:var(--ff-color-accent-lime,#c1ce5d);font-weight:var(--ff-weight-semibold)}
+.ogx-done{width:34px;height:34px;border-radius:50%;background:#7fc48c;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.ogx-done svg{width:20px;height:20px;color:var(--ff-color-white)}
+.ogx-search{display:flex;align-items:center;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line);color:var(--ff-grey-500);flex:none}
+.ogx-search input{border:0;outline:0;font:inherit;font-size:17px;flex:1;color:var(--ff-grey-900);background:none}
+.ogx-search .scan{color:var(--green);display:grid}
+.ogx-search .scan svg{width:28px;height:28px}
+.ogx-tools{display:flex;align-items:center;justify-content:flex-end;gap:18px;padding:12px 22px;border-bottom:1px solid var(--line);flex:none;font-size:15px;color:var(--ff-grey-800)}
+.ogx-sw{width:42px;height:24px;border-radius:14px;background:var(--amber,#fb9410);position:relative;flex:none}
+.ogx-sw::after{content:"";position:absolute;top:3px;left:21px;width:18px;height:18px;border-radius:50%;background:var(--ff-color-white)}
+.ogx-sep{width:1px;height:22px;background:var(--line)}
+.ogx-tb{display:flex;align-items:center;gap:8px}
+.ogx-tb u{text-decoration:none;border-bottom:1.5px solid var(--ff-grey-800);padding-bottom:1px}
+.ogx-head,.ogx-row{display:grid;grid-template-columns:minmax(0,1.35fr) 190px 150px minmax(170px,1fr);gap:16px;padding:0 22px;align-items:start}
+.ogx-head{padding-top:18px;padding-bottom:14px;border-bottom:1px solid var(--line);font-size:16px;font-weight:var(--ff-weight-semibold);color:var(--ff-grey-900);flex:none}
+.ogx-head .c{text-align:center}
+.ogx-info{display:inline-grid;place-items:center;width:17px;height:17px;border:1.5px solid #9aa0a6;border-radius:3px;font-size:10px;color:#6b7280;margin-left:8px;vertical-align:1px;font-style:italic;font-weight:var(--ff-weight-semibold)}
+.ogx-list{flex:1;overflow-y:auto}
+.ogx-row{padding-top:18px;padding-bottom:26px;border-bottom:1px solid var(--line);min-height:150px}
+.ogx-row.is-chg{background:var(--amber-bg)}
+.ogx-nm{font-weight:var(--ff-weight-bold);font-size:17px;line-height:1.25;margin-bottom:8px;color:var(--ff-grey-900)}
+.ogx-mt{font-size:14px;color:var(--ff-grey-600);line-height:1.6}
+.ogx-mt b{color:var(--ff-grey-700);font-weight:var(--ff-weight-semibold);margin-right:6px}
+.ogx-row .pills{margin-top:10px}
+.ogx-inv{display:flex;flex-direction:column;align-items:center;gap:10px}
+.ogx-note{font-size:11px;color:var(--ff-grey-600);margin-bottom:-4px;text-align:center}
+.ogx-row.is-chg .ogx-note{color:#8a4b00;font-weight:var(--ff-weight-semibold)}
+.ogx-box{border:1px solid var(--line);border-radius:5px;padding:5px 12px 6px;text-align:center;min-width:108px;background:var(--ff-color-white);font:inherit;color:var(--ff-grey-900)}
+.ogx-box .a{font-size:17px;line-height:1.25}
+.ogx-box .a small{font-size:11px;color:var(--ff-grey-700)}
+.ogx-box .b{font-size:11.5px;color:var(--ff-grey-600)}
+.ogx-ds{font-size:11.5px;color:var(--ff-grey-800)}
+.ogx-ds b{font-weight:var(--ff-weight-regular,400);font-size:14px;margin-left:6px;border-bottom:1px solid var(--line)}
+.ogx-ord{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ogx-ord .ogx-box{min-width:88px;cursor:pointer}
+.ogx-ord .ogx-box.is-ed{border-color:var(--amber,#fb9410);border-width:1.5px}
+.ogx-ord .ed{font-size:11px;color:#8a4b00;font-weight:var(--ff-weight-semibold)}
+.ogx-bc{cursor:pointer;justify-self:end;width:100%;max-width:240px}
+.ogx-bc svg{display:block;width:100%;height:84px}
+.ogx-bc .ean{display:none}
+.ogx-bc.is-ok{opacity:.3}
+.ogx-pager{display:flex;align-items:center;gap:30px;padding:14px 22px;flex:none;position:relative}
+.ogx-pager button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ff-grey-100);display:grid;place-items:center;font-size:22px;color:var(--green);cursor:pointer}
+.ogx-pager button:disabled{opacity:.4;cursor:not-allowed;color:var(--ff-grey-500)}
+.ogx-pager span{font-size:18px;color:var(--ff-grey-900)}
+.ogx-pager span b{font-weight:var(--ff-weight-bold)}
+.ogx-fab{position:absolute;right:26px;top:-34px;width:62px;height:62px;border-radius:50%;background:var(--green);color:var(--ff-color-white);display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.ogx-fab svg{width:30px;height:30px}
+.ogx-stats{display:flex;align-items:center;gap:8px;padding:12px 22px;border-top:1px solid var(--line);flex:none}
+.ogx-stat{flex:1;text-align:center;min-width:0}
+.ogx-stat .k{font-size:12px;color:var(--ff-grey-700);line-height:1.5}
+.ogx-stat .v{font-size:18px;font-weight:var(--ff-weight-semibold);line-height:1.3;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px}
+.ogx-stat .v i{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--ff-color-success,#6ea050);flex:none}
+.ogx-cont{display:flex;align-items:center;gap:10px;color:var(--green);font-weight:var(--ff-weight-bold);font-size:17px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer;flex:none;padding-left:10px}
 .DayFlow__mdeBar .act{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
 .DayFlow__mdeBar button:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
 .DayFlow__mdeBar .left{font-size:10.5px;color:#8a6a35;white-space:nowrap}
@@ -2408,11 +2449,14 @@ body.dash-active .scanFab{display:none}
 @media (max-width:560px){
   .DayFlow__step{flex-wrap:wrap}
   .DayFlow__acts{width:100%;justify-content:flex-end}
-  .DayFlow__mrHead{display:none}
-  .DayFlow__mr{grid-template-columns:1fr 96px;gap:8px}
-  .DayFlow__mr .ds{grid-column:1}
-  .DayFlow__mr .ds .lb{display:inline}
-  .DayFlow__mrBc{grid-column:1/-1}
+  .ogx-head{display:none}
+  .ogx-row{grid-template-columns:1fr auto;gap:10px;padding-left:14px;padding-right:14px}
+  .ogx-inv{grid-column:1;align-items:flex-start}
+  .ogx-bc{grid-column:1/-1;justify-self:stretch;max-width:none}
+  .ogx-tools{justify-content:space-between;gap:8px;font-size:13px}
+  .ogx-stats{flex-wrap:wrap}
+  .ogx-stat{flex:1 1 30%}
+  .ogx-cont{width:100%;justify-content:center;padding:6px 0 0}
   .DayFlow__mdeBar{flex-wrap:wrap}
   .DayFlow__mdeBar .act{width:100%;align-items:stretch}
 }
@@ -3251,6 +3295,7 @@ const DF_TXT={
     mdeSaveQ:'Möchtest du deine Änderungen speichern?', mdeSaveHint:'Sobald du alle Barcodes gescannt hast, kannst du speichern.',
     mdeLeft1:'noch 1 Seite', mdeLeftN:'noch {n} Seiten', mdeSaveFinish:'Speichern & fertig', mdeSavedSub:'Deine Änderungen werden dabei gespeichert.',
     mdeEdited:'geändert', mdeCelebSaved:'Änderungen gespeichert',
+    ogTitle:'Bestellliste', ogClosed:'Abgeschlossen', ogHide0:'0-Bestellungen ausblenden', ogLines:'Artikel', ogCont:'Weiter bearbeiten',
     sumTitle:'Geschafft!', sumLead:'Du hast <b>{a} von {n}</b> Aufgaben erledigt.', sumLeadAll:'Du hast <b>alle {n}</b> Aufgaben erledigt.',
     sumEarly:'Bestellung {d} ist raus, <b>{t}</b> vor Bestellschluss.', sumOut:'Bestellung {d} ist raus.',
     sumStreak:'{n} Bestelltage in Folge alles erledigt', sumStreak1:'Erster Tag mit allen Aufgaben erledigt',
@@ -3283,6 +3328,7 @@ const DF_TXT={
     mdeSaveQ:'Do you want to save your changes?', mdeSaveHint:'Once you have scanned all barcodes, you can save.',
     mdeLeft1:'1 page left', mdeLeftN:'{n} pages left', mdeSaveFinish:'Save & finish', mdeSavedSub:'Your changes are saved in the same step.',
     mdeEdited:'changed', mdeCelebSaved:'Changes saved',
+    ogTitle:'Order Guide', ogClosed:'Closed', ogHide0:'Hide 0-Orders', ogLines:'Line Items', ogCont:'Continue Editing',
     sumTitle:'Well done!', sumLead:'You completed <b>{a} of {n}</b> to-dos.', sumLeadAll:'You completed <b>all {n}</b> to-dos.',
     sumEarly:'Order {d} is out, <b>{t}</b> before the deadline.', sumOut:'Order {d} is out.',
     sumStreak:'{n} order days in a row with everything done', sumStreak1:'First day with every to-do done',
@@ -3315,6 +3361,7 @@ const DF_TXT={
     mdeSaveQ:'Enregistrer vos modifications ?', mdeSaveHint:'Une fois tous les codes-barres scannés, vous pourrez enregistrer.',
     mdeLeft1:'encore 1 page', mdeLeftN:'encore {n} pages', mdeSaveFinish:'Enregistrer & terminer', mdeSavedSub:'Vos modifications sont enregistrées en même temps.',
     mdeEdited:'modifié', mdeCelebSaved:'Modifications enregistrées',
+    ogTitle:'Bon de commande', ogClosed:'Clôturée', ogHide0:'Masquer les commandes à 0', ogLines:'Articles', ogCont:'Continuer la modification',
     sumTitle:'Bravo !', sumLead:'Vous avez fait <b>{a} sur {n}</b> tâches.', sumLeadAll:'Vous avez fait <b>les {n}</b> tâches.',
     sumEarly:'La commande {d} est partie, <b>{t}</b> avant la clôture.', sumOut:'La commande {d} est partie.',
     sumStreak:'{n} jours de commande d\'affilée, tout fait', sumStreak1:'Premier jour avec toutes les tâches faites',
@@ -3837,24 +3884,32 @@ function dfAfterClose(){
 
 /* ---- MDE ---- */
 function dfOpenMde(){ DF_MDE=true; DF_MDE_PAGE=1; DF_MDE_LAST=false; DF_MDE_DRAFT={}; dfRenderMde(); dfRenderPill(dfSteps()); }
-/* Die Barcodes stehen in Zeilen wie im Barcode-Screen (PD-811): Artikel, Regal-
-   hoechstbestand, Bestellung, Strichcode -- fuenf je Seite, geaenderte vorn. Ein Tipp
-   auf den Strichcode heisst "im MDE", ein Tipp auf die Menge oeffnet das Tastenfeld.
-   Geaenderte Mengen sind ein Entwurf (DF_MDE_DRAFT) und werden erst mit
-   "Speichern & fertig" geschrieben; wer das Blatt verlaesst, verwirft sie.
-   Die Leiste oben traegt beides, immer nur ein Knopf, aktiv erst auf der letzten Seite. */
-const DF_MDE_PER=5;
+/* Der MDE-Schritt IST der Barcode-Screen der App nach dem Abschliessen -- nah am Original
+   (siehe Screenshot im Ticket PD-811): Kopf, Suche, Werkzeugleiste, drei Zeilen je Seite
+   mit Bestand, Bestellung und grossem Strichcode, Blaettern, Kennzahlen-Fuss.
+   Neu ist nur die Leiste oben (PD-811): mit Aenderungen die Frage nach dem Speichern,
+   auf der letzten Seite "Fertig" bzw. "Speichern & fertig". Ein Tipp auf den Strichcode
+   heisst "im MDE"; ein Tipp auf die Bestellung oeffnet das Tastenfeld, als Entwurf
+   (DF_MDE_DRAFT), geschrieben erst mit "Speichern & fertig". */
+const DF_MDE_PER=3;
 let DF_MDE_PAGE=1, DF_MDE_LAST=false, DF_MDE_DRAFT={};
 function dfMdeQty(ix){ return DF_MDE_DRAFT[ix]!=null ? DF_MDE_DRAFT[ix] : dfQty(ix); }
 function dfMdeDirty(){ return Object.keys(DF_MDE_DRAFT).length>0; }
+/* Wie die App: nach Bestellung absteigend ("Bestellung ↓"); was nach dem Scan geaendert
+   wurde, steht vorn. */
 function dfMdeSorted(){
-  const rank={chg:0, open:1, ok:1};
-  return dfLines().slice().sort((a,b)=>rank[a.state]-rank[b.state] || a.ix-b.ix);
+  return dfLines().slice().sort((a,b)=>(a.state==='chg'?0:1)-(b.state==='chg'?0:1) || b.q-a.q || a.ix-b.ix);
 }
+function dfMdeRung(ix){
+  const it=ITEMS[ix], s=ST[ix];
+  const k = s.answered && s.chosen!=null ? s.chosen : s.plan;
+  return it.rungs && it.rungs[k] ? it.rungs[k] : null;
+}
+const OGX_SCAN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 19h2v2h-2zM14 19h2v2h-2zM19 14h2v2h-2z"/></svg>';
 function dfRenderMde(){
   const root=document.getElementById('dfMdeRoot'); if(!root) return;
   if(!DF_MDE){ root.innerHTML=''; return; }
-  const L=dfTx(), lines=dfMdeSorted(), u=' '+t().caseUnit;
+  const L=dfTx(), T=t(), lines=dfMdeSorted(), u=T.caseUnit;
   const pages=Math.max(1, Math.ceil(lines.length/DF_MDE_PER));
   DF_MDE_PAGE=Math.min(Math.max(1,DF_MDE_PAGE), pages);
   if(DF_MDE_PAGE===pages) DF_MDE_LAST=true;
@@ -3878,32 +3933,66 @@ function dfRenderMde(){
   }
   const from=(DF_MDE_PAGE-1)*DF_MDE_PER;
   const rows=lines.slice(from, from+DF_MDE_PER).map(l=>{
-    const it=ITEMS[l.ix], q=dfMdeQty(l.ix), ed=DF_MDE_DRAFT[l.ix]!=null;
-    const pcs = it.case!=null ? `${Math.round(q*it.case)} ${ua(it)}` : '';
-    return `<div class="DayFlow__mr${l.state==='chg'?' is-chg':''}" data-ix="${l.ix}">
-      <div><div class="nm">${mmEsc(it.name)}</div>
-        <div class="mt">${mmEsc(String(it.plu||it.id))} · ${it.case!=null?it.case.toLocaleString('de-DE')+' '+ua(it):'–'}</div>
-        ${l.state==='chg'?`<span class="chg">${dfF(L.mdeWas,{o:koNum(l.sc)+u, q:koNum(l.q)+u})}</span>`:''}</div>
-      <div class="ds"><span class="lb">${L.mdeColDs} </span><b>${koNum(ST[l.ix].auslage||0)}${u}</b></div>
-      <div><button type="button" class="DayFlow__mrQty${ed?' is-ed':''}" data-qty="${l.ix}">
-        <div class="a">${koNum(q)}${u}</div><div class="b">${ed?L.mdeEdited:pcs}</div></button></div>
-      <div class="DayFlow__mrBc${l.state==='ok'?' is-ok':''}" data-bc="${l.ix}">
-        ${l.state==='ok'?'<span class="ok">✓</span>':''}${dfBarcode(it.plu||it.id)}<div class="ean">${dfEan(it)}</div></div>
+    const it=ITEMS[l.ix], s=ST[l.ix], q=dfMdeQty(l.ix), ed=DF_MDE_DRAFT[l.ix]!=null;
+    const unitName = it.unit==='kg' ? 'kg' : T.piece;
+    const marginPct = (it.ek!=null && it.vk) ? ((it.vk-it.ek)/it.vk*100) : null;
+    let pills=`<span class="pill">${T.prevOrder} ${it.prevOrder!=null?it.prevOrder:0} ${u}</span>`;
+    const pl=promoLabel(it.promo); if(pl) pills+=`<span class="pill promo">${pl}</span>`;
+    if(it.kern) pills+=`<span class="pill kern">${T.kernTag}</span>`;
+    if(it.bio) pills+=`<span class="pill b">Bio</span>`;
+    const r=dfMdeRung(l.ix);
+    const inv = r ? `<div class="ogx-box"><div class="a">${koText(r,it).replace(' '+u,'')} <small>${u}</small></div><div class="b">${stText(r,it)}</div></div>` : '';
+    const pcs = it.case!=null ? `${Math.round(q*it.case)} ${it.unit==='kg'?'kg':T.piece}` : '';
+    return `<div class="ogx-row${l.state==='chg'?' is-chg':''}">
+      <div><div class="ogx-nm">${mmEsc(it.name)}</div>
+        <div class="ogx-mt"><b>${it.plu!=null?it.plu:'–'}</b>${it.case!=null?it.case.toLocaleString('de-DE')+' '+unitName:''}</div>
+        <div class="ogx-mt">${it.ek!=null?eur(it.ek):''}${marginPct!=null?' &nbsp;'+marginPct.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %':''}${it.vk!=null?' &nbsp;'+eur(it.vk):''}</div>
+        <div class="pills">${pills}</div></div>
+      <div class="ogx-inv">${inv}<div class="ogx-ds">${T.displaySize}<b>${koNum(s.auslage||0)} ${u}</b></div></div>
+      <div class="ogx-ord">${l.state==='chg'?`<div class="ogx-note">${dfF(L.mdeWas,{o:koNum(l.sc)+' '+u, q:koNum(l.q)+' '+u})}</div>`:''}
+        <button type="button" class="ogx-box${ed?' is-ed':''}" data-qty="${l.ix}"><div class="a">${koNum(q)} <small>${u}</small></div><div class="b">${pcs}</div></button>
+        ${ed?`<div class="ed">${L.mdeEdited}</div>`:''}</div>
+      <div class="ogx-bc${l.state==='ok'?' is-ok':''}" data-bc="${l.ix}">${dfBarcode(it.plu||it.id)}</div>
     </div>`; }).join('');
-  root.innerHTML=`<div class="DayFlow__mde" role="dialog" aria-modal="true">
-    <div class="bsListHdr"><div class="back" id="dfMdeBack">${t().backArrow}</div><div class="DayFlow__mdeTtl">${L.mdeTitle}</div></div>
+  /* Kennzahlen wie der Fuss der App -- mit den Mengen, die gerade dastehen (Entwurf inklusive). */
+  let cases=0, ek=0, vk=0, kept=0;
+  lines.forEach(l=>{ const it=ITEMS[l.ix], q=dfMdeQty(l.ix), cs=it.case||0; cases+=q; ek+=q*cs*(it.ek||0); vk+=q*cs*(it.vk||0);
+    const reco=(it.rungs && it.rungs[ST[l.ix].plan] ? it.rungs[ST[l.ix].plan].order : null); if(reco==null || reco===q) kept++; });
+  const mPct = vk ? (vk-ek)/vk*100 : 0;
+  const pct = v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %';
+  const closed = DF.closedAt ? dfClock(DF.closedAt) : '';
+  root.innerHTML=`<div class="DayFlow__mde ogx" role="dialog" aria-modal="true">
+    <div class="ogx-hdr">
+      <button type="button" class="ogx-back" id="dfMdeBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"/></svg>${T.backArrow.replace(/^[‹<]\s*/,'')}</button>
+      <div class="ogx-tt"><div class="ogx-t1">${L.ogTitle} &nbsp;${mmEsc(dfDate())}<i>|</i>Rewe</div>
+        <div class="ogx-t2">${L.ogClosed} &nbsp;<b>${mmEsc(dfDate())}</b> ${closed}</div></div>
+      <div class="ogx-done">${DF_TICK_IC}</div></div>
     ${bar}
-    <div class="DayFlow__mrHead"><div>${L.mdeColItem}</div><div>${L.mdeColDs}</div><div>${L.mdeColOrder}</div><div></div></div>
-    <div class="DayFlow__mrList">${rows}</div>
-    <div class="DayFlow__mrPager"><button type="button" id="dfMdePrev"${DF_MDE_PAGE===1?' disabled':''}>←</button>
+    <div class="ogx-search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true" style="color:var(--ff-grey-900)"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg><input placeholder="${T.search}" aria-label="${T.search}"><span class="scan">${OGX_SCAN}</span></div>
+    <div class="ogx-tools"><span class="ogx-sw" aria-hidden="true"></span><span>${L.ogHide0}</span><span class="ogx-sep"></span>
+      <span class="ogx-tb">≡ <u>${T.order} ▾</u></span><span class="ogx-sep"></span><span class="ogx-tb">☰ ${T.filter}</span></div>
+    <div class="ogx-head"><div>${T.item}</div><div class="c">${T.inventory}<span class="ogx-info">i</span></div><div class="c">${T.order} ↓<span class="ogx-info">i</span></div><div></div></div>
+    <div class="ogx-list">${rows}</div>
+    <div class="ogx-pager"><button type="button" id="dfMdePrev"${DF_MDE_PAGE===1?' disabled':''}>←</button>
       <span>${dfF(L.mdePage,{p:DF_MDE_PAGE, n:pages})}</span>
-      <button type="button" id="dfMdeNext"${last?' disabled':''}>→</button></div></div>`;
-  root.querySelector('#dfMdeBack').onclick=()=>{ DF_MDE=false; DF_MDE_DRAFT={}; dfRenderMde(); dfTick(); };
+      <button type="button" id="dfMdeNext"${last?' disabled':''}>→</button>
+      <span class="ogx-fab" aria-hidden="true">${OGX_SCAN}</span></div>
+    <div class="ogx-stats">
+      <div class="ogx-stat"><div class="k">${L.ogLines}</div><div class="v">${lines.length}</div></div>
+      <div class="ogx-stat"><div class="k">${T.caseCount}</div><div class="v">${koNum(cases)}</div></div>
+      <div class="ogx-stat"><div class="k">${T.cost}</div><div class="v">${eur(ek)}</div></div>
+      <div class="ogx-stat"><div class="k">${T.retail}</div><div class="v">${eur(vk)}</div></div>
+      <div class="ogx-stat"><div class="k">${T.margin}</div><div class="v">${pct(mPct)}</div></div>
+      <div class="ogx-stat"><div class="k">${T.acceptance}</div><div class="v"><i></i>${pct(lines.length?kept/lines.length*100:100)}</div></div>
+      <button type="button" class="ogx-cont" id="dfMdeCont">${L.ogCont} ↻</button></div></div>`;
+  const leave=()=>{ DF_MDE=false; DF_MDE_DRAFT={}; dfRenderMde(); dfTick(); };
+  root.querySelector('#dfMdeBack').onclick=leave;
+  root.querySelector('#dfMdeCont').onclick=leave;
   root.querySelector('#dfMdePrev').onclick=()=>{ DF_MDE_PAGE--; dfRenderMde(); };
   root.querySelector('#dfMdeNext').onclick=()=>{ DF_MDE_PAGE++; dfRenderMde(); };
   const all1=root.querySelector('#dfMdeAll');
   if(all1) all1.onclick=dfMdeFinish;
-  root.querySelector('.DayFlow__mrList').onclick=e=>{
+  root.querySelector('.ogx-list').onclick=e=>{
     const qb=e.target.closest('[data-qty]');
     if(qb){ const ix=+qb.dataset.qty; openOrdPad(ix); ORD.mde=true; ORD.val=String(dfMdeQty(ix)); drawOrdPad(); return; }
     const c=e.target.closest('[data-bc]'); if(!c) return;
@@ -3915,7 +4004,6 @@ function dfRenderMde(){
     dfSave(); dfAfterScan();
   };
 }
-/* Ein Tipp: Entwurf in die Bestellung schreiben, alles als gescannt markieren, feiern. */
 function dfMdeFinish(){
   const saved=dfMdeDirty();
   Object.keys(DF_MDE_DRAFT).forEach(k=>{
