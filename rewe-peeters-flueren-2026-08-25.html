@@ -3115,12 +3115,8 @@ function rescanFinish(drop){
 }
 function rescanBandHTML(){
   const L=t();
-  if(!rescanOn()){
-    if(!(MANAGE_MODE && CATFILTER && CATFILTER.kind==='tile' && CATFILTER.id!==UNSHELVED_TILE)) return '';
-    return `<div class="rescan rescan--start"><div class="rescan__tx">
-        <div class="rescan__s">${L.rescanStartS}</div></div>
-      <button class="cta" type="button" data-a="rescanstart">${L.rescanStartBtn}</button></div>`;
-  }
+  /* Kein Einstiegsband "Reihenfolge falsch? ... Regal neu scannen" mehr in der Liste. */
+  if(!rescanOn()) return '';
   const n=RESCAN.done.length, m=shelfSeq(RESCAN.tile).length;
   if(RESCAN.ask){
     const k=rescanTodoKeys().length;
