@@ -683,6 +683,10 @@ body.isFiltering{
 .meta .metarow{display:block}
 .meta .metarow + .metarow{margin-top:2px}
 .meta .metarow b{margin-right:5px}
+/* product_image under the name: picture left, info and pills right */
+.ibody{display:flex;align-items:flex-start;gap:8px;margin-top:4px}
+.ibody .meta{margin-top:0}
+.ipic{width:32px;height:32px;flex:0 0 32px;object-fit:contain;object-position:center top}
 .pills{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
 .pill{border:1px solid var(--ff-grey-200);border-radius:var(--ff-radius-pill);padding:1px 8px;font-size:var(--ff-text-primary-sub-title-10);color:#5d6b64;background:var(--ff-color-white)}
 .pill.b{border-color:var(--ff-primary-30);background:var(--ff-grey-100);color:var(--green)}
@@ -2911,6 +2915,15 @@ function iconName(f){
 }
 /* Vorrang wie bei tileLabel(): eigene Wahl des Kaufmanns, dann die
    Werksvorgabe, dann das Fragezeichen. */
+/* Produktbild unter dem Namen, wie in der App: echte Fotos aus unseren
+   EDEKA-Maerkten (core_dim_items.image_src). Jedes Foto gehoert genau einem
+   Artikel; wer keins hat, bekommt kein Bild statt eines wiederholten. Die
+   Fotos sind kleine Thumbnails, deshalb 32 px und nie hochskaliert. */
+const ITEM_PHOTO = {"0":"4197d9c612.webp","16":"0b734b392c.webp","19":"17cc852ddb.webp","28":"d8ee6a8aad.webp","35":"2ecb888e5f.webp","36":"86321d9aa0.webp","44":"c74c5f74ec.webp","45":"e94404eaa6.webp","61":"d12c23423b.webp","62":"61d03833a8.webp","65":"6c2e3d8d29.webp","66":"c80bb3b71d.webp","67":"35fdda4a8b.webp","79":"945bb97393.webp","80":"d237f9ee70.webp","81":"af337b277f.webp","86":"763eb9b672.webp","89":"6eb68fca9d.webp","102":"25e4f6416e.webp","106":"c222709a65.webp","107":"289c112b74.webp","108":"cf5ed6924b.webp","117":"82c84d3e6d.webp","118":"934255750a.webp","123":"b614b7b840.webp","136":"e3fad35aef.webp","139":"0fe651b808.webp","140":"7e916d1e75.webp","142":"34da58dc2d.webp","145":"9dddcd3e80.webp","146":"08d5e82060.webp","167":"64c420fa7f.webp","194":"395f9b1939.webp","205":"eacdc245ff.webp","208":"8542cb72d2.webp","210":"4660625b7e.webp","214":"0c89579c39.webp","219":"cf8e03b604.webp","225":"5269fe1df2.webp","254":"6b02db1b80.webp","266":"259bd3f66a.webp","272":"cf241f2def.webp","275":"dc8fd59c5f.webp","276":"29daaa58b3.webp","285":"06a173906e.webp","288":"45a431fc31.webp","289":"ccdd9d87cf.webp","291":"895464a307.webp","292":"dc05da6b31.webp","293":"4534412627.webp","295":"6986d0b68a.webp","296":"f0ab160e7c.webp","297":"d0cc2cd13b.webp","298":"8d320fdbc8.webp","299":"1fd0982232.webp","300":"94bc6bd4ba.webp","303":"ddf4e55731.webp"};
+function itemPicHTML(it){
+  const f=ITEM_PHOTO[it.id];
+  return f?`<img class="ipic" src="assets/product-pics/carrefour-valencia/${f}" alt="" loading="lazy" onerror="this.remove()">`:'';
+}
 function tileIcon(id){
   return `assets/produce-icons/${TILE_ICONS[id] || TILE_ICON[id] || ICON_FALLBACK}.png`;
 }
@@ -6618,12 +6631,12 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
          nicht "kenne ich den?", sondern "warum steht da jetzt mehr?". Die alte Zahl
          beantwortet genau das, und sie steht da, wo die neue steht. */
       return `<div class="row row--back${BS.just===ix?' just':''}${extraCls||''}">
-      <div class="itemcell"><div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
+      <div class="itemcell"><div class="itemtext"><div class="nm">${it.name}</div><div class="ibody">${itemPicHTML(it)}<div class="ibody__tx"><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div></div></div>
       <div>${bsCounterHTML(ix,n)}</div></div>`;
     }
     const isLastScan = !forceEye && CATFILTER && CATFILTER.kind==='tile' && scanLastIn(CATFILTER.id)===overrideKey(it);
     return `<div class="row${s.answered?' done':''}${s.hidden?' ishidden':''}${isLastScan?' lastScan':''}${(!forceEye && rescanOn() && !RESCAN.done.includes(overrideKey(it)))?' rescanTodo':''}${extraCls||''}" data-ix="${ix}">
-      <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div>
+      <div class="itemcell">${eyeToggle}<div class="itemtext"><div class="nm">${it.name}</div><div class="ibody">${itemPicHTML(it)}<div class="ibody__tx"><div class="meta">${meta}</div><div class="pills">${pills}</div></div></div></div></div>
       <div>${cell}</div><div>${ord}</div>${seqGrip}${askBlock}${reasonBlock}${dsAskBlock}${hideCta}${moveCta}${reorderCta}</div>`;
 }
 
