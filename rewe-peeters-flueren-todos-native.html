@@ -2341,11 +2341,14 @@ body.dash-active .scanFab{display:none}
 .DayFlow__mde{position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:var(--ff-grey-100)}
 .DayFlow__mde .bsListHdr{display:flex;align-items:center;gap:16px}
 .DayFlow__mdeTtl{font-weight:var(--ff-weight-bold)}
-.DayFlow__mdeBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;background:var(--ff-color-white);border-bottom:1px solid var(--line);font-size:var(--ff-text-primary-body-text-14)}
-.DayFlow__mdeBar .sp{flex:1}
-.DayFlow__mdeBar .warn{color:#8a4b00;font-weight:var(--ff-weight-bold)}
-.DayFlow__mdeBar button{border:1.5px solid var(--green);color:var(--green);background:var(--ff-color-white);border-radius:var(--ff-radius-pill);padding:7px 14px;font:inherit;font-weight:var(--ff-weight-bold);font-size:var(--ff-text-primary-caption-12);cursor:pointer}
-.DayFlow__mdeHint{padding:10px 18px 0;font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-600)}
+.DayFlow__mdeBar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:#fff4e7;border-bottom:1px solid #f5d7ac}
+.DayFlow__mdeBar .ico{width:22px;height:22px;border-radius:50%;background:var(--amber,#fb9410);color:var(--ff-color-white);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.DayFlow__mdeBar .msg{flex:1;min-width:0;font-size:var(--ff-text-primary-caption-12);line-height:1.45;color:#6b4a19}
+.DayFlow__mdeBar .msg b{display:block;font-size:var(--ff-text-primary-body-text-14);color:#4a3410;font-weight:var(--ff-weight-bold);margin-bottom:1px}
+.DayFlow__mdeBar button{flex:none;border:0;border-radius:8px;padding:9px 14px;background:var(--green);color:var(--ff-color-white);font:inherit;font-weight:var(--ff-weight-bold);font-size:13px;cursor:pointer;white-space:nowrap}
+.DayFlow__mdeBar.is-done{background:#eef5f1;border-bottom-color:#cfe2d8}
+.DayFlow__mdeBar.is-done .ico{background:var(--green)}
+.DayFlow__mdeBar.is-done .msg b{color:var(--green);margin:0}
 .DayFlow__bcGrid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding:12px 18px 24px;align-content:start}
 .DayFlow__bc{position:relative;background:var(--ff-color-white);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
 .DayFlow__bc .nm{font-size:var(--ff-text-primary-caption-12);font-weight:var(--ff-weight-bold);line-height:1.3;min-height:31px;padding-right:22px}
@@ -3203,9 +3206,10 @@ const DF_TXT={
     bannerGo:'Los', bannerRescan:'Bestellung nach dem Scannen geändert',
     remindTitle:'Noch offen im Tagesablauf', remindOpen:'Tagesablauf öffnen',
     remindPipe:'Wareneingang wird noch verarbeitet', remindPipeSub:'Zahlen bereit ca. {r}. Bis dahin kann sich die Bestellung noch ändern.',
-    mdeTitle:'Barcodes ins MDE scannen', mdeBar:'<b>{s}</b> von {n} gescannt', mdeChanged:'{n} geändert', mdeAll:'Alle als gescannt markieren',
-    mdeHint:'Barcode mit dem MDE-Gerät scannen und dann antippen. Geänderte Artikel stehen oben.',
-    mdeWas:'gescannt: {o} · jetzt: {q}', mdeAllToast:'Alle {n} Barcodes als gescannt markiert',
+    mdeTitle:'Barcodes ins MDE scannen', mdeBar:'{s} von {n} Barcodes gescannt', mdeChanged:'{n} geändert', mdeFinish:'Fertig',
+    mdeHint:'Mit dem MDE-Gerät scannen und antippen. Fertig markiert den Rest.', mdeHintChg:'{c} – geänderte Artikel stehen oben.',
+    mdeAllDone:'Alle {n} Barcodes gescannt', mdeCelebEyebrow:'Bestellung fertig',
+    mdeWas:'gescannt: {o} · jetzt: {q}',
     cgTitle:'Geschafft!', cgLead:'Bestellung {d} ist raus', cgEarly:'<b>{t}</b> vor Bestellschluss', cgLate:'<span class="late">{t} nach Bestellschluss</span>',
     cgCases:'{c} Kisten in der Bestellung', cgDur:'Dauer heute: {t}', cgDone:'Fertig',
     demo:'Demo: Markt-Konfiguration', demoNote:'Platzhalter-Schlüssel, die echten Appsmith-Namen folgen.',
@@ -3226,9 +3230,10 @@ const DF_TXT={
     bannerGo:'Go', bannerRescan:'Order changed after scanning',
     remindTitle:'Still open today', remindOpen:'Open your day',
     remindPipe:'Intake is still being processed', remindPipeSub:'Figures ready around {r}. The order can still change until then.',
-    mdeTitle:'Scan barcodes into the MDE', mdeBar:'<b>{s}</b> of {n} scanned', mdeChanged:'{n} changed', mdeAll:'Mark all as scanned',
-    mdeHint:'Scan the barcode with the MDE device, then tap it. Changed items are at the top.',
-    mdeWas:'scanned: {o} · now: {q}', mdeAllToast:'All {n} barcodes marked as scanned',
+    mdeTitle:'Scan barcodes into the MDE', mdeBar:'{s} of {n} barcodes scanned', mdeChanged:'{n} changed', mdeFinish:'Finish',
+    mdeHint:'Scan with the MDE device and tap. Finish marks the rest.', mdeHintChg:'{c} – changed items are at the top.',
+    mdeAllDone:'All {n} barcodes scanned', mdeCelebEyebrow:'Order done',
+    mdeWas:'scanned: {o} · now: {q}',
     cgTitle:'Done!', cgLead:'Order {d} is out', cgEarly:'<b>{t}</b> before the deadline', cgLate:'<span class="late">{t} after the deadline</span>',
     cgCases:'{c} cases in the order', cgDur:'Time today: {t}', cgDone:'Finish',
     demo:'Demo: store configuration', demoNote:'Placeholder keys, the real Appsmith names will follow.',
@@ -3249,9 +3254,10 @@ const DF_TXT={
     bannerGo:'Go', bannerRescan:'Commande modifiée après le scan',
     remindTitle:'Encore ouvert aujourd\'hui', remindOpen:'Ouvrir la journée',
     remindPipe:'La réception est encore en traitement', remindPipeSub:'Chiffres prêts vers {r}. La commande peut encore changer d\'ici là.',
-    mdeTitle:'Scanner les codes-barres dans le MDE', mdeBar:'<b>{s}</b> sur {n} scannés', mdeChanged:'{n} modifiés', mdeAll:'Tout marquer comme scanné',
-    mdeHint:'Scannez le code-barres avec le MDE, puis touchez-le. Les articles modifiés sont en haut.',
-    mdeWas:'scanné : {o} · maintenant : {q}', mdeAllToast:'{n} codes-barres marqués comme scannés',
+    mdeTitle:'Scanner les codes-barres dans le MDE', mdeBar:'{s} sur {n} codes-barres scannés', mdeChanged:'{n} modifiés', mdeFinish:'Terminer',
+    mdeHint:'Scannez avec le MDE et touchez. Terminer marque le reste.', mdeHintChg:'{c} – les articles modifiés sont en haut.',
+    mdeAllDone:'{n} codes-barres scannés', mdeCelebEyebrow:'Commande terminée',
+    mdeWas:'scanné : {o} · maintenant : {q}',
     cgTitle:'Bravo !', cgLead:'La commande {d} est partie', cgEarly:'<b>{t}</b> avant la clôture', cgLate:'<span class="late">{t} après la clôture</span>',
     cgCases:'{c} colis dans la commande', cgDur:'Durée aujourd\'hui : {t}', cgDone:'Terminer',
     demo:'Démo : configuration du magasin', demoNote:'Clés provisoires, les vrais noms Appsmith suivront.',
@@ -3780,10 +3786,12 @@ function dfRenderMde(){
   const u=' '+t().caseUnit;
   root.innerHTML=`<div class="DayFlow__mde" role="dialog" aria-modal="true">
     <div class="bsListHdr"><div class="back" id="dfMdeBack">${t().backArrow}</div><div class="DayFlow__mdeTtl">${L.mdeTitle}</div></div>
-    <div class="DayFlow__mdeBar"><span>${dfF(L.mdeBar,{s:ok, n:lines.length})}</span>
-      ${chg?`<span class="warn">${dfF(L.mdeChanged,{n:chg})}</span>`:''}
-      <span class="sp"></span>${ok<lines.length?`<button type="button" id="dfMdeAll">${L.mdeAll}</button>`:''}</div>
-    <div class="DayFlow__mdeHint">${L.mdeHint}</div>
+    ${ok<lines.length
+      ? `<div class="DayFlow__mdeBar"><div class="ico">!</div>
+          <div class="msg"><b>${dfF(L.mdeBar,{s:ok, n:lines.length})}</b>${chg?dfF(L.mdeHintChg,{c:dfF(L.mdeChanged,{n:chg})}):L.mdeHint}</div>
+          <button type="button" id="dfMdeAll">${L.mdeFinish}</button></div>`
+      : `<div class="DayFlow__mdeBar is-done"><div class="ico">✓</div>
+          <div class="msg"><b>${dfF(L.mdeAllDone,{n:lines.length})}</b></div></div>`}
     <div class="DayFlow__bcGrid">${sorted.map(l=>{ const it=ITEMS[l.ix];
       return `<div class="DayFlow__bc${l.state==='ok'?' is-ok':l.state==='chg'?' is-chg':''}" data-ix="${l.ix}">
         ${l.state==='ok'?'<span class="ok">✓</span>':''}
@@ -3795,7 +3803,7 @@ function dfRenderMde(){
   const all=root.querySelector('#dfMdeAll');
   if(all) all.onclick=()=>{
     lines.forEach(l=>{ if(l.q>0) DF.mde[l.ix]=l.q; else delete DF.mde[l.ix]; });
-    dfSave(); toast(dfF(L.mdeAllToast,{n:lines.filter(l=>l.q>0).length})); dfAfterScan();
+    dfSave(); dfAfterScan();
   };
   root.querySelector('.DayFlow__bcGrid').onclick=e=>{
     const c=e.target.closest('[data-ix]'); if(!c) return;
@@ -3812,9 +3820,26 @@ function dfAfterScan(){
   const mde=dfSteps().find(s=>s.k==='mde');
   if(mde.done && !DF.doneAt){
     DF.doneAt=Date.now(); DF.doneLeft=dfDeadlineMs(); dfSave();
-    setTimeout(()=>{ DF_CONGRATS=true; dfRenderCongrats(); }, 350);
+    /* Erst die Fruechte (dieselbe Feier wie fertiges Regal und Lager), dann die
+       Zusammenfassung. Ein Tipp auf die Feier springt direkt weiter. */
+    dfMdeCelebrate(()=>{ DF_CONGRATS=true; dfRenderCongrats(); });
   }
   dfTick();
+}
+
+function dfMdeCelebrate(then){
+  const L=dfTx(), n=dfLines().length;
+  const reduced=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  CATCELEBRATE={root:'bs', seq:++CELEB_SEQ, reduced,
+    card:`<div class="eyebrow">${L.mdeCelebEyebrow}</div>
+      <h2>${dfF(L.mdeAllDone,{n})}</h2>
+      <div class="hint">${t().bsCelebSkip}</div>`};
+  renderCatCelebrate();
+  let fired=false; const go=()=>{ if(fired) return; fired=true; then(); };
+  const wait=setInterval(()=>{ if(!CATCELEBRATE){ clearInterval(wait); go(); } }, 120);
+  if(reduced){ CELEB_TIMER=setTimeout(endCatCelebration, 1200); return; }
+  CATFX={t0:null, init:false, fruits:[], shards:[], rings:[], until:2900};
+  requestAnimationFrame(catCelebrateLoop);
 }
 
 /* ---- Zusammenfassung ---- */
