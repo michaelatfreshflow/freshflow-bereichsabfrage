@@ -39,7 +39,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .savebar.done .ico{background:var(--green)}
 .savebar.done .msg{color:#3d5a4c}
 .savebar.done .msg b{color:var(--green)}
-.savebar .act .btn-save{white-space:normal;text-align:center;max-width:240px}
 /* Feier nach "alles gescannt" -- aus dem Tagesablauf-Prototyp */
 .celebrate{position:fixed;inset:0;z-index:9200;pointer-events:none;animation:celebTint 1700ms ease forwards}
 .celebrate canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -146,37 +145,15 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .cont{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:13.5px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer}
 
 
-/* ===========================================================================
-   AppFormDialog -- lib/presentation/shared/dialogs/app_form_dialog.dart
-   and PrimaryTextButton -- lib/core/widgets/buttons/text_button.dart
-   Copied unchanged from the store prototypes: this is the popup the app
-   already uses for "are you sure" questions, so the save question wears it too.
-   =========================================================================== */
 .ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .ov.on{display:flex}
-.AppFormDialog{width:min(680px,calc(100% - 48px));align-self:center;background:var(--ff-color-white,#fff);
-  border-radius:var(--ff-radius-c8,8px);display:flex;flex-direction:column;overflow:hidden}
-.AppFormDialog__header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ff-grey-200,#e7e6e6)}
-.AppFormDialog__title{padding:18px 24px;font-size:var(--ff-text-primary-title-18,18px);font-weight:var(--ff-weight-semibold,600);color:var(--ff-grey-900,#18181b)}
-.AppFormDialog__close{width:100px;padding:18px 24px;display:flex;align-items:center;justify-content:flex-end;
-  border:0;background:none;cursor:pointer;color:var(--ff-grey-900,#18181b)}
-.AppFormDialog__close svg{display:block}
-.AppFormDialog__body{padding:32px 32px 48px;font-size:var(--ff-text-primary-body-text-16,16px);
-  font-weight:var(--ff-weight-medium,500);color:var(--ff-grey-800,#27272a);line-height:1.5}
-.AppFormDialog__body .sub{display:block;margin-top:12px;font-size:var(--ff-text-primary-body-text-14,14px);color:var(--ink3)}
-.AppFormDialog__actions{display:flex;align-items:center;gap:12px;padding:0 24px 27px 8px}
-.AppFormDialog__actionsEnd{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
-.PrimaryTextButton{height:48px;padding:0 16px;border:0;border-radius:24px;font-family:inherit;
-  font-size:var(--ff-text-primary-body-text-16,16px);font-weight:var(--ff-weight-semibold,600);
-  cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
-.PrimaryTextButton--dark{background:var(--ff-color-primary,#306a57);color:var(--ff-color-white,#fff)}
-.PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary,#306a57)}
-.PrimaryTextButton--dark:active{background:var(--ff-primary-500,#306a57)}
-.PrimaryTextButton--none:active{background:var(--ff-primary-10,#f7fcf6)}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
 @media(max-width:620px){
+  .savebar{flex-wrap:wrap}
+  .savebar .msg{flex:1 1 calc(100% - 34px)}
+  .savebar .act{width:100%;align-items:stretch}
   .thead,.row{grid-template-columns:1fr 84px 104px;gap:6px;padding:10px 12px}
   .bcw{grid-column:1/-1;margin-top:8px}
   .invbox{min-width:0;padding:5px 4px}
@@ -275,7 +252,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
       <button class="cta" id="ordSpeichern">Save</button></div>
   </div>
 </div>
-<div id="saveDlgRoot"></div>
 
 <script>
 /* ---------- fake, but deterministic, order guide ---------- */
@@ -430,7 +406,7 @@ function bar(){
   } else if(!all){
     head=`${n} of ${items.length} barcodes scanned`;
     sub=dirty?"Your changes are saved in the same step.":"Mark the rest as scanned to finish.";
-    act=`<button class="btn-save" id="allBtn">${dirty?"Save changes and mark barcodes as scanned":"Mark barcodes as scanned"}</button>`;
+    act=`<button class="btn-save" id="allBtn">${dirty?"Save and mark as scanned":"Mark as scanned"}</button>`;
   } else {
     ico="&#10003;";
     head=`All ${items.length} barcodes scanned${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`;
@@ -443,13 +419,15 @@ function bar(){
 }
 savebar.addEventListener("click",e=>{
   if(e.target.closest("#allBtn")){
-    if(dirty) openSaveDialog(true);
-    else { markAllScanned(); render(); celebrate(""); }
+    const withSave=dirty;
+    markAllScanned();
+    if(withSave) commitEdits(true); else render();
+    celebrate(withSave?"Changes saved":"");
   } else if(e.target.closest("#allUndo")){
     items.forEach((i,k)=>i.scanned=scanBefore[k]);
     scanBefore=null; render();
   } else if(e.target.closest("#btnSave")){
-    openSaveDialog(false);
+    commitEdits(true); celebrate("Changes saved");
   }
 });
 function markAllScanned(){
@@ -620,44 +598,6 @@ document.getElementById("next").onclick=()=>{
   if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); }
 };
 
-
-/* ---------- the save question ----------
-   Wie in der App (askApplyOrderCorrectionsConfirmation): kein Dialog von selbst
-   am Ende der Liste. Er kommt erst auf den Tipp in der Leiste, als Bestaetigung
-   vor dem Speichern. withScan: der kombinierte Knopf -- dann markiert "Save
-   changes" zugleich alle Barcodes als gescannt; "Review again" laesst beides offen. */
-const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.3.71a1 1 0 00-1.41 0L7 5.59 2.11.7A1 1 0 10.7 2.11L5.59 7 .7 11.89a1 1 0 101.41 1.41L7 8.41l4.89 4.89a1 1 0 101.41-1.41L8.41 7l4.89-4.89a1 1 0 000-1.4z" fill="currentColor"/></svg>';
-
-function openSaveDialog(withScan){
-  const n=items.filter(i=>i.qty!==i.reco).length;
-  const root=document.getElementById("saveDlgRoot");
-  root.innerHTML=`<div class="ov on">
-    <div class="AppFormDialog" role="dialog" aria-modal="true">
-      <div class="AppFormDialog__header">
-        <div class="AppFormDialog__title">Save changes?</div>
-        <button type="button" class="AppFormDialog__close" id="dlgClose" aria-label="Close">${CLOSE_ICON}</button>
-      </div>
-      <div class="AppFormDialog__body">
-        You changed ${n===1?"one order quantity":n+" order quantities"}.${withScan?" All barcodes are marked as scanned at the same time.":""}
-        <span class="sub">Without saving, the order stays exactly as it was completed – your changes are then lost.</span>
-      </div>
-      <div class="AppFormDialog__actions">
-        <div class="AppFormDialog__actionsEnd">
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="dlgLater">Review again</button>
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="dlgYes">Save changes</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-  const close=()=>{ root.innerHTML=""; };
-  document.getElementById("dlgClose").onclick=close;
-  document.getElementById("dlgLater").onclick=close;
-  document.getElementById("dlgYes").onclick=()=>{
-    root.innerHTML="";
-    if(withScan) markAllScanned();
-    commitEdits(true); celebrate("Changes saved");
-  };
-}
 
 function commitEdits(quiet){
   items.forEach(i=>i.reco=i.qty);
