@@ -35,6 +35,23 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .btn-save{border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;font-family:inherit;background:var(--green);color:#fff;cursor:pointer;white-space:nowrap}
 .btn-save:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
 .savebar .left{font-size:10.5px;color:#8a6a35;white-space:nowrap}
+.savebar.done{background:#eef5f1;border-bottom-color:#cfe2d8}
+.savebar.done .ico{background:var(--green)}
+.savebar.done .msg{color:#3d5a4c}
+.savebar.done .msg b{color:var(--green)}
+.savebar .act .btn-save{white-space:normal;text-align:center;max-width:240px}
+/* Feier nach "alles gescannt" -- aus dem Tagesablauf-Prototyp */
+.celebrate{position:fixed;inset:0;z-index:9200;pointer-events:none;animation:celebTint 1700ms ease forwards}
+.celebrate canvas{position:absolute;inset:0;width:100%;height:100%}
+.celebrate .card{position:absolute;left:50%;top:42%;text-align:center;background:var(--green);color:#fff;border-radius:15px;padding:20px 32px;box-shadow:0 4px 12px rgba(0,0,0,.35);animation:celebCard 1700ms cubic-bezier(.2,.7,.2,1) forwards}
+.celebrate .eyebrow{font-size:12px;font-weight:700;color:#c1ce5d}
+.celebrate h2{margin:6px 0 0;font-size:26px;font-weight:700}
+.celebrate .sub{font-size:14px;color:rgba(255,255,255,.75);margin-top:4px}
+.celebrate .hint{font-size:12px;color:rgba(255,255,255,.5);margin-top:10px}
+@keyframes celebTint{0%,55%{background:rgba(46,90,72,.14)}100%{background:rgba(46,90,72,0)}}
+@keyframes celebCard{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}9%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}16%,62%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-72%) scale(.97)}}
+@media (prefers-reduced-motion: reduce){.celebrate{animation:none;background:rgba(46,90,72,.14)}.celebrate .card{animation:none;transform:translate(-50%,-50%)}}
+.savebar .undo{background:none;border:0;padding:0;margin-left:6px;font-family:inherit;font-size:13px;font-weight:700;color:var(--green);cursor:pointer}
 
 /* ---------- search + toolbar ---------- */
 .search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink3)}
@@ -117,15 +134,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .parrow:disabled{opacity:.35;cursor:not-allowed}
 .pager .p{font-size:13px;color:var(--ink2)}
 .pager .p b{font-weight:700;color:var(--ink)}
-/* ---------- all scanned (last page only) ----------
-   Sits in the pager bar, to the right of the page arrows. */
-.allscan{display:none;align-items:center;gap:12px;margin-left:auto;min-width:0}
-.allscan.on{display:flex}
-.allscan .msg{font-size:12px;line-height:1.4;color:var(--ink3);text-align:right}
-.allscan .msg b{color:var(--ink);font-weight:700}
-.allscan .btn-all{border:1.5px solid var(--green);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;font-family:inherit;background:#fff;color:var(--green);cursor:pointer;white-space:nowrap}
-.allscan.done .msg b{color:var(--green)}
-.allscan .undo{background:none;border:0;padding:0;font-family:inherit;font-size:13px;font-weight:700;color:var(--green);cursor:pointer;white-space:nowrap}
 .fab{position:absolute;right:16px;bottom:74px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer;z-index:20}
 
 /* ---------- stats ---------- */
@@ -197,17 +205,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
     <div class="done">&#10003;</div>
   </div>
 
-  <div class="savebar" id="savebar">
-    <div class="ico">!</div>
-    <div class="msg">
-      <b>Do you want to save your changes?</b>
-      Once you have scanned all barcodes, you can apply the changes.
-    </div>
-    <div class="act">
-      <button class="btn-save" id="btnSave" disabled>Apply changes</button>
-      <div class="left" id="pagesLeft"></div>
-    </div>
-  </div>
+  <div class="savebar" id="savebar"></div>
 
   <div class="search">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
@@ -236,7 +234,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
     <button class="parrow" id="prev">&#8592;</button>
     <div class="p">Page <b id="pgNow">1</b> of <b id="pgAll">14</b></div>
     <button class="parrow" id="next">&#8594;</button>
-    <div class="allscan" id="allscan"></div>
   </div>
 
   <button class="fab" title="Scan">
@@ -255,6 +252,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 
 </div>
 <div class="toast" id="toast"></div>
+<div id="celebRoot"></div>
 
 <div class="ov ovsheet" id="ovOrd">
   <div class="sheet">
@@ -403,39 +401,152 @@ function render(){
   }).join("");
   pgNow.textContent=page; pgAll.textContent=PAGES;
   prev.disabled=page===1; next.disabled=page===PAGES;
-  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
   stats();
-  saveState();
-  allScan();
+  bar();
+  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
 }
 
-/* ---------- the whole list as scanned ----------
-   Erst auf der letzten Seite: dort ist man mit dem Scannen durch. Ein Tipp graut
-   alle Barcodes aus, statt jeden einzeln anzutippen. Rueckgaengig stellt genau
-   den Stand davor wieder her. */
+/* ---------- one bar at the top: changes and scanning ----------
+   Die Leiste oben traegt beides, immer nur einen Knopf:
+   - vor der letzten Seite, mit Aenderungen: "Save changes" grau, "n pages left"
+   - letzte Seite, noch nicht alles gescannt: "x of N scanned" + "Mark barcodes as scanned" (mit Aenderungen: "Save changes and mark barcodes as scanned", speichert gleich mit)
+   - letzte Seite, alles gescannt: gruen, "All N barcodes scanned" (+ Undo), und
+     "Save changes" nur, wenn es Aenderungen gibt
+   Ohne Aenderungen und vor der letzten Seite gibt es keine Leiste. */
 let scanBefore=null;
-function allScan(){
-  const el=document.getElementById("allscan");
-  if(page!==PAGES){ el.classList.remove("on"); return; }
-  const n=items.filter(i=>i.scanned).length, all=n===items.length;
-  el.classList.add("on");
-  el.classList.toggle("done", all);
-  el.innerHTML = all
-    ? `<div class="msg"><b>&#10003; All ${items.length} barcodes scanned</b></div>
-       ${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`
-    : `<div class="msg"><b>${n}</b> of ${items.length} scanned</div>
-       <button type="button" class="btn-all" id="allBtn">Mark all as scanned</button>`;
+const allScanned=()=>items.every(i=>i.scanned);
+function bar(){
+  const last=page===PAGES, n=items.filter(i=>i.scanned).length, all=n===items.length;
+  const on=dirty||last;
+  savebar.classList.toggle("on",on);
+  savebar.classList.toggle("done",last&&all);
+  if(!on){ savebar.innerHTML=""; return; }
+  let ico="!", head, sub, act="";
+  if(!last){
+    const left=PAGES-page;
+    head="Do you want to save your changes?";
+    sub="Once you have scanned all barcodes, you can save the changes.";
+    act=`<button class="btn-save" disabled>Save changes</button>
+         <div class="left">${left===1?"1 page left":left+" pages left"}</div>`;
+  } else if(!all){
+    head=`${n} of ${items.length} barcodes scanned`;
+    sub=dirty?"Your changes are saved in the same step.":"Mark the rest as scanned to finish.";
+    act=`<button class="btn-save" id="allBtn">${dirty?"Save changes and mark barcodes as scanned":"Mark barcodes as scanned"}</button>`;
+  } else {
+    ico="&#10003;";
+    head=`All ${items.length} barcodes scanned${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`;
+    sub=dirty?"Save your changes to the order.":"";
+    if(dirty) act=`<button class="btn-save" id="btnSave">Save changes</button>`;
+  }
+  savebar.innerHTML=`<div class="ico">${ico}</div>
+    <div class="msg"><b>${head}</b>${sub}</div>
+    ${act?`<div class="act">${act}</div>`:''}`;
 }
-document.getElementById("allscan").addEventListener("click",e=>{
+savebar.addEventListener("click",e=>{
   if(e.target.closest("#allBtn")){
+    const withSave=dirty;
     scanBefore=items.map(i=>i.scanned);
     items.forEach(i=>i.scanned=true);
-    render(); toast("All "+items.length+" barcodes marked as scanned");
+    if(withSave) commitEdits(true); else render();
+    celebrate(withSave?"Changes saved":"");
   } else if(e.target.closest("#allUndo")){
     items.forEach((i,k)=>i.scanned=scanBefore[k]);
     scanBefore=null; render();
+  } else if(e.target.closest("#btnSave")){
+    commitEdits(true); celebrate("Changes saved");
   }
 });
+
+/* ---------- confetti ----------
+   Dieselbe Feier wie im Tagesablauf-Prototyp (Regal abgeschlossen): Fruechte steigen
+   auf und platzen, eine gruene Karte in der Mitte. Ein Tipp raeumt sie weg; bei
+   "reduce motion" nur die Karte. */
+let FX=null, FX_TIMER=null;
+function celebrate(sub){
+  endCelebrate();
+  const reduced=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const root=document.getElementById("celebRoot");
+  root.innerHTML=`<div class="celebrate">
+    ${reduced?"":'<canvas id="celebCanvas"></canvas>'}
+    <div class="card"><div class="eyebrow">Order guide done</div>
+      <h2>All ${items.length} barcodes scanned</h2>
+      ${sub?`<div class="sub">${sub}</div>`:""}
+      <div class="hint">Tap to skip</div></div>
+  </div>`;
+  if(reduced){ FX_TIMER=setTimeout(endCelebrate,1200); return; }
+  FX={t0:null,init:false,fruits:[],shards:[],rings:[]};
+  requestAnimationFrame(celebLoop);
+}
+function endCelebrate(){
+  FX=null; clearTimeout(FX_TIMER); FX_TIMER=null;
+  document.getElementById("celebRoot").innerHTML="";
+}
+document.addEventListener("pointerdown",()=>{ if(FX||FX_TIMER) endCelebrate(); },true);
+function celebLoop(now){
+  const fx=FX, c=document.getElementById("celebCanvas");
+  if(!fx||!c) return;
+  if(fx.t0==null) fx.t0=now;
+  const dpr=window.devicePixelRatio||1, W=c.clientWidth, H=c.clientHeight;
+  if(c.width!==Math.round(W*dpr)){ c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); }
+  const ctx=c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const PAL=[["#e65050","#FF8B7A"],["#fb9410","#FFC46B"],["#c1ce5d","#E2EA9B"],
+    ["#429359","#7FC48C"],["#FAC850","#FFE79B"],["#A32D2D","#D96A6A"],["#306a57","#6ea050"]];
+  if(!fx.init){
+    fx.init=true;
+    for(let i=0;i<30;i++){
+      const p=PAL[i%PAL.length];
+      fx.fruits.push({x:W*(0.05+0.9*((i*0.37)%1)), y:H+40+Math.random()*60,
+        vx:(Math.random()-0.5)*2.6, vy:-(10.5+Math.random()*4.5),
+        r:16+Math.random()*16, rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.22,
+        fill:p[0], hi:p[1], leaf:Math.random()>0.45,
+        delay:i*42+Math.random()*90, age:0, popAt:560+Math.random()*420, popped:false});
+    }
+  }
+  const el=now-fx.t0;
+  const pop=f=>{
+    f.popped=true;
+    fx.rings.push({x:f.x,y:f.y,r:f.r,a:0.85,fill:f.hi});
+    for(let i=0;i<11;i++){
+      const a=(i/11)*6.28+Math.random(), sp=3.4+Math.random()*5.2;
+      fx.shards.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.6,s:3+Math.random()*5,a:1,
+        fill:Math.random()>0.5?f.fill:f.hi,rot:Math.random()*6.28,vr:(Math.random()-0.5)*0.5});
+    }
+  };
+  fx.fruits.forEach(f=>{
+    if(el<f.delay||f.popped) return;
+    f.age+=16.7; f.x+=f.vx; f.y+=f.vy; f.vy+=0.19; f.rot+=f.vr;
+    if(f.age>f.popAt){ pop(f); return; }
+    const sq=1+Math.sin(f.age/90)*0.06;
+    ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.scale(1/sq,sq);
+    ctx.fillStyle=f.fill; ctx.beginPath(); ctx.arc(0,0,f.r,0,6.2832); ctx.fill();
+    ctx.fillStyle=f.hi; ctx.globalAlpha=0.85;
+    ctx.beginPath(); ctx.ellipse(-f.r*0.3,-f.r*0.32,f.r*0.34,f.r*0.24,-0.6,0,6.2832); ctx.fill();
+    ctx.globalAlpha=1;
+    if(f.leaf){
+      ctx.fillStyle="#275747";
+      ctx.beginPath(); ctx.ellipse(f.r*0.16,-f.r*0.98,f.r*0.3,f.r*0.13,-0.5,0,6.2832); ctx.fill();
+      ctx.fillRect(-1.4,-f.r*1.16,2.8,f.r*0.34);
+    }
+    ctx.restore();
+  });
+  fx.rings=fx.rings.filter(r=>r.a>0.02);
+  fx.rings.forEach(r=>{
+    r.r+=5.2; r.a*=0.86;
+    ctx.strokeStyle=r.fill; ctx.globalAlpha=r.a; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,6.2832); ctx.stroke(); ctx.globalAlpha=1;
+  });
+  fx.shards=fx.shards.filter(s=>s.a>0.04&&s.y<H+60);
+  fx.shards.forEach(s=>{
+    s.x+=s.vx; s.y+=s.vy; s.vy+=0.26; s.vx*=0.99; s.rot+=s.vr; s.a*=0.975;
+    ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(s.rot);
+    ctx.globalAlpha=s.a; ctx.fillStyle=s.fill;
+    ctx.beginPath(); ctx.roundRect(-s.s/2,-s.s/2,s.s,s.s,1.5); ctx.fill();
+    ctx.restore(); ctx.globalAlpha=1;
+  });
+  if(el<2900){ requestAnimationFrame(celebLoop); return; }
+  endCelebrate();
+}
 
 function stats(){
   const cases=items.reduce((a,i)=>a+i.qty,0);
@@ -450,15 +561,7 @@ function stats(){
   sAcc.textContent=pct(kept/items.length*100);
 }
 
-function saveState(){
-  if(!dirty) return;
-  savebar.classList.add("on");
-  const left=PAGES-page;
-  btnSave.disabled=!reachedLast;
-  pagesLeft.textContent=reachedLast?"all pages seen":(left===1?"1 page left":left+" pages left");
-}
-
-function touch(){ if(!dirty){dirty=true;saved=false;savebar.classList.add("on");} }
+function touch(){ if(!dirty){dirty=true;saved=false;} }
 
 function setQty(id,v){
   const it=items.find(x=>x.id===id);
@@ -530,7 +633,7 @@ let dlgShown=false, dlgTimer=null;
 function askToSave(){
   clearTimeout(dlgTimer);
   dlgTimer=setTimeout(()=>{
-    if(!dirty || !reachedLast || dlgShown) return;
+    if(!dirty || !reachedLast || !allScanned() || dlgShown) return;
     dlgShown=true;
     openSaveDialog();
   },400);
@@ -542,17 +645,17 @@ function openSaveDialog(){
   root.innerHTML=`<div class="ov on">
     <div class="AppFormDialog" role="dialog" aria-modal="true">
       <div class="AppFormDialog__header">
-        <div class="AppFormDialog__title">Apply changes?</div>
+        <div class="AppFormDialog__title">Save changes?</div>
         <button type="button" class="AppFormDialog__close" id="dlgClose" aria-label="Close">${CLOSE_ICON}</button>
       </div>
       <div class="AppFormDialog__body">
         You changed ${n===1?"one order quantity":n+" order quantities"} and have paged through all barcodes.
-        <span class="sub">Without applying, the order stays exactly as it was completed – your changes are then lost.</span>
+        <span class="sub">Without saving, the order stays exactly as it was completed – your changes are then lost.</span>
       </div>
       <div class="AppFormDialog__actions">
         <div class="AppFormDialog__actionsEnd">
           <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="dlgLater">Review again</button>
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="dlgYes">Apply changes</button>
+          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="dlgYes">Save changes</button>
         </div>
       </div>
     </div>
@@ -560,17 +663,15 @@ function openSaveDialog(){
   const close=()=>{ root.innerHTML=""; };
   document.getElementById("dlgClose").onclick=close;
   document.getElementById("dlgLater").onclick=close;
-  document.getElementById("dlgYes").onclick=()=>{ root.innerHTML=""; commitEdits(); };
+  document.getElementById("dlgYes").onclick=()=>{ root.innerHTML=""; commitEdits(true); celebrate("Changes saved"); };
 }
 
-function commitEdits(){
+function commitEdits(quiet){
   items.forEach(i=>i.reco=i.qty);
   dirty=false; saved=true;
-  savebar.classList.remove("on");
   render();
-  toast("Changes applied");
+  if(!quiet) toast("Changes saved");
 }
-document.getElementById("btnSave").onclick=()=>{ if(!btnSave.disabled) commitEdits(); };
 
 let tt;
 function toast(msg){
