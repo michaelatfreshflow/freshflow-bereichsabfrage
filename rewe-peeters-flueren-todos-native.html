@@ -2690,6 +2690,11 @@ body.df-home .foot{display:none}
 .DayFlow__bands .DayFlow__item.is-next{border:2px solid var(--green);background:var(--ff-primary-10,#f7fcf6)}
 .DayFlow__bands .DayFlow__step{padding:10px 14px}
 .DayFlow__bands .DayFlow__item.is-done .DayFlow__step,.DayFlow__bands .DayFlow__item.is-skip .DayFlow__step{padding:6px 14px}
+/* Gedrueckt-Zustand wie bei den Regal-Kacheln (.ShelfGridItem:active): die ganze Zeile
+   faerbt sich, solange der Finger draufliegt. Ein Druck auf "Ueberspringen" oder › zaehlt
+   nur fuer den Knopf, nicht fuer die Zeile. */
+.DayFlow__step{transition:background-color .08s}
+.DayFlow__step:active:not(:has(button:active)){background:var(--ff-primary-20)}
 .DayFlow__bands .DayFlow__item.is-done .DayFlow__ic,.DayFlow__bands .DayFlow__item.is-skip .DayFlow__ic{width:28px;height:28px}
 .catbody > .catsec + .ShelfGrid,.catbody .ShelfGrid{--cross-axis-count:3}
 .catbody .ShelfGridItem__leading{display:none}
@@ -12090,6 +12095,10 @@ document.getElementById('dfDash').addEventListener('click', e=>{ e.stopPropagati
 document.getElementById('q').addEventListener('input', ()=>setTimeout(dfRenderToday, 0));
 setInterval(dfTick, 30000);
 render();   // die Uebersicht stand schon vor dem Tagesablauf -- jetzt mit Baendern
+
+/* iOS Safari zeigt :active nur, wenn irgendwo ein touchstart-Listener haengt -- sonst
+   fehlt der Gedrueckt-Zustand auf dem iPad. */
+document.addEventListener('touchstart', ()=>{}, {passive:true});
 </script>
 </body>
 </html>
