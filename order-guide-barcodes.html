@@ -387,7 +387,7 @@ function render(){
    - vor der letzten Seite, mit Aenderungen: "Save changes" grau, "n pages left"
    - letzte Seite, noch nicht alles gescannt: "x of N scanned" + "Mark barcodes as scanned" (mit Aenderungen: "Save changes and mark barcodes as scanned", speichert gleich mit)
    - letzte Seite, alles gescannt: gruen, "All N barcodes scanned" (+ Undo), und
-     "Save changes" nur, wenn es Aenderungen gibt
+     "Save and mark as scanned" nur, wenn es Aenderungen gibt
    Ohne Aenderungen und vor der letzten Seite gibt es keine Leiste. */
 let scanBefore=null;
 function bar(){
@@ -411,7 +411,7 @@ function bar(){
     ico="&#10003;";
     head=`All ${items.length} barcodes scanned${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`;
     sub=dirty?"Save your changes to the order.":"";
-    if(dirty) act=`<button class="btn-save" id="btnSave">Save changes</button>`;
+    if(dirty) act=`<button class="btn-save" id="btnSave">Save and mark as scanned</button>`;
   }
   savebar.innerHTML=`<div class="ico">${ico}</div>
     <div class="msg"><b>${head}</b>${sub}</div>
