@@ -414,7 +414,6 @@ function render(){
      "Save changes" nur, wenn es Aenderungen gibt
    Ohne Aenderungen und vor der letzten Seite gibt es keine Leiste. */
 let scanBefore=null;
-const allScanned=()=>items.every(i=>i.scanned);
 function bar(){
   const last=page===PAGES, n=items.filter(i=>i.scanned).length, all=n===items.length;
   const on=dirty||last;
@@ -444,18 +443,19 @@ function bar(){
 }
 savebar.addEventListener("click",e=>{
   if(e.target.closest("#allBtn")){
-    const withSave=dirty;
-    scanBefore=items.map(i=>i.scanned);
-    items.forEach(i=>i.scanned=true);
-    if(withSave) commitEdits(true); else render();
-    celebrate(withSave?"Changes saved":"");
+    if(dirty) openSaveDialog(true);
+    else { markAllScanned(); render(); celebrate(""); }
   } else if(e.target.closest("#allUndo")){
     items.forEach((i,k)=>i.scanned=scanBefore[k]);
     scanBefore=null; render();
   } else if(e.target.closest("#btnSave")){
-    commitEdits(true); celebrate("Changes saved");
+    openSaveDialog(false);
   }
 });
+function markAllScanned(){
+  scanBefore=items.map(i=>i.scanned);
+  items.forEach(i=>i.scanned=true);
+}
 
 /* ---------- confetti ----------
    Dieselbe Feier wie im Tagesablauf-Prototyp (Regal abgeschlossen): Fruechte steigen
@@ -617,29 +617,18 @@ document.getElementById("ordSpeichern").onclick=()=>{
 
 document.getElementById("prev").onclick=()=>{ if(page>1){page--;render();window.scrollTo({top:0});} };
 document.getElementById("next").onclick=()=>{
-  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); askToSave(); }
+  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); }
 };
 
 
 /* ---------- the save question ----------
-   Dieselbe Form wie die uebrigen Rueckfragen der App (AppFormDialog). Sie kommt
-   GENAU EINMAL: in dem Moment, in dem die letzte Seite erreicht wird und noch
-   etwas offen ist. Danach traegt die Leiste die Sache allein -- ihr Knopf ist ab
-   dort gruen. Wer auf der letzten Seite noch etwas aendert, bekommt keine zweite
-   Rueckfrage: das Blatt waere dann bei jedem Tippen im Weg. */
+   Wie in der App (askApplyOrderCorrectionsConfirmation): kein Dialog von selbst
+   am Ende der Liste. Er kommt erst auf den Tipp in der Leiste, als Bestaetigung
+   vor dem Speichern. withScan: der kombinierte Knopf -- dann markiert "Save
+   changes" zugleich alle Barcodes als gescannt; "Review again" laesst beides offen. */
 const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.3.71a1 1 0 00-1.41 0L7 5.59 2.11.7A1 1 0 10.7 2.11L5.59 7 .7 11.89a1 1 0 101.41 1.41L7 8.41l4.89 4.89a1 1 0 101.41-1.41L8.41 7l4.89-4.89a1 1 0 000-1.4z" fill="currentColor"/></svg>';
-let dlgShown=false, dlgTimer=null;
 
-function askToSave(){
-  clearTimeout(dlgTimer);
-  dlgTimer=setTimeout(()=>{
-    if(!dirty || !reachedLast || !allScanned() || dlgShown) return;
-    dlgShown=true;
-    openSaveDialog();
-  },400);
-}
-
-function openSaveDialog(){
+function openSaveDialog(withScan){
   const n=items.filter(i=>i.qty!==i.reco).length;
   const root=document.getElementById("saveDlgRoot");
   root.innerHTML=`<div class="ov on">
@@ -649,7 +638,7 @@ function openSaveDialog(){
         <button type="button" class="AppFormDialog__close" id="dlgClose" aria-label="Close">${CLOSE_ICON}</button>
       </div>
       <div class="AppFormDialog__body">
-        You changed ${n===1?"one order quantity":n+" order quantities"} and have paged through all barcodes.
+        You changed ${n===1?"one order quantity":n+" order quantities"}.${withScan?" All barcodes are marked as scanned at the same time.":""}
         <span class="sub">Without saving, the order stays exactly as it was completed – your changes are then lost.</span>
       </div>
       <div class="AppFormDialog__actions">
@@ -663,7 +652,11 @@ function openSaveDialog(){
   const close=()=>{ root.innerHTML=""; };
   document.getElementById("dlgClose").onclick=close;
   document.getElementById("dlgLater").onclick=close;
-  document.getElementById("dlgYes").onclick=()=>{ root.innerHTML=""; commitEdits(true); celebrate("Changes saved"); };
+  document.getElementById("dlgYes").onclick=()=>{
+    root.innerHTML="";
+    if(withScan) markAllScanned();
+    commitEdits(true); celebrate("Changes saved");
+  };
 }
 
 function commitEdits(quiet){
