@@ -50,7 +50,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 @keyframes celebTint{0%,55%{background:rgba(46,90,72,.14)}100%{background:rgba(46,90,72,0)}}
 @keyframes celebCard{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}9%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}16%,62%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-72%) scale(.97)}}
 @media (prefers-reduced-motion: reduce){.celebrate{animation:none;background:rgba(46,90,72,.14)}.celebrate .card{animation:none;transform:translate(-50%,-50%)}}
-.savebar .undo{background:none;border:0;padding:0;margin-left:6px;font-family:inherit;font-size:13px;font-weight:700;color:var(--green);cursor:pointer}
 
 /* ---------- search + toolbar ---------- */
 .search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink3)}
@@ -386,10 +385,9 @@ function render(){
    Die Leiste oben traegt beides, immer nur einen Knopf:
    - vor der letzten Seite, mit Aenderungen: "Save changes" grau, "n pages left"
    - letzte Seite, noch nicht alles gescannt: "x of N scanned" + "Finish" (mit Aenderungen: "Save & finish", speichert gleich mit)
-   - letzte Seite, alles gescannt: gruen, "All N barcodes scanned" (+ Undo), und
+   - letzte Seite, alles gescannt: gruen, "All N barcodes scanned", und
      "Save & finish" nur, wenn es Aenderungen gibt
    Ohne Aenderungen und vor der letzten Seite gibt es keine Leiste. */
-let scanBefore=null;
 function bar(){
   const last=page===PAGES, n=items.filter(i=>i.scanned).length, all=n===items.length;
   const on=dirty||last;
@@ -409,7 +407,7 @@ function bar(){
     act=`<button class="btn-save" id="allBtn">${dirty?"Save &amp; finish":"Finish"}</button>`;
   } else {
     ico="&#10003;";
-    head=`All ${items.length} barcodes scanned${scanBefore?'<button type="button" class="undo" id="allUndo">Undo</button>':''}`;
+    head=`All ${items.length} barcodes scanned`;
     sub=dirty?"Save your changes to the order.":"";
     if(dirty) act=`<button class="btn-save" id="btnSave">Save &amp; finish</button>`;
   }
@@ -423,15 +421,11 @@ savebar.addEventListener("click",e=>{
     markAllScanned();
     if(withSave) commitEdits(true); else render();
     celebrate(withSave?"Changes saved":"");
-  } else if(e.target.closest("#allUndo")){
-    items.forEach((i,k)=>i.scanned=scanBefore[k]);
-    scanBefore=null; render();
   } else if(e.target.closest("#btnSave")){
     commitEdits(true); celebrate("Changes saved");
   }
 });
 function markAllScanned(){
-  scanBefore=items.map(i=>i.scanned);
   items.forEach(i=>i.scanned=true);
 }
 
@@ -554,7 +548,7 @@ rows.addEventListener("click",e=>{
   const row=e.target.closest(".row"); if(!row) return;
   const id=+row.dataset.id, it=items.find(x=>x.id===id);
   if(e.target.closest(".qty")) openOrdPad(id);
-  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; scanBefore=null; render(); }
+  else if(e.target.closest(".bcw")){ it.scanned=!it.scanned; render(); }
 });
 /* ---------- order keypad ----------
    Dasselbe Tastenfeld wie in den Store-Prototypen: getippt wird in das Feld,
