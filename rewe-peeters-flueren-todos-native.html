@@ -3269,11 +3269,14 @@ const DF_KEY='dfDay_flueren', DF_CFG_KEY='dfCfg_flueren';
 const DF_PIPE_MS=90*60e3;     // Wareneingang -> Bestand: die Pipeline braucht rund 90 Minuten
 /* PLATZHALTER -- je Markt aus Appsmith. coreCheckLabel: der Name, den der Markt fuer
    "Kern & Aktion prüfen" konfiguriert; leer heisst Standardname. */
-const DF_CFG_DEFAULT={intake:true, backScan:true, shelfWalk:true, coreCheck:true, coreCheckLabel:''};
+const DF_CFG_DEFAULT={intake:false, backScan:true, shelfWalk:true, coreCheck:true, coreCheckLabel:''};
 let DF_CFG=(function(){
   try{ return Object.assign({}, DF_CFG_DEFAULT, JSON.parse(localStorage.getItem(DF_CFG_KEY)||'{}')); }
   catch(e){ return Object.assign({}, DF_CFG_DEFAULT); }
 })();
+/* "Wareneingang melden" ist raus (Nutzer, 2026-11-13) -- auch wenn ein frueherer
+   Demo-Stand es im Browser noch eingeschaltet hat. */
+DF_CFG.intake=false;
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
 function dfFresh(date){ return {date, sheetShown:false, shelvesOpen:null, setupSeen:false, shelvesSeen:false, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
@@ -3567,7 +3570,7 @@ function dfRenderSheet(){
   }).join('');
   const demo = !DF_DEMO ? '' : `<div class="DayFlow__demo"><div class="ttl">${L.demo}</div>
       <div>${L.demoNote}</div>
-      ${[['intake',L.intake],['backScan',L.back],['shelfWalk',L.shelves+' + '+L.unshelved],['coreCheck',dfForgotLabel()]].map(([k,lb])=>
+      ${[['backScan',L.back],['shelfWalk',L.shelves+' + '+L.unshelved],['coreCheck',dfForgotLabel()]].map(([k,lb])=>
         `<label><input type="checkbox" data-cfg="${k}"${DF_CFG[k]?' checked':''}> ${mmEsc(lb)} <code>${k}</code></label>`).join('')}
       <label>${L.demoLabel} <input type="text" id="dfCfgLabel" value="${mmEsc(DF_CFG.coreCheckLabel||'')}" placeholder="${mmEsc(t().forgotChip)}"> <code>coreCheckLabel</code></label>
       <div class="row2"><button type="button" id="dfReset">${L.demoReset}</button></div></div>`;
@@ -7927,7 +7930,10 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         </div>
         <button class="invask__go" type="button" data-a="dsone" data-i="${ix}">${L.dsAskBtn.replace('{u}',L.caseUnit)}</button>
       </div>`;
-    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
+    /* Tagesablauf, Schritt 3: dass der Artikel kein Regal hat, steht auch ohne
+       "Bestellung verwalten" an der Zeile -- dasselbe Kennzeichen, derselbe Tipp. */
+    const setupNoShelf = !MANAGE_MODE && DF_SETUP && !CATFILTER && !CATOPEN && tileOf(it)===UNSHELVED_TILE;
+    if(MANAGE_MODE || setupNoShelf) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
@@ -9431,8 +9437,9 @@ function rowClick(e){
       s.order=s.pendOrder; s.answered=true; s.auto=false;
       if(s.order!==prev) s.manual=true;
       s.pendOrder=null;
-      /* PD-806: genau eine Kiste mehr als die App -- dann der Grund, freiwillig. */
-      s.reasonAsk = (s.order-prev===1);
+      /* Keine Frage nach dem Grund mehr (Nutzer, 2026-11-13): eine Aenderung ist ohne
+         Rueckfrage gespeichert. */
+      s.reasonAsk = false;
     }
     render(); }
   else if(a==='invcount'){ openInvPad(ix); }
@@ -10429,44 +10436,15 @@ const _r=render; render=function(){seqCacheClear();_r();histRestore();legend();r
    Regale, nicht nur ueber das zuletzt besuchte. */
 function openSummary(){
   const implicit=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&ST[ix].mode==='ask');
-  /* noladder steht hier weiter drin, greift aber nur noch fuer Zeilen, die ueberhaupt
-     eine Eingabe annehmen. Ohne diesen Ausschluss haetten die gesperrten Zeilen
-     "Bestellung abschliessen" dauerhaft blockiert (go.disabled unten): unbeantwortet,
-     ohne jeden Weg, sie zu beantworten. */
-  const blocked=ITEMS.filter((it,ix)=>!ST[ix].hidden&&!ST[ix].answered&&!noCount(ST[ix])&&['count','noladder','unsure'].includes(ST[ix].mode));
-  const blockedSet=new Set(blocked);
-  /* Eine offene Rueckfrage ist hier KEIN Thema: bestaetigen oder nicht entscheidet der
-     Kaufmann in der Liste, und das Blatt zaehlt es ihm beim Abschliessen nicht noch
-     einmal auf. Darum bangInvBase() statt rowClear() -- eine Zeile, die aus einem
-     echten Grund ein ! traegt, steht weiter hier; eine, die nur eine unbestaetigte
-     Aenderung hat, nicht. */
-  const settled=(it,s)=>!bangInvBase(it,s) && !bangOrd(it,s);
-  const unresolved=ITEMS.filter((it,ix)=>
-    !ST[ix].hidden && !settled(it,ST[ix]) && !blockedSet.has(it));
   let cases=0; ITEMS.forEach((it,ix)=>{const s=ST[ix]; if(s.hidden) return; cases+= s.answered?s.order:(it.rungs[s.plan].order??0)});
-  const de=LANG==='de';
-  let h=dfReminderHTML();
-  if(blocked.length){
-    h+=`<div class="stmt no2" style="font-size:var(--ff-text-primary-body-text-14)">${blocked.length} ${t().needRealNumber}
-        <span class="sub">${t().needRealSub}</span></div>
-        <ul style="font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500);line-height:1.7;margin:12px 0 0;padding-left:18px">`
-      +blocked.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
-      +(blocked.length>8?`<li>… ${blocked.length-8} ${t().more}</li>`:'')+'</ul>';
-  }
-  if(unresolved.length){
-    h+=`<div class="stmt warn2" style="margin-top:${blocked.length?12:0}px;font-size:var(--ff-text-primary-body-text-14)">${unresolved.length} ${t().unresolvedTitle}
-        <span class="sub">${t().unresolvedSub}</span></div>
-        <ul style="font-size:var(--ff-text-primary-caption-12);color:var(--ff-grey-500);line-height:1.7;margin:12px 0 0;padding-left:18px">`
-      +unresolved.slice(0,8).map(x=>`<li>${x.name}</li>`).join('')
-      +(unresolved.length>8?`<li>… ${unresolved.length-8} ${t().more}</li>`:'')+'</ul>';
-  }
-  h+=`<div style="margin-top:${(blocked.length||unresolved.length)?18:0}px;font-size:var(--ff-text-primary-body-text-14);line-height:1.8;color:var(--ff-grey-700)">
+  /* Keine Warnungen beim Abschliessen (Nutzer, 2026-11-13): weder offene To-dos noch
+     fehlende oder unklare Zahlen -- nur, was jetzt bestellt wird. */
+  const h=`<div style="font-size:var(--ff-text-primary-body-text-14);line-height:1.8;color:var(--ff-grey-700)">
       <div><b>${implicit.length}</b> ${t().openConfirmed}</div>
       <div><b>${cases}</b> ${t().casesInOrder}</div></div>`;
   document.getElementById('s2Body').innerHTML=h;
   const go=document.getElementById('s2Go');
-  /* Tagesablauf: warnen, nie sperren. Fehlende Zahlen stehen oben in Rot, der Weg zum
-     Abschluss und zum MDE-Scan bleibt trotzdem offen. */
+  /* Nie sperren: der Weg zum Abschluss und zum MDE-Scan bleibt immer offen. */
   go.disabled=false; go.style.opacity=1;
   go.textContent = `${implicit.length} ${t().confirmFinish}`;
   document.getElementById('ov2').classList.add('on');
@@ -11921,27 +11899,15 @@ function bsSelfTest(){
       ok('zaehlen: und gilt als erledigt', rowClear(itR,sR)===true);
     }
 
-    /* PD-806: Passt auf genau +1 fragt nach dem Grund, freiwillig; +3 oben fragte nicht. */
+    /* Passt auf +1 speichert ohne Rueckfrage (die Grund-Frage aus PD-806 ist raus). */
     reset(); render();
     const sW=ST[ixQ];
     bump(ixQ,1);
     ok('grund: die Rueckfrage steht unter dem Bestand',
        rowHTML(ixQ).indexOf('class="invTip"') < rowHTML(ixQ).indexOf('ColumnCounterField'));
     document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
-    ok('grund: nach Passt auf +1 steht die Frage, ohne Ueberspringen', sW.reasonAsk===true
-       && rowHTML(ixQ).includes('data-a="reason"') && !rowHTML(ixQ).includes('reasonskip'));
-    ok('grund: kein "Nicht verfuegbar" in der Auswahl', REASONS.length===4 && !REASONS.includes('na'));
-    ok('grund: die offene Frage haelt die Zeile nicht auf', rowClear(itQ,sW)===true);
-    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="reason"][data-r="promo"]`).click();
-    ok('grund: Werbung ist vermerkt, die Blase ist zu',
-       sW.reason==='promo' && sW.reasonAsk===false && !rowHTML(ixQ).includes('class="invTip"'));
-    reset(); render();
-    bump(ixQ,1);
-    document.querySelector(`#list .row[data-ix="${ixQ}"] [data-a="invok"]`).click();
-    const ixO=[...document.querySelectorAll('#list .row[data-ix]')].map(r=>+r.dataset.ix).find(i=>i!==ixQ);
-    if(ixO!=null) document.querySelector(`#list .row[data-ix="${ixO}"] [data-a="inc"]`).click();
-    ok('grund: weiter an einer anderen Zeile -- die Frage geht ohne Grund zu',
-       ixO==null || (ST[ixQ].reason===null && ST[ixQ].reasonAsk===false));
+    ok('grund: nach Passt auf +1 kommt keine Frage nach dem Grund',
+       sW.reasonAsk===false && !rowHTML(ixQ).includes('data-a="reason"'));
 
     /* Die Fussleiste rechnet mit dem, was bestellt wird -- nicht mit dem Vorgemerkten. */
     reset(); render();
