@@ -5257,7 +5257,7 @@ const T={
     legBangOrder:'! Bestellung',
     legCountLabel:'Zählen',
     manageDone:'Beenden',
-    shelfEyebrow:'Regale',
+    shelfEyebrow:'Regale', shelfDateEyebrow:'Bestellung für {d}',
     shelfTitle:'Dein Bestelltag',
     shelfCount:'Regale',
     shelfItems:'Artikel',
@@ -5713,7 +5713,7 @@ const T={
     legBangOrder:'! Order',
     legCountLabel:'Count',
     manageDone:'Done',
-    shelfEyebrow:'Shelves',
+    shelfEyebrow:'Shelves', shelfDateEyebrow:'Order for {d}',
     shelfTitle:'Your order day',
     shelfCount:'shelves',
     shelfItems:'items',
@@ -6169,7 +6169,7 @@ const T={
     legBangOrder:'! Commande',
     legCountLabel:'Comptage',
     manageDone:'Terminer',
-    shelfEyebrow:'Rayons',
+    shelfEyebrow:'Rayons', shelfDateEyebrow:'Commande pour le {d}',
     shelfTitle:'Votre jour de commande',
     shelfCount:'rayons',
     shelfItems:'articles',
@@ -8740,7 +8740,7 @@ function renderCatOverlay(){
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
-          <div class="eyebrow">${t().shelfEyebrow}</div>
+          <div class="eyebrow">${CAT_EDIT ? t().shelfEyebrow : mmEsc(dfF(t().shelfDateEyebrow, {d:dfDate()}))}</div>
           <h2>${CAT_EDIT ? t().shelfEditTitle : t().shelfTitle}</h2>
           ${CAT_EDIT ? `<div class="sub">${t().shelfEditSub}</div>` : ''}
         </div>
