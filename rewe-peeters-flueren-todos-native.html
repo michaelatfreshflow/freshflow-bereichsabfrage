@@ -2704,7 +2704,9 @@ body.df-home .foot{display:none}
 .catbody .catsec.is-next .lb .DayFlow__nextLb{display:inline;margin-right:6px}
 
 .DayFlow__bands--after{margin:16px 0 0}
-.DayFlow__bands--shelves{margin:0 0 12px}
+.DayFlow__bands--shelves{margin:0}
+.DayFlow__shelfIn{padding:2px 14px 14px;border-top:1px solid var(--ff-grey-200)}
+.DayFlow__shelfIn .catsec{margin-top:10px}
 
 /* Alle Baender gleich hoch, egal ob offen, naechstes, erledigt oder uebersprungen: gleiche
    Innenabstaende, gleiches Symbol, gleiche Schrift. "Als Nächstes" faellt weg -- der gruene
@@ -3762,14 +3764,16 @@ function dfNativeBands(where){
 /* Die Regale sind ein Pflicht-To-do wie die anderen: ein Band direkt ueber dem Raster,
    "Artikel bestellen · f von n Regalen fertig". Kein Ueberspringen. Der Pfeil (und ein
    Tipp auf das Band) fuehrt ins erste noch offene Regal im Laufweg. */
-function dfNativeShelfBand(tiles, noShelfStep){
+function dfNativeShelfBand(tiles, noShelfStep, grid){
   const steps=dfSteps(), s=steps.find(x=>x.k==='shelves'); if(!s) return '';
   const nx=dfNext(steps);
   const real=tiles.filter(x=>!(noShelfStep && x.id===UNSHELVED_TILE) && x.count>0);
   const go=real.find(x=>!x.fin);
   const o = go ? {go:`data-resume="${go.id}" data-label="${go.label.replace(/"/g,'&quot;')}"`, cta:go.label} : {};
   const row=dfRowHTML(s, nx, o).replace('data-row="shelves"', go ? `data-row="shelves" data-shelf-go="${go.id}" data-label="${go.label.replace(/"/g,'&quot;')}"` : 'data-row="shelves"');
-  return `<div class="DayFlow__bands DayFlow__bands--shelves">${dfItem(s, nx, row)}</div>`;
+  /* Die Regale gehoeren sichtbar zum To-do: Chips und Kacheln stehen IN derselben Karte,
+     unter der Zeile -- nicht als loses Raster darunter. */
+  return `<div class="DayFlow__bands DayFlow__bands--shelves">${dfItem(s, nx, row+`<div class="DayFlow__shelfIn">${grid}</div>`)}</div>`;
 }
 function dfTodoHTML(grid, tiles){
   if(!DF.startedAt){ DF.startedAt=Date.now(); dfSave(); }   // fuer "Dauer heute" im Abschluss
@@ -8728,7 +8732,8 @@ function renderCatOverlay(){
               <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count${todo?' ShelfGridItem__count--warn':''}"${todo?` title="${t().shelfUnassignedHint}"`:''}>${todo?'<span class="ShelfGridItem__bang" aria-hidden="true">!</span>':''}${part ? (tl.open ? dfF(DL.tileOpen,{n:tl.open}) : DL.tileNone) : tl.count+' '+t().shelfItems}</span></div>
               ${tl.fin ? `<span class="ShelfGridItem__badge DayFlow__tileDone">${t().shelfDone}</span>` : ''}</div>
           </div>`;}).join('')}</div>`;
-    body = (DF ? dfNativeBands('before') + dfNativeShelfBand(tiles, noShelfStep) : backBandHTML()) + grid + (DF ? dfNativeBands('after') : '');   // DF kommt erst im Nachlauf
+    body = DF ? dfNativeBands('before') + dfNativeShelfBand(tiles, noShelfStep, grid) + dfNativeBands('after')
+              : backBandHTML() + grid;   // DF kommt erst im Nachlauf
   }
 
   root.innerHTML = `<div class="catov" style="top:${topPx}px;bottom:${botPx}px">
