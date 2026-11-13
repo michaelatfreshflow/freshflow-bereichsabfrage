@@ -35,6 +35,21 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .btn-save{border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;font-family:inherit;background:var(--green);color:#fff;cursor:pointer;white-space:nowrap}
 .btn-save:disabled{background:#e3e1de;color:#a1a1aa;cursor:not-allowed}
 .savebar .left{font-size:10.5px;color:#8a6a35;white-space:nowrap}
+.savebar.done{background:#eef5f1;border-bottom-color:#cfe2d8}
+.savebar.done .ico{background:var(--green)}
+.savebar.done .msg{color:#3d5a4c}
+.savebar.done .msg b{color:var(--green)}
+/* Feier nach "alles gescannt" -- aus dem Tagesablauf-Prototyp */
+.celebrate{position:fixed;inset:0;z-index:9200;pointer-events:none;animation:celebTint 1700ms ease forwards}
+.celebrate canvas{position:absolute;inset:0;width:100%;height:100%}
+.celebrate .card{position:absolute;left:50%;top:42%;text-align:center;background:var(--green);color:#fff;border-radius:15px;padding:20px 32px;box-shadow:0 4px 12px rgba(0,0,0,.35);animation:celebCard 1700ms cubic-bezier(.2,.7,.2,1) forwards}
+.celebrate .eyebrow{font-size:12px;font-weight:700;color:#c1ce5d}
+.celebrate h2{margin:6px 0 0;font-size:26px;font-weight:700}
+.celebrate .sub{font-size:14px;color:rgba(255,255,255,.75);margin-top:4px}
+.celebrate .hint{font-size:12px;color:rgba(255,255,255,.5);margin-top:10px}
+@keyframes celebTint{0%,55%{background:rgba(46,90,72,.14)}100%{background:rgba(46,90,72,0)}}
+@keyframes celebCard{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}9%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}16%,62%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-72%) scale(.97)}}
+@media (prefers-reduced-motion: reduce){.celebrate{animation:none;background:rgba(46,90,72,.14)}.celebrate .card{animation:none;transform:translate(-50%,-50%)}}
 
 /* ---------- search + toolbar ---------- */
 .search{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink3)}
@@ -112,7 +127,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .bcn{font-size:9.5px;color:var(--ink3);text-align:center;letter-spacing:.06em;margin-top:3px}
 
 /* ---------- pager ---------- */
-.pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px;border-top:1px solid var(--line)}
+.pager{display:flex;align-items:center;justify-content:flex-start;gap:18px;padding:12px 84px 12px 16px;min-height:62px;border-top:1px solid var(--line)}
 .parrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;font-size:16px;color:var(--ink2);font-family:inherit}
 .parrow:disabled{opacity:.35;cursor:not-allowed}
 .pager .p{font-size:13px;color:var(--ink2)}
@@ -129,37 +144,15 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 .cont{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:13.5px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer}
 
 
-/* ===========================================================================
-   AppFormDialog -- lib/presentation/shared/dialogs/app_form_dialog.dart
-   and PrimaryTextButton -- lib/core/widgets/buttons/text_button.dart
-   Copied unchanged from the store prototypes: this is the popup the app
-   already uses for "are you sure" questions, so the save question wears it too.
-   =========================================================================== */
 .ov{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .ov.on{display:flex}
-.AppFormDialog{width:min(680px,calc(100% - 48px));align-self:center;background:var(--ff-color-white,#fff);
-  border-radius:var(--ff-radius-c8,8px);display:flex;flex-direction:column;overflow:hidden}
-.AppFormDialog__header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ff-grey-200,#e7e6e6)}
-.AppFormDialog__title{padding:18px 24px;font-size:var(--ff-text-primary-title-18,18px);font-weight:var(--ff-weight-semibold,600);color:var(--ff-grey-900,#18181b)}
-.AppFormDialog__close{width:100px;padding:18px 24px;display:flex;align-items:center;justify-content:flex-end;
-  border:0;background:none;cursor:pointer;color:var(--ff-grey-900,#18181b)}
-.AppFormDialog__close svg{display:block}
-.AppFormDialog__body{padding:32px 32px 48px;font-size:var(--ff-text-primary-body-text-16,16px);
-  font-weight:var(--ff-weight-medium,500);color:var(--ff-grey-800,#27272a);line-height:1.5}
-.AppFormDialog__body .sub{display:block;margin-top:12px;font-size:var(--ff-text-primary-body-text-14,14px);color:var(--ink3)}
-.AppFormDialog__actions{display:flex;align-items:center;gap:12px;padding:0 24px 27px 8px}
-.AppFormDialog__actionsEnd{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
-.PrimaryTextButton{height:48px;padding:0 16px;border:0;border-radius:24px;font-family:inherit;
-  font-size:var(--ff-text-primary-body-text-16,16px);font-weight:var(--ff-weight-semibold,600);
-  cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
-.PrimaryTextButton--dark{background:var(--ff-color-primary,#306a57);color:var(--ff-color-white,#fff)}
-.PrimaryTextButton--none{background:transparent;color:var(--ff-color-primary,#306a57)}
-.PrimaryTextButton--dark:active{background:var(--ff-primary-500,#306a57)}
-.PrimaryTextButton--none:active{background:var(--ff-primary-10,#f7fcf6)}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
 @media(max-width:620px){
+  .savebar{flex-wrap:wrap}
+  .savebar .msg{flex:1 1 calc(100% - 34px)}
+  .savebar .act{width:100%;align-items:stretch}
   .thead,.row{grid-template-columns:1fr 84px 104px;gap:6px;padding:10px 12px}
   .bcw{grid-column:1/-1;margin-top:8px}
   .invbox{min-width:0;padding:5px 4px}
@@ -188,17 +181,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
     <div class="done">&#10003;</div>
   </div>
 
-  <div class="savebar" id="savebar">
-    <div class="ico">!</div>
-    <div class="msg">
-      <b>Do you want to save your changes?</b>
-      Once you have scanned all barcodes, you can apply the changes.
-    </div>
-    <div class="act">
-      <button class="btn-save" id="btnSave" disabled>Apply changes</button>
-      <div class="left" id="pagesLeft"></div>
-    </div>
-  </div>
+  <div class="savebar" id="savebar"></div>
 
   <div class="search">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
@@ -245,6 +228,7 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
 
 </div>
 <div class="toast" id="toast"></div>
+<div id="celebRoot"></div>
 
 <div class="ov ovsheet" id="ovOrd">
   <div class="sheet">
@@ -267,7 +251,6 @@ body{font-family:var(--ff-font-primary,-apple-system,BlinkMacSystemFont,'Segoe U
       <button class="cta" id="ordSpeichern">Save</button></div>
   </div>
 </div>
-<div id="saveDlgRoot"></div>
 
 <script>
 /* ---------- fake, but deterministic, order guide ---------- */
@@ -367,9 +350,6 @@ function render(){
   const from=(page-1)*PER_PAGE, list=items.slice(from,from+PER_PAGE);
   rows.innerHTML=list.map(it=>{
     const base=(v)=>num(v*it.cs)+" "+(it.unit==="KG"?"KG":"Piece");
-    const inv = it.noCount
-      ? `<div class="invbox none">No count<br>needed</div><div class="iinfo">i</div>`
-      : `<div class="invbox"><div class="a">0 – ${num(it.invHi)}<span class="u"> CS</span></div><div class="b">0 – ${base(it.invHi)}</div></div>${it.attnInv?'<div class="bang">!</div>':''}`;
     return `
     <div class="row" data-id="${it.id}">
       <div>
@@ -382,7 +362,6 @@ function render(){
         </div>
       </div>
       <div>
-        <div class="inv">${inv}</div>
         <div class="dsize">Display size <b>${it.display} CS</b></div>
       </div>
       <div class="ord">
@@ -397,9 +376,148 @@ function render(){
   }).join("");
   pgNow.textContent=page; pgAll.textContent=PAGES;
   prev.disabled=page===1; next.disabled=page===PAGES;
-  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
   stats();
-  saveState();
+  bar();
+  document.querySelector(".thead").style.top=savebar.classList.contains("on")?"126px":"60px";
+}
+
+/* ---------- one bar at the top: changes and scanning ----------
+   Die Leiste oben traegt beides, immer nur einen Knopf:
+   - vor der letzten Seite, mit Aenderungen: "Save changes" grau, "n pages left"
+   - letzte Seite, noch nicht alles gescannt: "x of N scanned" + "Finish" (mit Aenderungen: "Save & finish", speichert gleich mit)
+   - letzte Seite, alles gescannt: gruen, "All N barcodes scanned", und
+     "Save & finish" nur, wenn es Aenderungen gibt
+   Ohne Aenderungen und vor der letzten Seite gibt es keine Leiste. */
+function bar(){
+  const last=page===PAGES, n=items.filter(i=>i.scanned).length, all=n===items.length;
+  const on=dirty||last;
+  savebar.classList.toggle("on",on);
+  savebar.classList.toggle("done",last&&all);
+  if(!on){ savebar.innerHTML=""; return; }
+  let ico="!", head, sub, act="";
+  if(!last){
+    const left=PAGES-page;
+    head="Do you want to save your changes?";
+    sub="Once you have scanned all barcodes, you can save the changes.";
+    act=`<button class="btn-save" disabled>Save changes</button>
+         <div class="left">${left===1?"1 page left":left+" pages left"}</div>`;
+  } else if(!all){
+    head=`${n} of ${items.length} barcodes scanned`;
+    sub=dirty?"Your changes are saved in the same step.":"Mark the rest as scanned to finish.";
+    act=`<button class="btn-save" id="allBtn">${dirty?"Save &amp; finish":"Finish"}</button>`;
+  } else {
+    ico="&#10003;";
+    head=`All ${items.length} barcodes scanned`;
+    sub=dirty?"Save your changes to the order.":"";
+    if(dirty) act=`<button class="btn-save" id="btnSave">Save &amp; finish</button>`;
+  }
+  savebar.innerHTML=`<div class="ico">${ico}</div>
+    <div class="msg"><b>${head}</b>${sub}</div>
+    ${act?`<div class="act">${act}</div>`:''}`;
+}
+savebar.addEventListener("click",e=>{
+  if(e.target.closest("#allBtn")){
+    const withSave=dirty;
+    markAllScanned();
+    if(withSave) commitEdits(true); else render();
+    celebrate(withSave?"Changes saved":"");
+  } else if(e.target.closest("#btnSave")){
+    commitEdits(true); celebrate("Changes saved");
+  }
+});
+function markAllScanned(){
+  items.forEach(i=>i.scanned=true);
+}
+
+/* ---------- confetti ----------
+   Dieselbe Feier wie im Tagesablauf-Prototyp (Regal abgeschlossen): Fruechte steigen
+   auf und platzen, eine gruene Karte in der Mitte. Ein Tipp raeumt sie weg; bei
+   "reduce motion" nur die Karte. */
+let FX=null, FX_TIMER=null;
+function celebrate(sub){
+  endCelebrate();
+  const reduced=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const root=document.getElementById("celebRoot");
+  root.innerHTML=`<div class="celebrate">
+    ${reduced?"":'<canvas id="celebCanvas"></canvas>'}
+    <div class="card"><div class="eyebrow">Order guide done</div>
+      <h2>All ${items.length} barcodes scanned</h2>
+      ${sub?`<div class="sub">${sub}</div>`:""}
+      <div class="hint">Tap to skip</div></div>
+  </div>`;
+  if(reduced){ FX_TIMER=setTimeout(endCelebrate,1200); return; }
+  FX={t0:null,init:false,fruits:[],shards:[],rings:[]};
+  requestAnimationFrame(celebLoop);
+}
+function endCelebrate(){
+  FX=null; clearTimeout(FX_TIMER); FX_TIMER=null;
+  document.getElementById("celebRoot").innerHTML="";
+}
+document.addEventListener("pointerdown",()=>{ if(FX||FX_TIMER) endCelebrate(); },true);
+function celebLoop(now){
+  const fx=FX, c=document.getElementById("celebCanvas");
+  if(!fx||!c) return;
+  if(fx.t0==null) fx.t0=now;
+  const dpr=window.devicePixelRatio||1, W=c.clientWidth, H=c.clientHeight;
+  if(c.width!==Math.round(W*dpr)){ c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); }
+  const ctx=c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const PAL=[["#e65050","#FF8B7A"],["#fb9410","#FFC46B"],["#c1ce5d","#E2EA9B"],
+    ["#429359","#7FC48C"],["#FAC850","#FFE79B"],["#A32D2D","#D96A6A"],["#306a57","#6ea050"]];
+  if(!fx.init){
+    fx.init=true;
+    for(let i=0;i<30;i++){
+      const p=PAL[i%PAL.length];
+      fx.fruits.push({x:W*(0.05+0.9*((i*0.37)%1)), y:H+40+Math.random()*60,
+        vx:(Math.random()-0.5)*2.6, vy:-(10.5+Math.random()*4.5),
+        r:16+Math.random()*16, rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.22,
+        fill:p[0], hi:p[1], leaf:Math.random()>0.45,
+        delay:i*42+Math.random()*90, age:0, popAt:560+Math.random()*420, popped:false});
+    }
+  }
+  const el=now-fx.t0;
+  const pop=f=>{
+    f.popped=true;
+    fx.rings.push({x:f.x,y:f.y,r:f.r,a:0.85,fill:f.hi});
+    for(let i=0;i<11;i++){
+      const a=(i/11)*6.28+Math.random(), sp=3.4+Math.random()*5.2;
+      fx.shards.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.6,s:3+Math.random()*5,a:1,
+        fill:Math.random()>0.5?f.fill:f.hi,rot:Math.random()*6.28,vr:(Math.random()-0.5)*0.5});
+    }
+  };
+  fx.fruits.forEach(f=>{
+    if(el<f.delay||f.popped) return;
+    f.age+=16.7; f.x+=f.vx; f.y+=f.vy; f.vy+=0.19; f.rot+=f.vr;
+    if(f.age>f.popAt){ pop(f); return; }
+    const sq=1+Math.sin(f.age/90)*0.06;
+    ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.scale(1/sq,sq);
+    ctx.fillStyle=f.fill; ctx.beginPath(); ctx.arc(0,0,f.r,0,6.2832); ctx.fill();
+    ctx.fillStyle=f.hi; ctx.globalAlpha=0.85;
+    ctx.beginPath(); ctx.ellipse(-f.r*0.3,-f.r*0.32,f.r*0.34,f.r*0.24,-0.6,0,6.2832); ctx.fill();
+    ctx.globalAlpha=1;
+    if(f.leaf){
+      ctx.fillStyle="#275747";
+      ctx.beginPath(); ctx.ellipse(f.r*0.16,-f.r*0.98,f.r*0.3,f.r*0.13,-0.5,0,6.2832); ctx.fill();
+      ctx.fillRect(-1.4,-f.r*1.16,2.8,f.r*0.34);
+    }
+    ctx.restore();
+  });
+  fx.rings=fx.rings.filter(r=>r.a>0.02);
+  fx.rings.forEach(r=>{
+    r.r+=5.2; r.a*=0.86;
+    ctx.strokeStyle=r.fill; ctx.globalAlpha=r.a; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,6.2832); ctx.stroke(); ctx.globalAlpha=1;
+  });
+  fx.shards=fx.shards.filter(s=>s.a>0.04&&s.y<H+60);
+  fx.shards.forEach(s=>{
+    s.x+=s.vx; s.y+=s.vy; s.vy+=0.26; s.vx*=0.99; s.rot+=s.vr; s.a*=0.975;
+    ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(s.rot);
+    ctx.globalAlpha=s.a; ctx.fillStyle=s.fill;
+    ctx.beginPath(); ctx.roundRect(-s.s/2,-s.s/2,s.s,s.s,1.5); ctx.fill();
+    ctx.restore(); ctx.globalAlpha=1;
+  });
+  if(el<2900){ requestAnimationFrame(celebLoop); return; }
+  endCelebrate();
 }
 
 function stats(){
@@ -415,15 +533,7 @@ function stats(){
   sAcc.textContent=pct(kept/items.length*100);
 }
 
-function saveState(){
-  if(!dirty) return;
-  savebar.classList.add("on");
-  const left=PAGES-page;
-  btnSave.disabled=!reachedLast;
-  pagesLeft.textContent=reachedLast?"all pages seen":(left===1?"1 page left":left+" pages left");
-}
-
-function touch(){ if(!dirty){dirty=true;saved=false;savebar.classList.add("on");} }
+function touch(){ if(!dirty){dirty=true;saved=false;} }
 
 function setQty(id,v){
   const it=items.find(x=>x.id===id);
@@ -479,63 +589,16 @@ document.getElementById("ordSpeichern").onclick=()=>{
 
 document.getElementById("prev").onclick=()=>{ if(page>1){page--;render();window.scrollTo({top:0});} };
 document.getElementById("next").onclick=()=>{
-  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); askToSave(); }
+  if(page<PAGES){ page++; if(page===PAGES) reachedLast=true; render(); window.scrollTo({top:0}); }
 };
 
 
-/* ---------- the save question ----------
-   Dieselbe Form wie die uebrigen Rueckfragen der App (AppFormDialog). Sie kommt
-   GENAU EINMAL: in dem Moment, in dem die letzte Seite erreicht wird und noch
-   etwas offen ist. Danach traegt die Leiste die Sache allein -- ihr Knopf ist ab
-   dort gruen. Wer auf der letzten Seite noch etwas aendert, bekommt keine zweite
-   Rueckfrage: das Blatt waere dann bei jedem Tippen im Weg. */
-const CLOSE_ICON='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M13.3.71a1 1 0 00-1.41 0L7 5.59 2.11.7A1 1 0 10.7 2.11L5.59 7 .7 11.89a1 1 0 101.41 1.41L7 8.41l4.89 4.89a1 1 0 101.41-1.41L8.41 7l4.89-4.89a1 1 0 000-1.4z" fill="currentColor"/></svg>';
-let dlgShown=false, dlgTimer=null;
-
-function askToSave(){
-  clearTimeout(dlgTimer);
-  dlgTimer=setTimeout(()=>{
-    if(!dirty || !reachedLast || dlgShown) return;
-    dlgShown=true;
-    openSaveDialog();
-  },400);
-}
-
-function openSaveDialog(){
-  const n=items.filter(i=>i.qty!==i.reco).length;
-  const root=document.getElementById("saveDlgRoot");
-  root.innerHTML=`<div class="ov on">
-    <div class="AppFormDialog" role="dialog" aria-modal="true">
-      <div class="AppFormDialog__header">
-        <div class="AppFormDialog__title">Apply changes?</div>
-        <button type="button" class="AppFormDialog__close" id="dlgClose" aria-label="Close">${CLOSE_ICON}</button>
-      </div>
-      <div class="AppFormDialog__body">
-        You changed ${n===1?"one order quantity":n+" order quantities"} and have paged through all barcodes.
-        <span class="sub">Without applying, the order stays exactly as it was completed – your changes are then lost.</span>
-      </div>
-      <div class="AppFormDialog__actions">
-        <div class="AppFormDialog__actionsEnd">
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--none" id="dlgLater">Review again</button>
-          <button type="button" class="PrimaryTextButton PrimaryTextButton--dark" id="dlgYes">Apply changes</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-  const close=()=>{ root.innerHTML=""; };
-  document.getElementById("dlgClose").onclick=close;
-  document.getElementById("dlgLater").onclick=close;
-  document.getElementById("dlgYes").onclick=()=>{ root.innerHTML=""; commitEdits(); };
-}
-
-function commitEdits(){
+function commitEdits(quiet){
   items.forEach(i=>i.reco=i.qty);
   dirty=false; saved=true;
-  savebar.classList.remove("on");
   render();
-  toast("Changes applied");
+  if(!quiet) toast("Changes saved");
 }
-document.getElementById("btnSave").onclick=()=>{ if(!btnSave.disabled) commitEdits(); };
 
 let tt;
 function toast(msg){
