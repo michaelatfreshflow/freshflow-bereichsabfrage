@@ -3269,11 +3269,14 @@ const DF_KEY='dfDay_flueren', DF_CFG_KEY='dfCfg_flueren';
 const DF_PIPE_MS=90*60e3;     // Wareneingang -> Bestand: die Pipeline braucht rund 90 Minuten
 /* PLATZHALTER -- je Markt aus Appsmith. coreCheckLabel: der Name, den der Markt fuer
    "Kern & Aktion prüfen" konfiguriert; leer heisst Standardname. */
-const DF_CFG_DEFAULT={intake:true, backScan:true, shelfWalk:true, coreCheck:true, coreCheckLabel:''};
+const DF_CFG_DEFAULT={intake:false, backScan:true, shelfWalk:true, coreCheck:true, coreCheckLabel:''};
 let DF_CFG=(function(){
   try{ return Object.assign({}, DF_CFG_DEFAULT, JSON.parse(localStorage.getItem(DF_CFG_KEY)||'{}')); }
   catch(e){ return Object.assign({}, DF_CFG_DEFAULT); }
 })();
+/* "Wareneingang melden" ist raus (Nutzer, 2026-11-13) -- auch wenn ein frueherer
+   Demo-Stand es im Browser noch eingeschaltet hat. */
+DF_CFG.intake=false;
 function dfCfgSave(){ try{ localStorage.setItem(DF_CFG_KEY, JSON.stringify(DF_CFG)); }catch(e){} }
 function dfFresh(date){ return {date, sheetShown:false, shelvesOpen:null, setupSeen:false, shelvesSeen:false, startedAt:null, intakeAt:null, skipped:{}, coreSeen:false, closedAt:null, mde:{}, doneAt:null, doneLeft:null}; }
 let DF=null;        // wird im Hauptskript-Nachlauf geladen (braucht HDR_DATE)
@@ -3567,7 +3570,7 @@ function dfRenderSheet(){
   }).join('');
   const demo = !DF_DEMO ? '' : `<div class="DayFlow__demo"><div class="ttl">${L.demo}</div>
       <div>${L.demoNote}</div>
-      ${[['intake',L.intake],['backScan',L.back],['shelfWalk',L.shelves+' + '+L.unshelved],['coreCheck',dfForgotLabel()]].map(([k,lb])=>
+      ${[['backScan',L.back],['shelfWalk',L.shelves+' + '+L.unshelved],['coreCheck',dfForgotLabel()]].map(([k,lb])=>
         `<label><input type="checkbox" data-cfg="${k}"${DF_CFG[k]?' checked':''}> ${mmEsc(lb)} <code>${k}</code></label>`).join('')}
       <label>${L.demoLabel} <input type="text" id="dfCfgLabel" value="${mmEsc(DF_CFG.coreCheckLabel||'')}" placeholder="${mmEsc(t().forgotChip)}"> <code>coreCheckLabel</code></label>
       <div class="row2"><button type="button" id="dfReset">${L.demoReset}</button></div></div>`;
