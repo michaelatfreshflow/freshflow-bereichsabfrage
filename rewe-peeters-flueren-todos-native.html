@@ -2704,6 +2704,9 @@ body.df-home .foot{display:none}
 .catbody .catsec.is-next .lb .DayFlow__nextLb{display:inline;margin-right:6px}
 
 .DayFlow__bands--after{margin:16px 0 0}
+.DayFlow__bands--shelves{margin:0}
+.DayFlow__shelfIn{padding:2px 14px 14px;border-top:1px solid var(--ff-grey-200)}
+.DayFlow__shelfIn .catsec{margin-top:10px}
 
 /* Alle Baender gleich hoch, egal ob offen, naechstes, erledigt oder uebersprungen: gleiche
    Innenabstaende, gleiches Symbol, gleiche Schrift. "Als Nächstes" faellt weg -- der gruene
@@ -3483,7 +3486,7 @@ function dfSteps(){
     /* "Regale abschließen" auf der Uebersicht heisst: der Gang ist durch, auch wenn nicht
        jedes Regal einzeln abgehakt wurde. Die Zahl bleibt ehrlich in der Zeile stehen. */
     const allF=tiles.length>0 && f===tiles.length;
-    steps.push({k:'shelves', title:L.shelves, done:allF || !!DF.shelvesSeen,
+    steps.push({k:'shelves', title:L.shelves, fixed:true, done:allF || !!DF.shelvesSeen,
       meta: (DF.shelvesSeen && !allF ? L.shelvesClosed+' · ' : '')+dfF(L.shelvesMeta,{f, n:tiles.length}), cta:L.shelvesCta});
   }
   if(DF_CFG.coreCheck){
@@ -3758,6 +3761,20 @@ function dfNativeBands(where){
   const rows=steps.filter(pick).map(s=>dfItem(s, nx, dfRowHTML(s, nx))).join('');
   return rows ? `<div class="DayFlow__bands DayFlow__bands--${where}">${rows}</div>` : '';
 }
+/* Die Regale sind ein Pflicht-To-do wie die anderen: ein Band direkt ueber dem Raster,
+   "Artikel bestellen · f von n Regalen fertig". Kein Ueberspringen. Der Pfeil (und ein
+   Tipp auf das Band) fuehrt ins erste noch offene Regal im Laufweg. */
+function dfNativeShelfBand(tiles, noShelfStep, grid){
+  const steps=dfSteps(), s=steps.find(x=>x.k==='shelves'); if(!s) return '';
+  const nx=dfNext(steps);
+  const real=tiles.filter(x=>!(noShelfStep && x.id===UNSHELVED_TILE) && x.count>0);
+  const go=real.find(x=>!x.fin);
+  const o = go ? {go:`data-resume="${go.id}" data-label="${go.label.replace(/"/g,'&quot;')}"`, cta:go.label} : {};
+  const row=dfRowHTML(s, nx, o).replace('data-row="shelves"', go ? `data-row="shelves" data-shelf-go="${go.id}" data-label="${go.label.replace(/"/g,'&quot;')}"` : 'data-row="shelves"');
+  /* Die Regale gehoeren sichtbar zum To-do: Chips und Kacheln stehen IN derselben Karte,
+     unter der Zeile -- nicht als loses Raster darunter. */
+  return `<div class="DayFlow__bands DayFlow__bands--shelves">${dfItem(s, nx, row+`<div class="DayFlow__shelfIn">${grid}</div>`)}</div>`;
+}
 function dfTodoHTML(grid, tiles){
   if(!DF.startedAt){ DF.startedAt=Date.now(); dfSave(); }   // fuer "Dauer heute" im Abschluss
   const steps=dfSteps(), nx=dfNext(steps);
@@ -3780,7 +3797,11 @@ function dfBindBands(root){
   root.querySelectorAll('[data-row]').forEach(el=>el.onclick=()=>{
     const s=dfSteps().find(x=>x.k===el.dataset.row);
     if(!s) return;
-    if(s.k==='shelves'){ dfToggleShelves(); return; }
+    if(s.k==='shelves'){
+      if(el.dataset.shelfGo){ pickCategory('tile', el.dataset.shelfGo, el.dataset.label); return; }
+      if(el.closest('.DayFlow__bands--shelves')) return;
+      dfToggleShelves(); return;
+    }
     if(s.k==='intake' && s.done) return;
     dfGo(s.k);
   });
@@ -8694,8 +8715,8 @@ function renderCatOverlay(){
        kein Band, sondern die Seite selbst. */
     const shelvesNext = !!DF && (dfNext(dfSteps())||{}).k==='shelves';
     const nFin = tiles.filter(tl=>tl.id!==UNSHELVED_TILE && tl.count>0 && tl.fin).length;
-    const lb = shelvesNext ? `<span class="DayFlow__nextLb">${DL.nextLbl}</span> ${dfF(DL.shelvesOf,{f:nFin, n:nShelves})}` : `${nShelves} ${t().shelfCount}`;
-    const grid = `<div class="catsec${shelvesNext?' is-next':''}"><div class="lb">${lb}</div>
+    const lb = `${nShelves} ${t().shelfCount}`;
+    const grid = `<div class="catsec"><div class="lb">${lb}</div>
           <div class="qf">
             <button class="catchip" type="button" data-a="catpick-all">${t().all}</button>
             ${nAttn ? `<button class="catchip warn" type="button" data-a="catpick-attn">${t().openItems}</button>` : ''}
@@ -8711,7 +8732,8 @@ function renderCatOverlay(){
               <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count${todo?' ShelfGridItem__count--warn':''}"${todo?` title="${t().shelfUnassignedHint}"`:''}>${todo?'<span class="ShelfGridItem__bang" aria-hidden="true">!</span>':''}${part ? (tl.open ? dfF(DL.tileOpen,{n:tl.open}) : DL.tileNone) : tl.count+' '+t().shelfItems}</span></div>
               ${tl.fin ? `<span class="ShelfGridItem__badge DayFlow__tileDone">${t().shelfDone}</span>` : ''}</div>
           </div>`;}).join('')}</div>`;
-    body = (DF ? dfNativeBands('before') : backBandHTML()) + grid + (DF ? dfNativeBands('after') : '');   // DF kommt erst im Nachlauf
+    body = DF ? dfNativeBands('before') + dfNativeShelfBand(tiles, noShelfStep, grid) + dfNativeBands('after')
+              : backBandHTML() + grid;   // DF kommt erst im Nachlauf
   }
 
   root.innerHTML = `<div class="catov" style="top:${topPx}px;bottom:${botPx}px">
