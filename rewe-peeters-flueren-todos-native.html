@@ -2622,7 +2622,7 @@ body.df-home .foot{display:none}
 .DayFlow__gridBox .qf .DayFlow__srch{flex:1;min-width:200px;width:auto;background:var(--ff-color-white)}
 
 /* "Fertig" steht unter dem Regalnamen, nicht daneben -- sonst bleibt dem Namen keine Breite. */
-.ShelfGridItem__badge.DayFlow__tileDone{display:inline-block;margin-top:5px}
+.ShelfGridItem__badge.DayFlow__tileDone{display:inline-block;padding:2px 7px;line-height:1.3}   /* in der Zeile neben "n Artikel", nicht darunter */
 
 /* Regal-Leiste unter der zugeklappten Zeile "Regal für Regal". */
 .DayFlow__strip{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;margin:-4px 12px 8px 62px;padding-bottom:2px}
@@ -5257,7 +5257,7 @@ const T={
     legBangOrder:'! Bestellung',
     legCountLabel:'Zählen',
     manageDone:'Beenden',
-    shelfEyebrow:'Regale',
+    shelfEyebrow:'Regale', shelfDateEyebrow:'Bestellung für {d}',
     shelfTitle:'Dein Bestelltag',
     shelfCount:'Regale',
     shelfItems:'Artikel',
@@ -5713,7 +5713,7 @@ const T={
     legBangOrder:'! Order',
     legCountLabel:'Count',
     manageDone:'Done',
-    shelfEyebrow:'Shelves',
+    shelfEyebrow:'Shelves', shelfDateEyebrow:'Order for {d}',
     shelfTitle:'Your order day',
     shelfCount:'shelves',
     shelfItems:'items',
@@ -6169,7 +6169,7 @@ const T={
     legBangOrder:'! Commande',
     legCountLabel:'Comptage',
     manageDone:'Terminer',
-    shelfEyebrow:'Rayons',
+    shelfEyebrow:'Rayons', shelfDateEyebrow:'Commande pour le {d}',
     shelfTitle:'Votre jour de commande',
     shelfCount:'rayons',
     shelfItems:'articles',
@@ -8729,8 +8729,7 @@ function renderCatOverlay(){
           <div class="ShelfGridItem${tl.fin?' ShelfGridItem--done':''}" data-key="shelf:${tl.id}" data-a="catpick-tile" data-id="${tl.id}" data-label="${tl.label.replace(/"/g,'&quot;')}">
             <div class="ShelfGridItem__leading"><img src="${tl.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>
             <div class="ShelfGridItem__body"><div class="ShelfGridItem__title">${tl.label}</div>
-              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count${todo?' ShelfGridItem__count--warn':''}"${todo?` title="${t().shelfUnassignedHint}"`:''}>${todo?'<span class="ShelfGridItem__bang" aria-hidden="true">!</span>':''}${part ? (tl.open ? dfF(DL.tileOpen,{n:tl.open}) : DL.tileNone) : tl.count+' '+t().shelfItems}</span></div>
-              ${tl.fin ? `<span class="ShelfGridItem__badge DayFlow__tileDone">${t().shelfDone}</span>` : ''}</div>
+              <div class="ShelfGridItem__meta"><span class="ShelfGridItem__count${todo?' ShelfGridItem__count--warn':''}"${todo?` title="${t().shelfUnassignedHint}"`:''}>${todo?'<span class="ShelfGridItem__bang" aria-hidden="true">!</span>':''}${part ? (tl.open ? dfF(DL.tileOpen,{n:tl.open}) : DL.tileNone) : tl.count+' '+t().shelfItems}</span>${tl.fin ? `<span class="ShelfGridItem__badge DayFlow__tileDone">${t().shelfDone}</span>` : ''}</div></div>
           </div>`;}).join('')}</div>`;
     body = DF ? dfNativeBands('before') + dfNativeShelfBand(tiles, noShelfStep, grid) + dfNativeBands('after')
               : backBandHTML() + grid;   // DF kommt erst im Nachlauf
@@ -8740,7 +8739,7 @@ function renderCatOverlay(){
     <div class="catsheet">
       <div class="cathdr">
         <div style="flex:1">
-          <div class="eyebrow">${t().shelfEyebrow}</div>
+          <div class="eyebrow">${CAT_EDIT ? t().shelfEyebrow : mmEsc(dfF(t().shelfDateEyebrow, {d:dfDate()}))}</div>
           <h2>${CAT_EDIT ? t().shelfEditTitle : t().shelfTitle}</h2>
           ${CAT_EDIT ? `<div class="sub">${t().shelfEditSub}</div>` : ''}
         </div>
