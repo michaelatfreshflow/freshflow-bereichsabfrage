@@ -7930,7 +7930,10 @@ function rowHTML(ix, extraCls, forceEye, backOnly){
         </div>
         <button class="invask__go" type="button" data-a="dsone" data-i="${ix}">${L.dsAskBtn.replace('{u}',L.caseUnit)}</button>
       </div>`;
-    if(MANAGE_MODE) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
+    /* Tagesablauf, Schritt 3: dass der Artikel kein Regal hat, steht auch ohne
+       "Bestellung verwalten" an der Zeile -- dasselbe Kennzeichen, derselbe Tipp. */
+    const setupNoShelf = !MANAGE_MODE && DF_SETUP && !CATFILTER && !CATOPEN && tileOf(it)===UNSHELVED_TILE;
+    if(MANAGE_MODE || setupNoShelf) pills+=`<button class="pill catassign" type="button" data-a="editcat" data-i="${ix}" title="${t().changeShelf}">${tileLabel(tileOf(it))} ✎</button>`;
 
     /* inventory cell */
     const box = stepHTML(it,s,ix);
